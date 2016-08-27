@@ -1,0 +1,405 @@
+ /*************************************************
+ *  Use the arrow keys to move about the room,
+ *  Spacebar: jump
+ *  z + arrow keys: strafing
+ * 
+ *  To do:
+ *    Fix order in which planes are drawn
+ *    Improve turning circle
+ *    Stop the player walking through walls
+ *    Add inclines
+ *    Add mouse control
+ * 
+ * **********************************************/
+
+var walls = [
+ '__..________________.',
+ '|.|.|...............|',
+ '|.|.L____..._____...|',
+ '|.|......|.......|..|',
+ '|.L____..|.___...L__|',
+ '|......|.|.|.|...|..|',
+ 'L____..|.L_|.L_..|..|',
+ '|....|.|.......|.|..|',
+ 'L__..|.L____...|....|', 
+ '|..|...........L....|',
+ '|..L______..........|',
+ '|...................|',
+ '|...................|',
+ '|...................|',
+ '|...........1.......|',
+ '|...................L______',
+ '|...................L___...|',
+ '|..........................|',
+ '|..................._______|',
+ 'L.._________________|'
+];
+
+frameRate(24);
+var backgroundSky = getImage("space/background");
+var persp = 280;    // focal point for perspective (fun to play with)
+var horizon = 40;   // Can model head movements
+
+var turnSpeed = 3;
+var walkSpeed = 12;
+var jumping = 0;
+var strafing = false;
+var myHeight = 150;           // How high your head is
+var jumpHeight = 10;
+var playerPos = [0, 0, 0];    // Current position (x, y, z)
+var playerAngle = 0;          // 0 degrees = north
+var playerRadius = 24;
+var movement = [0, 0];        // Vector of current movement
+
+var tileWidth = 80;
+var wallHeight = 300;
+var wallColour = [40, 80, 50];
+var levelHeight = 100;
+
+// Make centre of the screen (0,0) for easier transformations
+translate(200, 200);
+
+var findNodes = function(nodes, target) {
+    for (var n in nodes) {
+        if (nodes[n][0] === target[0] &&
+            nodes[n][1] === target[1] &&
+            nodes[n][2] === target[2]) {
+                return n;
+            }
+    }
+    return -1;
+};
+
+/**************************************************
+ * Methods for building the scenery
+**************************************************/
+
+// Given four nodes add to building object, check nodes
+// don't already exists, then create face for those nodes.
+var addFace = function(building, nodes, colour) {
+    var face = [];
+    var i;    
+    for (var n in nodes) {
+        i = findNodes(building.nodes, nodes[n]);
+        if (i === -1) {
+            building.nodes.push(nodes[n]);
+            i = building.nodes.length - 1;
+        }
+        face.push(i);
+    }
+    building.faces.push(face);
+    building.colours.push(colour);
+};
+
+var createFloor = function(x, y, z, walls, w) {
+    var building = {
+        nodes: [],
+        faces: [],
+        colours: []
+    };
+    
+    var l = walls.length-2;
+    var colour;
+    
+    for (var i=0; i<=walls.length-2; i++) {
+        for (var j=0; j<=walls[walls.length-1-i].length-2; j++) {
+            
+            // Colour as checkerboard
+            if ((i + j) % 2) { colour = [5, 5, 6]; }
+            else { colour = [240, 240, 250]; }
+            
+            addFace(building,
+                    [[x + j * w, y, z - i * w],
+                     [x + (j+1) * w, y, z - i * w],
+                     [x + (j+1) * w, y, z - (i+1) * w],
+                     [x + j * w, y, z - (i+1) * w]],
+                    colour);
+        }
+    }
+    return building;
+};
+
+// Add a wall section
+var addWall = function(building, nodes) {
+    var colour = [wallColour[0] + random()*8 - 4,
+                  wallColour[1] + random()*8 - 4,
+                  wallColour[2] + random()*8 - 4];
+    addFace(building, nodes, colour);
+};
+
+// Read map and create walls
+var addWalls = function(building, walls, myHeight, tileWidth) {
+    var x = building.nodes[0][0];
+    var y = building.nodes[0][1];
+    var z = building.nodes[building.nodes.length - 1][2];
+    
+    var length = walls.length - 1;
+    var x1, z1;
+    var node, wallChar;
+    
+    for (var i in walls) {
+        z1 = z + tileWidth * i;
+        
+        for(var j=0; j < width; j++){
+            x1 = x + tileWidth * j;
+            wallChar = walls[i].charAt(j);
+            
+            if (wallChar === "_" || wallChar === "L") {
+                node = [[x1, y, z1],
+                        [x1 + tileWidth, y, z1],
+                        [x1 + tileWidth, y - wallHeight, z1],
+                        [x1, y - wallHeight, z1]];
+                addWall(building, node);
+            }
+            if (wallChar === "|" || wallChar === "L") {
+                node = [[x1, y, z1],
+                        [x1, y - wallHeight, z1],
+                        [x1, y - wallHeight, z1 - tileWidth],
+                        [x1, y, z1 - tileWidth]];
+                addWall(building, node); 
+            }
+            else if (wallChar === '1') {
+                // Add new level
+                node = [[x1, y-levelHeight, z1],
+                        [x1, y-levelHeight, z1-tileWidth],
+                        [x1+tileWidth, y-levelHeight, z1-tileWidth],
+                        [x1+tileWidth, y-levelHeight, z1]];
+                addWall(building, node);
+                node = [[x1, y, z1],
+                        [x1, y, z1-tileWidth],
+                        [x1, y-levelHeight, z1-tileWidth],
+                        [x1, y-levelHeight, z1]];
+                addWall(building, node);
+                node = [[x1, y, z1],
+                        [x1+tileWidth, y, z1],
+                        [x1+tileWidth, y-levelHeight, z1],
+                        [x1, y-levelHeight, z1]];
+                addWall(building, node);
+                node = [[x1+tileWidth, y, z1],
+                        [x1+tileWidth, y, z1-tileWidth],
+                        [x1+tileWidth, y-levelHeight, z1-tileWidth],
+                        [x1+tileWidth, y-levelHeight, z1]];
+                addWall(building, node);
+                node = [[x1, y, z1-tileWidth],
+                        [x1+tileWidth, y, z1-tileWidth],
+                        [x1+tileWidth, y-levelHeight, z1-tileWidth],
+                        [x1, y-levelHeight, z1-tileWidth]];
+                addWall(building, node);
+            }
+        }
+    }
+};
+
+var building = createFloor(0, myHeight, 0, walls, tileWidth);
+addWalls(building, walls, myHeight, tileWidth);
+
+var objects = [building];
+
+/**************************************************
+ * Functions for 3D transformations
+**************************************************/
+
+var translate3D = function(x, y, z) {
+    for (var o in objects) {
+        var nodes = objects[o].nodes;
+        for (var i = 0; i < nodes.length; i+=1) {
+            nodes[i] = [nodes[i][0]+x, nodes[i][1]+y, nodes[i][2]+z];
+        }
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+    
+    for (var o in objects) {
+        var nodes = objects[o].nodes;
+        for (var i = 0; i < nodes.length; i+=1) {
+            x = nodes[i][0];
+            y = nodes[i][1];
+            z = nodes[i][2];
+            nodes[i] = [x, ct*y - st*z, st*y + ct*z];
+        }
+    }
+};
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+
+    for (var o in objects) {
+        var nodes = objects[o].nodes;
+        for (var i = 0; i < nodes.length; i+=1) {
+            x = nodes[i][0];
+            y = nodes[i][1];
+            z = nodes[i][2];
+            nodes[i] = [ct*x + st*z, y, -st*x + ct*z];
+        }
+    }
+};
+
+/**************************************************
+ * Functions for moving the player
+**************************************************/
+
+// Work out player's new position and move building around them.
+var movePlayer = function(x, y, z) {
+    var s = sin(playerAngle);
+    var c = cos(playerAngle);
+    playerPos[0] += x * c + y * s;
+    playerPos[1] += y * c + x * s;
+    playerPos[2] += z;
+        
+    var x1 = round((playerPos[0] + playerRadius)/tileWidth-0.5);
+    var x2 = round((playerPos[0] - playerRadius)/tileWidth-0.5);
+    var y1 = walls.length - 1 - round((playerPos[1] + playerRadius)/tileWidth - 0.5);
+    var y2 = walls.length - 1 - round((playerPos[1] - playerRadius)/tileWidth - 0.5);
+    
+    /*
+    var wall_clash = (walls[y1].charAt(x1) !== '.' ||
+        walls[y1].charAt(x2) !== '.' ||
+        walls[y2].charAt(x1) !== '.' ||
+        walls[y2].charAt(x2) !== '.');
+    */
+    
+    var wall_clash = false;
+    if (wall_clash) {
+        // Don't move
+        playerPos[0] -= x * c + y * s;
+        playerPos[1] -= y * c + x * s;
+        playerPos[2] -= z;
+    } else {
+        translate3D(-x, z, y);
+    }
+    
+};
+
+// Put player in starting position
+movePlayer(120, 40, 160);
+
+var sortFunction = function(a, b) {
+    return a[0] - b[0];
+};
+
+var draw = function() {
+    // Jumping
+    if (playerPos[2] || jumping) {
+        if (playerPos[2] + jumping < 0) {
+            jumping = - playerPos[2];
+        }
+        playerPos[2] += jumping;
+        translate3D(0, jumping, 0);
+        jumping--;  // Gravity
+    }
+
+    // Player movement
+    if (movement[0]) { movePlayer(0, -movement[0], 0); }
+    if (movement[1]) {
+        if (strafing) {
+            movePlayer(movement[1] * walkSpeed, 0, 0);
+        } else {
+            playerAngle += (movement[1] * turnSpeed) % 360;
+            rotateY3D(movement[1] * turnSpeed);
+        }
+    }
+    
+    image(backgroundSky, -201, -201, 400, 400);
+    stroke(31, 46, 30);
+    
+    var i, o, f;
+    var face;
+    var col;
+    var faces = [];
+    var nodes;
+    var node1;
+    var node2;
+    
+    for (o in objects) {
+        var obj = objects[o];
+        nodes = obj.nodes;
+
+        if ('faces' in obj) {
+            for (f in obj.faces) {
+                face = obj.faces[f];
+                col = obj.colours[f];
+
+                var fnodes = [];
+                var valid = true;
+                for (var n in face) {
+                    var p = persp / (persp- 220 -nodes[face[n]][2]);
+                    if (p > 0) {
+                        var x = nodes[face[n]][0];
+                        var y = nodes[face[n]][1];
+                        var z = nodes[face[n]][2];
+                        fnodes.push([p * x, p * y - horizon]);
+                    } else {
+                        // Face is behind us
+                        valid = false;
+                        break;
+                    }
+                }
+                if (valid) {
+// meanZ used for ordering faces doesn't quite work due to perspective
+                    var meanZ = nodes[face[0]][2] + nodes[face[2]][2] - 0.20 * (abs(fnodes[0][0]) + abs(fnodes[2][0]));
+                    faces.push([meanZ, fnodes, col]);   
+                }
+            }
+        }
+    }
+
+    faces.sort(sortFunction);
+    
+    for (f in faces) {
+        face = faces[f];
+        nodes = face[1];
+        //stroke(face[2][0], face[2][1], face[2][2]);
+        fill(face[2][0], face[2][1], face[2][2]);
+        
+        if (face[1].length === 3) {
+            // Can have triangular faces.
+            triangle(nodes[0][0], nodes[0][1],
+                     nodes[1][0], nodes[1][1],
+                     nodes[2][0], nodes[2][1]);
+        } else {
+            quad(nodes[0][0], nodes[0][1],
+                 nodes[1][0], nodes[1][1],
+                 nodes[2][0], nodes[2][1],
+                 nodes[3][0], nodes[3][1]);
+          }
+    }
+};
+
+var keyPressed = function() { 
+    if (keyCode === UP) {
+        movement[0] = -walkSpeed;
+    } else if (keyCode === DOWN) {
+        movement[0] = walkSpeed;
+    } else if (keyCode === LEFT) {
+        movement[1] = -1;
+    } else if (keyCode === RIGHT) {
+        movement[1] = 1;
+    } else if (keyCode === 32 && !playerPos[2]) {
+        jumping = jumpHeight;
+    } else if (keyCode === 90) {
+        strafing = true;
+    } else if (keyCode === 81) {
+        rotateX3D(1);
+    } else if (keyCode === 65) {
+        rotateX3D(-1);
+    }
+};
+
+// This allows keys to have an effect as long as they are held down
+var keyReleased = function() { 
+    if (keyCode === UP || keyCode === DOWN) {
+        movement[0] = 0;
+    }
+    if (keyCode === RIGHT || keyCode === LEFT) {
+        movement[1] = 0;
+    }
+    if (keyCode === 65) {
+        strafing = false;
+    }
+};

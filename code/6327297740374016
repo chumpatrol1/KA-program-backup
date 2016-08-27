@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>My Programs</title>
+        
+        <style>
+            body {
+                margin: 1px;
+                font-family: sans-serif;
+                color: #222;
+            }
+            
+            h1 {
+                background-color: rgb(52, 106, 41);
+                margin: 0;
+                padding: 12px;
+                color: #fff;
+                font-size: 32px;
+                font-weight: 600;
+                height: 40px;
+            }
+            
+            h2 {
+                font-size: 28px;
+                font-weight: 500;
+                color: #444;
+                margin-top: 8px;
+                margin-right: 10px;
+                margin-bottom: 4px;
+                padding-bottom: 0;
+                border-bottom: 1px solid #444;
+            }
+            
+            #avatar {
+                position: absolute;
+                top: 5px;
+                right: 10px;
+                width: 50px;
+                
+            }
+            
+            p {
+                margin: 8px 4px 4px 4px;
+                font-size: 15px;
+            }
+            
+            nav {
+                float: left;
+                background-color: #eee;
+                margin: 8px 20px 5px 3px;
+            }
+            
+            ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0 0 10px 0;
+            }
+            
+            a {
+                text-decoration: none;
+                color: #111;
+            }
+            
+            nav div {
+                text-align: center;
+                font-weight: bold;
+                border-bottom: 1px solid #bbb;
+                line-height: 24px;
+                margin-bottom: 4px;
+                padding-top: 3px;
+            }
+            
+            nav a {
+                line-height: 24px;
+                padding: 8px 12px 8px 8px;
+                font-size: 14px;
+            }
+            
+            nav li:hover {
+                background-color: #aaa;
+            }
+            
+            .content {
+                border-left: 1px solid #ddd;
+                margin-left: 120px;
+                padding-left: 8px;
+            }
+            
+            .program {
+                width: 122px;
+                height: 147px;
+                display: inline-block;
+                margin: 4px;
+            }
+            
+            .program img {
+                border: 1px solid #ccc;
+                width: 120px;
+                background-color: #699c52;
+            }
+            
+            .program:hover {
+                background-color: rgb(235, 241, 223);
+            }
+            
+            .program-name {
+                width: 100%;
+                display: inline-block;
+                text-align: center;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    
+    <body>
+
+    <h1>My programs</h1>
+
+    <img id="avatar" src="https://www.kasandbox.org/programming-images/avatars/leafers-sapling.png">
+    
+    <nav>
+        <div>Contents</div>
+        <ul>
+            <li><a href="#games">Games</a></li>
+            <li><a href="#nasa">NASA</a></li>
+            <li><a href="#biology">Biology</a></li>
+            <li><a href="#physics">Physics</a></li>
+            <li><a href="#particles">Particles</a></li>
+            <li><a href="#electronics">Electronics</a></li>
+            <li><a href="#geometry">Geometry</a></li>
+            <li><a href="#number-theory">Number theory</a></li>
+            <li><a href="#drawings">Drawings</a></li>
+            <li><a href="#gui-elements">GUI elements</a></li>
+            <li><a href="#collisions">Collisions</a></li>
+            <li><a href="#need-work">Need work</a></li>
+            <li><a href="#to-update">To update</a></li>
+            <li><a href="#ideas">Ideas</a></li>
+        </ul>
+    </nav>
+    
+    <div class="content">
+        <p>This is an attempt to organise and keep track of the programs I've made on Khan Academy, more for my own convience than anything else. I'll probably not get very far. At some point I'd like to add a description of each.</p>
+    
+<h2 id="games">Games</h2>
+<ul>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/khan-academy-2048/5241208742871040"><img src="https://www.khanacademy.org/computer-programming/2048/5512811686920192/5722646637445120.png">
+        <div class="program-name">2048</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/hacker-puzzle-v2/5978397440999424"><img src="https://www.khanacademy.org/computer-programming/hacker-puzzle-v2/5978397440999424/5708916163870720.png">
+        <div class="program-name">Hacker puzzle #2</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/survive-and-evolve/1564393660"><img src="https://www.khanacademy.org/computer-programming/survive-and-evolve/1564393660/5668600916475904.png">
+        <div class="program-name">Survive & evolve</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/stock-market-simulation/1982327104"><img src="https://www.khanacademy.org/computer-programming/stock-market-simulation/1982327104/266001.png">
+        <div class="program-name">Stock market</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/curiosity-landing-simulation/2005175964"><img src="https://www.khanacademy.org/computer-programming/curiosity-landing-simulation/2005175964/5788636662464512.png">
+        <div class="program-name">Curiosity landing</div></a>
+    </li>
+   
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/first-person-maze-game/972626402"><img src="https://www.khanacademy.org/computer-programming/first-person-maze-game/972626402/103001.png">
+        <div class="program-name">First person maze</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/play-go/1646496761"><img src="https://www.khanacademy.org/computer-programming/play-go/1646496761/5685265389584384.png">
+        <div class="program-name">Go</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/whos-afraid-of-the-dark/1849267053"><img src="https://www.khanacademy.org/computer-programming/whos-afraid-of-the-dark/1849267053/53001.png">
+        <div class="program-name">Afraid of the dark</div></a>
+    </li>
+    
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/destroyable-landscape/5871364978769920"><img src="https://www.khanacademy.org/computer-programming/destroyable-landscape/5871364978769920/5703128158568448.png">
+        <div class="program-name">Tank fighters</div></a>
+    </li>
+</ul>
+
+<h2 id="nasa">NASA</h2>
+<ul>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/curiosity-landing-simulation/2005175964"><img src="https://www.khanacademy.org/computer-programming/curiosity-landing-simulation/2005175964/5788636662464512.png">
+        <div class="program-name">Curiosity landing</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/path-of-the-sun/5075733592408064"><img src="https://www.khanacademy.org/computer-programming/path-of-the-sun/5075733592408064/5688737870643200.png">
+        <div class="program-name">Path of the sun</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/interact-absorption-lines/2226438064"><img src="https://www.khanacademy.org/computer-programming/interact-absorption-lines/2226438064/162001.png">
+        <div class="program-name">Absorption lines</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/interact-models-of-the-solar-system/5218123607179264"><img src="https://www.khanacademy.org/computer-programming/interact-models-of-the-solar-system/5218123607179264/105001.png">
+        <div class="program-name">Solar system</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/distance-between-earth-and-mars/5145009707810816"><img src="https://www.khanacademy.org/computer-programming/distance-between-earth-and-mars/5145009707810816/5908010983489536.png">
+        <div class="program-name">Distance to Mars</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/season-simulator/2131015999"><img src="https://www.khanacademy.org/computer-programming/season-simulator/2131015999/5713144022302720.png">
+        <div class="program-name">Seasons</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/interact-features-of-mars/1994911779/"><img src="https://www.khanacademy.org/computer-programming/interact-features-of-mars/1994911779/144001.png">
+        <div class="program-name">3D Mars</div></a>
+    </li>
+</ul>
+        
+<h2 id="biology">Biology</h2>
+<ul>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/library-of-biomolecular-structures/6552432955883520"><img src="https://www.khanacademy.org/computer-programming/library-of-biomolecular-structures/6552432955883520/5744440375246848.png"><div class="program-name">Biomolecules</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/3d-double-stranded-dna/1170514481"><img src="https://www.khanacademy.org/computer-programming/3d-double-stranded-dna/1170514481/11001.png"><div class="program-name">DNA</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/survive-and-evolve/1564393660"><img src="https://www.khanacademy.org/computer-programming/survive-and-evolve/1564393660/5668600916475904.png">
+        <div class="program-name">Survive & evolve</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/modelling-an-epidemic/6131690633428992"><img src="https://www.khanacademy.org/computer-programming/modelling-an-epidemic/6131690633428992/5732694713434112.png">
+        <div class="program-name">Epidemic</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/gene-regulation-challenge/5902864482304000"><img src="https://www.khanacademy.org/computer-programming/gene-regulation-challenge/5902864482304000/5710999223009280.png"><div class="program-name">Gene regulation</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/predicting-protein-charge/5291422344806400"><img src="https://www.khanacademy.org/computer-programming/predicting-protein-charge/5291422344806400/5764640680181760.png"><div class="program-name">Protein charge</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/hyphae/2184946386"><img src="https://www.khanacademy.org/computer-programming/hyphae/2184946386/16001.png"><div class="program-name">Hyphae</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/depolarization-wave-in-the-heart/1092871348"><img src="https://www.khanacademy.org/computer-programming/depolarization-wave-in-the-heart/1092871348/26001.png"><div class="program-name">Depolarization</div></a>
+    </li>
+    
+</ul>
+
+<h2 id="physics">Physics</h2>
+<ul>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/challenge-modeling-accretion-disks/1180451277"><img src="https://www.khanacademy.org/computer-programming/challenge-modeling-accretion-disks/1180451277/5629499534213120.png">
+            <div class="program-name">Accretion disk</div></a>
+            </li>
+
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/3d-magnet-with-field/1595281509"><img src="https://www.khanacademy.org/computer-programming/3d-magnet-with-field/1595281509/5629499534213120.png">
+            <div class="program-name">3D magnet</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/interact-absorption-lines/2226438064"><img src="https://www.khanacademy.org/computer-programming/interact-absorption-lines/2226438064/162001.png">
+            <div class="program-name">Absorption lines</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/light-through-a-prism/2204692157"><img src="https://www.khanacademy.org/computer-programming/light-through-a-prism/2204692157/39001.png">
+            <div class="program-name">Prism</div></a>
+            </li>
+        </ul>
+        
+        <h2 id="particles">Particles</h2>
+        <ul>
+        <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/atomic-simulation/1064545094"><img src="https://www.khanacademy.org/computer-programming/atomic-simulation/1064545094/5764640680181760.png">
+            <div class="program-name">Diffusion</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/maxwells-demon/1237393731"><img src="https://www.khanacademy.org/computer-programming/maxwells-demon/1237393731/28001.png">
+            <div class="program-name">Maxwell's demon</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/brownian-motion/6133434541932544"><img src="https://www.khanacademy.org/computer-programming/brownian-motion/6133434541932544/5766466041282560.png">
+            <div class="program-name">Brownian motion</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/simulation-of-an-ionic-solid/1122503811"><img src="https://www.khanacademy.org/computer-programming/simulation-of-an-ionic-solid/1122503811/16001.png">
+            <div class="program-name">Ionic bonding</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/phase-transition-melting/1138788611"><img src="https://www.khanacademy.org/computer-programming/phase-transition-melting/1138788611/5629499534213120.png">
+            <div class="program-name">Transition states</div></a>
+            </li>
+        </ul>
+        
+        <h2 id="electronics">Electronics</h2>
+        <ul>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/circuit-builder/2401149160"><img src="https://www.khanacademy.org/computer-programming/circuit-builder/2401149160/5651442522128384.png">
+            <div class="program-name">Circuit builder</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/spout-circuit/2380038500"><img src="https://www.khanacademy.org/computer-programming/spout-circuit/2380038500/5707702298738688.png">
+            <div class="program-name">Spout circuit</div></a>
+            </li>
+        </ul>
+        
+<h2 id="geometry">Geometry</h2>
+<ul>
+<p>Programs exploring the properties of shapes. Generally these involve shapes, whose vertices can be dragged around.</p>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/exploring-triangles/1264460092"><img src="https://www.khanacademy.org/computer-programming/exploring-triangles/1264460092/5707702298738688.png">
+        <div class="program-name">Exploring triangles</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/garfields-proof-of-the-pythagorean-theorem/1202677659"><img src="https://www.khanacademy.org/computer-programming/garfields-proof-of-the-pythagorean-theorem/1202677659/80001.png">
+        <div class="program-name">Garfield's proof</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/exploring-inscribed-angles/1295571134/14001.png"><img src="https://www.khanacademy.org/computer-programming/exploring-inscribed-angles/1295571134/14001.png">
+        <div class="program-name">Inscribed angles</div></a>
+    </li>
+</ul>
+    
+<h2 id="number-theory">Number theory</h2>
+<ul>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/prime-density-spiral/1125572884"><img src="https://www.khanacademy.org/computer-programming/prime-density-spiral/1125572884/41001.png">
+    <div class="program-name">Prime numbers</div></a>
+    </li>
+    
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/investigating-benfords-law/1312765885"><img src="https://www.khanacademy.org/computer-programming/investigating-benfords-law/1312765885/29001.png">
+    <div class="program-name">Benford's Law</div></a>
+    </li>
+    <li class="program">
+    <img class="fork-thumb" src="">
+    <a href="https://www.khanacademy.org/computer-programming/riemann-sums/1374814664"><img src="https://www.khanacademy.org/computer-programming/riemann-sums/1374814664/4001.png">
+    <div class="program-name">Riemann sums</div></a>
+    </li>
+    <li class="program">
+    <img class="fork-thumb" src="">
+    <a href="https://www.khanacademy.org/computer-programming/challenge-eulers-totient-function/1319508440"><img src="https://www.khanacademy.org/computer-programming/challenge-eulers-totient-function/1319508440/35001.png">
+    <div class="program-name">Euler's totient</div></a>
+    </li>
+</ul>
+
+<h2 id="drawings">Drawings</h2>
+<ul>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/mona-lisa/1153732313"><img src="https://www.khanacademy.org/computer-programming/mona-lisa/1153732313/5707702298738688.png">
+        <div class="program-name">Mona Lisa</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/world-map/1399252023"><img src="https://www.khanacademy.org/computer-programming/world-map/1399252023/18001.png">
+        <div class="program-name">World map</div></a>
+    </li>
+    <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/biohazard-sign/5338133020540928"><img src="https://www.khanacademy.org/computer-programming/biohazard-sign/5338133020540928/5724160613416960.png">
+        <div class="program-name">Biohazard sign</div></a>
+    </li>
+</ul>
+        
+    <h2 id="gui-elements">GUI elements</h2>
+    <ul>
+        <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/text-box/5889541176557568"><img src="https://www.khanacademy.org/computer-programming/text-box/5889541176557568/5693417237512192.png">
+        <div class="program-name">Text box</div></a>
+        </li>
+        <li class="program">
+        <a href="https://www.khanacademy.org/computer-programming/slider/1870749124"><img src="https://www.khanacademy.org/computer-programming/slider/1870749124/15001.png">
+        <div class="program-name">Slider</div></a>
+        </li>
+    </ul>
+    
+    <h2 id="collisions">Collisions</h2>
+    <p>Programs that demonstrate how to calculate whether various geometric elements have collided.</p>
+<ul>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/projecting-a-point-onto-a-line/5721633590870016"><img src="https://www.khanacademy.org/computer-programming/projecting-a-point-onto-a-line/5721633590870016/5668600916475904.png">
+    <div class="program-name">Point + line</div></a>
+    </li>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/triangle-test/5424037858902016"><img src="https://www.khanacademy.org/computer-programming/triangle-test/5424037858902016/5757334940811264.png">
+    <div class="program-name">Point + triangle</div></a>
+    </li>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/quadrilateral-test/4814336265814016"><img src="https://www.khanacademy.org/computer-programming/quadrilateral-test/4814336265814016/5724160613416960.png">
+    <div class="program-name">Point + quad</div></a>
+    </li>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/line-line-intersection/5693288246673408"><img src="https://www.khanacademy.org/computer-programming/line-line-intersection/5693288246673408/5685265389584384.png">
+    <div class="program-name">Line + line</div></a>
+    </li>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/line-circle-intersection/5481264216539136"><img src="https://www.khanacademy.org/computer-programming/line-circle-intersection/5481264216539136/5668600916475904.png">
+    <div class="program-name">Line + circle</div></a>
+    </li>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/overlap-test/5018775083810816"><img src="https://www.khanacademy.org/computer-programming/overlap-test/5018775083810816/5629499534213120.png">
+    <div class="program-name">Rect + rect</div></a>
+    </li>
+    <li class="program">
+    <a href="https://www.khanacademy.org/computer-programming/triangle-triangle-intersection/6137098906894336/"><img src="https://www.khanacademy.org/computer-programming/triangle-triangle-intersection/6137098906894336/5741031244955648.png">
+    <div class="program-name">Triangle + triangle</div></a>
+    </li>
+    
+</ul>
+        
+        <h2 id="need-work">Need work</h2>
+        <p>Programs that I ought to finish off.</p>
+        <ul>
+        <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/spin-off-of-project-creature-colonies/5576118515269632"><img src="https://www.khanacademy.org/computer-programming/spin-off-of-project-creature-colonies/5576118515269632/5688737870643200.png"><div class="program-name">Creature colonies</div></a>
+        </li>
+        <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/into-the-goblins-lair/6232995006513152"><img src="https://www.khanacademy.org/computer-programming/into-the-goblins-lair/6232995006513152/5723665618436096.png"><div class="program-name">Text adventure</div></a>
+        </li>
+        <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/dungeon-quest/5845425537941504"><img src="https://www.khanacademy.org/computer-programming/dungeon-quest/5845425537941504/5743680166035456.png"><div class="program-name">Dungeon quest</div></a>
+        </li>
+        <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/infinite-map/6587673208946688"><img src="https://www.khanacademy.org/computer-programming/infinite-map/6587673208946688/5719570367119360.png"><div class="program-name">Role playing game</div></a>
+        </li>
+        <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/gene-regulation-challenge/5902864482304000"><img src="https://www.khanacademy.org/computer-programming/gene-regulation-challenge/5902864482304000/5710999223009280.png"><div class="program-name">Gene regulation</div></a>
+        </li>
+        </ul>
+        <h2 id="to-update">To update</h2>
+        <p>Programs that I intend to improve.</p>
+        <ul>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/first-person-maze-game/972626402"><img src="https://www.khanacademy.org/computer-programming/first-person-maze-game/972626402/103001.png">
+            <div class="program-name">First person maze</div></a>
+            </li>
+            <li class="program">
+            <a href="https://www.khanacademy.org/computer-programming/sugarscape/2306447902"><img src="https://www.khanacademy.org/computer-programming/sugarscape/2306447902/900001.png">
+            <div class="program-name">Sugarscape</div></a>
+            </li>
+        </ul>
+        <h2 id="ideas">Ideas</h2>
+        <ul>
+            <li>Space trading game</li>
+        </ul>
+    </div>
+
+
+
+    </body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<!--
+    Credit to Kazza++ for simplifying the program
+
+    TODO:
+        More statisitics (median)
+        Improve layout of data, especially graph
+        Add spin-off graph
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Get program data</title>
+        <link href='https://fonts.googleapis.com/css?family=Alegreya+Sans+SC:900,500' rel='stylesheet' type='text/css'>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        
+        <style>
+            body {
+                margin: 1px;
+                font-family: sans-serif;
+                color: #222;
+            }
+            
+            h1 {
+                background-color: rgb(52, 106, 41);
+                margin: 0;
+                padding: 12px;
+                color: #fff;
+                font-size: 50px;
+                font-family: 'Alegreya Sans SC', impact;
+                line-height: 40px;
+            }
+            
+            #avatar {
+                position: absolute;
+                top: 5px;
+                right: 10px;
+                width: 50px;
+            }
+            
+            .content {
+                margin: 10px;
+            }
+            
+            #email-input, #username-input {
+                width: 350px;
+                line-height: 16px;
+                margin-bottom: 4px;
+            }
+            button {
+                font-size: 14px;
+            }
+            #api-results {
+                width: 95%;
+            }
+            .analysis-title {
+                font-size: 80px;
+                font-weight: 400;
+                letter-spacing: -3px;
+                font-family: 'Alegreya Sans SC', impact;
+                padding: 5px;
+                display: inline-block;
+            }
+            .analysis-data {
+                display: inline-block;
+            }
+            .analysis-graph {
+                margin: 20px;
+            }
+            .analysis-graph div {
+                background-color: rgb(52, 106, 41);
+                width: 32px;
+                margin: 1px;
+                display: inline-block;
+                vertical-align: bottom;
+                position: relative;
+            }
+            .bar-text {
+                text-align: center;
+                font-size: 14px;
+                position: absolute;
+                top: -27px;
+                width: 32px;
+            }
+            .axis-text {
+                text-align: center;
+                font-size: 12px;
+                position: absolute;
+                bottom: -27px;
+                left: -17px;
+                width: 32px;
+            }
+        </style>
+    </head>
+    
+    <body>
+
+    <h1>Get Program Data</h1>
+
+    <img id="avatar" src="https://www.kasandbox.org/programming-images/avatars/leafers-sapling.png">
+    
+    <div class="content">
+        <div>KA username:
+            <input id="username-input"/>
+        </div>
+        <div>Or your email:
+            <input id="email-input"/>
+        </div>
+        <button id="get-url-button">Get data</button>
+        <span id="wait-message">Please wait...</span>
+        
+        <div id="analysis-container">
+            <div>
+                <div class="analysis-title">Votes</div>
+                <div class="analysis-data" id="vote-analysis"></div>
+            </div>
+            <div id="vote-graph" class="analysis-graph"></div>
+            <div>
+                <div class="analysis-title">Spin-offs</div>
+                <div class="analysis-data" id="spinoff-analysis"></div>
+            </div>
+            <div id="spinoff-graph" class="analysis-graph"></div>
+        </div>
+        
+        <!--
+        <button id="test-button">Test</button>
+        <button id="test-button2">Test</button>
+        <div id='test-div'></div>
+        -->
+    </div>
+
+
+    <script>
+        var usernameBox = $('#username-input');
+        var emailBox = $('#email-input');
+        var apiResultsBox = $('#api-results-container');
+        var apiResults = $('#api-results');
+        var analysisBox = $('#analysis-container');
+        var voteGraph = $('#vote-graph');
+        var spinOffGraph = $('#spinoff-graph');
+        var waitMessage = $('#wait-message');
+        
+        var MAX_SCRATCHPADS = 1000;
+        
+        analysisBox.hide();
+        apiResultsBox.hide();
+        waitMessage.hide();
+        
+        $('#get-url-button').on('click', function() {
+            waitMessage.show();
+            var username = usernameBox.val();
+            var email = emailBox.val();
+            var url;
+            
+            if (username) {
+                var url = "https://www.khanacademy.org/api/internal/user/scratchpads?username=" + encodeURIComponent(username) + "&sort=1&limit=" + MAX_SCRATCHPADS  + "&page=0&lang=en";
+            } else {
+                var url = "https://www.khanacademy.org/api/internal/user/scratchpads?email=" + encodeURIComponent(email) + "&sort=1&limit=" + MAX_SCRATCHPADS  + "&page=0&lang=en";
+            }
+            
+            $.getJSON(url + "&callback=?", function(data) {
+                handleData(data);
+            });
+        });
+        
+        var addAnalysis = function(name, data, type) {
+            if (!type) {
+                analysisBox.append($("<p>" + name + ": " + data + "</p>"));
+            } else {
+                var box = $("#" + type + "-analysis");
+                box.append($('<div>' + name + ": " + data + "</div>"));
+            }
+        };
+        
+        var createGraph = function(container, data) {
+            var maxValue = 0;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i]) {
+                    maxValue = Math.max(maxValue, data[i]);
+                }
+            }
+            
+            for (var i = 0; i < data.length; i++) {
+                var height = Math.round(160 * data[i] / maxValue);
+                var bar = $('<div class="bar" style="height:' + height + 'px;"></div>');
+                container.append(bar);
+                bar.append($('<p class="bar-text">' + (data[i] || 0) + "</p>"))
+                bar.append($('<p class="axis-text">' + Math.pow(2, i) + "</p>"))
+            }
+        };
+        
+        //createGraph([107, 103, 80, 2]);
+        
+        var addToDistribution = function(value, distribution) {
+            var bar = Math.floor(Math.log2(value));
+            if (distribution[bar]) {
+                distribution[bar]++;
+            } else {
+                distribution[bar] = 1;
+            }
+        };
+        
+        var handleData = function(data) {
+            var programs = data.scratchpads;
+            analysisBox.show();
+            waitMessage.hide();
+            
+            var programsLength = programs.length;
+            var maxVotes = 0;
+            var totalVotes = 0;
+            var voteDistribution = [];
+            var maxSpinOffs = 0;
+            var totalSpinOffs = 0;
+            var spinOffDistribution = [];
+            
+            for (var i = 0; i < programsLength; i++) {
+                var program = programs[i];
+                var votes = parseInt(program.sumVotesIncremented);
+                var spinOffs = parseInt(program.spinoffCount);
+                
+                if (votes > 0) {
+                    maxVotes = Math.max(votes, maxVotes);
+                    totalVotes += votes;
+                    addToDistribution(votes, voteDistribution);
+                }
+                
+                if (spinOffs > 0) {
+                    maxSpinOffs = Math.max(spinOffs, maxSpinOffs);
+                    totalSpinOffs += spinOffs;
+                    addToDistribution(spinOffs, spinOffDistribution);
+                }
+            }
+            
+            
+            $("#vote-analysis").empty();
+            $("#spinoff-analysis").empty();
+            
+            addAnalysis("Programs found", programsLength);
+            
+            addAnalysis("Total", totalVotes, 'vote');
+            addAnalysis("Max", maxVotes, 'vote');
+            if (programsLength) {
+                addAnalysis("Mean", Math.round(100 * totalVotes / programsLength) / 100, 'vote');
+            }
+            
+            addAnalysis("Total", totalSpinOffs, 'spinoff');
+            addAnalysis("Max", maxSpinOffs, 'spinoff');
+            if (programsLength) {
+                addAnalysis("Mean", Math.round(100 * totalSpinOffs / programsLength) / 100, 'spinoff');
+            }
+            
+            voteGraph.empty();
+            spinOffGraph.empty();
+            createGraph(voteGraph, voteDistribution);
+            createGraph(spinOffGraph, spinOffDistribution);
+        };
+        
+    </script>
+
+    </body>
+</html>

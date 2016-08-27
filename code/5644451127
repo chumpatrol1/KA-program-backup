@@ -1,0 +1,90 @@
+// What happens when you use wheels of different shapes?
+
+// Each corner traces out a sine wave, out of phase with the others.
+// The axle traces out the maximum of each of these waves.
+// The more sides you have, the more waves you have and so,
+// the closer to a straight line you get.
+
+// Try changing this
+var sides = [3, 4, 5, 12];
+
+var radius = 40;    // Distance from center to corner of shape
+var axleX = 300;    // x-coordinate for the wheel
+var speed = 1;      // How fast the graph is drawn
+
+var axlePositions = [[], [], [], []];
+
+var BLUE = color(20, 100, 200);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+textSize(20);
+textAlign(CENTER, CENTER);
+
+var t = 0;          // Time
+
+draw = function() {
+    background(250);
+    
+    t += 2;
+    var angle = t % 360;
+    
+    for (var i = 0; i < sides.length; i++) {
+        var numOfSides = sides[i];
+        var theta = 360 / numOfSides;
+        var halfTheta = theta / 2;
+        var groundY = (i + 1) * 100 - 10;
+        
+        // Ground
+        strokeWeight(3);
+        stroke(100);
+        line(0, groundY, width, groundY);
+        
+        // Label
+        fill(0);
+        text(numOfSides, width - 25, groundY - 40);
+        
+        // Position of axle above ground
+        var y = groundY - radius * cos((angle + halfTheta) % theta - halfTheta);
+        
+        // Save the position
+        axlePositions[i].push(y);
+        
+        // Remove positions that are off screen
+        if (axlePositions[i].length * speed > axleX) {
+            axlePositions[i].shift();
+        }
+        
+        pushMatrix();
+        translate(axleX, y);
+        rotate(angle);
+        
+        // Draw shape
+        noFill();
+        strokeWeight(3);
+        stroke(BLUE);
+        
+        beginShape();
+        for (var j = 0; j < numOfSides; j++) {
+            vertex(radius * sin(j * theta), radius * cos(j * theta));
+        }
+        endShape(CLOSE);
+        
+        // Axel
+        stroke(GREEN);
+        strokeWeight(2);
+        ellipse(0, 0, 8, 8);
+        
+        popMatrix();
+        
+        // Draw axle positions
+        beginShape();
+        var x = axleX;
+        
+        for (var j = axlePositions[i].length; j--;) {
+            vertex(x, axlePositions[i][j]);
+            x -= speed;
+        }
+        endShape();
+    }
+
+};

@@ -1,0 +1,126 @@
+// Bump-mapping using techniques from:
+//  https://www.khanacademy.org/computer-programming/sphere/1744699339
+// Egg shape based on information at:
+//  http://www.mathematische-basteleien.de/eggcurves.htm
+
+var lightZ = 80;
+var lightZ2 = lightZ * lightZ;
+
+var eggX = 200;
+var eggY = 200;
+var eggHeight = 120;
+var eggWidth = 80;
+var eggHeight2 = eggHeight * eggHeight;
+var eggWidth2 = eggWidth * eggWidth;
+
+var normMap = [];
+var getNormalMap = function() {
+    // Cache noise
+    var x, y, xrange, xp, yp, zp, d0, dx, dy, dz, xf, n, m;
+    var noiseScale = 1;
+    var t = 2.5;
+    var bumpAmount = 80;
+    noiseDetail(4, 0.5);
+    
+    var getShiftedNoise = function(x, y, z) {
+        m = 1 - noise(x * t, y * t, z * t) * 0.7;
+        
+        // Push noise the extremes with S-curve
+        m *= m * (3 - 2 * m);
+        m *= m * (3 - 2 * m);
+        //m *= m * (3 - 2 * m);
+        //m *= m * (3 - 2 * m);
+        // Smooth surface
+        m *= m * (6 - 5 * m) * 0.6;
+        //m *= m * (6 - 5 * m) * 0.8;
+        return 1 - m;
+    };
+    
+    for (y = 1 - eggHeight; y  < eggHeight; y++) {
+        yp = y / eggHeight;
+        // Length of along x we go
+        xf = (1 + 0.4 * yp);
+        xrange = floor(sqrt(xf * eggWidth2 * (1 - y * y / eggHeight2)));
+        
+        for (x = -xrange; x <= xrange; x++) {
+            yp = y / eggHeight;
+            xp = x / eggWidth;
+            zp = sqrt(1 - xp * xp / xf - yp * yp);
+            
+            // Get noise for colours
+            n = noise(xp, yp, zp);
+            n *= n * (3 - 2 * n);
+            
+            // Find bumped normals
+            d0 = getShiftedNoise(xp, yp, zp);
+            dx = getShiftedNoise(xp + 0.001, yp, zp);
+            dy = getShiftedNoise(xp, yp + 0.001, zp);
+            dz = getShiftedNoise(xp, yp, zp + 0.001);
+            
+            // Shift each position
+            xp -= (d0 - dx) * bumpAmount;
+            yp -= (d0 - dy) * bumpAmount;
+            zp -= (d0 - dz) * bumpAmount;
+            
+            // Normalise
+            bumpAmount = (255 - d0 * 85) / sqrt(xp * xp + yp * yp + zp * zp);
+            normMap.push([xp * bumpAmount, yp * bumpAmount, zp * bumpAmount, n]);
+        }
+    }
+};
+
+getNormalMap();
+
+draw = function() {
+    background(0);
+    
+    // Calculate normalised light vector
+    var lightXNorm = mouseX - eggX;
+    var lightYNorm = mouseY - eggY;
+    var lightDist = sqrt(lightXNorm * lightXNorm + lightYNorm * lightYNorm + lightZ2);
+    lightXNorm /= lightDist;
+    lightYNorm /= lightDist;
+    var lightZNorm = lightZ / lightDist;
+    
+    loadPixels();
+    
+    var p = this.imageData.data;
+    var ms = millis();
+    
+    var light, drawY, pixelIndex;
+    var x, y, dx, xp, yp, zp, xf, norm;
+    var count = 0;
+    
+    for (y = 1 - eggHeight; y  < eggHeight; y++) {
+        yp = y / eggHeight;
+        
+        // Length of along x we go
+        xf = (1 + 0.4 * yp);
+        dx = floor(sqrt(xf * eggWidth2 * (1 - y * y / eggHeight2)));
+        
+        // Where to draw the shape
+        drawY = eggX + (y + eggY) * 400;
+        
+        for (x = -dx; x <= dx; x++) {
+            // Dot product of light and position on sphere
+            // Normal of sphere = [xp, yp, zp]
+            norm = normMap[count++];
+            light = norm[0] * lightXNorm + norm[1] * lightYNorm + norm[2] * lightZNorm;
+            light = (100 + light * 0.9);
+            
+            pixelIndex = x + drawY << 2;
+            p[pixelIndex] = light * norm[3];
+            p[pixelIndex + 1] = light * norm[3];
+            p[pixelIndex + 2] = light * 0.8;
+        }
+    }
+    
+    ms = millis() - ms;
+    updatePixels();
+    
+    // Test speed
+    fill(200);
+    text(ms, 370, 390);
+    //text(d, 370, 370);
+
+};

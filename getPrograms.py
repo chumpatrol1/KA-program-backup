@@ -93,10 +93,10 @@ def writePrograms(list, start, stop, existing_programs):
     print "%d programs added" % count
 
 
-program_data = getProgramList(1000)
-print len(program_data)
-writeProgramList(program_data, 'program_list.txt', data_keys)
+#program_data = getProgramList(1000)
+#print len(program_data)
+#writeProgramList(program_data, 'program_list.txt', data_keys)
 
-#existing_programs = getExistingPrograms('code')
-#program_data = readProgramList('program_list.txt')
-#writePrograms(program_data, 0, 50, existing_programs)
+existing_programs = getExistingPrograms('code')
+program_data = readProgramList('program_list.txt')
+writePrograms(program_data, 0, 50, existing_programs)

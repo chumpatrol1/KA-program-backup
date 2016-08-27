@@ -1,0 +1,2258 @@
+/********************************************************
+    Animation Contest
+
+ Use this animation program to animate the rigged lamp.
+ When you're happy with the result, press save and paste
+ the code as a spin-off to this program.
+
+ For more information on how to use the program see:
+ https://www.khanacademy.org/partner-content/pixar/pixar-rigging/intro-to-rigging/a/animate-a-rigged-character
+ 
+ You may also find the Animation tutorial useful:
+ https://www.khanacademy.org/partner-content/pixar/animate
+ 
+ You are welcome to change the model, deformers and background.
+ For more information see the Rigging tutorial:
+ https://www.khanacademy.org/partner-content/pixar/pixar-rigging
+ 
+ Or see the Rigging Contest for inspiration for new models:
+ https://www.khanacademy.org/computer-programming/contest-rig-a-character/6080099902685184
+ 
+ The contest closes 12th May.
+*********************************************************/
+
+var shapes = [
+    {
+        name: 'base',
+        origin: [130, 350],
+        fill: color(225, 230, 235),
+        stroke: color(200, 200, 200),
+        vertices: [[66,350],[194,350],[190,335],[138,335],[138,320],[122,320],[122,335],[70,335]]
+    },
+    {
+        name: 'arm1',
+        origin: [130, 328],
+        fill: color(225, 230, 235),
+        stroke: color(200, 200, 200),
+        vertices: [[130,337],[140,327],[60,247],[50,257]]
+    },
+    {
+        name: 'arm2',
+        origin: [60, 257],
+        fill: color(225, 230, 235),
+        stroke: color(200, 200, 200),
+        vertices: [[50,257],[60,267],[140,187],[130,177]]
+    },
+    {
+        name: 'head',
+        origin: [127,194],
+        fill: color(225, 230, 235),
+        stroke: color(200, 200, 200),
+        vertices: [[150,197],[130,177],[110,197],[130,217],[150,277],[210,217]]
+    },
+    /*
+{
+    name: 'my rect',
+    origin: [200, 200],
+    center: [310, 200],
+    size: [80, 40],
+},
+{
+    name: 'my ellipse',
+    origin: [310, 260],
+    center: [310, 260],
+    radii: [80, 40],
+}
+    */
+];
+
+// Shape hierarchy
+var connections = ['base->arm1', 'arm1->arm2->head'];
+
+// Deformer data
+var deformers = [
+    'rotate->base',
+    'rotate->arm1',
+    'rotate->arm2',
+    'rotate->head',
+    'translateX->base',
+    'translateY->base',
+    'scale->head'
+];
+
+// Function to draw background of the scene
+// Note that changes to this won't show up in saved programs
+var drawBackground = function(x, y, w, h) {
+    noStroke();
+    fill(82, 115, 173);
+    rect(x, y, w, h - 75);
+    
+    fill(184, 134, 40);
+    rect(x, y + h - 75, w, 75);
+};
+
+// Display constants
+{
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(140, 140, 140);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var sansFont = createFont("sans", 24);
+var serifFont = createFont("serif", 24);
+}
+
+frameRate(24);
+var FRAMES = 24;
+var RESOLUTION = 4;
+
+var setup = false;
+var toolbar;
+var showing = {
+    'End points': true,
+    'Control points': true,
+};
+
+/*************************************
+ *          Deformer
+ * An avar that controls a set of 
+ * shapes.
+ * Changing the value of a deformer
+ * applies a transformation based on
+ * an origin and a direction.
+**************************************/
+var deformerData = {
+    translateX: {
+        min: -500, max: 500,
+        transform: function(coord, origin, value) {
+            coord.x += value;
+        }
+    },
+    translateY: {
+        min: -200, max: 200,
+        transform: function(coord, origin, value) {
+            coord.y -= value;
+        }
+    },
+    scale: {
+        min: 0.2, max: 3, value: 1,
+        transform: function(coord, origin, value) {
+            coord.x = (coord.x - origin.x) * value + origin.x;
+            coord.y = (coord.y - origin.y) * value + origin.y;
+        }
+    },
+    rotate: {
+        min: -180, max: 180,
+        transform: function(coord, origin, value) {
+            var cosAngle = cos(value);
+            var sinAngle = sin(value);
+            var x = coord.x - origin.x;
+            var y = coord.y - origin.y;
+            
+            coord.x = origin.x + x * cosAngle - y * sinAngle;
+            coord.y = origin.y + x * sinAngle + y * cosAngle;
+        }
+    }
+};
+
+// Helper funcions
+{
+var cubicSpline = function(p1, p2, m1, m2, t) {
+    var t2 = t * t;
+    var t3 = t * t2;
+    
+    var a = -1 * t3 + 3 * t2 - 3 * t + 1;
+    var b = t3;
+    var c =  3 * t3 - 6 * t2 + 3 * t;
+    var d = -3 * t3 + 3 * t2;
+    
+    return {
+        x: p1.x * a + p2.x * b + m1.x * c + m2.x * d,
+        y: p1.y * a + p2.y * b + m1.y * c + m2.y * d
+    };
+};
+
+var removeFromArray = function(arr, el) {
+    var index = arr.indexOf(el);
+    if (index > -1) {
+        arr.splice(index, 1);
+    }
+};
+
+var forEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+}
+
+// GUI
+{
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *          GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+    
+    if (params.disabled) { this.disabled = true; }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.fade = function() {
+    if (this.mouseOver() || this.selected) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, name);
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/*******************************************************
+ *          GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *          Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    forEach(this.components, 'draw');
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component;
+    
+    if (type === 'Slider') {
+        component = new Slider(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    } else if (type === 'Button') {
+        component = new Button(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    }
+    
+    if (component) {
+        this.components.push(component);
+        this.h += component.h + 12;
+    }
+    
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 5;
+    var y = this.y + this.h;
+    var w = this.w - 10;
+    var h = 20;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, this.y + this.h, w, 20, { name: opt });
+        this.components.push(button);
+        this.h += h + 2;
+    }
+    
+    this.h += 10;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    forEach(this.components, 'mousePressed');
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    forEach(this.components, 'mouseReleased');
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    forEach(this.components, 'mouseDragged');
+};
+}
+}
+
+// Interface objects
+{
+/*******************************************************
+ *          Draggable point
+ * A point that you can drag.
+********************************************************/
+{
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.r = 14;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.selected = false;
+};
+
+DraggablePoint.prototype.mouseOver = function(mx, my) {
+    return dist(mx, my, this.x, this.y) <= this.r + 1;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+    this.onMove();
+};
+
+    // To be overwritten
+DraggablePoint.prototype.onMove = function() {};
+
+DraggablePoint.prototype.draw = function(cxt) {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    cxt.stroke(BACKGROUND);
+    cxt.strokeWeight(1);
+    cxt.fill(this.color);
+    
+    var r = this.r + this.animation;
+    cxt.ellipse(this.x, this.y, r, r);
+    
+    if (this.selected) {
+        cxt.noFill();
+        cxt.stroke(BACKGROUND);
+        cxt.ellipse(this.x, this.y, r - 4, r - 4);
+    }
+};
+
+var ConstrainedPoint = function(x, y, rangeX, rangeY, color) {
+    DraggablePoint.call(this, x, y, color);
+    this.minX = rangeX[0];
+    this.maxX = rangeX[1];
+    this.minY = rangeY[0];
+    this.maxY = rangeY[1];
+};
+ConstrainedPoint.prototype = Object.create(DraggablePoint.prototype);
+
+ConstrainedPoint.prototype.move = function() {
+    this.x = constrain(this.x + mouseX - pmouseX, this.minX, this.maxX);
+    this.y = constrain(this.y + mouseY - pmouseY, this.minY, this.maxY);
+    this.onMove();
+};
+
+ConstrainedPoint.prototype.moveBy = function(dx, dy) {
+    this.x = constrain(this.x + dx, this.minX, this.maxX);
+    this.y = constrain(this.y + dy, this.minY, this.maxY);
+};
+}
+/*******************************************************
+ *          KeyFrame
+ * A draggable point representing the value of
+ *  an avar at a given keyframe.
+ * It can be moved vertically to change the value.
+********************************************************/
+{
+var KeyFrame = function(frame, value, avar, fixed) {
+    this.frame = frame;
+    this.value = value;
+    this.avar = avar;
+    this.fixed = fixed;
+    this.color = ORANGE;
+    this.animation = 0;
+    this.r = 14;
+    this.frameSelector = this.avar.timeline.frameSelector;
+    
+    this.handles = [];
+    this.frameSets = [];
+    this.setPosition();
+};
+
+KeyFrame.prototype = Object.create(DraggablePoint.prototype);
+
+KeyFrame.prototype.setPosition = function() {
+    this.x = this.avar.frameToXPosition(this.frame);
+    this.y = this.avar.valueToYPosition(this.value);
+};
+
+KeyFrame.prototype.move = function() {
+    this.y = constrain(this.y + mouseY - pmouseY, this.avar.y2, this.avar.y1);
+    this.value = this.avar.yPositionToValue(this.y);
+    
+    // Drag keyframe to next frame
+    // Overwrite any existing keyframe there
+    var mouseFrame = this.frameSelector.mapMouseToFrame();
+    if (!this.fixed && this.frame !== mouseFrame) {
+        var existing = this.avar.isKeyFrame(mouseFrame);
+        if (existing) {
+            if (existing.fixed) {
+                this.fixed = true;
+            }
+            this.avar.removeKeyFrame(existing);
+        }
+        
+        var dx = (mouseFrame - this.frame) * this.avar.dx;
+        this.frame = mouseFrame;
+        this.setPosition();
+        
+        for (var i = 0; i < this.frameSets.length; i++) {
+            this.frameSets[i].updateConstraints();
+        }
+        
+        // Move handle positions
+        for (var i = 0; i < this.handles.length; i++) {
+            this.handles[i].moveBy(dx, 0);
+        }
+    }
+    
+    this.updateFrameSets();
+};
+
+KeyFrame.prototype.updateFrameSets = function() {
+    for (var i = 0; i < this.frameSets.length; i++) {
+        this.frameSets[i].updateValues();
+    }
+};
+}
+/*******************************************************
+ *          FrameSet
+ * A set of frames between two keyframes (inclusive).
+********************************************************/
+{
+var FrameSet = function(kf1, kf2, avar) {
+    this.kfs = [kf1, kf2];
+    this.handles = [];
+    this.avar = avar;
+    this.x1 = kf1.x;
+    this.x2 = kf2.x;
+    this.y1 = avar.y2;
+    this.y2 = avar.y1;
+    
+    this.updateKeyFrames();
+};
+
+FrameSet.prototype.updateKeyFrames = function() {
+    var dx = this.x2 - this.x1;
+    var y1 = this.kfs[0].y;
+    var y2 = this.kfs[1].y;
+    
+    var d = abs(dx) * 0.2;
+    var angle = atan2(y2 - y1, dx);
+    
+    var constrainX = [this.x1, this.x2];
+    var constrainY = [this.y1, this.y2];
+    
+    var handles = [
+        new ConstrainedPoint(
+            this.x1 + d * cos(angle),
+            y1 + d * sin(angle),
+            constrainX, constrainY,
+            PINK
+        ),
+        new ConstrainedPoint(
+            this.x2 - d * cos(angle),
+            y2 - d * sin(angle),
+            constrainX, constrainY,
+            PINK
+        )
+    ];
+    
+    for (var i = 0; i < 2; i++) {
+        var kf = this.kfs[i];
+        // Attach this frameSet to each keyFrame
+        kf.frameSets.push(this);
+        
+        // Add new handle if required
+        if (kf.handles.length < kf.frameSets.length) {
+            handles[i].onMove = kf.updateFrameSets.bind(kf);
+            kf.handles.push(handles[i]);
+            this.handles.push(handles[i]);
+        } else {
+            // Update constraints on existing handles
+            var index = kf.handles.length > 1 ? 1 - i : 0;
+            var handle = kf.handles[index];
+            handle.minX = this.x1;
+            handle.maxX = this.x2;
+            handle.moveBy(0, 0);
+            this.handles.push(handle);
+        }
+    }
+    
+    this.updateValues();
+};
+
+FrameSet.prototype.getValues = function(gap) {
+    var p1 = this.kfs[0];
+    var p2 = this.kfs[1];
+    var m1 = this.handles[0];
+    var m2 = this.handles[1];
+    var values = [p1.value];
+    
+    if (this.frameLength === 1) {
+        m1 = p2;
+        m2 = p1;
+    }
+    
+    // How many points are used in this frameSet for drawing the line
+    var points = this.frameLength * RESOLUTION * gap;
+    
+    var dx = this.avar.dx / gap;
+    var x = this.avar.frameToXPosition(p1.frame) + dx;
+    var y = p1.value;
+    var minD = abs(x - p1.x);
+    
+    for (var i = 0; i < points; i++) {
+        var p = cubicSpline(p1, p2, m1, m2, i / points);
+        
+        if (i) {
+            // Distance between calculated x and real x
+            var difference = abs(x - p.x);
+            
+            // Distance will increase up to a point,
+            // then we'll go past it
+            // Use the closest value of x we find
+            if (difference > minD) {
+                values.push(y);
+                x += dx;
+                minD = abs(x - p.x);
+            } else {
+                minD = difference;
+            }
+            
+            y = this.avar.yPositionToValue(p.y);
+        }
+    }
+
+    // Last value is equal to the last keyPose value
+    values.push(p2.value);
+    return values;
+};
+
+FrameSet.prototype.updateValues = function() {
+    // TODO: Use getValues for most of this
+    
+    var p1 = this.kfs[0];
+    var p2 = this.kfs[1];
+    var m1 = this.handles[0];
+    var m2 = this.handles[1];
+    
+    // Total number of frames in this frameSet
+    this.frameLength = p2.frame - p1.frame;
+    
+    // Hide control points if frameSet is only one frame long 
+    m1.hide = (this.frameLength === 1);
+    m2.hide = (this.frameLength === 1);
+    
+    // How many points are used in this frameSet for drawing the line
+    var points = this.frameLength * RESOLUTION;
+    var values = this.avar.values;
+    
+    // First value is equal to the first keyPose value
+    var frameNumber = p1.frame;
+    values[frameNumber++] = p1.value;
+
+    //println(points);
+
+    var x = this.avar.frameToXPosition(frameNumber);
+    var avarDx = this.avar.dx;
+    var y = p1.value;
+    var minD = abs(x - p1.x);
+
+    if (this.frameLength > 1) {
+        var dt = 1 / points;
+        for (var t = 0; t < 1; t += dt) {
+            var p = cubicSpline(p1, p2, m1, m2, t);
+            
+            if (t) {
+                // Distance between calculated x and real x
+                var dx = abs(x - p.x);
+                // Distance will increase up to a point,
+                // then we'll go past it
+                // Use the closest value of x we find
+                if (dx > minD) {
+                    values[frameNumber++] = y;
+                    x += avarDx;
+                    minD = abs(x - p.x);
+                } else {
+                    minD = dx;
+                }
+                
+                y = this.avar.yPositionToValue(p.y);
+            }
+        }
+    }
+
+    // Last value is equal to the last keyPose value
+    values[frameNumber] = p2.value;
+};
+
+FrameSet.prototype.updateConstraints = function() {
+    for (var i = 0; i < this.handles.length; i++) {
+        this.handles[i].minX = this.kfs[0].x;
+        this.handles[i].maxX = this.kfs[1].x;
+        this.handles[i].moveBy(0, 0);
+    }
+};
+
+FrameSet.prototype.mouseOver = function() {
+    return mouseY >= this.y1 && mouseY <= this.y2 && 
+           mouseX >= this.x1 && mouseX <= this.x2;
+};
+}
+/*******************************************************
+ *          FrameSelector
+ * A slider allowing the user to select a frame
+********************************************************/
+{
+var FrameSelector = function(timeline, maxFrames) {
+    this.timeline = timeline;
+    this.x2 = timeline.border;
+    this.x = this.x2 + timeline.labelW;
+    this.y = timeline.y;
+    this.dx = timeline.dx;
+    this.w = (maxFrames + 1) * this.dx;
+    this.h = timeline.h;
+
+    this.r = 9;
+    this.d = this.r * 2; 
+    this.by = this.y - this.r;
+    this.maxFrames = maxFrames;
+    this.held = false;
+    
+    this.setBallPosition();
+    this.mouseOverFrame = -1;
+};
+
+FrameSelector.prototype.draw = function() {
+    // If mouse is over a frame number, circle it
+    this.mouseOverFrame = this.mapMouseToFrame();
+    
+    if (this.mouseOver() &&
+        this.mouseOverFrame !== this.timeline.currentFrame) {
+            strokeWeight(2);
+            stroke(ORANGE);
+            noFill();
+            var x = this.x + (this.mouseOverFrame + 0.5) * this.dx;
+            ellipse(x, this.by, this.d, this.d);
+    }
+    
+    // Frame counter
+    strokeWeight(1);
+    stroke(GREY);
+    fill(TEXTCOL);
+    textFont(sansFont, 13);
+    
+    textAlign(LEFT, BASELINE);
+    text("Frame:", this.x2, this.y - 3);
+    
+    // Ticks
+    textSize(11);
+    textAlign(CENTER, BASELINE);
+    for (var i = 0; i <= this.maxFrames; i++) {
+        var x = this.x + (i + 0.5) * this.dx;
+        line(x, this.y, x, this.y - 3);
+        text(i + 1, x, this.y - 5);
+    }
+    
+    // Selector ball
+    fill(ORANGE);
+    stroke(BACKGROUND);
+    ellipse(this.bx, this.by, this.d + 1, this.d + 1);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text(this.timeline.currentFrame + 1, this.bx, this.by);
+    
+    strokeWeight(1);
+    stroke(120);
+    line(this.x2, this.y, this.x + this.w, this.y);
+    stroke(0, 0, 0, 20);
+    //line(this.x2, this.y + 1, this.x + this.w, this.y + 1);
+};
+
+FrameSelector.prototype.setBallPosition = function() {
+    this.bx = this.x + (this.timeline.currentFrame + 0.5) * this.dx;
+};
+
+FrameSelector.prototype.mousePressed = function() {
+    this.held = dist(mouseX, mouseY, this.bx, this.by) <= this.r;
+    // Clicking on frame moves to that frame
+    if (this.mouseOver()) {
+        this.mouseToFrame();
+    }
+};
+
+FrameSelector.prototype.mouseDragged = function() {
+    if (this.held) {
+        this.mouseToFrame();
+        return true;
+    }
+};
+
+FrameSelector.prototype.mouseOver = function() {
+    return mouseX > this.x && mouseX < this.x + this.w &&
+           mouseY < this.y && mouseY > this.y - this.d;
+};
+
+FrameSelector.prototype.mouseReleased = function() {
+    this.held = false;
+};
+
+FrameSelector.prototype.mapMouseToFrame = function() {
+    var f = map(mouseX + 2, this.x, this.x + this.w, 0, this.maxFrames + 1);
+    return constrain(floor(f), 0, this.maxFrames);
+};
+
+// Move to a new frame based on the mouse position
+FrameSelector.prototype.mouseToFrame = function() {
+    this.timeline.goToFrame(this.mapMouseToFrame());
+    this.setBallPosition();
+};
+}
+/*******************************************************
+ *          Avar
+ * An animation variable which controls a deformer
+ * Each variable has a value for each frame.
+ * Values are determined by keyframes and interpolation
+ * between these frames.
+*******************************************************/
+{
+var Avar = function(timeline, name, deformer, shape, model) {
+    this.timeline = timeline;
+    this.name = name;
+    this.transform = deformer.transform;
+    this.min = deformer.min;
+    this.max = deformer.max;
+    this.shape = shape;
+    this.model = model;
+    
+    var value = deformer.value || 0;
+    this.keyFrames = [];
+    this.frameSets = [];
+    this.values = [];
+    
+    this.frameCount = timeline.frameCount;
+    this.x = timeline.x;
+    this.y = timeline.dy * timeline.avars.length;
+    this.w = timeline.w2;
+    this.h = timeline.dy;
+    
+    // Distance between frames
+    this.dx = this.w / this.frameCount;
+    
+    // Controls min and max height of control points
+    var padding = 11;
+    this.y1 = this.y + this.h - padding;
+    this.y2 = this.y + padding;
+    
+    this.selected = false;
+    this.dragging = false;
+    this.toAddKeyFrame = false;
+    
+    this.addKeyFrame(0, value, true);
+    this.addKeyFrame(this.frameCount - 1, value, true);
+    this.addFrameSet(0);
+};
+
+Avar.prototype.drawPoints = function(cxt) {
+    this.keyFrames.forEach(function(kf) {
+        kf.handles.forEach(function(handle) {
+            // Control points
+            if (!handle.hide && showing['Control points']) {
+                cxt.strokeWeight(2);
+                cxt.stroke(handle.color + (100 << 24));
+                cxt.line(handle.x, handle.y, kf.x, kf.y);
+                handle.draw(cxt);
+            }
+        });
+        
+        // End points
+        if (showing['End points']) {
+            kf.draw(cxt);
+        }
+    });
+};
+
+Avar.prototype.drawLines = function(cxt) {
+    cxt.strokeWeight(2);
+    cxt.stroke(BLUE);
+    cxt.noFill();
+
+    this.frameSets.forEach(function(fs) {
+        // Just draw a line if the frameSet is one frame long
+        if (fs.frameLength === 1) {
+            cxt.line(fs.kfs[0].x, fs.kfs[0].y,
+                     fs.kfs[1].x, fs.kfs[1].y);
+        } else {
+            // Interpolated line
+            cxt.bezier(fs.kfs[0].x, fs.kfs[0].y,
+                       fs.handles[0].x, fs.handles[0].y,
+                       fs.handles[1].x, fs.handles[1].y,
+                       fs.kfs[1].x, fs.kfs[1].y);
+        }
+    });
+};
+
+Avar.prototype.updateShape = function(frame) {
+    this.shape.transform(this.transform, this.shape.origin, this.values[frame]);
+};
+
+Avar.prototype.addKeyFrame = function(frame, value, fixed) {
+    var kf = new KeyFrame(frame, value, this, fixed);
+    this.keyFrames.push(kf);
+    
+    this.keyFrames.sort(function(a, b) {
+        return a.frame - b.frame;
+    });
+    
+    // Find index after sorting
+    var index = this.keyFrames.indexOf(kf);
+ 
+    // Find existing frameset
+    if (this.frameSets.length) {
+        this.removeFrameSet(index - 1);
+    
+        // Replace with two new ones
+        this.addFrameSet(index - 1);
+        this.addFrameSet(index);
+    }
+};
+
+Avar.prototype.removeSelectedKeyFrame = function() {
+    // Check it's not the first or last frame
+    if (this.selected && !this.selected.fixed) {
+        this.removeKeyFrame(this.selected);
+    }
+};
+
+Avar.prototype.removeKeyFrame = function(keyFrame) {
+    var index = this.keyFrames.indexOf(keyFrame);
+    
+    if (index === this.keyFrames.length - 1) { index--; }
+    if (index > 0) { index--; }
+    
+    removeFromArray(this.keyFrames, keyFrame);
+    this.removeFrameSet(index);
+    this.removeFrameSet(index);
+    this.addFrameSet(index);
+};
+
+Avar.prototype.addFrameSet = function(index) {
+    var kf1 = this.keyFrames[index];
+    var kf2 = this.keyFrames[index + 1];
+    var fs = new FrameSet(kf1, kf2, this);
+    this.frameSets.push(fs);
+    
+    this.frameSets.sort(function(a, b) {
+        return a.kfs[0].frame - b.kfs[0].frame;
+    });
+};
+
+Avar.prototype.removeFrameSet = function(index) {
+    var frameSet = this.frameSets[index];
+    
+    // Remove oldFrameSet in this.frameSets
+    removeFromArray(this.frameSets, frameSet);
+    
+    // Replace oldFrameSet in keyframe.frameSets
+    for (var i = 0; i < frameSet.kfs.length; i++) {
+        var kf = frameSet.kfs[i];
+        removeFromArray(kf.frameSets, frameSet);
+    }
+};
+
+Avar.prototype.setKeyFrame = function(frameNum, value) {
+    // TODO: check keyFrame is valid
+    var keyFrame;
+    
+    for (var i = 0; i < this.keyFrames.length; i++) {
+        if (this.keyFrames[i].frame === frameNum) {
+            keyFrame = this.keyFrames[i];
+        }
+    }
+    
+    if (!keyFrame) {
+        this.addKeyFrame(frameNum, value);
+    } else {
+        keyFrame.y = this.valueToYPosition(value);
+    }
+    
+    this.updateValues();
+};
+
+Avar.prototype.getValues = function(gap) {
+    var values = [];
+
+    for (var i = 0; i < this.frameSets.length; i++) {
+        // Remove value where two frameSets overlap (because it will be the same)
+        if (i) { values.pop(); }
+        values = values.concat(this.frameSets[i].getValues(gap));
+    }
+    return values;
+};
+
+Avar.prototype.valueToYPosition = function(v) {
+    return map(v, this.min, this.max, this.y1, this.y2);
+};
+
+Avar.prototype.yPositionToValue = function(y) {
+    return map(y, this.y1, this.y2, this.min, this.max);
+};
+
+Avar.prototype.xPositionToFrame = function(x) {
+    var fs = this.timeline.frameSelector;
+    return map(x, fs.x, fs.x + fs.w, 1, fs.maxFrames + 1);
+};
+
+// Maps frame to x position on the avar image
+Avar.prototype.frameToXPosition = function(f) {
+    var t = this.timeline;
+    return t.labelW + (f + 0.5) * t.dx;
+};
+
+Avar.prototype.isKeyFrame = function(frame) {
+    for (var i = 0; i < this.keyFrames.length; i++) {
+        if (this.keyFrames[i].frame === frame) {
+            return this.keyFrames[i];
+        }
+    }
+};
+
+Avar.prototype.deselect = function() {
+    if (this.selected) {
+        this.selected.selected = false;
+        this.selected = false;
+    }
+    this.toAddKeyFrame = false;
+};
+
+Avar.prototype.mousePressed = function(mx, my) {
+    var i, kf, kfLength = this.keyFrames.length;
+    
+    // First check key frame nodes
+    if (showing['End points']) {
+        for (i = 0; i < kfLength; i++) {
+            kf = this.keyFrames[i];
+            if (kf.mouseOver(mx, my)) {
+                this.selected = kf;
+                this.dragging = kf;
+                kf.selected = true;
+                this.timeline.goToFrame(kf.frame);
+                
+                // Show remove button a non-end frame is selected
+                if (!kf.fixed) {
+                    toolbar.components[1].disabled = false;
+                }
+                return;
+            }
+        }
+    }
+    
+    // Then check keyframe handles
+    if (showing['Control points']) {
+        for (i = 0; i < kfLength; i++) {
+            kf = this.keyFrames[i];
+            for (var j = 0; j < kf.handles.length; j++) {
+                if (!kf.handles[j].hide && kf.handles[j].mouseOver(mx, my)) {
+                    this.dragging = kf.handles[j];
+                    return;
+                }
+            }
+        }
+    }
+};
+
+Avar.prototype.mouseDragged = function() {
+    if (this.dragging) {
+        this.dragging.move();
+        this.model.update();
+    }
+};
+
+Avar.prototype.mouseReleased = function() {
+    this.dragging = false;
+};
+}
+/*******************************************************
+ *          Scene
+ * A scene is box in which the Models exist.
+ * It consists of the background and an array of models.
+********************************************************/
+{
+var Scene = function(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.models = [];
+};
+
+Scene.prototype.draw = function() {
+    drawBackground(this.x, this.y, this.w, this.h);
+    
+    pushMatrix();
+    translate(this.x, this.y);
+    //  Height is reduce to 300, so scale everything
+    scale(0.75, 0.75);
+    for (var i = 0; i < this.models.length; i++) {
+        this.models[i].draw(this.x, this.y + this.h);
+    }
+    popMatrix();
+    
+    // Border
+    strokeWeight(1);
+    stroke(20);
+    noFill();
+    rect(this.x, this.y, this.w, this.h);
+    
+    // Clip scene
+    noStroke();
+    fill(BACKGROUND);
+    rect(0, 0, width, this.y);
+    rect(0, 0, this.x, height);
+    rect(this.x + this.w + 1, 0, this.x, height);
+    rect(0, this.y + this.h + 1, width, height);
+};
+
+Scene.prototype.addModel = function(model) {
+    this.models.push(model);
+};
+
+Scene.prototype.update = function() {
+    // For now we have only one model
+    this.models[0].update();
+    /*
+    for (var i = 0; i < this.models.length; i++) {
+        this.models[i].update();
+    }
+    */
+};
+}
+}
+/*************************************
+ *          Shape
+ * A set of points, which are connected
+ * by straight lines, and filled.
+ * Points are drawn relative to an
+ * origin, which is a node where
+ * deformers can be added.
+**************************************/
+{
+var drawCircle = function() {
+    var r = dist(this.finalCoords[0].x,
+                 this.finalCoords[0].y,
+                 this.finalCoords[1].x,
+                 this.finalCoords[1].y);
+    ellipse(this.finalCoords[0].x,
+            this.finalCoords[0].y, r, r);
+};
+
+var drawEllipse = function() {
+    var x = this.finalCoords[0].x;
+    var y = this.finalCoords[0].y;
+    var x1 = this.finalCoords[1].x;
+    var y1 = this.finalCoords[1].y;
+    var x2 = this.finalCoords[2].x;
+    var y2 = this.finalCoords[2].y;
+    var r1 = dist(x, y, x1, y1);
+    var r2 = dist(x, y, x2, y2);
+
+    pushMatrix();
+    translate(x, y);
+    rotate(atan2(y2 - y, x2 - x));
+    ellipse(0, 0, r1, r2);
+    popMatrix();
+};
+    
+var Shape = function(data, name) {
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    } else {
+        println("ERROR: Shape " + name + " has no origin");
+    }
+    this.originalCoords = data.vertices || [];
+
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    this.subdivide = constrain(data.subdivide | 0, 0, 4);
+
+    if (data.drawShape) {
+        this.drawShape = data.drawShape.bind(this);
+    } else if (data.center) {
+        if (data.size) {
+            // Rect
+            var center = data.center; 
+            var w = (data.size[0] || 0) * 0.5;
+            var h = (data.size[1] || 0) * 0.5;
+            this.originalCoords = [
+                [center[0] - w, center[1] - h],
+                [center[0] + w, center[1] - h],
+                [center[0] + w, center[1] + h],
+                [center[0] - w, center[1] + h],
+            ];
+        } else if (data.radius) {
+            // Circle
+            var center = data.center;
+            this.originalCoords = [
+                center,
+                [center[0] + data.radius, center[1]]
+            ];
+            this.drawShape = drawCircle.bind(this);
+        } else if (data.radii) {
+            // Ellipse
+            var center = data.center;
+            this.originalCoords = [
+                center,
+                [center[0], center[1] + data.radii[0]],
+                [center[0] + data.radii[1], center[1]]
+            ];
+            this.drawShape = drawEllipse.bind(this);
+        }
+    } else if (data.type === 'rect') {
+        
+    }
+    
+    // Shapes controlled by this one
+    this.dependentShapes = [];
+    
+    this.resetCoords();
+    this.updateCurvePoints();
+};
+
+// Convert arrays of two coordinates, [x, y], into PVectors
+// With values relative to the origin
+Shape.prototype.resetCoords = function() {
+    this.finalCoords = this.originalCoords.map(function(coord){
+        return new PVector(coord[0], coord[1]);
+    });
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+
+Shape.prototype.transform = function(transform, origin, value) {
+    if (this.moved) {
+        return;
+    }
+    this.moved = true;
+    
+    for (var i = 0; i < this.finalCoords.length; i++) {
+        transform(this.finalCoords[i], origin, value);
+    }
+    
+    this.updateCurvePoints();
+    
+    this.dependentShapes.forEach(function(shape) {
+        transform(shape.origin, origin, value);
+        shape.transform(transform, origin, value);
+    });
+};
+
+Shape.prototype.draw = function() {
+    if (this.fillColor || this.drawShape) {
+        // Shadow
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(2, 3);
+        this.drawShape(true);
+        popMatrix();
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(this.strokeWeight);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    beginShape();
+    this.curvePoints.forEach(function(p) {
+        vertex(p.x, p.y);
+    });
+    endShape(CLOSE);
+};
+
+Shape.prototype.updateCurvePoints = function() {
+    if (!this.subdivide) {
+        this.curvePoints = this.finalCoords;
+        return;
+    }
+    
+    var q = pow(2, this.subdivide);
+    var q2 = q * q;
+    var n = this.finalCoords.length;
+    var p1, p2, p3, a, b, c, s, t, x, y;
+    
+    this.curvePoints = [];
+    for (var i = 0; i < n; i++) {
+        p1 = this.finalCoords[(i + n - 1) % n];
+        p2 = this.finalCoords[i];
+        p3 = this.finalCoords[(i + 1) % n];
+        
+        for (t = 0; t < q; t++) {
+            s = q - t - 1;
+            a = (s * s + s) >> 1;
+            c = (t * t + t) >> 1;
+            b = q2 - a - c;
+            
+            x = (p1.x * a + p2.x * b + p3.x * c) / q2;
+            y = (p1.y * a + p2.y * b + p3.y * c) / q2;
+            this.curvePoints.push({x: x, y: y});
+        }
+    }
+};
+}
+/*************************************
+ *          Model
+ * An Model is an object in a scene to be animated.
+**************************************/
+{
+var Model = function(timeline, shapes, connections, deformers) {
+    this.timeline = timeline;
+    this.shapes = {};
+    this.avars = [];
+    this.id = 0;
+    
+    // Add shapes
+    if (shapes) {
+        for (var i = 0; i < shapes.length; i++) {
+            var shape = shapes[i];
+            if (!shape) { continue; }
+            this.addShape(shape);
+        }
+    }
+    
+    // Add connections
+    if (connections) {
+        for (var i = 0; i < connections.length; i++) {
+            var shapes = connections[i].split(/\s*->\s*/);
+            for (var j = 0; j < shapes.length - 1; j++) {
+                this.addConnection(shapes[j], shapes[j + 1]);
+            }
+        }
+    }
+    
+    // Add deformers
+    if (deformers) {
+        for (var i = 0; i < deformers.length; i++) {
+            this.addDeformer(deformers[i].split(/\s*->\s*/));
+        }
+    }
+};
+
+Model.prototype.draw = function() {
+    for (var shape in this.shapes) {
+        this.shapes[shape].draw();
+    }
+};
+
+Model.prototype.addShape = function(shape) {
+    var name = shape.name || "shape" + this.id++;
+    this.shapes[name] = new Shape(shape, name);
+};
+
+Model.prototype.addConnection = function(parent, child) {
+    parent = this.getShape(parent);
+    child = this.getShape(child);
+    if (parent && child) {
+        if (parent === child) {
+            println("ERROR: cannot make node dependent on itself");
+        } else {
+            parent.dependentShapes.push(child);
+        }
+    }
+};
+
+Model.prototype.addDeformer = function(d) {
+    var shape = this.getShape(d[1]);
+    
+    if (shape) {
+        var deformer = deformerData[d[0]];
+        if (deformer) {
+            var name = d.join("\n");
+            var avar = new Avar(this.timeline, name, deformer, shape, this);
+            this.avars.push(avar);
+            this.timeline.addAvar(avar);
+        }
+    }
+};
+
+Model.prototype.getShape = function(name) {
+    var shape = this.shapes[name];
+    if (shape) {
+        return shape;
+    } else {
+        println("ERROR: Invalid index: " + name);
+    }
+};
+
+Model.prototype.update = function() {
+    // Reset all coords equal to original positions
+    for (var shape in this.shapes) {
+        this.shapes[shape].resetCoords();
+    }
+    
+    // Go through deformers in order, updating each shape
+    var frame = this.timeline.currentFrame;
+    this.avars.forEach(function(avar) {
+        // Set moved to false so we can make sure we there are no infinite loops
+        for (var shape in this.shapes) {
+            this.shapes[shape].moved = false;
+        }
+        avar.updateShape(frame);
+    }, this);
+};
+}
+/*************************************
+ *          Timeline
+ * Highest level object
+ * Has a region for the frameSelector and avars
+**************************************/
+{
+var Timeline = function(sceneWidth, sceneHeight) {
+    this.border = 5;
+    
+    this.scene = new Scene(
+        (width - sceneWidth - this.border - 20 + 170) / 2, this.border,
+        sceneWidth, sceneHeight
+    );
+    
+    // Width of avar label
+    this.labelW = 64;
+    
+    // Position for timeline
+    this.x = this.labelW + this.border;
+    this.y = sceneHeight + 2 * this.border + 25;
+    
+    // Full width
+    this.w = width - 2 * this.border - 45;
+    // Width of area minus label
+    this.w2 = this.w - this.labelW;
+    this.h = height - this.y - this.border;
+    
+    // Create image where avars are drawn
+    this.avarScreen = createGraphics(this.w, this.h, JAVA2D);
+    
+    // Scroll parameter
+    this.scrollX = width - 30;
+    this.scrollY = this.y;
+    this.scrollH = height - this.y - 16; 
+    this.scrollPos = 0;     // Position along scroll
+    this.selectedScroll = true;
+    
+    // Distance between frame ticks
+    this.dx = this.w2 / FRAMES;
+    
+    this.playing = false;
+    this.frameCount = FRAMES;
+    this.currentFrame = 0;
+    this.frameSelector = new FrameSelector(this, this.frameCount - 1);
+    
+    this.avars = [];
+    this.selectedAvar = false;
+};
+
+Timeline.prototype.addModel = function(shapes, connections, deformers) {
+    // Height of avars
+    this.dy = max(120, this.h / max(1, deformers.length));
+    
+    this.scene.addModel(new Model(
+        this, shapes, connections, deformers
+    ));
+};
+
+Timeline.prototype.addAvar = function(avar) {
+    this.avars.push(avar);
+    this.setScrollAmount();
+};
+
+Timeline.prototype.setScrollAmount = function() {
+    // Length of content that is scrollable
+    this.maxScroll = max(0, this.dy * this.avars.length - this.h);
+    this.scrollScale = this.maxScroll / this.scrollH;
+};
+
+Timeline.prototype.draw = function() {
+    this.scene.draw();
+    
+    // Update frame
+    if (this.playing) {
+        var frame = (this.currentFrame + 1) % this.frameCount;
+        this.goToFrame(frame);
+    }
+    
+    this.drawAvars(this.avarScreen);
+    
+    // Frame Selector
+    this.frameSelector.draw();
+    
+    // Draw scrollbar
+    if (this.maxScroll) {
+        fill(BACKGROUND);
+        stroke(180);
+        strokeWeight(4);
+        line(this.scrollX, this.y, this.scrollX, this.y + this.scrollH);
+        ellipse(this.scrollX, this.scrollY, 20, 20);
+    }
+};
+
+Timeline.prototype.drawAvars = function(cxt) {
+    // Label
+    cxt.background(BACKGROUND);
+    cxt.noStroke();
+    cxt.fill(224);
+    cxt.rect(0, 0, this.labelW, this.h);
+    
+    // Line showing current frame
+    cxt.strokeWeight(1);
+    cxt.stroke(200);
+    var x = this.labelW + (this.currentFrame + 0.5) * this.dx;
+    cxt.line(x, 0, x, this.y + this.h);
+    
+    cxt.textAlign(CENTER, CENTER);
+    cxt.textFont(serifFont, 13);
+    
+    var midX = this.labelW / 2;
+    var y = 0;
+    var f = this.currentFrame;
+    var h2 = this.dy / 2;
+    
+    cxt.pushMatrix();
+    cxt.translate(0, -this.scrollPos);
+    
+    for (var i = 0; i < this.avars.length; i++) {
+        // Only draw avars that we can see
+        if (y < this.scrollPos + this.h &&
+            y > this.scrollPos - this.dy) {
+            var avar = this.avars[i];
+            
+            // Lower border line
+            cxt.strokeWeight(1);
+            cxt.stroke(GREY);
+            cxt.noFill();
+            cxt.line(0, y + avar.h, this.w, y + avar.h);
+            
+            // Avar name
+            cxt.fill(TEXTCOL);
+            cxt.text(avar.name, midX, y + h2 - 12);
+            // Current avar value
+            cxt.text(round(avar.values[f]), midX, y + h2 + 12);
+            
+            avar.drawLines(cxt);
+            avar.drawPoints(cxt);
+        }
+        y += this.dy;
+    }
+    
+    // Draw indicator for new keyFrame if required
+    var avar = this.mouseOverLine();
+    
+    if (avar && !avar[0].dragging) {
+        var frame = this.frameSelector.mouseOverFrame;
+        cxt.strokeWeight(2);
+        cxt.stroke(ORANGE);
+        
+        // Indicate possible keyFrame on line
+        if (!avar[0].isKeyFrame(frame)) {
+            cxt.fill(BACKGROUND);
+            cxt.ellipse(avar[1], avar[2], 13, 13);
+        }
+        
+        // Indicate this frame
+        var fs = this.frameSelector;
+        noFill();
+        strokeWeight(2);
+        stroke(ORANGE);
+        ellipse(avar[1] + this.border, fs.by, fs.r * 2 + 1, fs.r * 2 + 1);
+    }
+    
+    cxt.popMatrix();
+    image(this.avarScreen, this.border, this.y + 1);
+};
+
+Timeline.prototype.removeSelectedKeyFrame = function() {
+    for (var i = 0; i < this.avars.length; i++) {
+        if (this.avars[i].selected) {
+            this.avars[i].removeSelectedKeyFrame();
+            toolbar.components[1].disabled = true;
+        }
+    }
+};
+
+Timeline.prototype.frameToXPosition = function(f) {
+    return this.labelW + (f + 0.5) * this.dx;
+};
+
+Timeline.prototype.stop = function() {
+    this.playing = false;
+    if (toolbar && toolbar.components[0]) {
+        toolbar.components[0].name = "Play";
+    }
+};
+
+Timeline.prototype.goToFrame = function(frame) {
+    if (this.currentFrame !== frame) {
+        this.currentFrame = frame;
+        this.frameSelector.setBallPosition();
+        this.scene.update();
+    }
+};
+
+// Find whether the mouse is over an avar line
+Timeline.prototype.mouseOverLine = function() {
+    if (this.mouseOver()) {
+        // Offset mouse to timeline
+        this.mx = mouseX - this.border;
+        this.my = mouseY - this.y + this.scrollPos;
+        
+        // Find which avar the mouse is over
+        var avar = this.avars[floor(this.my / this.dy)];
+        this.mouseOverAvar = avar;
+        
+        if (avar) {
+            // Find which frame the mouse is over
+            var frame = this.frameSelector.mouseOverFrame;
+            // Exit if not over a frame or over a keyframe
+            if (frame === -1 || avar.isKeyFrame(frame)) {
+                return;
+            }
+            
+            // Otherwise return the avar and the mouse position
+            var vx = this.frameToXPosition(frame);
+            var vy = avar.valueToYPosition(avar.values[frame]);
+            if (dist(this.mx, this.my, vx, vy) <= this.dx / 2) {
+                return [avar, vx, vy];
+            }
+        }
+    }
+};
+
+Timeline.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w2 &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+Timeline.prototype.mousePressed = function() {
+    this.frameSelector.mousePressed();
+    
+    if (this.frameSelector.mouseOver()) {
+        this.stop();
+    } else if (this.mouseOver()) {
+        this.stop();
+        
+        toolbar.components[1].disabled = true;
+        
+        // Deselect
+        this.avars.forEach(function(a) { a.deselect(); });
+        
+        // Find avar selected
+        var avar = this.mouseOverLine();
+        
+        if (this.mouseOverAvar) {
+            this.mouseOverAvar.mousePressed(this.mx, this.my);
+        }
+        
+        if (avar && !this.mouseOverAvar.dragging) {
+            toolbar.components[1].disabled = avar[0].selected.fixed;
+            this.addFrameToAvar = avar[0];
+        }
+
+        
+    } else if (this.maxScroll && dist(mouseX, mouseY, this.scrollX, this.scrollY) <= 10) {
+        this.scrollSelected = true;
+    }
+};
+
+Timeline.prototype.mouseDragged = function() {
+    // Drag sliders and update values
+    if (!this.playing) {
+        this.frameSelector.mouseDragged();
+        for (var i = this.avars.length; i--;) {
+            this.avars[i].mouseDragged();
+        }
+    }
+    
+    if (this.scrollSelected) {
+        var d = this.scrollScale * (mouseY - pmouseY);
+        this.scrollPos = constrain(this.scrollPos + d, 0, this.maxScroll);
+        this.scrollY = this.y + map(this.scrollPos, 0, this.maxScroll, 0, this.scrollH);
+    }
+};
+
+Timeline.prototype.mouseReleased = function() {
+    if (!this.playing) {
+        this.frameSelector.mouseReleased();
+        forEach(this.avars, 'mouseReleased');
+        
+        // Add new keyframe if this is the same frame and avar
+        if (this.addFrameToAvar) {
+            var avar = this.mouseOverLine();
+            if (avar && avar[0] === this.addFrameToAvar) {
+                var frame = this.frameSelector.mouseOverFrame;
+                var value = avar[0].values[frame];
+                avar[0].addKeyFrame(frame, value);
+            }
+        }
+    }
+
+    this.scrollSelected = false;
+    this.addFrameToAvar = false;
+};
+}
+/*************************************
+ *          Setup
+**************************************/
+
+var timeline = new Timeline(400, 300);
+
+var restart = function() {
+    timeline.scene.models = [];
+    timeline.avars = [];
+    timeline.addModel(shapes, connections, deformers);
+    timeline.scrollPos = 0;
+    timeline.scrollY = timeline.y;
+    timeline.stop();
+    timeline.goToFrame(0);
+};
+restart();
+
+/*************************************
+ *      Set the interface
+**************************************/
+
+var writeProperty = function(prop, depth) {
+    var addSemiColon = !depth;
+    depth = depth || 1;
+    var s = "";
+    if (typeof prop === 'string') {
+        s += '"' + prop + '"';
+    } else if (!isNaN(parseFloat(prop))) {
+        s += round(prop * 100) / 100;
+    } else if (prop instanceof Array) {
+        var contents = prop.map(function(el) { return writeProperty(el, depth); });
+        s += "[" + contents.join(", ") + "]";
+    } else if (typeof prop  === "function") {
+        var txt = prop.toString().split("\n");
+        s += txt[0] + "\n";
+        var txt = txt.slice(6).join("\n");
+        s += txt.replace(/__env__\./g, "");
+    } else if (prop instanceof Object) {
+        s += "{";
+        var indent = "\n" + new Array(depth).join("  ");
+        var addComma = false;
+        for (var k in prop) {
+            if (addComma) { s += ","; }
+            s += indent + "  " + k + ": " + writeProperty(prop[k], depth + 1);
+            addComma = true;
+        }
+        s += indent + "}";
+    } else {
+        s += prop;
+    }
+    
+    if (addSemiColon) { s += ";"; }
+    
+    return s;
+};
+
+var saveModelObject = [
+"var Model = function(shapes, connections, deformers) {",
+"    this.shapes = {};",
+"    this.deformers = [];",
+"    this.id = 0;",
+"    if (shapes) {",
+"        for (var i = 0; i < shapes.length; i++) {",
+"            var shape = shapes[i];",
+"            if (!shape) { continue; }",
+"            var name = shape.name || 'shape' + this.id++;",
+"            this.shapes[name] = new Shape(shape, name);",
+"        }",
+"    }",
+"    var splitRE = new RegExp('\\\\s*->\\\\s*');",
+"    if (connections) {",
+"        for (var i = 0; i < connections.length; i++) {",
+'            var shapes = connections[i].split(splitRE);',
+"            for (var j = 0; j < shapes.length - 1; j++) {",
+"                this.shapes[shapes[j]].dependentShapes.push(this.shapes[shapes[j + 1]]);",
+"            }",
+"        }",
+"    }",
+"    if (deformers) {",
+"        for (var i = 0; i < deformers.length; i++) {",
+"            var d = deformers[i].split(splitRE);",
+"            this.deformers.push([this.shapes[d[1]], deformerData[d[0]].transform, avars[i]]);",
+"        }",
+"    }",
+"};",
+];
+
+var saveShapeObject = [
+"var drawCircle = function() {",
+"    var r = dist(this.finalCoords[0].x,",
+"                 this.finalCoords[0].y,",
+"                 this.finalCoords[1].x,",
+"                 this.finalCoords[1].y);",
+"    ellipse(this.finalCoords[0].x,",
+"            this.finalCoords[0].y, r, r);",
+"};",
+"var drawEllipse = function() {",
+"    var x = this.finalCoords[0].x;",
+"    var y = this.finalCoords[0].y;",
+"    var x1 = this.finalCoords[1].x;",
+"    var y1 = this.finalCoords[1].y;",
+"    var x2 = this.finalCoords[2].x;",
+"    var y2 = this.finalCoords[2].y;",
+"    var r1 = dist(x, y, x1, y1);",
+"    var r2 = dist(x, y, x2, y2);",
+"    pushMatrix();",
+"    translate(x, y);",
+"    rotate(atan2(y2 - y, x2 - x));",
+"    ellipse(0, 0, r1, r2);",
+"    popMatrix();",
+"};",
+"var Shape = function(data, name) {",
+"    if (data.origin) {",
+"        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);",
+"    }",
+"    this.originalCoords = data.vertices || [];",
+"    this.fillColor = data.fill;",
+"    this.strokeColor = data.stroke;",
+"    this.strokeWeight = data.strokeWeight || 1;",
+"    this.subdivide = constrain(data.subdivide | 0, 0, 4);",
+"    if (data.drawShape) {",
+"        this.drawShape = data.drawShape.bind(this);",
+"    } else if (data.center) {",
+"        if (data.size) {",
+"            // Rect",
+"            var center = data.center; ",
+"            var w = (data.size[0] || 0) * 0.5;",
+"            var h = (data.size[1] || 0) * 0.5;",
+"            this.originalCoords = [",
+"                [center[0] - w, center[1] - h],",
+"                [center[0] + w, center[1] - h],",
+"                [center[0] + w, center[1] + h],",
+"                [center[0] - w, center[1] + h],",
+"            ];",
+"        } else if (data.radius) {",
+"            // Circle",
+"            var center = data.center;",
+"            this.originalCoords = [",
+"                center,",
+"                [center[0] + data.radius, center[1]]",
+"            ];",
+"            this.drawShape = drawCircle.bind(this);",
+"        } else if (data.radii) {",
+"            // Ellipse",
+"            var center = data.center;",
+"            this.originalCoords = [",
+"                center,",
+"                [center[0], center[1] + data.radii[0]],",
+"                [center[0] + data.radii[1], center[1]]",
+"            ];",
+"            this.drawShape = drawEllipse.bind(this);",
+"        }",
+"    } else if (data.type === 'rect') {",
+"    }",
+"    // Shapes controlled by this one",
+"    this.dependentShapes = [];",
+"    this.resetCoords();",
+"    this.updateCurvePoints();",
+"};",
+"Shape.prototype.resetCoords = function() {",
+"    this.finalCoords = this.originalCoords.map(function(coord){",
+"        return new PVector(coord[0], coord[1]);",
+"    });",
+"    if (this.originalOrigin) {",
+"        this.origin = this.originalOrigin.get();",
+"    }",
+"};",
+"Shape.prototype.transform = function(transform, origin, value) {",
+"    for (var i = 0; i < this.finalCoords.length; i++) {",
+"        transform(this.finalCoords[i], origin, value);",
+"    }",
+"    this.updateCurvePoints();",
+"    this.dependentShapes.forEach(function(shape) {",
+"        transform(shape.origin, origin, value);",
+"        shape.transform(transform, origin, value);",
+"    });",
+"};",
+"Shape.prototype.draw = function() {",
+"    if (this.fillColor || this.drawShape) {",
+"        noStroke();",
+"        fill(0, 0, 0, 50);",
+"        pushMatrix();",
+"        translate(2, 3);",
+"        this.drawShape(true);",
+"        popMatrix();",
+"        fill(this.fillColor);",
+"    } else {",
+"        noFill();",
+"    }",
+"    if (this.strokeColor) {",
+"        strokeWeight(this.strokeWeight);",
+"        stroke(this.strokeColor);",
+"    } else {",
+"        noStroke();",
+"    }",
+"    this.drawShape();",
+"};",
+"Shape.prototype.drawShape = function() {",
+"    beginShape();",
+"    this.curvePoints.forEach(function(p) { vertex(p.x, p.y); });",
+"    endShape(CLOSE);",
+"};",
+"Shape.prototype.updateCurvePoints = function() {",
+"    if (!this.subdivide) {",
+"        this.curvePoints = this.finalCoords;",
+"    } else {",
+"        var q = pow(2, this.subdivide);",
+"        var q2 = q * q;",
+"        var n = this.finalCoords.length;",
+"        var p1, p2, p3, a, b, c, s, t, x, y;",
+"        this.curvePoints = [];",
+"        for (var i = 0; i < n; i++) {",
+"            p1 = this.finalCoords[(i + n - 1) % n];",
+"            p2 = this.finalCoords[i];",
+"            p3 = this.finalCoords[(i + 1) % n];",
+"            for (t = 0; t < q; t++) {",
+"                s = q - t - 1;",
+"                a = (s * s + s) >> 1;",
+"                c = (t * t + t) >> 1;",
+"                b = q2 - a - c;",
+"                x = (p1.x * a + p2.x * b + p3.x * c) / q2;",
+"                y = (p1.y * a + p2.y * b + p3.y * c) / q2;",
+"                this.curvePoints.push({x: x, y: y});",
+"            }",
+"        }",
+"    }",
+"};"
+];
+
+var saveAnimation = function() {
+    var screenHeight = timeline.scene.h;
+    var bar = (400 - screenHeight) / 2;
+    
+    var s = "// Animation made at https://www.khanacademy.org/partner-content/pixar/pixar-rigging/intro-to-rigging/a/animate-a-rigged-character\n";
+    s += "\nframeRate(24);";
+    
+    // Model shape data
+    s += "\nvar shapes = " + writeProperty(shapes);
+    s += "\nvar connections = " + writeProperty(connections);
+    s += "\nvar deformers = " + writeProperty(deformers);
+    
+    // Avar values
+        
+    // How many frames to interpolate between
+    var gap = 1;
+    
+    var avars = timeline.avars.map(function(avar) {
+        return avar.getValues(gap);
+    });
+    
+    s += "\nvar n = " + avars[0].length + ";\n";
+    s += "\nvar avars = " + writeProperty(avars);
+    
+    s += "\nvar deformerData = " + writeProperty(deformerData);
+    s += "\n\nvar drawBackground = " + writeProperty(drawBackground) + "\n\n";
+    
+	saveShapeObject.forEach(function(line) {
+	    s += line + '\n';
+	});
+    
+    saveModelObject.forEach(function(line) {
+	    s += line + '\n';
+	});
+	
+    s += "\n\nvar model = new Model(shapes, connections, deformers);\n";
+    s += "var t = 0;\n";
+    
+    var drawF = [
+        "t = (t + 1) % n;",
+        "for (var shape in model.shapes) {model.shapes[shape].resetCoords();}",
+        "model.deformers.forEach(function(d){d[0].transform(d[1], d[0].origin, d[2][t]);});",
+        "background(0);",
+        "drawBackground(0, " + bar + ", 400, " + screenHeight + ");",
+        "pushMatrix();",
+        "translate(0, 50);",
+        "scale(0.75, 0.75);",
+        "for (var shape in model.shapes) { model.shapes[shape].draw(); }",
+        "popMatrix();",
+    ];
+  
+    s += "\ndraw = function() {\n";
+	drawF.forEach(function(line) {
+	    s += '\t' + line + '\n';
+	});
+    s += "};\n";
+    
+    println(s);
+};
+{
+toolbar = new Toolbar(0, 20, 140);
+
+var saveSetup = function() {
+    var s = "var setup = {";
+    
+    var trim = function(n) {
+        return "" + round(1000 * n) / 1000;
+    };
+    
+    for (var a in timeline.avars) {
+        var avar = timeline.avars[a];
+        s += a + ":[";
+        
+        for (var i = 0; i < avar.keyFrames.length; i++) {
+            var kf = avar.keyFrames[i];
+            s += (i === 0 ? "" : ",");
+            s += "[" + trim(kf.frame) + "," + trim(kf.value) + ",";
+            s += "[";
+            for (var j = 0; j < kf.handles.length; j++) {
+                var handle = kf.handles[j];
+                s += (j === 0 ? "" : ",");
+                s += trim(avar.xPositionToFrame(handle.x)) + ","; 
+                s += trim(avar.yPositionToValue(handle.y));
+            }
+            s += "]]";
+        }
+        
+        s += "],";
+    }
+    
+    s += "};";
+    println(s);
+};
+
+toolbar.add('Button', {
+    name: 'Play',
+    trigger: function() {
+        if (this.name === 'Play') {
+            timeline.playing = true;
+            this.name = 'Pause';
+        } else {
+            timeline.playing = false;
+            this.name = 'Play';
+        }
+    }
+});
+
+toolbar.add('Button', {
+    name: 'Remove keyframe',
+    disabled: true,
+    trigger: function() {
+        timeline.removeSelectedKeyFrame();
+    }
+});
+
+toolbar.add('Button', {
+    name: 'Save',
+    filled: true,
+    highlightCol: color(67, 122, 57),
+    trigger: saveAnimation
+});
+
+toolbar.add('Button', {
+    name: 'Clear',
+    filled: true,
+    highlightCol: color(200, 0, 0),
+    trigger: restart
+});
+
+toolbar.addOptions(showing);
+
+}
+/*************************************
+ *      Main loop
+**************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    timeline.draw();
+    toolbar.draw();
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+
+mousePressed = function() {
+    timeline.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    timeline.mouseDragged();
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    timeline.mouseReleased();
+    toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    mouseReleased();
+};
+
+keyPressed = function() {
+    if (key.toString() === 's') {
+        saveAnimation();
+    } else if (key.toString() === 'q') {
+        saveSetup();
+    }
+};

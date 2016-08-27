@@ -1,0 +1,58 @@
+// This value changes the amount of distortion
+var turbulence = 50;
+var turbulence2 = turbulence / 2;
+
+// This value changes the speed that the distortion changes
+var speed = 0.6;
+
+// This value affects the nature of the distortion
+// Smaller numbers are smoother
+var noiseScale = 0.018;
+
+// The first number will affect the size of the ripples,
+// the second will affect the size of the distortion
+noiseDetail(2, 0.6);
+
+// This is the image I'm using
+var img = getImage("avatars/robot_male_3");
+var imgWidth = img.width;
+var imgHeight = img.height;
+
+// Offset of image
+// Multiply offset in pixels by 4
+var dx = 200 * 4;
+
+image(img, 0, 0);
+
+
+var x, y, n, p;
+var initialised = false;
+
+draw = function() {
+    // Get our pixels
+    loadPixels();
+    var pix = this.imageData.data;
+    
+    // Use this number to make the noise update based on the time
+    // the program has been running
+    var f = frameCount * speed;
+    
+    // Go through every pixel using two weird for loops
+    for (y = imgHeight; y; --y) {
+        for (x = imgWidth; x; --x) {
+            // Calculate noise for this pixel at this time
+            n = (noise((x + f) * noiseScale, y * noiseScale) * turbulence - turbulence2) << 2;
+            
+            // Calculate the index of the pixel of interest
+            p = (x + y * height) << 2;
+            
+            // Set the current pixel (200 pixels to the right of the initial image)
+            // to the pixel in the initial image shifted in x by the noise
+            pix[p + dx] = pix[n + p++];
+            pix[p + dx] = pix[n + p++];
+            pix[p + dx] = pix[n + p];
+        }
+    }
+    
+    updatePixels();
+};

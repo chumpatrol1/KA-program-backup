@@ -1,0 +1,330 @@
+/*****************************************************
+ *   SugarScape World Simulation
+ * 
+ * The world is represented as a 2D grid of tiles.
+ * Each tile contains an amount of sugar represented
+ * by how green the tile is.
+ * Sugar grows, spread and declines based on the 
+ * underlying nutrients.
+ * 
+ * Agents live in the world, eat sugar and reproduce.
+ * When they're not hungry they search for areas with lots of sugar,
+ * otherwise they harvest it where they are.
+ * Watch their population boom and crash.
+ * 
+ * Use spacebar to start and stop the simulation.
+ * 
+ * TODO: Add lots of analytics
+ * 
+ * Related to:
+ * https://www.khanacademy.org/computer-programming/sugarscape/2306447902
+ * Read more here:
+ * http://www.petercollingridge.co.uk/blog/starting-sugarscape-simulation
+*****************************************************/
+
+// How many turns an agent can survive without food
+var MAX_HUNGER = 4;
+
+// How long a agent must wait before having another child
+var TIME_BETWEEN_CHILDREN = 300;
+
+// Probability of having a child each turn if possible
+var CHANCE_OF_CHILD = 0.02;
+
+// Maximum amount of sugar an agent can collect per turn
+var COLLECT_SUGAR_AMOUNT = 2;
+
+// How much sugar an agent can carry with them
+var CARRYING_CAPACITY = 8;
+
+// How slowly nutrients decrease from the center of a source
+var NUTRIENT_DENSITY_DROPOFF = 4;
+
+// Maximum amount sugar can grow in a turn
+var SUGAR_GROWTH = 10;
+
+var running = true;
+
+var randFromArray = function(arr) {
+    return arr[floor(random(arr.length))];
+};
+
+/*****************************************************
+ *  Agent
+ * A being who lives in the world
+*****************************************************/
+
+var Agent = function(tile) {
+    this.tile = tile;
+    this.hunger = 0;
+    this.sugar = 0;
+    
+    // Tiles with less than this food causes us to look around
+    this.minimumFoodThreshold = floor(random(10)) + 1;
+    this.timeSinceReplication = 0;
+};
+
+// Agents' AI inasmuch as they have any, lives here
+Agent.prototype.update = function() {
+    this.timeSinceReplication++;
+    this.hunger++;
+    
+    // If we're hungry and have sugar, we can eat up to 2 sugars
+    var eatenSugar = min(2, min(this.sugar, this.hunger));
+    this.hunger -= eatenSugar;
+    this.sugar -= eatenSugar;
+    
+    if (this.tile.sugar === 0) {
+        // No food here so look elsewhere
+        this.searchSurroundings();
+    } else if (this.sugar > 0) {
+        if (this.tile.sugar < this.minimumFoodThreshold) {
+            this.searchSurroundings();
+        } else if (!this.hunger && this.timeSinceReplication > TIME_BETWEEN_CHILDREN && random() < CHANCE_OF_CHILD)  {
+            // We're not hungry and there's enough food so we can reproduce
+            this.timeSinceReplication = 0;
+            this.pregnant = true;
+            this.hunger = 2;
+        } else {
+            //this.collectSugar();
+        }
+    } else {
+        this.collectSugar();
+    }
+};
+
+Agent.prototype.searchSurroundings = function() {
+    // Look at the neighbouring tiles, and move to the one with the most food
+    
+    var maxFood = -1;
+    var tiles = this.tile.neighbours;
+    var i, foodAmount, moveToTile;
+    
+    for (i = tiles.length; i--;) {
+        foodAmount = tiles[i].sugar + random();
+        if (foodAmount > maxFood) {
+            maxFood = foodAmount;
+            moveToTile = tiles[i];
+        }
+    }
+
+    this.tile = moveToTile;
+};
+
+Agent.prototype.collectSugar = function() {
+    var sugar = min(this.tile.sugar, COLLECT_SUGAR_AMOUNT);
+    sugar = min(sugar, CARRYING_CAPACITY - this.sugar);
+    this.sugar += sugar;
+    this.tile.sugar -= sugar;
+};
+
+/*************************************
+ *  Tile object
+ * A region of territory in the world.
+ * Contains sugar for agents to collect
+**************************************/
+
+var Tile = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.neighbours = [];
+    
+    // Amount of sugar sector can support
+    this.nutrients = 0;
+    
+    // Set initial sugar values
+    this.sugar = (random() > 0.5) ? floor(random(1, 40)) : 0;
+    this.setColor();
+};
+
+Tile.prototype.update = function() {
+    if (this.sugar > this.nutrients) {
+        // If there is more sugar than nutrients then sugar amount may crash
+        if (random() < 0.1 * (this.sugar - this.nutrients)) {
+            this.sugar -= floor(random(1, this.sugar));
+            this.setColor();
+        }
+    } else if (random() < 0.01 * this.sugar) {
+        // Sugar may spread to its neighbours
+        var neighbour = randFromArray(this.neighbours);
+        neighbour.sugar += floor(random(1, SUGAR_GROWTH));
+        neighbour.setColor();
+    }
+};
+
+Tile.prototype.setColor = function() {
+    //if (this.sugar) {
+    var p = this.sugar / 255;
+    p *= p * (3 - 2 * p);
+        this.color = color(0, 255 * p, 0);
+    //} else {
+    //    this.color = color(200);
+    // }
+};
+
+/*************************************
+ *  The world is a (n, m) grid of tiles
+ * where the agents live
+**************************************/
+
+var world = {
+    tileSize: 8,
+    time: 0,
+    sectorUpdateTime: 12,
+    agents: [],
+    tiles: [], 
+    
+    init: function() {
+        this.cols = width / this.tileSize;
+        this.rows = height / this.tileSize;
+        
+        var x, y, row;
+        var size = this.tileSize;
+        this.tiles = [];
+    
+        // Create a 2D grid of tiles    
+        for (y = 0; y < this.rows; y++) {
+            row = [];
+            for (x = 0; x < this.cols; x++) {
+                row.push(new Tile(x * size, y * size));
+            }
+            this.tiles.push(row);
+        }
+        
+        // Add circles of nutrients
+        this.addNutrients(40, 10, 220, 4);
+        this.addNutrients(12, 32, 160, 2);
+        this.addNutrients(36, 66, 200, 3);
+        
+        var tile, tile2;
+        for (y = 0; y < this.rows; y++) {
+            for (x = 0; x < this.cols; x++) {
+                var tile = this.tiles[y][x];
+                if (y !== 0) {
+                    tile2 = this.tiles[y - 1][x];
+                    tile.neighbours.push(tile2);
+                    tile2.neighbours.push(tile);
+                }
+                if (x !== 0) {
+                    tile2 = this.tiles[y][x - 1];
+                    tile.neighbours.push(tile2);
+                    tile2.neighbours.push(tile);
+                }
+            }
+        }
+        
+        this.addAgents(40);
+    },
+    
+    addAgents: function(n) {
+        for (var i = 0; i < n; i++) {
+            var x = floor(random(this.cols));
+            var y = floor(random(this.rows));
+            this.agents.push(new Agent(this.tiles[y][x]));
+        }
+    },
+    
+    // Create a circle of nutrients falling off with a given gradient
+    addNutrients: function(cx, cy, amount, gradient) {
+        var x, y, row, d;
+        for (y = this.rows; y--;) {
+            row = this.tiles[y];
+            for (x = this.cols; x--;) {
+                d = dist(x, y, cx, cy);
+                row[x].nutrients += NUTRIENT_DENSITY_DROPOFF * amount / (gradient * d + NUTRIENT_DENSITY_DROPOFF);
+            }
+        }
+    },
+    
+    draw: function() {
+        var x, y, row;
+        var size = this.tileSize;
+        noStroke();
+        
+        for (y = this.rows; y--;) {
+            row = this.tiles[y];
+            for (x = this.cols; x--;) {
+                fill(row[x].color);
+                rect(row[x].x, row[x].y, size, size);
+            }
+        }
+        
+        var i, x, y, agent;
+        size *= 0.5;
+        for (i = this.agents.length; i--;) {
+            agent = this.agents[i];
+            fill(50 * agent.hunger, 0, 255 - 50 * agent.hunger);
+            ellipse(agent.tile.x + size, agent.tile.y + size, size * 1.2, size * 1.2);
+        }
+    },
+    
+    drawNutrients: function() {
+        var x, y, row;
+        var size = this.tileSize;
+        for (y = this.rows; y--;) {
+            row = this.tiles[y];
+            for (x = this.cols; x--;) {
+                fill(row[x].nutrients & 0xFF);
+                rect(row[x].x, row[x].y, size, size);
+            }
+        }
+    },
+    
+    update: function() {
+        // Sugar grows and dies
+        if (this.time++ % this.sectorUpdateTime === 0) {
+            var x, y;
+            for (y = this.rows; y--;) {
+                for (x = this.cols; x--;) {
+                    this.tiles[y][x].update();
+                }
+            }
+        }
+        
+        // Update agents
+        for (var i = this.agents.length; i--;) {
+            this.agents[i].update();
+            if (this.agents[i].hunger >= MAX_HUNGER) {
+                this.agents.splice(i, 1);
+            } else if (this.agents[i].pregnant) {
+                // New agents are born
+                this.agents[i].pregnant = false;
+                this.agents.push(new Agent(this.agents[i].tile));
+            }
+        }
+        
+    }
+};
+
+/*************************************
+ *      Set-up
+**************************************/
+
+world.init();
+
+/*************************************
+ *      Main loop
+**************************************/
+
+draw = function() {
+    if (running) {
+        world.update();
+    }
+    //world.drawNutrients();
+    world.draw();
+    
+    fill(255);
+    text("Time: " + world.time, 8, 16);
+    text("Agents: " + world.agents.length, 8, 32);
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+
+keyPressed = function() {
+    //println(keyCode);
+    if (keyCode === 32) {
+        running = !running;
+    }
+};

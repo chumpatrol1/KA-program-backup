@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Khan Academy Blog 2016</title>
+    <link href='https://fonts.googleapis.com/css?family=Alegreya+Sans+SC:900,500|Josefin+Sans:400,600|UnifrakturMaguntia' rel='stylesheet' type='text/css'>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        
+    <style>
+        body {
+            margin: 0;
+            background-color: #f8f8f8;
+            font-family: 'Josefin Sans', Arial, sans-serif;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Alegreya Sans SC', impact;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-top: 2px;
+            margin-bottom: 0;
+            font-size: 3em;
+        }
+        h2 {
+            font-size: 32px;
+            color: #222;
+            text-shadow: 1px 1px rgb(200, 200, 200);
+            margin-bottom: 0;
+        }
+        h3 {
+            font-size: 1.5em;
+            margin-bottom: 12px;
+        }
+        h4 {
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        p {
+            line-height: 22px;
+        }
+        a {
+            color: #04b;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            line-height: 22px;
+            padding-left: 12px;
+            margin-top: 5px;
+            list-style-type: none;
+        }
+        ol {
+            counter-reset: my-list-counter;
+            list-style-type: none;
+            list-style: none;
+            padding-left: 4px;
+        }
+        ol li:before {
+            content: counter(my-list-counter) ". ";
+            counter-increment: my-list-counter;
+            margin-right: 5px;
+            font-weight: bold;
+        }
+        
+        img {
+            max-width: 300px;
+        }
+        
+        #title {
+            margin: 0;
+            width: 100%;
+            height: 82px;
+            position: fixed;
+            top: 0;
+            background-color: #222;
+            -webkit-box-shadow: 0px 2px 16px 0px rgba(0,0,0,0.7);
+            -moz-box-shadow: 0px 2px 16px 0px rgba(0,0,0,0.7);
+            box-shadow: 0px 2px 16px 0px rgba(0,0,0,0.7);
+        }
+        
+        .header-link>li, .header-link a {
+            font-family: 'Josefin Sans', Arial, sans-serif;
+            display: inline-block;
+            color: white;
+            font-weight: bold;
+            padding-left: 10px;
+            padding-top: 0;
+            margin-top: -2px;
+            cursor: pointer;
+            vertical-align:top;
+        }
+        
+        .dropdown ul {
+            display: none;
+            margin-top: -5px;
+            background-color: #222;
+            min-width: 120px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            list-style-type: none;
+            padding: 0;
+            min-width: 120px;
+        }
+        
+        .dropdown-contents li {
+            margin-top: 3px;
+        }
+        
+        .dropdown a:hover {
+            color: orange;
+        }
+        
+        #contents {
+            margin: 80px 16px 10px 16px;
+        }
+        
+        .tag-container {
+            margin-bottom: 16px;
+        }
+        
+        .entry {
+            color: #222;
+            font-size: 17px;
+            border-top: 1px solid #ccc;
+            position: relative;
+            padding-left: 10px;
+            padding-right: 10px;
+            line-height: 22px;
+        }
+        .entry p {
+           margin-top: 8px; 
+        }
+        
+        .contents-month {
+            margin-bottom: 10px;
+        }
+        .contents-month>div {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .date {
+            font-weight: bold;
+            font-size: 16px;
+            position: absolute;
+            top: 6px;
+            right: 16px;
+        }
+        
+        pre {
+            background-color: #ddd;
+            overflow-x: auto;
+        }
+        
+        code {
+            background-color: #ddd;
+            font-size: 80%;
+            padding: 1px 3px;
+        }
+        
+        .tag-container {
+            clear: both;
+            line-height: 26px;
+        }
+        
+        #tag-cloud {
+            font-size: 14px;
+        }
+        
+        .tag {
+            font-family: 'Josefin Sans', sans-serif;
+            font-size: 17px;
+            line-height: 21px;
+            background-color: #686868;
+            color: #f8f8f8;
+            padding: 3px 6px 1px 6px;
+            margin-right: 5px;
+            margin-bottom: 4px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            border-radius: 16px;
+            white-space: nowrap;
+            display: inline-block;
+        }
+        
+        .tag:hover, .tag.selected {
+            background-color: #ec008c;
+            cursor: pointer;
+        }
+        
+        .tag-count {
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        
+        #tag-cloud .tag {
+            cursor: pointer;
+        }
+        
+        .float-image {
+            float: left;
+            padding-right: 8px;
+            padding-bottom: 8px;
+        }
+        
+        .list-column {
+            display: inline-block;
+            margin-right: 25px;
+        }
+        .old-school {
+            font-family: 'UnifrakturMaguntia';
+        }
+    </style>
+</head>
+<body>
+
+<div id="contents">
+    <h2>Introduction</h2>
+    <p>Welcome to my blog for 2016. Here I'll write about what I've been doing on Khan Academy, such as programs I've made, exercises I've done and milestones I've hit. I'll also write about things I've noticed here and new programming tricks and techniques I've learnt. You can search the content by selecting one of the tags below.</p>
+    
+    <h2>Months</h2>
+    <div class="tag-container" id="month-tags"></div>
+    
+    <h2>Categories</h2>
+    <div class="tag-container" id="category-tags"></div>
+
+    <div id="entries"></div>
+</div>
+
+<!-- Floating header and dropdowns -->
+<div id="title">
+    <h1>Khan Academy Blog 2016</h1>
+    
+<ul class="header-link">
+    <li><a href="https://www.khanacademy.org/computer-programming/my-programs/6090692692672512" target="_blank">My Programs</a></li>
+    <li><a  target="_blank" href="https://www.khanacademy.org/computer-programming/khan-academy-blog/5650310981484544">2015 blog</a></li>
+    
+    <li><a href="https://www.khanacademy.org/computer-programming/user-contest-directory/5881766472" target="_blank">Contest directory</a></li>
+    
+    <li class="dropdown"> Blogroll
+        <ul class="dropdown-contents">
+            <!-- <li><a href="https://www.khanacademy.org/computer-programming/_/6166804846477312" target="_blank">Aidabaida</a></li> -->
+            <li><a href="https://www.khanacademy.org/computer-programming/_/5652949873590272" target="_blank">awk888</a>
+            </li>
+            <li><a href="https://www.khanacademy.org/computer-programming/_/4843611722481664" target="_blank">Chester Banks</a></li>
+            <li><a href="https://www.khanacademy.org/computer-programming/_/5306644741619712" target="_blank">SparklyGem</a></li>
+          </ul>
+        </li>
+    </ul>
+</div>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+<!-- Blog entries in JSON -->
+<script>
+    var data = [
+{
+    title: "New Blog for 2016",
+    date: [1, 1, 16],
+    tags: ["blog"],
+    img: "web",
+    content: "My old blog was getting a bit slow due as I actually had quite a lot of content that had to be processed. So I've made a new blog for this year. I may update the code so it doesn't show all the entries at once, which should stop this one getting too slow. I might also need to think of more ways to compress the content data.\nYou can find my old blog [here](5650310981484544)."},
+{
+    title: "New Year's Resolutions",
+    date: [2, 1, 16],
+    tags: ["digest"],
+    content: "Here are some of my New Year's resolutions now I'm in an overly-optimistic, forward-looking frame of mind.</p><h4>Khan Academy-based</h4><ul><li>Keep up with this blog.<li><li>Finish _Integral Calculus_.<li><li>Finish my Fractions Game (nearly done).<li><li>Finish my Heist Game (about halfway there).<li><li>Make a usable programming language (started).<li><li>Write one or more bioinformatics tutorials (started).<li><li>Make a resource-strategy game and/or a rogue-like game.<li></ul><h4>Other programming</h4><ul><li>Update my [normal blog](http://www.petercollingridge.appspot.com/).<li><li>Learn django and/or node.js.<li><li>Learn d3.js.<li></ul><p>I also plan to read more books, particularly books I haven't read before that are taking up space in my bookcase. Last year I only read 12 books, and 6 of them I'd read before (mainly Terry Pratchett and Robin Hobb)."},
+{
+    title: 'Recreational Math videos: 3Blue1Brown',
+    date: [3, 1, 16],
+    tags: ["playlist", "videos"],
+    img: "video",
+    content: "I just discovered a [new set of videos](math/recreational-math/vi-hart/3blue1brown-topic) in the _Recreation Math_ section. It looks like it's not been there long. It's at times like these that I wish my Lastest Videos page was working on [WhatBadgeNext](http://whatbadgenext.appspot.com/). Maybe I can add fixing that page to my New Year's resolutions.\nAnyway, I've only watched one video and it was pretty good. It's nice to see some more advanced maths videos here. I'm not sure I really understood it, but I think the idea is to inspire me to think more about the topic (p-adic number systems).\nEDIT: It seems some of the videos have been removed - only four remain for some reason."},
+{
+    title: 'Function Friday: Map',
+    date: [8, 1, 16],
+    tags: ["Function Friday", "PJS function", "JS function"],
+    img: "5698699489443840/5711312218750976",
+    content: "As regular readers will know, on Fridays I try to write a post about a function in processing.js or Javascript which I think is relatively unknown. (They will also know that I often post it after Friday.) Previous functions have included `lerp`, `nf`, `noiseDetail`, and `peg`.\nToday's function is [`map`](587974079545344), which despite my picture, is nothing to do with maps of countries. Rather, it maps (or converts) a number from one range to another range. For example, if I have draw graph on the screen with an x-axis that goes from -10 to 10 and I want to plot a number with an x value of 3, where on the screen should I draw it? I need to map the value of 3 from the range -10 to 10 onto the screen that has a range of 0 to 400 pixels.``var x = map(3, -10, 10, 0, 400);    // 260```map` is often useful for mapping values from a  range of value that an object uses (such as world coordinates, if you are drawing an actual map) to pixel coordinates. Other examples where you might use it, would be when making a health bar or slider for a graphical user interface.</p><h4>Related Functions</h4><p>If you want to map a number from the range 0 to 1 to another set of numbers then you can use `lerp` instead:``var x = map(0.3, 0, 1, 0, 400);</br>var x = lerp(0, 400, 0.3);``If you want to map a number from one set of numbers to the range 0 to 1, then you can use `norm`:``var x = map(250, 100, 300, 0, 1);<br>var x = norm(250, 100, 300);``</p><h4>Array method</h4><p>`map` is also a method on the `Array` object that calls a passed in function for with every element in the array and returns a new array of the results. For example, if you have an array of numbers and you want to get the square of each, you can use `map` with the `sq` function:``var nums = [1, 2, 5, -10];<br>var squares = nums.map(sq);    // [1, 2, 25, 100]``More likely, you would write your own function to pass into `map`. This function should take the element in the array and return the result you want. For example, if you have an array of coordinates each represented by an array of two values and you want to convert them into `PVector`s, you can do:``var coords = [[1, 2], [5, -10]];<br>var vectors = coords.map(function(coord) {<br>    return new PVector(coord[0], coord[1]);<br>});``Of course, you can easily achieve the same result without using `map`, but it will save you some typing and should make your code easier to read."},
+{
+    title: 'Javascript FAQ',
+    date: [10, 1, 16],
+    tags: ["HTML program"],
+    img: "4591044825579520/5766466041282560",
+    content: "[Stephen Waltz](profile/stevewaltz) has made this [handy page](4591044825579520) of links to programs and pages that answer common questions from the Help Requests page. This again demonstrates how useful HTML pages are for creating and organising useful content. It essentially allows us to extend Khan Academy to include the pages we wish it had. Now I should get on with writing some tutorials."},
+{
+    title: 'Voronoi diagram',
+    date: [12, 1, 16],
+    tags: ["PJS program", "Pixar"],
+    img: "4972420843044864/5697982787747840",
+    content: "I'm currently working on a new Pixar tutorial, which will cover the topic of *Patterns*. For this I have (after a lot of effort) managed to make a [Voronoi diagram](4972420843044864). This works by drawing random points on the screen and then colouring each pixel based on which point that pixel is closest to. The result is a set of polygons each containing all the points closest to one site. The pattern looks similar to the pattern on a dragonfly's wings.\nYou can build up the image pixel-by-pixel, but that's very slow. A faster way is to figure out the vertices on the final diagram, which occur at points equi-distance from three sites. There's a very efficient way to calculate the diagram called [Fortune's algorithm](http://www.ams.org/samplings/feature-column/fcarc-voronoi). To help me understand it, I made [a program](4666297643827200) showing how the image is built up using parabolas. The algorithm is relatively easy to understand, but I found actually implementing it to be a bit of a nightmare. I'm so glad I finally have something working. Now I can have some fun with it."},
+{
+    title: 'Bounding a circle with a polygon',
+    date: [14, 1, 16],
+    tags: ["PJS program", "Pixar"],
+    img: "5376922859470848/5768755258851328",
+    content: "As part of another program I'm making for the new Pixar Patterns tutorial, I made [this program](5376922859470848). It shows a circle with a radius you can increase. As it grows its shape is bounded by the surrounding polygon. The program unsurprisingly involves a lot of geometry, which was , surprisingly, fun to figure out. It builds up the shape using arcs and triangles. It's not perfect because arcs only use integer angles, so there are sometimes gaps. I'm working on fixing that. It also only works with some polygons (convex ones and not all of those), but it works for the ones I need. I think it looks pretty cool and can't help but feel there must be something else it could be used for."},
+{
+    title: 'Function Friday: Mag',
+    date: [15, 1, 16],
+    tags: ["Function Friday", "PJS function"],
+    content: "Just a quick one this week as I'm pretty busy and already quite late. I think most people are familiar with [`dist(x1, y1, x2, y2)`](1917352082); it's a handy function for finding the distance between two points, `(x1, y1)` and `(x2, y2)`. Sometimes I've found myself doing `dist(0, 0, x, y)` to find the length (or magnitude) of a vector `[x, y]` (by which I mean the length of line that move `x` in the x direction and `y` in the y direction). It turns out, there's a function for that: `[mag](5983219002376192)(x, y)`. If you are using `PVector`, then you can use the method, `PVector.mag()` to get the same result."},
+{
+    title: 'More 4th Grade Math exercises',
+    date: [17, 1, 16],
+    tags: ["exercises"],
+    img: "challenge",
+    content: "I just noticed 25 new exercises have been added to [4th Grade Math](mission/cc-fourth-grade-math), putting me back to 90% of _World of Math_. I'm not sure if I want to spend time doing them or whether should crack on with _Integral Calculus_, which would obviously be a better use of my time, if more difficult. Either way, it's got me thinking I should update my WhatBadgeNext website to show new videos and exercises again."},
+{
+    title: 'Yet more exercises',
+    date: [18, 1, 16],
+    tags: ["exercises"],
+    img: "challenge",
+    content: "A whole load more exercises have been released. In particular, the whole section on vectors seems to have been revamped, which is great. It looks like _Precalculus_ has got 50% more content (I can tell because I've gone from 100% mastered to 67% mastered). Looks like there's a lot more to study."},
+{
+    title: 'Dinosaurs!',
+    date: [19, 1, 16],
+    tags: ["playlist"],
+    img: "video",
+    content: "I've been working on a program (offline) to find the most recent videos on KA using the API. I used to have an online program that did it (which quite a few people used), but the number of videos on Khan Academy became so great that the API broke. So I'm trying a different, more long-winded approach. In doing so, I've found quite a lot of content I wasn't aware of. I should really have a weekly section where I mention a new video or playlist. For now, [here's a short playlist about dinosaurs](partner-content/amnh/dinosaurs) from the American Museum of Natural History."},
+{
+    title: 'The Art of the Problem',
+    date: [20, 1, 16],
+    tags: ["videos"],
+    img: "video",
+    content: "[Brit Cruise](profile/britcruise) has just released the [first video](https://www.youtube.com/watch?v=fjMU-km-Cso&list=PLbg3ZX2pWlgI_ej6ZhGd45-cPoWLZD9pT) in Episode 3 of his Art of the Problem series. Episodes 1 and 2 are available here on KA: [Cryptography](computing/computer-science/cryptography) and  [Information theory](computing/computer-science/informationtheory).\nIf you're looking for more maths videos outside of KA, I can recommend [Numberphile](https://www.youtube.com/channel/UCoxcjq-8xIDTYp3uz647V5A). Today I saw [a very good video on quaternions](https://www.youtube.com/watch?v=3BR8tK-LuB0). I think I now understand (roughly) what they are and why they're useful. I just need to use them to make sure I actually do. The video also has an interesting way of looking at complex numbers, which I'd not seen before."},
+{
+    title: 'Function Friday: curveTightness',
+    date: [22, 1, 16],
+    tags: ["Function Friday", "PJS function"],
+    img: "6007248677896192/5724160613416960",
+    content: "To create complex shapes in processing, we use [`beginShape()` and `endShape()`](5462945756610560) Between these function calls, we can use `vertex(x, y)` to add a straight line to a point; `[bezierVertex(cx1, cy1, cx2, cy2, x, y)`](5085481683386368) to add a bezier curve to a point (see the [Pixar tutorial on animation](partner-content/pixar/animate) for how bezier curves are generated); or [`curveVertex(x, y)`](6499542019080192) to add a Catmull-Rom spline to a point.\nI've not yet figured out the mathematics behind Catmull-Rom splines, but Catmull refers to Edwin Catmull, president of Pixar, which goes to show how much maths Pixar creates. You may have noticed that unlike `bezierVertex`, `curveVertex` does not require additional coordinates for control points. This makes it simpler to use, but gives you less control over the curve. However, there is a way to control the curviness of the curve, and that's using [`curveTightness`](4792873740402688). This takes a value between -5 and 5 and determines how the curve curves, as is illustrated in [this program](6007248677896192). Positive values (green) curve outwards, becoming more pointed; negative values curve inwards. With a value of 1, a straight line is drawn."},
+{
+    title: 'Tutorial Tuesday: Calculating line intersections',
+    date: [26, 1, 16],
+    tags: ["tutorial"],
+    img: "5616944816717824/5665117697998848",
+    content: "Welcome to my new and probably never to be repeated feature. Rather than write a tutorial in my blog, I've written it as a separate page (click the image on the left), which is a lot easier. I should probably do the same for Function Friday or at least put them all on a single page together. The tutorial covers the mathematics of how to calculate whether two lines cross and if they do, where they do. It contains a link to a [bare-bone program](5505087661539328) demonstrating it and an [interactive version](5693288246673408).\nFiguring out line intersections is I've needed several times in the past for various graphical programs. Previously, I've just copied the relevant function from elsewhere ([StackOverflow](http://stackoverflow.com/)), but this time I decided to figure out how it works myself so I could more efficiently integrate the calculations into my program. The mathematics involves some fairly basic alegbra, it's just a matter of trying to keep track of all the pieces and slogging through. I think it's well worth the effort for the satisfaction of finding the answer, and in my case, for finding I could remove a significant chunk of code that wasn't necessary in my program.\nRealistically, I don't imagine anyone will find this tutorial useful; I've mainly written it so I can remember what I did and why the answer is what it is. In the future, I do hope to write more tutorials that might be of more general use, but don't expect them any Tuesday soon. I may, however, post links to tutorial by others, if I see any I like."},
+{
+    title: 'Flash cards on Khan Academy',
+    date: [27, 1, 16],
+    tags: ["KA feature"],
+    img: "secret",
+    content: "I just discovered that KA has flash cards in the medical section, e.g. [for the heart](science/health-and-medicine/human-anatomy-and-physiology/heart-introduction/p/heart-flash-cards-1). They're not that great. It turns out they are just a CS program, based on [a CS challenge](computing/computer-programming/programming/logic-if-statements/p/challenge-flashy-flash-card). Still it's nice to see more interactive elements on KA."},
+{
+    title: 'Playlist Spotlight Wednesday: Masterpieces old and new',
+    date: [27, 1, 16],
+    tags: ["playlist"],
+    img: "challenge",
+    content: "I've been playing about with the KA API to create a tree of all its content. By my reckoning there are 2692 tutorials (collections of videos, exercises, programs etc.). Which is a lot. So I thought I'd highlight some of the ones I found interesting. More likely I'll concentrate on playlists, which are one level up: collections of tutorials. I think there are 727 of these, so enough to keep me going for a while. There's no particular reason for doing it on Wednesdays other than today is Wednesday and I'm more likely to keep it up if there's some scheduling. If anyone has any ideas for a better name, then I'm all ears.\nSo today, I'd like to mention [Masterpieces old and new](humanities/music/music-masterpieces-old-new) in the [Music section](humanities/music) of KA (you knew KA had a music section right?). This playlist currently has 13 tutorials, each one covering a piece of music. So far I'm only part the way through [From the New World by Dvořák](humanities/music/music-masterpieces-old-new/antonin-dvorak-music/v/dvorak-one) and I'm really enjoying learning about something for which I really have very little understanding."},
+{
+    title: 'Alpha Go',
+    date: [27, 1, 16],
+    tags: ["PJS program"],
+    img: "1646496761/5685265389584384",
+    content: "Google has just [published a paper](http://deepmind.com/alpha-go.html) on how they created AI to beat a champion Go player. I got into Go whilst at university and loved it despite not ever being particularly good at it. It's such a beautiful game, and so much less arbitrary than chess.\nI have spent quite a bit of time thinking about how I'd make a Go AI (and a very little time making something rubbish) and always thought it would take years for anyone to make a decent one. But over the last decade or so they have been becoming ever more powerful. The dominant technique had been quite a dull one that didn't teach us much about the game. But the Google approaches combines several techniques, which are more interesting.\nAnyway, I recommend anyone to learn to play. It seems that programmers often find it interesting. You can play (two player - no AI) on my version above, but it's quite rubbish. Making a Go game is my test project whenever I learn a new programming language. I recommend trying to figure out (an efficient) way to implement the rules; it's quite a tricky problem."},
+{
+    title: 'Blogs, blogs, blogs',
+    date: [29, 1, 16],
+    tags: ["blog"],
+    img: "web",
+    content: "In <span class=\"old-school\">ye old days</span> blogs would often have a so-called blogroll which was a link to other blogs the author read. Maybe people still do this. At some point I would like to add sections to this \"site\", including a blogroll. But for now, here's a couple of blogs I intend to read. Let me know if there are any others I should be reading.\n<ul><li>[Aidabaidas musings](6166804846477312)</li><li>[SparklyGem's 2016 blog](5306644741619712)</li></ul>\nAnd yes, I did go and find a new font, just so I could write <span class=\"old-school\">ye old days</span> in Gothic lettering."},
+{
+    title: 'Self-indulgent Sunday: Stock Market Game',
+    date: [31, 1, 16],
+    tags: ["PJS program", "redux"],
+    img: "1982327104/266001",
+    content: "Since I'm in the mood to make new, alliterative, weekly features to motivate me to write, welcome to Self-indulgent Sunday where I will write about a program I made and have all but forgotten about. I was going to call it Sentimental Sunday, but I suspect this title is more accurate.\nSo this week I'm talking about a stock market game I made. I love making simulations, and had wanted to make an economics simulation for ages (I would like to make more). It's a short step from a simulation to a game in this case, although I would liked to have simulated the market more accuarately with hundreds of agents buying and selling stock based on their predictions for its worth.\n<h4>What I liked</h4><p><strong>How stock value fluctuate:</strong> each stock is given three random trends of different magnitude and duration plus a chance for a random shock. This makes the stocks easier to predict than purely random numbers, but also subject to sudden swings, making it easy to suddenly lose money.<br><strong>Icons:</strong> simple, but quite effective I think.<br><strong>Ticker:</strong> gives the game an authentic feel but not actually very helpful.<br><strong>Companies:</strong> each is based on a colour and some have quite cute names. I like the analysts' names too.<br><strong>Graph:</strong> auto-scales quite well (but would be nice if the graphs didn't have to start from zero).<br><strong>Analyst opinions:</strong> I think this is a nice concept (borrowed from Sim City maybe) which works quite well and has a reasonable range of options. But I don't know how useful it is for playing the game.<br><h4>What I'd like to improve</h4><p><strong>Gameplay:</strong> It can be quite fun to play, but it's not super exciting. Each day, the value of stocks only changes slighly (most of the time). So it takes time to accumulate wealth. Maybe if the days constantly updated and it had to rush to buy and sell, it might work. Then the news and opinions would be less useful though.<br><strong>News:</strong> tells you the basic statistics, but I would like it if they were dressed up more like news, e.g. rather than just saying a stock had fallen in price, give a made-up reason why.<br><strong>Interface:</strong> the different pages work quite well, but it's still a bit clunky to buy and sell stocks. Ideally you could see the stock graphs on the same page as the portfolio page.<br><strong>Portfolio:</strong> misses some useful information that would help you see if you'd made or lost money overall.<br><strong>Coding:</strong> I just had a quick look through the code and saw a lot I could have done to improve it. I quite like the string formatting though.\nHmmm... now I'm tempted to revamp it. If only I had the time."},
+{
+    title: "January Digest",
+    date: [1, 2, 16],
+    tags: ["digest"],
+    content: "I'm not really sure what happened to January - don't seemed to have done much other than work. I think most of the month was spent figuring out how to draw a [Voronoi diagram](4972420843044864). I've not made much progress with my new year's resolution other than keep up with this blog, and even that's been a struggle.<h4>January</h4><ul><li><strong>Read:</strong> Fool's Errand - Robin Hobb</li><li><strong>Work:</strong> Working on Pixar patterns and rigging (nearly complete)</li><li><strong>Notable programs:</strong> this blog, [Voronoi diagram](4972420843044864)</li></ul><h4>February plans</h4><ul><li><strong>To Finish:</strong> Fraction Game (really!)</li><li><strong>Blog:</strong> Add new sections</li><li><strong>Work:</strong> Release Pixar rigging (finally)</li><li><strong>Other:</strong> Start learning how to make iPhone apps</li></ul>"},
+{
+    title: "Tutorial Tuesday: Improving a Program's Design",
+    date: [2, 2, 16],
+    tags: ["tutorial"],
+    img: "5782146241658880/5676830073815040",
+    content: "I generally try to avoid publicising a program that's already on the <span class=\"old-school\">Hot List</span>. However, I thought this program by [Chester Banks](profile/chesterbanks) was great idea, and well made. Also, it means I can keep up with my Tutorial Tuesday without having to do any work. More seriously, I am currently having trouble thinking what I should do for the start menu of my Fractions Game, and I need some help."},
+{
+    title: "Playlist Spotlight Wednesday: Grammar",
+    date: [3, 2, 16],
+    tags: ["playlist"],
+    img: "challenge",
+    content: "This week's playlist (actually a whole new topic) is Grammar. I took this topic directly from [SparklyGem's blog](5306644741619712), but I couldn't avoid it as it's such a good topic, and a new one too. It increases the number of Humanities topics by 50% and is something a lot of people have been asking for for ages. I've only just started the first video, so I don't know it's any good yet, I just know it's not made by Sal."},
+{
+    title: "Blog update: blogroll",
+    date: [3, 2, 16],
+    tags: ["blog"],
+    img: "web",
+    content: "As I said I would, I've added a blogroll to my blog (under the title). I spent way too long figuring out how to make a dropdown menu. Hopefully, I can add some more menus to make finding content here more easy (and replace the difficult-to-use Contents section). If there are more blogs I should be reading, let me know. Since my last post, I've added [Chester Banks' blog](4843611722481664)."},
+{
+    title: 'Function Friday: Sort',
+    date: [5, 2, 16],
+    tags: ["Function Friday", "JS function"],
+    content: "Writing a sorting function is a [common challenge](computing/computer-science/algorithms/sorting-algorithms) when learning about algorithms and is definitely something that's worth a try. Having said that, it would be a pain if you had to always write your own. Luckily, JS, like most languages, has a `sort` function, which is a method of the `Array` prototype. We sort an array like so:``var arr = ['cat', 'ant', 'dog', 'bee'].sort();<br>// arr = ['ant', 'bee', 'cat', 'dog']``Unfortunately, JS is a slightly stupid when it comes to sorting numbers:``var arr = [400, 2, 1000, 30].sort();<br>// arr = [1000, 2, 30, 400]``As you may have noticed, JS treats numbers as though they were words and sorts them by their first character, then their second, and so on.\nIn order to fix this, you need to pass the `sort` function a function that it will use to compare two elements. This sort of function, which is passed into another function to be called there, is called a callback function. The function should return a negative number if the first element is smaller than the first, 0 if they are equal, otherwise a positive number, e.g.``var arr = [400, 2, 1000, 30].sort(function(a, b) {<br>    return a - b;<br>});<br>// arr = [2, 30, 400, 1000]``This is also useful if you want to sort an array of objects by one of their properties. e.g. to sort of an array of object by their `y` attribute:``var arr = arr.sort(function(a, b) {<br>    return a.y - b.y;<br>});``"},
+{
+    title: 'Self-indulgent Sunday: Circuit builder',
+    date: [7, 2, 16],
+    tags: ["PJS program", "redux"],
+    img: "2401149160/5651442522128384",
+    content: "Quite a while ago now, KA introduced [a section](science/discoveries-projects/robots) on building simple robots. While trying to understand how one of them worked, I built a [very simple interactive graphic](science/discoveries-projects/robots/all-about-spout/p/spout-circuit), which was later added to the tutorial. As I was making it, I thought it would be useful to have a general circuit builder. Many, many months and much work later, I had a program able to make basic circuits.\n<h4>What I liked</h4><p>Well, it actually works. You can build a variety of circuits with a few simple components and it calculates where the electricity flows. It also lets you save and load circuits in a fairly compressed way.\n<h4>What I didn't like</h4><p>Well, the program was a complete nightmare to make. Something about the way I organised the code made it extremely fragile. Every change I made seemed to break some other element of the program and it was always very difficult to track down where the issues were. It often require restarting the whole page to first see the issue or to clear it for reasons I still don't understand.\n<h4>What I'd like to improve</h4><p>The interface is pretty clunky, although it would be hard to do well. I'd also love to add more elements, such as diodes and relays. Unfortunately my knowledge of electronic is fairly limited when it comes to the effects of resisitors etc.."},
+{
+    title: "Playlist Spotlight Wednesday: Reverse Engineering",
+    date: [10, 2, 16],
+    tags: ["playlist"],
+    img: "challenge",
+    content: "In my last post I mentioned the [robots](science/discoveries-projects/robots) section on KA. That section was made by Karl Wendt and is definitely worth checking out. His first playlist was [reverse engineering](science/discoveries-projects/reverse-engin) was one of the first on KA not to be made by Sal. In it he takes apart household objects on camera to show how they work. Later, he uses some of the bits to make the robots."},
+{
+    title: "New Pixar content: Rigging",
+    date: [10, 2, 16],
+    tags: ["Pixar", "playlist"],
+    img: "5848987502772224/5629499534213120",
+    content: "In September, we launched [Pixar in a Box](partner-content/pixar), which included six tutorials. The seventh, [Rigging](partner-content/pixar/pixar-rigging), is officially lauched tomorrow, but is now live. Rigging is about making character animatable. It is the *first Pixar lesson to include programming challenges*. This is one reason why it's taken so long to build. Hopefully it is simple enough for a beginner to understand, while still having enough to interest the more advanaced users.</p>[<img src=\"https://www.khanacademy.org/computer-programming/mike-animation-program/4935125299494912/5668600916475904.png\" class=\"float-image\">](4935125299494912)<p>The whole of the second tutorial builds up to a couple of projects (one still not up to due to some annoying bugs, but see my examples below for a sneak peek), which should let users *build and animate characters*. I'm pretty terrible at drawing, my best effort at making a rigged character is [here](6258637859586048). You can play with the controls to see what sort of movements the character can make. Once you have the rigged character you can copy the code into the animation program [like so](4935125299494912) and make your own (short) animation, like [my rubbish one](5848987502772224). The copy and pasting is a bit clunky, but it's the best we currently have.\nI really hope that at least a few people get to the stage where they can make something very cool, or at least something better than I have."},
+{
+    title: "Character contest",
+    date: [11, 2, 16],
+    tags: ["Pixar", "contest"],
+    img: "5455623578058752/5741031244955648",
+    content: "The Pixar Rigging tutorial is now officially live. In a few days the plan is to have a contest to see what characters people can make. I've made [something approximating Mike Wazowski](5455623578058752), but I hope other people can do better. You can look through the code and it should be fairly obvious how to change each part of the character (it's in JSON, but if you know Javascript, it should be clear). If not, you can follow the [Rigging tutorial](partner-content/pixar/pixar-rigging) to get an in-depth description of what it's all about."
+},
+{
+    title: "Free programming for kids books",
+    date: [12, 2, 16],
+    tags: ["link"],
+    content: "I've just found [a link](http://www.usborne.com/catalogue/feature-page/computer-and-coding-books.aspx) to some books which are free to download. They are programming books from the 1980s aimed at children. I probably first tried coding in the 1980s (just) and I wish I'd had some of these books. The languages they use are not relevant today (and quite horrible) and the only way to get the code on your computer at that time was to laboriously type it in from the book. Still, a lot of the information is quite useful. I'm tempted to make a JS version of the game in _Write Your Own Fantasy Game_, or at least use it for inspiration."},
+{
+    title: 'Function Friday: Expand',
+    date: [13, 2, 16],
+    tags: ["Function Friday", "PJS function"],
+    content: "I wasn't going to do a Function Friday this week as I couldn't think of a function I could do justice to. But then when looking at the [processing.js source code on Github](https://github.com/jeresig/processing-js) for an unrelated reason, I noticed a reference to `shorten`, a function I'd never heard of.\n[`shorten`](http://processingjs.org/reference/shorten_/) takes an array and returns that array with the last item removed. It's a bit like the complement of [`pop`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/pop) except the original array is unchanged``var a = [1,2,3];<br>var b = shorten(a);<br>println(a);    // [1,2,3]<br>println(b);    // [1,2]``I can't think of any use for `shorten`, but no doubt there is one. There is also an [`expand`](http://processingjs.org/reference/expand_/) function, but as far as I can tell that has no effect in this environment so is even less useful."},
+{
+    title: 'Self-indulgent Sunday: Exploring triangles',
+    date: [14, 2, 16],
+    tags: ["PJS program", "redux"],
+    img: "1264460092/5707702298738688",
+    content: "When the CS environment was first released I spent a lot of time making programs to illustrate concepts I'd learnt on KA. One example is this program on [exploring triangles](1264460092), which covers concepts like the centroid, orthocenter, circumcenter and Euler line, which don't think I ever learnt about in school. When watching the KA videos on the topic, I thought it would be useful to have \"physical\" triangle I could manipulate to see relationship between the points and the triangle and also between the different points.\n<h4>What I liked</h4><p>It's a simple program, which I think cleanly illustrates the points I wanted to show. It even has an animated, drop down menu, because I'd liked to go to way too much effort to add small touches. I remember that the angle measures were a pain to figure out and they seem to work well.<h4>What I'd like to improve</h4><p>I was pretty new to JS at the time and the coding is not great. I have since made a lot more interactive programs so could greatly improve the draggable points and interface. I'm also not 100% sure about the style, although it was meant to replicate the look of Sal's videos. My geometry knowledge has also improved a lot since then (a lovely side effect of learning about computer graphics) so I could improve some of the calculations. But overall I'm pretty pleased how it turned out given how old it is."},
+{
+    title: "Code a Character with talk-through",
+    date: [16, 2, 16],
+    tags: ["Pixar", "contest"],
+    img: "6080099902685184/5643440998055936",
+    content: "The [Code-a-Character contest](6080099902685184) has finally launched. Brit has also made a [talk-through](5225568209862656) to describe the environment we created. For more details of what it's all about, you can see the [Rigging tutorial](partner-content/pixar/pixar-rigging). I'll stop going on about the rigging tutorial now, at least until the contest is judged."},
+{
+    title: "Playlist Spotlight Wednesday: Napoleon Bonaparte",
+    date: [17, 2, 16],
+    tags: ["playlist"],
+    img: "https://upload.wikimedia.org/wikipedia/commons/2/29/Minard.png",
+    content: "I have recently watched the BBC's beautiful adaptation of War & Peace. I knew relatively little about the historical taking place in the story, but remembered watching a series of [videos on Napoleon](https://www.khanacademy.org/humanities/history/1600s-1800s/napoleon-bonaparte/). I've now been back and rewatched [the video](https://www.khanacademy.org/humanities/history/1600s-1800s/napoleon-bonaparte/v/french-invasion-of-russia) that most relates to the story, which really helped to put the story in context. I'd forgotten that what is sometimes called the [best chart of all time](https://upload.wikimedia.org/wikipedia/commons/2/29/Minard.png) (I disagree) refers to the events in question."},
+{
+    title: "Barnsley Fern",
+    date: [18, 2, 16],
+    tags: ["PJS program"],
+    img: "5981277355638784/5668600916475904",
+    content: "I came across [this program](6424069958664192) by [Bruce](https://www.khanacademy.org/profile/brew) which introduced me to the [Barnsley Fern](https://en.wikipedia.org/wiki/Barnsley_fern). I've seen similar sorts of fractal ferns before, but not this one. And this one looked easy enough to quickly code. So I did. I works using an iterative function, which is very clever. I have no idea Barnsley ever figured it out."},
+{
+    title: "February Digest",
+    date: [1, 3, 16],
+    tags: ["digest"],
+    content: "So after several months of blogging fairly frequently, I finally petered out. Hopefully I can pick it up again soon (I write this several weeks after the start of the month).<h4>February</h4><ul><li><strong>Read:</strong> The Short Day Dying - Peter Hobbs</li><li><strong>Reading:</strong> The Golden Fool - Robin Hobb</li><li><strong>Work:</strong> Released Pixar Rigging (horray!)</li><li><strong>Notable programs:</strong> [Rigged version of Mike](5455623578058752)</li><li><strong>Fraction Game progress:</strong> updated background and started on interface</li></ul><h4>February plans</h4><ul><li><strong>To Finish:</strong> Fraction Game (really! Or maybe not)</li><li><strong>Blog:</strong> Get back to writing it</li><li><strong>Work:</strong> Pixar patterns and optics</li><li><strong>Other:</strong> Update my [SVG optimiser](https://github.com/petercollingridge/SVG-optimiser.js)</li><li><strong>Daydreaming about:</strong> Plant simulation</li></ul>"},
+{
+    title: "New badges for answering questions",
+    date: [3, 3, 16],
+    tags: ["badge"],
+    img: "images/badges/earth/sensei-60x60.png",
+    content: "Some new badges have just been released for answering questions with 3+ votes. They are _Excellent Teacher_, _Incredible Teacher_ and _Sensei_. These come before _Oracle_, which was one of the badges I was most focussed on getting."},
+{
+    title: "New look Khan Academy",
+    date: [17, 3, 16],
+    tags: ["KA feature"],
+    img: "https://fastly.kastatic.org/images/topic-icons/chemistry.png?v3",
+    content: "I noticed the [Physics](science/physics) pages have a very different layout to the rest of Khan Academy. I think we can expect this to become the new look for the whole site. Personally, I'm not a big fan of this, more modern look, but that might just be because I'm not used to it.\nI've also just noticed that what used to be called Recreational Math is now called [Math for fun and glory](math/math-for-fun-and-glory), which is cute."},
+    {
+    title: "50 x 50",
+    date: [22, 3, 16],
+    tags: ["badge"],
+    img: "images/badges/earth/incredible-answer-60x60.png",
+    content: "I just got my 50th _Incredible Answer_ badge. Of all the badges, this one is probably the one I value most. I think it's one of the hardest to achieve. Having said that, getting one if not necessarily the mark of a good answer, just a popular one."},
+    {
+    title: "New banner",
+    date: [22, 3, 16],
+    tags: ["KA feature"],
+    img: "web",
+    content: "It looks like banner along the top of KA has changed (to something very white). I guess this is part of a big sweep of changes coming to look of KA, which I mentioned a few days ago. It makes it a bit harder to find the CS section."},
+{
+    title: "Pixar Rigging contest results",
+    date: [23, 3, 16],
+    tags: ["Pixar", "contest"],
+    img: "3693107258/140001",
+    content: "The results for the first Pixar contest (Rigging) are out. Congratulations to all the winners and my thanks to everyone who took part. I got to make the Golden Winston badge and award it to the winners, which was fun. Now I know how to make badges and give them away! So much power..."},
+{
+    title: "Liquid test",
+    date: [26, 3, 16],
+    tags: ["PJS program"],
+    img: "3778359263/100001",
+    content: "[TheKidKing](profile/TheKidKing) sent me an interesting help request to make what he called a liquid text system - that is text that automatically adjusts the spacing between letters to fill a given width. It was for an [interesting program](3697949126) that writes a given number as a sum of factorials. After a couple of attempts I made something pretty reasonable. The program on the left, show the effect with a draggable textbox. That version also scales the font vertically just for fun."},
+{
+    title: "March Digest",
+    date: [1, 4, 16],
+    tags: ["digest"],
+    content: "I've been pretty busy this month with work making lots of cool things for the Pixar Pattern tutorial, really pushing my understanding of ray-tracing. Still lots more to do in the coming month, with more of a focus of Optics. Halfway through the month I started my blog again after serveral weeks hiatus. Hopefully I can write more this month.<h4>March</h4><ul><li><strong>Read:</strong> The Psychopath Test - John Ronson</li><li><strong>Reading:</strong> The Crying of Lot 49 - Thomas Pynchon</li><li><strong>Work:</strong> Pixar Patterns + some exercise updates</li><li><strong>Notable programs:</strong> [Voronoi diagram with noise](3726790311)</li><li><strong>Fraction Game progress:</strong> stalled</li></ul><h4>April plans</h4><ul><li><strong>Blog:</strong> Try to write more regularly</li><li><strong>Work:</strong> Finish Pixar patterns and get optics ready</li><li><strong>Daydreaming about:</strong> Hunter Gatherer game</li></ul>"},
+{
+    title: "Building a noisy tile set for games",
+    date: [6, 4, 16],
+    tags: ["PJS program"],
+    img: "4200241366/140001",
+    content: "Many of the games on KA recently have pretty impressive graphics, and a lot of that is due to people using noise to make tiles of non-uniform colour. Since I've been  working on a Pixar tutorial all about noise (and involving drawing at the pixel or sub-pixel level), I thought I'd try to apply some of what I'd learnt to make a set of tiles for a game (or two - making an alien landscape should be easier as I'm less constrained by reality) I've been thinking about. And for anyone else who cares to use them. Since I don't like to make things easy for myself, I made the tiles hexagonal.\nSo far, I have three tiles types, which differ in their colours (each tile having two) and the degree of noise. The sand tile looks pretty good, as does the grass one, but there's definitely work to be done to make a better looking and less grass-like forest tile. Maybe the grass could do with some flowers too. I spent rather too much time on trying to get the tile types to merge nicely, which is something I'd like to get back to, but isn't so important for now. I'm also hoping to shade each tile based on a height map.\nHopefully I can also work on making an actual game at some point too, before I get too distracted by other things. I think the key is to keep it as simple as I can."},
+{
+    title: "Belated update(s)",
+    date: [29, 4, 16],
+    tags: ["Pixar", "contest", "news"],
+    img: "4491333245/100001",
+    content: "So my plan was update more regularly this month and clearly that hasn't happened. In my defense, I did want to update, but there was a bug on KA that meant saving any spin-off turned that program into a talk-through (or at least appeared to), and I didn't want to turn this blog into a talk-through in case there was no way to turn it back. As it happens, it would have been fine and everything is fixed now.\nNow I can't remember everything I was going to write about. Let's see...\n[We launched a new Pixar contest about animation.](4491333245)\n[Pamela announced she had left.](4441295314) I'd known about that for a while, but it's still very sad. I'm not sure what's going to happen to the CS section of KA. Hopefully KA will find a replacement who will be as active in the community, but it's hard to imagine how.\n[My Sim World program got on the Hot List](4317260973). It's based on a program I wrote about six years ago, and then it based on a program I read about some ten years earlier. There's lots to say about ALife and one day I hope to write some of it down. I used to spent a lot of time thinking about and working on various ALife programs. It would be nice add some to KA.\nI've been busy with a couple of new tutorials, one about noise (to be launched shortly), and one about optics (a topic close to my heart; well photograpy at least). Both of which have involved me learning a lot about how to figure out where lines intersect various objects. It turns out that all computer graphics is, is figuring out where things intersect. I am very pleased with my latest ray-tracing.</p>[<img src=\"https://fastly.kastatic.org/computer-programming/hex-grid/4200241366/970001.png\" class=\"float-image\">](4200241366)<p>I've been working on a game, which was coming along quite nicely, but I lost momentum in the last week due to work. I hope I can get it into a playable state shortlu. It's almost there, so long as I don't get too distracted adding every last feature I want (I need a gamma function...). The image alongside is short of a teaser, which may somehow become involved. I spent way too long figuring out how to nicely merge tiles (which very almost works as I want), and to add contour shading (which doesn't).\n Worryingly, Yoko OhNoes is sometimes complaining my code for this blog is taking too long, which suggests I may have to update how it works."},
+{
+    title: "April Digest",
+    date: [1, 5, 16],
+    tags: ["digest"],
+    content: "I've been pretty busy this month with work making lots of cool things for the Pixar Pattern tutorial, really pushing my understanding of ray-tracing. Still lots more to do in the coming month, with more of a focus of Optics. Halfway through the month I started my blog again after serveral weeks hiatus. Hopefully I can write more this month.<h4>April</h4><ul><li><strong>Read:</strong> The Crying of Lot 49 - Thomas Pynchon</li><li><strong>Reading:</strong> I Think You'll Find It's a Bit More Complicated Than That - Ben Goldacre</li><li><strong>Work:</strong> Pixar Patterns and Optics</li><li><strong>Notable programs:</strong> [Sim world](4317260973)</li></ul><h4>May plans</h4><ul><li><strong>Blog:</strong> Try to write more regularly (again)</li><li><strong>Work:</strong> Launch Pixar patterns and finish Optics</li><li><strong>Personal:</strong> Launch my first game in ages</li><li><strong>Daydreaming about:</strong> ALife tutorial / book</li></ul>"},
+{
+    title: "Smooth particle hydrodynamics",
+    date: [2, 5, 16],
+    tags: ["PJS program", "Pixar"],
+    img: "5056836848/520001",
+    content: "As part of the up-coming Pixar Effects tutorial, I experimented with making [a program that could simulate water using particles](5127221893791744). That first program was a fairly straightforward particle simulation, which was more like a sand simulation. Now I've been experimenting with something called [_smoothed particle hydrodynamics_](https://en.wikipedia.org/wiki/Smoothed-particle_hydrodynamics), which is commonly used to simulate liquids. I can't say I fully understand it yet, but I've got something that broadly works. Ideally it would use a lot more particles and a lot more computer power, but the general idea is there."},
+{
+    title: "New level for the Mathformer Trial",
+    date: [4, 5, 16],
+    tags: ["PJS program"],
+    img: "5143498086/100001",
+    content: "I guess by now most people have seen [Aidabaida](profile/Aidabaida)'s excellent [The Mathformer Trial](5019224696). It consists of quite an interesting set of puzzles wrapped in a platformer game. I was inspired to try my hand at making a level (click the image), since I had an idea. It turned out to be a lot harder than I expected to make a puzzle that worked well (which I hope it does). It was probably a lot harder to make than it is to solve, but I hope it's tricky. The key to making it tricky (for me and the solver) was to make many options appear possible, but only one work."},
+{
+    title: "Essential game design resource",
+    date: [5, 5, 16],
+    tags: ["link"],
+    img: "5557347911335936/5747976207073280",
+    content: "A while ago, I found a rather excellent website for in-depth tutorials on various aspects of game design: [Red blob games](http://www.redblobgames.com/). I think originally I found it when looking for how to implement a [path-finding algorithm](http://theory.stanford.edu/~amitp/GameProgramming/), for which he appears now to have written an entire book's worth of content. [I also used it](http://www.redblobgames.com/grids/hexagons/) when I want to make [a game with hexagonal tiles](6227402002923520).\nI visited today as I've been working on a line intersection tool (computer graphic is all about intersections I've discovered) and thought I could make a truly amazing game (though realistically I'm not going to have enough time). One part of the game would involve vision limited in the way shown [here](http://www.redblobgames.com/articles/visibility/).\nWhilst looking at the site again, I found [a new page](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/) on generating an amazing map. The first step in making this map is to use a [Voronoi diagram](4666297643827200), which requires rather a lot of code, but just so happens to be what I spent a large part of the start of this year figuring out (all will be explained in a Pixar in a Box tutorial out shortly). In fact, I'd even thought about using it to make a map (see image above). Some of other techniques are very similar to the ones I'd been using to make [nice hex tiles for a game](4200241366).\nSo now I'm tempted to put everything together to make something similar to the Red Blob Games map. It would be nice to use it for a game. The game I made the original tiles for (which still needs finishing - it's nearly playable) probably won't work with such a large map. The main problem I have now is what to spent my time on. So many things I want to do.\nWhat a lot of links, literal and figurative."},
+{
+    title: "Colour Picker",
+    date: [6, 5, 16],
+    tags: ["PJS program"],
+    img: "6732050028953600/120001",
+    content: "I feel inspired to write my blog now just as I'm inspired to make lots of fun things. Unfortunately, I'm rather lacking in actual energy at the moment. Still, a short blog post should be possible especially if I don't waste all my time waffling on about nothing.\nAnyway, looking through my programs I noticed this colour picker (coming to a tutorial near you soon), and I thought it might be useful for someone. So here it is. It allow a user to select a colour based on its hue and saturation (rather than RGB values). The brightness is fixed though can be changed in the code. Eventually I'd like to add a brightness slider). The code is probably overkill and has a lot of general code for other GUI elements, but maybe someone can figure out how to use it."},
+{
+    title: "Dynamic shadows",
+    date: [7, 5, 16],
+    tags: ["PJS program"],
+    img: "5279682075/290001",
+    content: "As I mentioned a couple of days ago, I was thinking about making where the player's visibility is limited. Using [this article](http://www.redblobgames.com/articles/visibility/), I've made a very basic version, which draws shadows where they should be. It has the limitation of hiding the edges of the wall, but I think I can solve that without too much trouble. I'm not sure how well it will scale to larger maps though. And it goes weird if you move the player into a wall, but that can be solved by preventing the player from walking through walls. I can already think of a couple of fun games using this mechanic."},
+{
+    title: "Playlist Spotlight: Electrical engineering",
+    date: [8, 5, 16],
+    tags: ["playlist"],
+    img: "challenge",
+    content: "I used to highlight new KA topics I'd found on Wednesdays, but there's seems no point limiting myself or waiting. So here's one I just noticed: _[Electrical engineering](science/electrical-engineering)_. It includes _Reverse Engineering_, which I'd previously mentioned, but includes some more basic, general videos and articles."},
+{
+    title: "Simulation of an ionic solid",
+    date: [10, 5, 16],
+    tags: ["PJS program", "redux"],
+    img: "1122503811/16001",
+    content: "I used to do Self-Indulgent Sundays. Well, it's not Sunday, but here's a program I noticed today, which I was very pleased with when I first made it, and spent a lot of time watching It's one of the first programs I made here - a simulation for the chemistry playlists. It's based on a simple physics (particle) simulation, which I've used for many things. But this one has charged particles, so has more interesting interactions.\n<h4>What I like</h4>The simulation is pretty simple but effective. It illustrates quite nicely how a liquid can freeze or a solid can melt. It also show the phase transition: if you lower the temperature (of the container) until it's all frozen, then raise the temperature to 6, the temperature of the substance raises, then plateaus as the bonds melt and it becomes liquid, then the temperature rises again.\n<h4>What I don't like</h4>I'm pretty happy overall. As always, the coding could be improved and maybe I could now make it bigger, faster and more accurate. I think the interface could also be improved somewhat, but it does its job."},
+    {
+    title: "Projects to improve your coding skill",
+    date: [18, 5, 16],
+    tags: ["PJS program", "tutorial", "idea"],
+    img: "5517983221/30001",
+    content: "A few days ago GLY [asked for ideas for programs to make](5450426201). Blue Leaf provided [a great list of mini projects to work on and ways to extend them](computer-programming/an-idea/5450426201?qa_expand_key=kaencrypted_1973100ce23956eb3b890d9b3ac59eb6_4ca51ba42900c7cb2d75c92de6dede4142391d77d4aaca5c15f108e205035f0b6b141855d7cd65774ecd047110a003897eeb2e11a1865809bcf364bdc64b25c7bba0867488f038f8129dd31dce55d7e61a6ff2d715c3150f17cae350cc603cab21b5e2ca328e96300eed9673752212343f6d328fb0c6c70ff58c6c93675ca3ad24f14de276ce6a9c2621aee1e02d1725297cfa5af93ec5851e61719868f05db5). I recommend checking the full comment. One example is:\n\"_*Timing*: Write a program where the user just clicks to change between two or three scenes. But have the scenes fade in and out. Write this program twice: Once using frameCount and once using millis() to handle the timing._\"\nIt seems to me that a list of this sort of projects at the end of the JS course would be really useful, perhaps with evaluation (if only Pamela were still here). Maybe when I have time, I'll try to create my own list of mini-projects to suggest people. I think this sort of intermediate to higher level learning is very tricky. Learning (and teaching) syntax and the basics of coding is fairly easy compared to learning how to become a better coder, which is more to do with how you organise your code.\nIt also got me thinking about an AI that could analyse your code and suggest a project for you, then analyse that code, evaluate it and suggest ways to extend it. For now we'll have to rely on human experts.\nNow I don't normally promote programs that are currently on the Hot List, but Blue Leaf has created a wonderful RPG. I recommend looking at the game, admiring how good it looks, and seeing what you can do there. Then I suggest looking at the code, admiring how good it looks, and seeing what can be done with JS."},
+{
+    title: "Making full width programs",
+    date: [19, 5, 16],
+    tags: ["KA feature"],
+    img: "2968780686/720001",
+    content: "For the new Pixar in a Box tutorial we are launching next week (though you might be able to find it already with minimal effort), I wanted to have links to programs with the code hidden. I thought I'd have to embed the programs into the tutorial, but it turns out I just have to add `?editor=no` to the URL. If you click the image, it will take you to the program with the normal view, but click <a href=\"https://www.khanacademy.org/computer-programming/1d-noise-with-subdivision/2968780686?editor=no\" target=\"_blank\">here</a> to see the program without the editor window.\nA potentially useful side effect of this is that the program is stretched to fill the width (a bit too stretched, since it's meant to be embedded in a window so there's minimal padding). This might be very handy for making platformers where you can see more of the map. You just have to be careful you write your program to deal with varying widths, since the size will depend on the screen it's viewed on. In my example program, it has 12 control points with the coding window, but 23 when I view on my laptop."},
+{
+    title: "Why wheels are round",
+    date: [19, 5, 16],
+    tags: ["PJS program"],
+    img: "5629198921/70001",
+    content: "Whilst browsing the [Help Requests](https://www.khanacademy.org/computing/computer-programming/projectfeedback) list as a form of procrastination, I found [an intriguing request](5624481555):\n_Shorter version of_ `var XL = cos(((floor(sides/2)+(fract(pan+fract((sides+1)/2))-fract((sides+1)/2)))/sides)*PI*2)/2;`?\n(The bold `PI` should have asterisks on either side - I need to make my markdown more sophisticated).\nOnce I figured out what the question was asking, I was hooked - I like trying to simplify expressions. I was also impressed that someone was asking for a way to simplify their code. After making a bit of progress, I realised it would be easier if I derived my own equations. Eventually I managed, which was quite a satisfactory challenge. Definitely worth the effort. The program I made looks kind of interesting, almost like an optical illusion. You can change the number of sides of the shape and from there see why round wheels offer the smoothest rides. I should also plot of the graph for lines. With a 0 sided shaped (the program won't work, but) the graph is a sine wave. As you increase the number of sides, you restrict the range of the wave. As the limit goes to infinity, the graph becomes a straight line."},
+{
+    title: "Why wheels are round (more obviously)",
+    date: [20, 5, 16],
+    tags: ["PJS program"],
+    img: "5644451127/120001",
+    content: "The program I made yesterday got a surprising amount of attention. I think there is something quite pleasing about watching it. I've made a slightly different version, which keeps the lower bound fixed and records the position of the center. This shows more clearly how the axle position forms a section of a sine curve. And the more sides you have, the smaller the section (the section is 1 over the number of sides, so with three sides you have a third of a sine wave). As you increase the number of sides you can see how the axel position becomes smoother and smoother. I should show several shapes on the same page.\nLooks like this could be used to make a triangle character \"walk\"."},
+{
+    title: "Metaballs!",
+    date: [23, 5, 16],
+    tags: ["PJS program", "Pixar"],
+    img: "5688701556/90002",
+    content: "Finally, I've moved on from the Pixar Patterns lesson (official lanuch sometime today I think, but you should be able to find it without much effort), and on to Effects. I've been trying different types of water simulations. A while ago I made [this water simulation](5127221893791744), which many people commented was more like a sand similation (although that's sort of the point).\nNow I've been working on something to make the particles appear more like a solid continuum, using something called [Metaballs](https://en.wikipedia.org/wiki/Metaballs). I have a program [here](5685844109), where you can drag three particles around and see how they interact when close up. The program in the image has 20 bouncing particles all merged together, though it's at the limit at what can be done fast enough. In reality, you'd have thousands of particles, but it wouldn't be done in real time. I might have to try some cunning optimisations to get this working with a reasonable number of particles at a reasonable speed."},
+{
+    title: "The most complex program I've ever written",
+    date: [24, 5, 16],
+    tags: ["PJS program", "Pixar", "playlist"],
+    img: "5620766808/160001",
+    content: "The [Pixar patterns tutorial](partner-content/pixar/pattern) has now been officially launched. It seems like I've spent most of this year on it. It is probably my favourite lesson. The biggest timesink/headache were the two dinosaur leg creators. The second one, must be the most complex program I've ever made. It includes:<ul><li>Distributing points with [Poisson disc sampling](partner-content/pixar/pattern/dino/v/distribute-randomly).</li><li>Creating a [Voronoi partition](partner-content/pixar/pattern/dino/v/patterns2_new) using Fortune's algorithm (which was probably three weeks by itself).</li><li>My own [multi-resolution 2D noise](partner-content/pixar/pattern/perlin-noise/v/patterns-9) function.</li><li>[A HSB colour swatch](6732050028953600) (on a tabbed toolbar).</li><li>Calculating whether a [point is in an arbitrary polygon](6674052302897152).</li><li>Calculating the area of polygons with cross products.<li><li>Ray tracing the scaled cylinder which is still far from perfect, but push my mathematical ability (and sanity) to its limits.</li></p><p>The [code](5620766808) is certainly not the best I've written, especially the ray-tracing part, which I tried to make as fast as possible leading to some horrendous code. But at least I got something working and better than I expected. (It would have been nice if I could have added claws though.)"},
+{
+    title: "Results for animating a rigged character contest",
+    date: [25, 5, 16],
+    tags: ["Pixar", "contest"],
+    img: "5801383440/120001",
+    content: "The results for the Animation contest are out (finally) There were very impressive entries. Also a lot of jumping lamps. The results includes my first attempt at CSS animation."},
+{
+    title: "New multivariable functions playlist",
+    date: [26, 5, 16],
+    tags: ["playlist"],
+    img: "5056836848/800001",
+    content: "I finally got up Smooth Particle Hydrodynamics program working with different parameters. It looks pretty liquid now. I thought I should try to learn some of the theory behind the simulation. I knew there were some videos on Navier-Stokes equations on KA, and in searching for it, I found a playlist about [fluid dynamics](science/physics/fluids), which I should definitely watch as it's something I've never learnt. I also discovered that the [multivariable calculus section](math/multivariable-calculus) has been recently updated with quite a few more videos and articles. They're made by Grant Sanderson, who makes the [3Blue1Brown](math/math-for-fun-and-glory/grant-sanderson) videos. His videos have some fancy graphics he programmed himself. Lots more for me to learn, I just don't know when I'll find the time."},
+{
+    title: "Translating programs",
+    date: [27, 5, 16],
+    tags: ["Pixar", "KA feature"],
+    img: "5846876903/100001",
+    content: "If, for some reason, you had been looking at my recent programs, you might have wondered why it is filled with copies of several of my old Pixar programs. A closer look would have revealed that they have Portuguese buttons and tooltips. I've spent a large part of the day translating the programs (the translations were given to me). All this is in aid of a big launch of the Pixar content in a couple of new langauges. I think this is the first time lessons containing interactive programs have been translated (which is why it's so painstaking).\nIt's a times like these I wish KA had the option to import code, so I could have made a single code base and imported it into each program, rather than make dozens of changes in each individual program. I also wish I'd spent time making interfaces which automatically adjust their width based on the text width. There was one case, where changing the width of one element required changing eight numbers - really it should have been a single variable. I thought at the time I should change it, but then thought, \"Oh well, I'm never going to need to change that\". Always try to avoid thinking along those lines."},
+{
+    title: "New contest directory",
+    date: [28, 5, 16],
+    tags: ["contest"],
+    img: "5479492302/130001",
+    content: "[Stephen Waltz](profile/stevewaltz) has started to make a [contest directory](5479492302). The idea is to collect together all the non-official contests currently running, so people looking for contests can more easily find them and people running contest can more easily attract entrants. Which seems like a great idea. All it really needs in a place to subscribe and to become sufficiently well known that anyone interested in entering or running a contest knows about it. So, if that's you, have a look and let him know if you have any suggestions. It's early days yet, so the page is currently a bit basic."},
+{
+    title: "My new contest directory",
+    date: [29, 5, 16],
+    tags: ["contest", "HTML program"],
+    img: "5881766472/530001",
+    content: "Yesterday I mentioned [Stephen Waltz](profile/stevewaltz)'s contest directory page. Today, I have (with permission, and perhaps foolishly), taken over the idea, with my own page. The idea is for anyone interested in entering contests to subscribe and they will be notified of new contests. Anyone running a contest can add their contest to the page to attract entrants. Hopefully people will find it useful and it can serve until (and beyond) official contests start up again, assumming they ever do."},
+{
+    title: "Minor blog updates",
+    date: [30, 5, 16],
+    tags: ["blog"],
+    img: "web",
+    content: "The [_User Contest Directory_](5881766472) has been launched and got onto the Hot List so got some attention. Certainly enough to keep me busy. Half a dozen new contests have been added to it in the last day. I suspect the rate will drop off once the initial interest dies away.  There are quite a number of subscribers, so hopefully they will enter some of the contests and make it worthwhile. It seems the most problematical aspect will for contest-makers to find the program once it leaves the Hot List. I've added a link to it here, at the top of my blog, and put it as my other featured program in my profile. That knocks off my [_My Programs_](6090692692672512) program, so I've added a link to that here too. It's not much interest for other people, but it's useful for me to have an easily-searchable page of my program. It is in sore need of updating though.\nI need to fix the CSS for links and at some point I want to show only a month at a time on my blog to stop it from being so slow."},
+{
+    title: "May Digest",
+    date: [1, 6, 16],
+    tags: ["digest", "videos"],
+    content: "So after months of promising I'd write more on my blog, I finally did. I'm not really sure what happened. I may have been Patterns finally being released, meaning I wanted to spend time doing non-work things for a while. After responding to a help request, I got my first [top of Hot List program](5644451127) in a couple of years. I somehow felt very inspired, maybe helped by watching loads of tutorial videos. Hopefully next month I can keep up the blogging and find a bit more time to work on some of my personal projects. Lots of ideas and so little time<h4>May</h4><ul><li><strong>Read:</strong> I Think You'll Find It's a Bit More Complicated Than That - Ben Goldacre</li><li><strong>Reading:</strong> Fool's Fate - Robin Hobb</li><li><strong>Events:</strong> [Patterns tutorial](partner-content/pixar/pattern) launched, [Contest directory](5881766472) launched</li><li><strong>Notable programs:</strong> [Why wheels are round](5644451127), [Contest directory](5881766472), [Make you own dinosaur leg](5620766808) </li><li><strong>Watching:</strong> [Multivariable calculus](math/multivariable-calculus), [Information Theory](http://videolectures.net/mackay_course_02/), [Tensor Calculus](https://www.youtube.com/watch?v=hiYgYWJEaMk) [Linear algebra](https://www.youtube.com/watch?v=5hO3MrzPa0A), [System's biology](https://www.youtube.com/watch?v=lLY1u2aghIQ&index=2&list=PLUl4u3cNGP63OI3pSKo8Ha_DFBMxm23xO)</li></ul><h4>June plans</h4><ul><li><strong>To Finish:</strong> A game (nearly there, as I have been for the whole month)</li><li><strong>Blog:</strong> Add new sections</li><li><strong>Work:</strong> Release Pixar Effects (hopefully!)</li><li><strong>Daydreaming about:</strong> Beautiful 3D maps and a tower defense, resource management game</li></ul>"},
+{
+    title: "Idea dump",
+    date: [2, 6, 16],
+    tags: ["idea"],
+    img: 'idea',
+    content: "As I said yesterday, I've been feeling inspired recently, with lots of plans for games and programs, but what with a backlog of work and a number of other distractions, I've not had time for them. Also, I should really finish some of my old projects before embarking on even more. So, to stop me forgetting what I want to do, and maybe spur someone else to make them instead of me (if anyone can make head or tail of my witterings), I'm writing down all the ideas I can remember.</p>[<img src=\"https://www.khanacademy.org/computer-programming/a/5279682075/290001.png\" class=\"float-image\">](5279682075)<p>A while ago I linked to this dynamic shadow program. It needs some work to getting working a bit better. After that it would be nice to make a game with it. One option is a puzzle game where you have a number of guards to place such that they can see all the objects in a vault ([the art gallery problem](https://en.wikipedia.org/wiki/Art_gallery_problem)). Alternatively, a first person adventure game might be fun, with the shadows making the game more atmospheric. Finally, and my favourite, would be a strategy game where you control a number of units and need to move such that they cover each other and have good lines of sight as you attempt to capture an abandoned building (or something like that).</p>[<img src=\"https://www.khanacademy.org/computer-programming/a/5557347911335936/5747976207073280.png\" class=\"float-image\">](5747976207073280)<p>I also want to go back making a map based on [this tutorial](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/). Once I have the map, there's a number of games that could be made with it, or maybe I could just try to generate a realistic 3D landscape. Maybe it could be used for a strategy game where you have to move armies across the land, whilst protecting your supply lines. Or maybe a more general war game.</p><p>&nbsp;</p>[<img src=\"https://www.khanacademy.org/computer-programming/sim-world/4317260973/520001.png\" class=\"float-image\">](4317260973)<p>I made an Alife game a while ago and there's lots more I'd like to try. For example, a simulation of hawks and doves and something else that's amoured (with an explanation of the principle of game theory). Looking through a book in my shelf the other day, I was reminded on an ant colony simulation that I once made and would like to try again. I also noticed a genetic algorithm for a robot rubbish picker that I could try to replicate here.\nI'm currently part way through a problem I was set by someone here. I think I can do part of it, the second part will require making polygons with holes in them, which will be interesting. It occurred to me that if I can get it working, as well as a potentially useful tool, it could be used in a simple(ish) puzzle game. But first, I need to finish it. And at least one of my almost-finished games."
+},{
+    title: "Flame animation",
+    date: [3, 6, 16],
+    tags: ["PJS program"],
+    img: "5993137787/10001",
+    content: "After my hesternal (good word - look it up) post, I thought I should get a move on with trying to finish off some of my existing projects. I made a couple of minor improvements to my game interface, slowly moving things along. Then I procrastinated and thought it would be nice to have an animated campfire icon. So I played about with some noise and got something that's not too bad, though there's room for improvement. It uses 3D noise, with time as one dimension, and fades out the image based on noise plus distance from the bottom on the image, plus the distance from a line with one end fixed at the center of the bottom of the image, and the top which moves about using a sine function (it should be more random than that). The height of the flame also varies with a sine function. It would be fun to add smoke too. For the game, if I do use it, it would probably only need to be 16 x 16 pixels, so this is overkill."},
+{
+    title: "3D texture",
+    date: [9, 6, 16],
+    tags: ["PJS program"],
+    img: "6147118058/100001",
+    content: "[Iron Man Mark 44](profile/TrekkieTNG) asked me for help regarding adding a wooden texture to a 3D image, which sounded like fun. I've been meaning to try texturing in 3D for a while. First I tried to make a nice looking 3D textured, then I gave up and found [Jocopa3](profile/Jocopa3) had a very nice looking wood texture for a [Go game](6211859819659264) (a subject close to my heart - his game is a lot better than [my attempt](1646496761)).\nI played with the texture to make it closer to what I wanted and to make it more efficient. Then, after a bit of trouble, I did some very simple ray tracing to get it a wooden surface I could rotate. I really need to write some notes on how to do ray tracing as every time I try I run in problems. The program crashes pretty easily, which I think is mainly due to using the `noise` function twice. I could try to make it more efficient or maybe cache the texture. It should work fine for a static image though."},
+{
+    title: "Outlining shapes",
+    date: [13, 6, 16],
+    tags: ["PJS program", "Pixar"],
+    img: "6174905024/520001",
+    content: "I've been struggling with a program for the upcoming Pixar Effects tutorial. Finally I have something that works, solving a related program, namely how to draw an outline around a set of connected points. It seems like it should be a pretty simple challenge: a child could do it by eye (drawing it precisely as I want would require an older child with a good grasp of geometry, a compass and straightedge, a pencil and probably an eraser, but they could still manage).\nIf you play with program, you'll see that it breaks down up certain circumstances: when the outline becomes very large or the points close to one another. Fortunately, those situations should solved in the application I'm using it for. Another case where the program will break down is if you connect the points in a cycle. There's no easy way I know of to create shapes with holes in processing.js (I think it's possible in processing, and it might be possible in processing.js using `BLEND`). This is a problem I've come across in another problem I've currently working through, so if anyone has any ideas...</p>[<img src=\"https://www.khanacademy.org/computer-programming/find-outlines/6733900069076992/5676325415157760.png\" class=\"float-image\">](6733900069076992)<p>The program reminded me of this other program I wrote a while ago to solve a problem someone posed - how to draw the outline of a set of blocks in a grid/array. (However, the solution is complete different.) I can't help but think that either of these could be used for a game, but I can think what."},
+{
+    title: "Drawing contours",
+    date: [17, 6, 16],
+    tags: ["PJS program", "Pixar"],
+    img: "6019232044/18007",
+    content: "My previous post was a bit cryptic about what I was trying to achieve, but after way too much time, I finally have something that works as I want 99% of the time. The aim is to draw a line around some metaballs (which I mentioned back on 23rd May). You can view this particles as heat sources; then the aim is to draw a line joining all the points of a given temperature. It is useful for making the particles look like water droplets (coming to a _Finding Dory_ based exercise near you soon. It also looks like it might be useful for a simulation of cell division that I've thought about for many years, but I suspect it is overly complicated for that."
+},{
+    title: "Getting recent program images",
+    date: [18, 6, 16],
+    tags: ["HTML program", 'blog', 'KA feature'],
+    img: 'web',
+    content: "This blog and pretty much all my HTML programs use images of PJS programs. I do this by right clicking on an image of the program from somewhere on KA and selecting _Copy Image Address_, which I use for the image source. In my blog, I store this data as the program ID followed by the image ID. For a long time, I wondered whether there was an easier way, since the KA site itself automatically gets the latest image.\nWell it turns out there is an easier way. [Bryan Lu](profile/bryanluisawesome) pointed me to [this page](6039670653) (which is pretty handy in its own right) by [Matthias](profile/MatthiasSaihttam) which demonstrates how to do it, namely by appending `/latest.png` to the end of the program URL. This should make my updating the [Contest Directory](5881766472) a bit quicker and make this blog and my [My Programs](6090692692672512) program quicker to update, load, and more compact to in the code."
+},{
+    title: "Textured quadrilaterals",
+    date: [20, 6, 16],
+    tags: ["PJS program"],
+    img: '4719169326415872/5121099960418304',
+    content: "On 9th June, I wrote about a program I made to ray trace a quad so I could apply a texture. I was pretty pleased with the result, but the code wasn't massively useful for anyone else. Now I've written a function that works like `quad`, only it take an addition colour parameter and draws the shape with a wooden texture of the given colour. It can also take an image and draw it on the quad.\nI'm pretty pleased with how it worked out, especially that it can take any convex quads, not just parallelograms, so you can create a perspective effect. Briefly, it works by figuring out how far along the vertical and horizontal edge vectors every pixel inside the quad is. This requires solve a simultaneous equation in two unknowns which gives a quadratic equation. Lots of good high school maths there. Nice to see it appear in a genuine problem. I was bit surprised that a quadratic equation cropped up when there's not a parabola or curve in sight. I think all this Pixar work has got me comfortable with working this sort of problem out."
+},{
+    title: "Playlist Spotlight: Special relativity & Quantum physics",
+    date: [24, 6, 16],
+    tags: ["playlist"],
+    img: 'https://cdn.kastatic.org/images/topic-icons/physics.png?v3',
+    content: "I've just discovered that there are tutorials on [Special relativity](science/physics/special-relativity) and [Quantum physics](science/physics/quantum-physics) on Khan Academy. They look relatively short at the moment, but people have been asking for these topics for as long as KA existed. I really need to set up my webpage for latest video on KA so I can keep up to date."
+},{
+    title: "June Digest",
+    date: [1, 7, 16],
+    tags: ["digest"],
+    content: "After a productive May, June was a bit more chilled, more so than it probably should have been. I was mainly working on the Pixar Effect tutorial, and most of that effort was spent on figuring out how to outline metaballs as detailed in earlier posts. I ended the month on holiday, which is why this is written retrospectively, and I don't seem to have achieved much.<h4>June</h4><ul><li><strong>Read:</strong> Fool's Fate - Robin Hobb; Small Gods - Terry Pratchett</li><li><strong>Reading:</strong> One summer 1927 - Bill Bryson; The Fault in our Stars - John Green</li><li><strong>Working on:</strong> Pixar Effects</li><li><strong>Notable programs:</strong> [Metaball contours](6341362535759872), [Textured box](4719169326415872)</li></ul><h4>July plans</h4><ul><li><strong>To Finish:</strong> A game (?) I feel less close to finishing it than last month, but it is improving.</li><li><strong>Blog:</strong> Add new sections (still).</li><li><strong>Work:</strong> Finish Pixar Optics, start on Pixar Color.</li><li><strong>Other:</strong> Start a computer graphics /ray-tracing tutorial.</li><li><strong>Daydreaming about:</strong> Getting things done.</li></ul>"
+},{
+    title: "Pixar Effects launched",
+    date: [8, 7, 16],
+    tags: ["Pixar", "playlist"],
+    img: '5056836848/5741031244955648',
+    content: "The latest [Pixar playlist](partner-content/pixar/effects) on using particle system to create special effect is now out. I feel slightly detached from this one as I missed some the beginning of the project due finish _the most complex program I've ever written_ (see post from 24th May for details), and then missed the end as I was on holiday (hence my absence recently). I all felt a bit rushed as the plan was to launch it around the same time as _Finding Dory_ came out (which it almost was).\nHaving said that, it has my favourite opening video of any Pixar tutorial and a lot of simulations I like. I've been working on the simulations for a while now as anyone who's been reading my blog would know. I wrote [one of the water simulations](5127221893791744) back on 5th Novemeber last year ([last blog](5650310981484544)). It proved pretty popular, getting over 350 votes before being made official, which prevents voting. [Smoothed particle hydrodynamics](5056836848) is even better in my view, but I can't say I really understand why it works.\nOriginally, the plan was to make the tutorial a coding tutorial like [Rigging](partner-content/pixar/pixar-rigging), but it was a bit too risky to attempt without Pamela to help us. Also, there is already a very good [tutorial on coding particle systems](computing/computer-programming/programming-natural-simulations/programming-particle-systems/a/intro-to-particle-systems)."
+},{
+    title: "13 Million points",
+    date: [9, 7, 16],
+    tags: ["news"],
+    img: 'images/badges/moon/ludicrous-streak-60x60.png',
+    content: "It's over a year since I got 12 million points (see my [old blog](5650310981484544), 27th May). It must be the slowest million I've made. I finally over my points obsession, but not quite enough to not blog about this milestone."
+},{
+    title: "3000 answers",
+    date: [28, 7, 16],
+    tags: ["news"],
+    img: 'images/badges/earth/incredible-answer-60x60.png',
+    content: "I just noticed that I've answered 3000 questions. That's not particularly interesting, but I've not written much this month. My recently answers have not been as considered as my earlier ones."
+},{
+    title: "Gamification",
+    date: [28, 7, 16],
+    tags: ["news", "link", "videos"],
+    img: 'https://cdn.kastatic.org/images/badges/cs/interactive_programs_badge-60x60.png',
+    content: "I've been pretty quiet this month. Mainly I've been busy catching up on work after my holiday, but also trying to do some exercise for a change and trying to some work on my blog and build up to a new personal project. The work has mainly been on the upcoming (early next month, I hope) Optics/Virtual cameras lesson for Pixar in a Box, which I'm pretty pleased with.\nAll that has meant that I've not had any time to work on the game I keeping eluding to and not finishing. One reason for the latter is that I keep adding new features rather than complete the features that mean I could launch it. On feature I have added is a list of achievements the player has... achieved. I also wanted to ad badges for more specific achievements. But making a good badge system, while fun is not simple. The reason for all these extra features is that the game lacks any real objective and I hope this will make people enjoy playing more as it will give them something to aim for.\nAll this brings me to a [free Coursera course on Gamification](https://www.coursera.org/learn/gamification), which I've started. I'm hoping to learn any theory there is to know about the topic. From what I've seen so far it's all pretty wishy-washy, traditional business talk, but it's quite interesting nonetheless and maybe it will get more techincal later.\nI'd probably be better off doing a course on actual game design. But if I ever get to work on my huge (non-KA) project I hope to make, it will probably also have some game elements. And watching the videos gave me a idea for what I think is a novel maze game, which I'd love to try to make when I get some time..."},{
+    title: "Function Friday: for loops",
+    date: [30, 7, 16],
+    tags: ["Function Friday"],
+    content: "So I've not done a _Function Friday_ in ages, and since it's not Friday, and `for` loops aren't really functions, maybe this doesn't count. But anyway.\n`for` loop are a pretty much essential for all but the most basic programming (except that they can always be replaced with `while` loops). You may think that there's not much to them; it's easy to take them for granted. But it's worth thinking about how they work.\nThe basic syntax is:``for (A; B; C) {<br>    // some code<br/>}`` `A` runs once, before the loop starts. Normally it sets up the variables for the loop with something like `var i = 0`\n`B` is tested every loop to see if will run it, something like `i < 10`\n`C` is called _at the end_ of every loop and normally increments a counter, like `i++`\nIt's equivalent to ``A;<br>while (B) {<br>    // some code<br>    C;<br/>}``The `for` loop just condenses it nicely, [syntatic sugar](https://en.wikipedia.org/wiki/Syntactic_sugar) in a sense.\nIt's easy to get used to writing `for` loops the same way and forget that they are quite flexible.\nOne example is that you can assign multiple variables in `A`. A common case is to replace:\n`for (var i = 0; i < array.length; i++)`\nwith\n`for (var i = 0, n = array.length; i < n; i++;)`\nThe reason for doing this is the `A` part of the loop is only run once, while the `B` part is run multiple times, so it saves looking up the length of the array repeatedly. If your array is massive then this _can_ make a big difference.\nMost of time though, this will be a [premature optimisation](http://stackoverflow.com/questions/385506/when-is-optimisation-premature). The best way to optimise a `for` loop is to remove as much code as you can from it. Having said that, if you really want to optimise your `for` loop and you don't care about the order, then you can loop through it backwards with\n`for (var i = array.length; i--;)`\nHere we are going through the array backwards and notice we don't have anything in the `C` position! The decrementing occurs in the `B` position - there's nothing in the rules that stops us from doing that. But how does the loop know when to stop? It takes advantage of the fact that `i--` returns the value of `i` _before_ decrementing it (to get the value after decrementing use `--i`), and the fact that `0` is falsy. That is, testing for `i` (e.g. with `if (i)`)  will return `false` when `i` is 0 . It is equivalent to testing `if (i !== 0)`, but just testing `if (i)` is faster. Again, it's not going to make a huge difference.\nRecently I found I was passing in the number of times I wanted to repeat something, `n`, so my `for` loop became `for (;n--;)`. Probably a `while` loop would have made more sense.\nOne of the most interesting loops I saw was for testing whether a point was in a polygon defined by an array of points. This deals with edges, which are defined by two neighbouring points in an array. So you need to loop through the array, getting each point and the one that follows it, with the last point joining up with the first. You could do:\n``for (var i = 0; i < points.length; i++) {<br>    var p1 = points[i];<br>    var p2 = points[(i + 1) % points.length];<br>}``However the modulo operation is a bit slow, so instead it used:``for (var i = 0, j = points.length - 1; i < n; j = i++) {<br>    var p1 = points[i];<br>    var p2 = points[j];<br>}``This has `j = i++` in the `C` position which is a bit confusing. It has the effect setting `j` equal to the old value of `i` and then incrementing `i`. So both increase with `j` always one less than `i`. And for the first iteration `j` is the last value in the array, whilst `i` is the first. \nAs I say, most of these techniques are not necessary, but they are good to be aware of."
+},{
+    title: "Blog temporarily truncated",
+    date: [30, 7, 16],
+    img: 'web',
+    tags: ["blog"],
+    content: "After that big blog post, the Error Buddy was complaining my blog was taking too long to load, so I've hidden the posts before June. The plan is (and has been for a while) to make separate 'pages' for each month. Hopefully I can do that soon. Shouldn't be too hard..."
+}, {
+    title: "An optimisation story",
+    date: [30, 7, 16],
+    tags: ["PJS program"],
+    content: "After my pridian (good word - look it up) post about `for` loops I thought I should write more about how I've had to optimise code in the past. I ended with a fairly ugly `for` loop which I'd seen in [code](6674052302897152) for finding whether a point is inside a polygon:``for (var i = 0, j = points.length - 1; i < n; j = i++) {<br>    var p1 = points[i];<br>    var p2 = points[j];<br>}``In practise however, I don't use that, I use something more like:``var i, p1, p2 = points[0];<br>for (i = points.length; i--;) {<br>    var p1 = points[i];<br>    // Test using p1 and p2<br>    var p2 = p1;<br>}``I think this is more efficient because it uses fewer look ups.\n[<img src=\"https://www.khanacademy.org/computer-programming/a/5620766808/5707702298738688.png\" class=\"float-image\">](5620766808)But does it really matter if one is ever so slightly faster? Well, most of the time, no, it doesn't. However, for my [dino skin program](5620766808), which I previously mentioned, is probably the most complex program I've written, I was drawing a Voronoi diagram with each scale a different colour and shaded using noise. This meant having to draw it pixel-by-pixel, and so figuring out, which of about 80 polygons with about 6 sides each, each pixel was in. This meant about 76,800,000 iterations of the `for` loop, and I wanted to do this in real time, every time a parameter was changed with a slider. In this case, even a nanosecond difference per loop could result in a noticeable different in outcome.\nWhen I first timed, the process (including using my optimised `for` loop) it was about 120ms, which was too laggy for real time updating and I had to split the drawing over 4 `draw` loop updates. By the end of my optimising I'd got it down to 6ms which made it usable even with all the other calculations going on.\nAs I said previously, messing about with how your `for` loop is structured is not going to make a huge difference. The best results come from removing as much as you can from the `for` loop.\nMy code looked something like this:``for (every pixel) {<br>    for (every polygon) {<br>        for (every side) {``I needed to draw the image at every pixel, so there wasn't much I could do about the outer loop. For the inner loop I could save a bit of time by storing some of the edge data. The calculation requires subtracting the x- and y-coordinates of neighbouring points to get a vector. I can use these values for other calculations so they're worth saving (also known as [caching](https://en.wikipedia.org/wiki/Cache)).\nI can also save the minimum and maximum x- and y-cooridinates and so do a bounding box test (i.e. test whether the pixel is within a rectangle that just covers the box). This is an extra test to do, but it is much faster than the polygon test. Since most of the shapes we check will be a miss, it's worth doing this quick test first.\nHowever the biggest saving comes from the middle loop - do I really need to check _every_ polygon?\nPerhaps the most obvious shortcut is that once I've hit one polygon, there's no need to test any others. But we can do better. We're checking the pixels in order, row by row, so the y coordinate of the pixels only ever increases or stays the same. So we can put our shapes in an array and sort them by their maximum y-value. Then when we search, we'll search the top shapes first. For early pixels, we'll hit the shapes earlier (and now we're stopping as soon as we get a hit). And once the y-coordinate of the pixel we're testing is greater than the minimum value of a shape, we remove the shape for the array.\nSo now we're only checking shapes were whose bounding box is covers the pixels y-coordinate. This has the effect of reducing the maximum number of shapes checked from 80 to around 9 (the square root - we can imagine the polygon are approximate arranged in a grid, and we only check one row at a time). And it only takes minimal extra time: creating and sorting the array we do once, testing for removing shapes, we do once per row, so 400 times. Not too significant compared to the 160,000 pixels we're checking.\nSurprisingly, for me at least, one of the biggest wins came from simply storing the shape we hit previously and testing that one first. In retrospect it makes sense that, since each shape is on average ~40 pixels wide, about 97% of the time a pixel will be inside the same shape as the pixel before it. So now we're testing, on average little more than 1 shape per pixel.\nFinally, we can do yet more caching. We can create a 160,000 element array which maps each pixel to the shape that covers it. So we only do the calculation once, and after that we can do a quick look-up in the array. At the cost of some memory, we can greatly speed up the rate at which we can draw the diagram, and also the ray tracing and mouse-over effect. We only need to update the cache when the shapes change, but not when the colours or texture change. And of course, we save the image with `get` so we don't calculate the image every `draw` function, only when the parameters are changed.\nAnd that's just one reason why this program is the most complex I've written. The aim of this post (other than sharing some coding that I was extremely pleased with) was to ram home the point that fiddling with `for` loops, while fun, will only get you so far. Most optimisation will come from reorganising you code logic to avoid doing as many calculations as you can get away with. In particular, saving the results of calculation you repeat can save a lot of time."
+},{
+    title: "July Digest",
+    date: [1, 8, 16],
+    tags: ["digest"],
+    content: "I was pretty quiet in July. For the first week I was on holiday, and then spent much of the rest of the month trying to catch up on work. Effects was launched while I was away, and I still don't feel its exercises are complete. Optics is nearly complete and I'm feeling pretty pleaed with.\nI also spent some time trying to do more exercise and do a bit of work on my blog, thinking about a large project, somewhat based on the Pixar work. There still seems so many thing to try. I've not worked much on personal projects recently, but hopefully that will change. In the last couple of days, I've written a couple of fairly big blog post, which I'm pretty pleased with. I should do more of that.<h4>July</h4><ul><li><strong>Read:</strong> More Fool Me - Stephen Fry</li><li><strong>Reading:</strong> Maskerade - Terry Pratchett</li><li><strong>Work:</strong> [Effects](partner-content/pixar/effects) Launched; Pixar Optics drafted.</li><li><strong>Notable programs:</strong> [Composing scenes](5918007017472000)</li></ul><h4>August plans</h4><ul><li><strong>Personal:</strong> Do at least a little bit of work on my game.</li><li><strong>Blog:</strong> Write more and add 'pages' for each month.</li><li><strong>Work:</strong> Finish Pixar Optics, start on Pixar Color.</li><li><strong>Other:</strong> Work on my 'real' blog.</li><li><strong>Daydreaming about:</strong> Huge, secret, SVG drawing/animation project.</li></ul>"
+},{
+   title: "Squirt rig",
+    date: [2, 8, 16],
+    tags: ["Pixar", "PJS program"],
+    img: "5789681932697600",
+    content: "I just found this very cool rig from someone doing the [rigging tutorial](5225568209862656), and whose programs deserve more attention. I really wish I was better at drawing."
+},{
+   title: "Blog post filtering",
+    date: [2, 8, 16],
+    img: 'web',
+    tags: ["blog"],
+    content: "After many, many months of thinking about it, I've finally updated my blog so that posts are shown in 'pages', with a separate one for each month. This means all my posts can be seen again without crashing the browser. I was also able to use the same code to allow filtering by category as determined by the tags I've added - finally the tags actually work!\nMost likely, I'll be other only person to use this feature, but it was good practise for my rusty jQuery, and I was able to remove a lot of redundant code. I suspect I may need to update it again at some point as I still have to markup all the blog entries at once as it's too slow to do once the page is running."
+},{
+   title: "Celiac disease and Circuit analysis",
+    date: [3, 8, 16],
+    img: 'video',
+    tags: ["playlist"],
+    content: "I seem to be in the mood for updating my blog at the moment. So here are a couple of playlists I didn't realise KA had until today: [Celiac disease](test-prep/nclex-rn/gastrointestinal-diseases#celiac-disease-rn) and [Circuit analysis](https://www.khanacademy.org/science/electrical-engineering/ee-circuit-analysis-topic). I think they points to the range of topics now on Khan Academy."
+},{
+   title: "PJS cursors",
+    date: [4, 8, 16],
+    img: '5179585384677376',
+    tags: ["PJS program", "reference"],
+    content: "I thought I'd mentioned [this program](5179585384677376) before, but I but can't see any evidence for that. Like [this reference](2802439947) for editor shortcuts, it's something I find myself searching for every now and then. I suppose it should be in the documentation. I should probably figure out how to add it."
+},{
+   title: "Code reading comprehension",
+    date: [4, 8, 16],
+    img: 'idea',
+    tags: ["tutorial", "link", "idea"],
+    content: "I found [this question on Quora](https://www.quora.com/What-are-the-greatest-programming-tips-and-tricks-you-have-learned-on-your-own-by-years-of-coding) on coding tips and tricks, which has a lot of good advice, references, links to talks etc.. One comment I read there was that you should read more code than you write. I definitely do that and I should definitely read more. I suppose it's partly because I'm not really a proper developer in the sense that I don't work on large collaborative projects. The nature of the KA environments means I can't even import code.\nSo  was trying to think how I could read more code. I could just go and find some open source projects and look at them, but there's not much to motivate me, so I'll quickly give up. What I want is a code reading comprehension program. Something that gives me some code and tests if I understand how it works. Quite how it tests one's understanding, I don't know. In simple cases it could just ask for the output for a given input, but I feel it should be more than just that.\nA related idea that could be combined is a debugging quiz, which would more naturally get you to read and comprehend code. It could be something like the [_Help Requests_](computing/computer-programming/projectfeedback) here. For easy levels, there would be an informative description of the bug, e.g. _This function should give the the greatest common denominator of two numbers, but when given the numbers 20 and 40, it returns 10 instead of 20._ For harder levels, it would just say, _Why doesn't this function work?_ It would also start with small functions, but ideally end it large complex projects. I'm not quite sure how it would be score except to all the user to edit some or all of the code.\nMaybe it's something I could make, or at least prototype. The hard part would be getting good example code."
+},{
+   title: "Essence of linear algebra",
+    date: [5, 8, 16],
+    img: 'https://cdn.kastatic.org/images/power-mode/badges/vectors-60x60.png',
+    tags: ["playlist"],
+    content: "The guy who from [3Blue1Brown](http://www.3blue1brown.com/), who made some [recreational math videos](math/math-for-fun-and-glory/grant-sanderson) and the [newer calculus videos](math/calculus-home/multivariable-calculus) is back with some [videos on linear algebra](math/linear-algebra/eola-topic). He's going to be releasing one a day for the next week (a new way to build up interest?) and then one lesson every week or two.\nI can't wait. Linear algebra was one the of the first things I learnt on Khan Academy (in order to figure out how 3D graphics work - something I now do quite a lot of, not that I use much linear algebra for it). I feel quite comfortable with it, but don't think I really have a good grasp of what the operations are doing (though I sometimes have glimpses), which is what he's planning to teach."
+},{
+   title: "Composition over inheritance",
+    date: [5, 8, 16],
+    img: 'https://cdn.kastatic.org/images/badges/cs/object_oriented_badge-60x60.png',
+    tags: ["videos", "tutorial"],
+    content: "I came across [this video](https://www.youtube.com/watch?v=wfMtDGfHWpA) via an article I found via the question on Quora I mentioned in a post yesterday. And it's changed my life! At least it's made me want to try a different method of using classes (or rather, not using them) with JS. I recommend watching the video and maybe the one on Factory functions before it. I really liked the presenter and genuiely laughed a few times. The talks have a lot of interesting techniques and from what I've seen are covered with clear examples. Definitely a good place to learn some more advanced JS techniques. Having just learnt the ideas, I now want to teach them, maybe using the Code comphrension idea from yesterday.\nI'm feeling very inspired at the moment, hence all blog posts. Lots of things to learn and try (and not enough time of course. I'm also watching some videos on [django](https://www.djangoproject.com/), which I've been wanting to try for ages. I saw this [tweet](https://twitter.com/ThePracticalDev/status/743846903759142918) today which seems to sum up my programming projects."
+},{
+   title: "Game idea dump",
+    date: [7, 8, 16],
+    img: 'idea',
+    tags: ["idea"],
+    content: "Every now and then I like to write a load of ideas I have for projects in the knowledge that I'm unlikely to start them any time soon, if ever, and don't want to forget about them. So here are some games that I'd like to make once I've done all my work, worked on my big personal project, answered half a dozen questions from various people, and finally finished I started earlier this year and thought would be quick.<h3>Gear maze</h3>The basic idea is a grid maze. When you are standing on a tile, you can turn it. Each tile is a cog, so turning it will turn other tiles. You have to figure out which tiles to turn to complete the maze. Ideally some tiles will cause a large chain reaction of other tiles turning, some will cause others to turn at different speeds due to the gearing ratio, others could even turn sections of several tiles, resulting in new gears put into contact. I doubt I'll ever get a chance to make this, so if someone wants to make it, I'd like to see it, and maybe design some levels (which I suspect will be hard to do well).<h3>Mobile tower defense + resource management</h3>I've mentioned this before, but I've been thinking about it more. If I ever finish my other game, then I guess this would be the one I'd try to make.\nThe storyline would be something along the lines of your team is flying over an alien planet toward a human colony, when the ship runs in to trouble and crashes in a unexplored area. Your aim is to get to the encampment with what supplies you have. You have some small vehicles and a range of weapons which would somehow require resources available on the planet. Alternatively you'd have to pick up supplies that were scattered over the region during the crash. Maybe you were on an assignment to delieve weapons to the colony (what with all the aliens attacking), and they were scatter across the landscape. Perhaps some of the more powerful ones were in several pieces, so you have to decide whether it's worth collecting them all.\nThe gameplay would involve players slowly move towards the encampment, picking up resources and finding a place to camp that can easily defended. Maybe they could choose to make a longer-term base around a crucial resource, collecting supplies until making a breakd for it. When night falls, the aliens would come out and try to attack the camp. You could build and repair weapons, but also create make-shift walls to block off regions. Maybe you could build new weapons if there's some sort of 3D printer onboard. The aliens would be free to move wherever, maybe following some routes between their nests that happen to cross your path. Hopefully I could use [Dijkstra maps](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) for their AI, so they would avoid strongly defended areas. The gameplay would need to be fleshed out a bit, but that's the general idea..\nI'm sure there was another game, but I seem to have already forgotten it."
+},{
+   title: "Character creator",
+    date: [11, 8, 16],
+    img: '6091348160413696',
+    tags: ["PJS program", "Pixar"],
+    content: "So my enthusiasm for updating my blog has finally waned a little, although I have several post planned in my head.\nOne of the things I've been working on recently is [an update](6091348160413696) to [a program](5920598529277952) I made for the [Character Modeling tutorial](partner-content/pixar/modeling-character). The original program was created to allow students to explore subdivision by interacting with and editing the control points of a shape. Perhaps unsurprisingly, many students wanted to go further and create more complex images. I had several requests for options to change the colour (for which I added a simple slider), and to add more shapes (for which I have created this new program).\nThe program is pretty complex; there are some parts of it I'm very pleased with and others that I think can be greatly improved tidied up. As usual, creating the interface was the worst part. (One of these days, I'll make a truely general purpose GUI that I can use for everything.) It has several of the functions that are standard in a graphics editor, but there are lots more I'd like to add (multi-shape selections, undo/redo etc.). Also, it could really do with some tooltips or a tutorial to explain how to use it. But it bascially works and that's the main thing. Now if only I had some artistic ability..."
+},{
+   title: "New Pixar topic",
+    date: [16, 8, 16],
+    img: '4945416198946816',
+    tags: ["PJS program", "Pixar"],
+    content: "I've just started working on a new Pixar topic, maybe you can guess what it is. I think I have mentioned it before. It's going have some information useful for coding - I've already learnt a bit of useful theory. This also means that _Optics_ will hopefully be launched shortly."
+},{
+   title: "RGB cube",
+    date: [17, 8, 16],
+    img: '6026471955890176',
+    tags: ["PJS program", "Pixar"],
+    content: "A couple of months ago I made a program to draw a [textured cube](4719169326415872) to help someone with a problem (I'm not sure I actually helped much). And today, it turned out that all that time was well spent. It's not the first time, that techniques I've learnt for a personal project has been directly applicable to work. In this case I used the same basic idea to create an RGB cube - that is, creating a cube and colouring it by increasing red along one axis, green along another, and blue along the last. This version can be rotated to see all around, which kept crashing. Setting the `frameRate` to 15 seemed to solve the issue."
+},{
+   title: "Animated dashed shape boundary",
+    date: [18, 8, 16],
+    img: '4983806602641408',
+    tags: ["PJS program", "Pixar"],
+    content: "I'm currently in the process of making my own (massively simplified) version of Photoshop. One of the least essential elements of Photoshop (and many other graphics programs) is the animated boundary you get when you select a region, so naturally, that's what I decided to spend all my time on.\nI'm pretty pleased with [the result](4983806602641408). It seems like it could be useful for various things. I'm not 100% I'll actually use it as it might be too slow in a program that's already going to be pretty intensive. For part of a related task, I made [this program](6742549271019520), which shows the nearest point to the mouse on each edge of a shape. It also seems like it could be useful, but for what, I don't know."
+},{
+   title: "Procedural generation for dummies",
+    date: [18, 8, 16],
+    img: 'secret',
+    tags: ["link"],
+    content: "I've started to read [this guide](http://martindevans.me/game-development/2016/03/30/Procedural-Generation-For-Dummies-Half-Edge-Geometry/) on procedural generation techniques for making cities (and a universe). Not because I'm planning to generate a city any time soon, but I like procedural generation. Also, it has an article on half-edges, which are a concept used in constructing Voronoi diagrams that I never really understood. Poking around the site, there is a more general article [here](http://martindevans.me/Heist/2012/12/14/How-Does-Procedural-Generation-Work/), which mentions Voronoi diagrams, and one [here](http://martindevans.me/heist-game/2013/05/22/Trees-Are-Well-Behaved/) about AI. And the game is called Heist, which is the same name I had for a game (I imagine it's pretty common)."
+},{
+   title: "Function Friday: Closures",
+    date: [19, 8, 16],
+    tags: ["Function Friday"],
+    content: "Today's Function Friday (which I'm actually writing on a Friday for once), is not about any specific JS function, but all JS functions. All JS functions are closures, which means that they have access to the scope (what variables they can refer to) outside of themselves.\nFor example, in the code below, if you call the function, rather than get an error saying that `count` is undefined, you'll see `0` printed. If you later change the value of count then call the function, you'll see the updated value of `count`.``var count = 0;<br>var showCount = function() {<br>    println(count);<br>};``This might not come as a surprise to you, especially if you've not used tried other programming languages, but it's quite a subtle point, and one that can be exploited to good effect.<h3>Aside about scope</h3>I mentioned a while ago an idea for having a code comprehension quiz. Here's a short quiz of the sort I might include. What do you see printed when you run the code below?``var count = 0;<br>var showCount = function() {<br>    var count = 1;<br>    println(count);<br>};<br>showCount();<br>println(count);``What happens if we remove the first line? Hopefully you can predict that the final `println` will throw an error that `count` is not defined. This is because the outer scope does not have access to the variables inside the function.<h3>Back to closures</h3>So the examples above show us that functions have access to the outer scope, but the outer scope doesn't have access to the scope inside a function. And that can be useful.\nCan you predict what this code will do?``var getCounter = function() {<br>    var count = 0;<br>    var counter = function() {<br>        count++;<br>        println(count);<br>    };<br>    return counter;<br>};<br>var counter = getCounter();<br>counter();<br>counter();<br>println(count);``This is might be more confusing as we're using higher-order functions. That is, we're using functions as variables when we `return counter` to get a function.\nIf you run this code you'll find that calling `counter` increments `count` and prints the result. But when you try to `println(count);`, you'll find it's undefined. We have created a hidden or private variable. The function has closed over the variable, so the variable is accessible only via the function. This is useful as you can protect variables, but also create several functions, each with their own set of variables that won't interfere with the rest of your program.<h3>A potentially useful example</h3>One useful way to exploit closures is to make functions that build function (factory functions). For example, I have created code along these lines to generate a few functions to round to different numbers of decimal places (based on user input).``var getRoundToFunction = function(decimalPlaces) {<br>    var n = pow(10, decimalPlaces);<br>    return function(x) {<br>        return round(x * n) / n;<br>    };<br>};<br>var roundTo1DP = getRoundToFunction(1);<br>var roundTo3DP = getRoundToFunction(3);<br>println(roundTo1DP(PI));<br>println(roundTo3DP(PI));``This uses the function `getRoundToFunction` to create two separate functions for rounding to a different number of decimal places. The advantage of this over having a single function like the one below, is that we only have to do the `pow` calculation once, which makes our rounding function a faster. It also saves us having to repeatedly passing in the second variable.``var roundTo = function(x, decimalPlaces) {<br>    var n = pow(10, decimalPlaces);<br>    return round(x * n) / n;<br>};``Often you can use this method to move a lot of processing out of a function. You can play with the code examples [here](4673552459366400).\nAs I've mentioned before, [this](https://www.youtube.com/channel/UCO1cgjhGzsSYb1rsB4bFe4Q) is a great playlist for more advance JS programming."
+},{
+   title: "Evolving an image",
+    date: [24, 8, 16],
+    img: '1485250255',
+    tags: ["PJS program", "redux"],
+    content: "One of the first things I did when learning Python was to write a program that used a genetic algorithm to approximate a target image using semi-transparent circles. I wrote a lot about on my [old blog](http://www.petercollingridge.co.uk/evolving-images). When I started coding on KA, I put up [an image of Mona Lisa](1153732313) generated using a different, more direct method. Then I realised I could put [images based on my genetic algorithm](1479710170) which I ran offline. Someone then saw that and was disappointed that I didn't put the actual genetic algorithm online. So I managed to write [a basic, very slow version](1485250255) here, around 3 years ago.\nIt recently came to my attention that the program was broken, so I've rewritten it to use the pixels array which makes it pretty speedy, although it does still crash sometimes. As before, I've spent way too long watching it. Given a few thousand generations you can see the basic shape coming through, but to get anything good you need several hundred thousand generations, and I've not waited that long this time. It may be that I've not used enough circles for a decent image anyway. Still, I think it's quite fun to watch for a while."
+}
+];
+//console.log(data.length);
+</script>
+
+<!-- Code to convert blog post JSON into HTML -->
+<script>
+    var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    var ordinals = ["st", "nd", "rd"];
+    
+    var images = {
+        web: "images/badges/cs/html_css_mastery_badge-60x60.png",
+        challenge: "images/power-mode/badges/default-60x60.png",
+        idea: "images/badges/earth/incredible-inspiration-60x60.png",
+        tinker: "images/badges/meteorite/tinkerer-60x60.png",
+        secret: "images/badges/sun/detective-60x60.png",
+        video: "images/badges/earth/ridiculous-listener-60x60.png"
+    };
+
+    var entriesDiv = $("#entries");
+
+    var getDate = function(date) {
+        var str = date[0];
+        
+        if (Math.floor(date[0] / 10) === 1) {
+            str += "th";    // Deal with 11, 12, 13
+        } else {
+            str += ordinals[(date[0] % 10) - 1] || "th";
+        }
+        
+        return str + " " + MONTHS[date[1] - 1].slice(0, 3) + " 20" + date[2];
+    }
+    
+    var createContentsListItem = function(i, headingText) {
+        // Return an object in the form <li><a href="#entryi">headingText</li>
+        var item = document.createElement("li");
+        var anchor = document.createElement("a");
+        anchor.href = "#entry" + i; 
+        anchor.innerHTML = headingText;
+        item.appendChild(anchor);
+        return item;
+    };
+    
+    // Regex
+    var re_em = /\b_([^_]+)_\b/g;
+    var re_strong = /\*([^\*\`]+)\*/g;
+    var re_code = /`([^`]+)`/g;
+    var re_precode = /``([^`]+)``/g;
+    
+    var markupContent = function(str) {
+        // Replace _text_ with <em>text</em>
+        str = str.replace(re_em, "<em>$1</em>");
+        
+        // Replace *text* with <strong>text</strong>
+        str = str.replace(re_strong, "<strong>$1</strong>");
+
+        // Replace ``text`` with <pre><code>text</code></pre>
+        str = str.replace(re_precode, "<pre><code>$1</code></pre>");
+        
+        // Replace `text` with <code>text</code>
+        str = str.replace(re_code, "<code>$1</code>");
+        
+        // Searching for links in the form [text](URL)
+        var re_link = /\[([^\]]+)(?:\]\()([^\)]+)\)/g;
+        
+        str = str.replace(re_link, function(p, txt, url) {
+            // Convert 16 digits into a link to a computer-program
+            if (url.match(/^\d{9,16}/)) {
+                url = "https://www.khanacademy.org/computer-programming/_/"+ url;
+                
+            }
+            
+            // Convert URL shortcuts into full URLs
+            if (url.slice(0, 4) !== "http") {
+                url = "https://www.khanacademy.org/" + url;
+            }
+            
+            return '<a target="_blank" href="' + url + '">' + txt + '</a>';
+        })
+        
+        // Add p tags
+        str = "<p>" + str.replace(/\n/g, '</p><p>') + "</p>";
+        
+        return str;
+    };
+    
+    var entriesByTag = {};
+    var entriesByMonth = {};
+    var $allTag = $('.tag-container');
+    
+    // Append a value to an array accessed by hash[key]
+    // If there is no array at hash[key], add one
+    var pushToHash = function(hash, key, value) {
+        var arr = hash[key];
+        if (!arr) {
+            hash[key] = [value];
+        } else {
+            arr.push(value);
+        }
+        
+    };
+    
+    // Read content data and get a mapping of tags to entry
+    // and month to entry
+    var parseData = function() {
+        for (var i = data.length; i--;) {
+            var d = data[i];
+            
+            // Add data to entriesByMonth
+            if (d.date) {
+                var month = MONTHS[d.date[1] - 1];
+                pushToHash(entriesByMonth, month, d);
+            }
+            
+            if (d.tags) {
+                for (var j = d.tags.length; j--;) {
+                    pushToHash(entriesByTag, d.tags[j], d);
+                }
+            }
+            
+            d.content = markupContent(d.content);
+        }
+    };
+    
+    // Convert blog data into entry on page
+    var getBlogEntry = function(data) {
+        // Entry div
+        var entry = $('<div class="entry"></div>');
+        
+        // Heading
+        var heading = $('<h3></h3>')
+            .text(data.title)
+            .appendTo(entry);
+        
+        // Date
+        if (data.date) {
+            date = $('<span></span>')
+                .addClass('date')
+                .text(getDate(data.date))
+                .appendTo(entry);
+        }
+
+        // Add image if there is one
+        if (data.img) {
+            var img = $("<img>").addClass("float-image");
+            var src = data.img.slice(0, 4) === "http" ? "" : "https://www.khanacademy.org/";
+            
+            // If image is of a scratchpad,
+            // given by two 16 digits numbers
+            // make it a link to the scratchpad
+            if (data.img.match(/^\d{9,16}/)) {
+                src += "computer-programming/_/";
+                var link = $("<a></a>")
+                    .attr('_target', 'blank')
+                    .append(img)
+                    .appendTo(entry);
+                var id = data.img.split("/")[0];
+                link.attr('href', src + id);
+                src += id + "/latest.png?a";
+                link.append(img);
+            } else {
+                src += images[data.img] || data.img;
+                entry.append(img);
+            }
+            
+            img.attr({ src: src , target: '_blank' });
+        }
+        
+        // Add content
+        $("<div/>").html(data.content).appendTo(entry);
+        
+        // Tags
+        if (data.tags) {
+            var tagDiv = $("<div></div>")
+                .addClass("tag-container")
+                .appendTo(entry);
+            
+            for (var j = 0; j < data.tags.length; j++) {
+                $("<span/>")
+                    .addClass('tag')
+                    .text(data.tags[j])
+                    .appendTo(tagDiv);
+            }
+        }
+        
+        return entry;
+    };
+    
+    var showEntries = function(data) {
+        entriesDiv.empty();
+        for (var i = 0; i < data.length; i++) {
+            entriesDiv.append(getBlogEntry(data[i]));
+        }
+    };
+    
+    // Get a span which acts as a button for filtering content
+    var getTagButton = function(tag, data) {
+        var tagOuter = $('<span class="tag"></span>');
+        var tagName = $("<span>" + tag + "</span>");
+        var tagCount = $('<span class="tag-count">(' + data.length + ')</span>');
+        
+        tagOuter.append(tagName);
+        tagOuter.append(tagCount);
+        
+        tagOuter.click(function() {
+            showEntries(data);
+            $allTag.children().removeClass('selected');
+            $(this).addClass('selected');
+            $('html, body').animate({
+                scrollTop: entriesDiv.offset().top
+            }, 1000);
+        });
+        
+        return tagOuter;
+    };
+    
+    // Add a tag cloud to allow users to select entries by
+    // date or by category
+    var addFilterSets = function() {
+        var monthContainer = $("#month-tags");
+        var categoryContainer = $("#category-tags");
+        var latestData;
+        
+        for (var i = 0; i < MONTHS.length; i++) {
+            var month = MONTHS[i];
+            var data = entriesByMonth[month];
+            if (data) {
+                monthContainer.append(getTagButton(month, data));
+                latestData = data;
+            }
+        }
+        
+        var keys = Object.keys(entriesByTag)
+        keys.sort(function(a, b) { return entriesByTag[b].length - entriesByTag[a].length; });
+        
+        for (var i = 0; i < keys.length; i++) {
+            categoryContainer.append(getTagButton(keys[i], entriesByTag[keys[i]]));
+        }
+        
+        // Show latest months entries
+        var months = $(monthContainer[0]).children()
+        $(months[months.length - 1]).addClass('selected');
+        showEntries(latestData);
+
+    };
+    
+    parseData();
+    addFilterSets();
+    
+</script>
+
+<!-- Dropdown functionality -->
+<script>
+    $('.dropdown').hover(
+        function () {
+            // Show submenu
+            $('ul', this).stop().slideDown(100);
+        }, 
+        function () {
+            // Hide submenu
+            $('ul', this).stop().slideUp(100);            
+        }
+    );
+</script>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+/*********************************************************
+ * Press s to launch a shuttle.
+*********************************************************/
+var speed = 200;
+var launchSpeed = 250;
+var GRAVITY = 0.0001;
+
+// Sizes
+var sun_size = 25;
+var mars_size = 5;
+var earth_size = 8;
+
+// Colours
+var SUN_COL = color(255, 255, 0);
+var MARS_COL = color(212, 95, 17);
+var EARTH_COL = color(61, 100, 255);
+
+// Earth days for orbit
+var mars_year = 687;
+var earth_year = 365;
+
+// Orbit ellipse radii in millions of km (x, y)
+var mars_orbit_r = [228, 227];
+var earth_orbit_r = [150, 150];
+
+// Other variables for the display
+var scaling_factor = 0.75;
+var orbit_plots = 10;
+var max_points = 402;
+
+var fixed_point, old_fixed, fixed_x, fixed_y;
+var t = 0;
+var running = true;
+var animation = 0;
+var animation_length = 80;
+
+// Put (0, 0) in the centre to make things easier
+translate(216, 200);
+
+var Sun = function(r, colour) {
+    this.x = 0;
+    this.y = 0;
+    this.mass = 330000;
+    this.previous_points = [];
+    
+    this.update = function(t) {        
+        if (t % orbit_plots === 0) {
+            var x = this.x - fixed_x;
+            var y = this.y - fixed_y;
+            this.previous_points.push([x, y]);
+            if (this.previous_points.length > 700/orbit_plots) {
+                this.previous_points.shift();
+            }
+        }
+    };
+    
+    this.display = function(x, y) {
+        fill(colour);
+        ellipse(x, y, r, r);
+        fill(255, 89, 0, 100);
+        ellipse(x, y, r+3, r+3);
+    };
+    
+    this.draw = function() {
+        var x = this.x - fixed_x;
+        var y = this.y - fixed_y;
+        
+        fill(colour);
+        for (var i in this.previous_points) {
+            var p = this.previous_points[i];
+            ellipse(p[0], p[1], 2, 2);
+        }
+        this.display(x, y);
+    };
+};
+
+var Planet = function(cx, cy, angle, major, minor, year, r, mass, colour) {
+    this.angle = angle;
+    this.mass = mass;
+    cx *= scaling_factor;
+    cy *= scaling_factor;
+    major *= scaling_factor;
+    minor *= scaling_factor;
+    this.x = cx + major * cos(this.angle);
+    this.y = cy + minor * sin(this.angle);
+    
+    this.previous_points = [];
+    
+    this.update = function(t) {
+        // Distance to sun
+        var d = sqrt(this.x*this.x + this.y*this.y);
+        
+        // Velocity
+        var v = sqrt((2/d - 1/major));
+        
+        // Distance from ellipse centre
+        var d = dist(this.x, this.y, cx, cy);
+        
+        this.angle += speed * v/d;
+        
+        this.x = cx + major * cos(this.angle);
+        this.y = cy + minor * sin(this.angle);
+        
+        if (t % orbit_plots === 0) {
+            var x = this.x - fixed_x;
+            var y = this.y - fixed_y;
+            this.previous_points.push([x, y]);
+            if (this.previous_points.length > max_points) {
+                this.previous_points.shift();
+            }
+        }
+    };
+    
+    this.display = function(x, y) {
+        fill(colour);
+        ellipse(x, y, r, r);
+    };
+    
+    this.drawCycle = function() {
+        ellipse(cx - fixed_x, cy - fixed_y, major*2, minor*2);
+    };
+    
+    this.draw = function() {
+        fill(colour);
+        
+        for (var i in this.previous_points) {
+            var p = this.previous_points[i];
+            ellipse(p[0], p[1], 2, 2);
+        }
+        
+        this.display(this.x-fixed_x, this.y-fixed_y);
+    };
+};  
+
+/********************************************************
+ *               Make planets here
+*********************************************************/
+var sun = new Sun(sun_size, SUN_COL);
+
+var mars = new Planet(-21, 0,        // Centre of orbit (x, y)
+                      0,
+                      mars_orbit_r[0], mars_orbit_r[1],
+                      mars_year, mars_size, 0.11, MARS_COL);
+
+var earth = new Planet(-2.5, 0,       // Centre of orbit (x, y)
+                       225,
+                       earth_orbit_r[0], earth_orbit_r[1],
+                       earth_year, earth_size, 1, EARTH_COL);
+
+var bodies = [sun, earth, mars];
+
+fixed_point = sun;
+old_fixed = sun;
+
+var clearPoints = function() {
+    for (var i in bodies) {
+        bodies[i].previous_points = [];
+    }  
+};
+
+var shuttles = [];
+var Shuttle = function(x, y, dx, dy) {
+    this.x = x;
+    this.y = y;
+    this.dx = dx;
+    this.dy = dy;
+    
+    this.draw = function() {
+        fill(255);
+        ellipse(this.x, this.y, 2, 2);
+    };
+    
+    this.update = function() {
+        this.x += this.dx;
+        this.y += this.dy;
+        
+        for (var i in bodies) {
+            var b = bodies[i];
+            var dx = this.x - b.x;
+            var dy = this.y - b.y;
+            var d2 = dx * dx + dy * dy;
+            var f = GRAVITY * b.mass / d2;
+            var theta = atan2(dy, dx);
+            this.dx -= f * cos(theta);
+            this.dy -= f * sin(theta);
+        }
+    };
+};
+/********************************************************
+ *               Display functions
+*********************************************************/
+
+var draw = function() {    
+    if (running) {
+        t++;
+        
+        var p = animation/animation_length;
+        fixed_x = p * old_fixed.x + (1-p) * fixed_point.x;
+        fixed_y = p * old_fixed.y + (1-p) * fixed_point.y;
+        
+        if (animation > 0) {
+            animation--;
+            if (animation === 0) { clearPoints(); }
+        }
+
+        for (var i in bodies) {
+            bodies[i].update(t);
+        }
+        
+        for (var i in shuttles) {
+            shuttles[i].update(t);
+        }
+    }
+    
+    background(0, 0, 0);
+    noStroke();
+    
+    for (var i in bodies) {
+        bodies[i].draw();
+    }
+    for (var i in shuttles) {
+        shuttles[i].draw(t);
+    }
+};
+
+/********************************************************
+ *               Event handling
+*********************************************************/
+
+var mousePressed = function() { 
+};
+
+var keyPressed = function() {
+    // Spacebar toggles animation
+    if (keyCode === 32) { running = !running; }
+    else if (keyCode === 83) {
+        var dx = launchSpeed/400 * cos(earth.angle + 80);
+        var dy =launchSpeed/400 * sin(earth.angle + 80);
+        shuttles.push(new Shuttle(earth.x, earth.y, dx, dy));
+    }
+};

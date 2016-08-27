@@ -1,0 +1,63 @@
+// For https://www.khanacademy.org/computer-programming/sided-shape/5624481555
+
+// A polygon rotating around the center of the screen
+// The lines show the bounadry of the shape as it rotates
+
+// Version showing wheels of different shapes:
+// https://www.khanacademy.org/computer-programming/wheels-with-different-shapes/5644451127
+
+// Try changing this
+var sides = 3;
+
+var theta = 360 / sides;
+var halfTheta = theta / 2;
+var radius = 100;
+
+var w2 = width / 2;
+var h2 = height / 2;
+
+draw = function() {
+    background(250);
+    
+    var angle = frameCount % 360;
+    pushMatrix();
+    translate(200, 200);
+
+    // Bounding box lines
+    strokeWeight(1);
+    stroke(100);
+    
+    // Right
+    var x, y;
+    x = radius * cos((angle + halfTheta) % theta - halfTheta);
+    line(x, -h2, x, h2);
+    
+    // Top
+    y = radius * cos((angle + halfTheta + 90) % theta - halfTheta);
+    line(-w2, -y, w2, -y);
+    
+    // Left
+    x = radius * cos((angle + halfTheta + 180) % theta - halfTheta);
+    line(-x, -h2, -x, h2);
+    
+    // Bottom
+    y = radius * cos((angle + halfTheta + 270) % theta - halfTheta);
+    line(-w2, y, w2, y);
+
+    rotate(angle);
+    
+    strokeWeight(3);
+    stroke(20, 100, 200);
+    
+    // Draw shape
+    beginShape();
+    for (var i = 0; i < sides; i++) {
+        vertex(radius * cos(i * theta), radius * sin(i * theta));
+    }
+    endShape(CLOSE);
+    
+    // Center of shape
+    ellipse(0, 0, 5, 5);
+    
+    popMatrix();
+};
