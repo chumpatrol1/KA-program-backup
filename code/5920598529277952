@@ -1,0 +1,886 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var MESSAGEBLUE = color(20, 60, 160);
+
+var pointR = 16;
+var CONTROL_POINT_SIZE = 12;
+var MAX_RESOLUTION = 200;
+var RESOLUTION = 40;
+
+var toolbar;
+var toolbarWidth = 135;
+var toolbarX = width * 0.01;
+
+var showing = {
+    'Control points': true,
+    'Control arms': true,
+    Curve: true,
+    Fill: true
+};
+
+var sansFont = createFont("sans", 14);
+var serifFont = createFont("serif", 16);
+
+var myCurve;
+
+/****************************************************
+ * Generic GUI component from which other elements
+ * inherit
+ * The default object is basically a button
+*****************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/****************************************************
+ *  GUI Button
+*****************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, { name: name });
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/****************************************************
+ * GUI Slider
+*****************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = 12;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+
+var ColorSlider = function(x, y, w, h, params) {
+    this.saturation = params.saturation || 180;
+    this.brightness = params.brightness || 180;
+    
+    Slider.call(this, x, y, w, h, params);
+    this.setColor();
+};
+ColorSlider.prototype = Object.create(Slider.prototype);
+
+ColorSlider.prototype.setColor = function() {
+    colorMode(HSB);
+    this.color = color(this.val, this.saturation, this.brightness);
+    colorMode(RGB);
+};
+
+ColorSlider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+    }
+    
+    this.fade();
+    fill(this.color);
+    strokeWeight(4);
+    stroke(this.stroke);
+    line(this.x, this.y, this.x2, this.y);
+    stroke(250);
+    strokeWeight(1);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+};
+
+ColorSlider.prototype.trigger = function() {
+    this.setColor();
+};
+}
+/*****************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+*****************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+/**************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+***************************************/
+
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseover()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    if (this.selected) {
+        fill(PINK);
+    } else {
+        fill(this.color);
+    }
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+/**************************************
+ * Project mouseX, mouseY onto a line
+ * from p1 to p2.
+ * Used to figure out where new points
+ * can be added.
+***************************************/
+
+var projectMouseOntoLine = function(p1, p2) {
+    // Project (mouseX, mouseY) onto line
+    var lx = p1.x - p2.x;
+    var ly = p1.y - p2.y;
+    var mx = mouseX - p2.x;
+    var my = mouseY - p2.y;
+    
+    var w = (mx * lx + my * ly ) / (lx * lx + ly * ly);
+    if (w > 0 && w < 1) {
+        var x = p1.x * w + p2.x * (1 - w);
+        var y = p1.y * w + p2.y * (1 - w);
+        return [x, y];
+    }
+    return false;
+};
+
+/**************************************
+ *      Curve
+ * A collection of points, joined by control arms
+ * A curve is drawn between the points
+***************************************/
+
+var Curve = function(points) {
+    this.controlPoints = [];
+    this.curvePoints = [];
+    this.selectedPoint = false;
+    this.draggingPoint = false;
+    this.addPointCoord = false;
+    this.resolution = 0;
+    
+    // Add control points
+    for (var i = 0; i < points.length; i++) {
+        this.controlPoints.push(
+            new DraggablePoint(points[i][0], points[i][1])
+        );
+    }
+    
+    this.updateCurvePoints();
+};
+
+Curve.prototype.updateCurvePoints = function() {
+    this.curvePoints = this.calculateSubdivisionPoints(this.controlPoints);
+};
+
+// Given an array of control points, return the subdivided points
+Curve.prototype.calculateSubdivisionPoints = function(points) {
+    var curvePoints = [];
+    var q = pow(2, this.resolution);
+    var q2 = q * q;
+    var n = points.length;
+    var p3, a, b, c, s, t, x, y, i;
+    var p1 = points[n - 2];
+    var p2 = points[n - 1];
+    
+    for (i = 0; i < n; i++) {
+        p3 = points[i];
+        
+        for (t = 0; t < q; t++) {
+            s = q - t - 1;
+            a = (s * s + s) / 2;
+            c = (t * t + t) / 2;
+            b = q2 - a - c;
+            
+            x = (p1.x * a + p2.x * b + p3.x * c) / q2;
+            y = (p1.y * a + p2.y * b + p3.y * c) / q2;
+            curvePoints.push([x, y]);
+        }
+        
+        p1 = p2;
+        p2 = p3;
+    }
+    
+    return curvePoints;
+};
+
+Curve.prototype.draw = function() {
+    var i, n = this.controlPoints.length;
+    var m = this.curvePoints.length;
+    
+    if (showing['Control arms']) {
+        stroke(BLUE);
+        strokeWeight(2);
+        var p1, p2 = this.controlPoints[n - 1];
+        
+        for (i = 0; i < n; i++) {
+            p1 = this.controlPoints[i];
+            line(p1.x, p1.y, p2.x, p2.y);
+            p2 = p1;
+        }
+    }
+    
+    if (showing.Curve) {
+        stroke(this.color);
+        strokeWeight(4);
+    
+        if (showing.Fill) {
+            fill(this.color + (128 << 24));
+        } else {
+            noFill();
+        }
+        
+        beginShape();
+        for (i = 0; i < m; i++) {
+            var p = this.curvePoints[i];
+            vertex(p[0], p[1]);
+        }
+        endShape(CLOSE);
+    }
+   
+    if (showing['Control points']) {
+        for (i = 0; i < n; i++) {
+            this.controlPoints[i].draw();
+        }
+    }
+    
+    if (this.addPointCoord) {
+        stroke(PINK);
+        strokeWeight(2);
+        fill(PINK + (180 << 24));
+        ellipse(this.addPointCoord[0], this.addPointCoord[1], pointR, pointR);
+    }
+};
+
+Curve.prototype.drawCurvePoints = function() {
+    for (var i = 0; i < this.curvePoints.length; i++) {
+        this.curvePoints[i].draw();
+    }
+};
+
+Curve.prototype.addPointAt = function(coord) {
+    var newPoint = new DraggablePoint(coord[0], coord[1]);
+    this.controlPoints.splice(coord[2] + 1, 0, newPoint);
+    this.pointAdded = true;
+};
+
+Curve.prototype.deletePoint = function() {
+    if (this.selectedPoint !== false && this.controlPoints.length > 3) {
+        this.controlPoints.splice(this.selectedPoint, 1);
+        this.updateCurvePoints();
+        this.selectedPoint = false;
+        toolbar.components[2].disabled = true;
+    }
+};
+
+Curve.prototype.printCurve = function(_scale) {
+    _scale = _scale || 400 / max(width, height);
+    _scale *= 10;
+    
+    var r = red(this.color);
+    var g = green(this.color);
+    var b = blue(this.color);
+    
+    var s = "strokeWeight(4);\n";
+    s += "stroke(" + r + ", " + g + ", " + b + ");\n";
+    s += "fill(" + r + ", " + g + ", " + b + ", 128);\n";
+    s += "beginShape();\n";
+    
+    var oldX, oldY;
+    for (var i = 0; i < this.curvePoints.length; i++) {
+        var p = this.curvePoints[i];
+        var x = round(p[0] * _scale) / 10;
+        var y = round(p[1] * _scale) / 10;
+        
+        if (oldX !== x || oldY !== y) {
+            s += "vertex(" + x + ","  + y + ");\n";
+        }
+        
+        oldX = x;
+        oldY = y;
+    }
+    s += "endShape(CLOSE);";
+    println(s);
+};
+
+Curve.prototype.exportToSVG = function() {
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + width + ' ' + height + '">\n';
+
+    var r = red(this.color);
+    var g = green(this.color);
+    var b = blue(this.color);
+    var c = "rgb(" + r + ", " + g + ", " + b + ");";
+    
+    s += '\t<path style="stroke:' + c + 'stroke-width:3px;fill:' + c + ';fill-opacity:0.5" d="M';
+    for (var i = 0; i < this.curvePoints.length; i++) {
+        var p = this.curvePoints[i];
+        var x = round(100 * p[0]) / 100;
+        var y = round(100 * p[1]) / 100;
+        s += x  + ","  + y + " ";
+        if (!i) { s += "L"; }
+    }
+    s += 'z"/>\n</svg>';
+    println(s);
+};
+
+// Select a point for dragging
+Curve.prototype.mousePressed = function() {
+    for (var i = 0; i < this.controlPoints.length; i++) {
+        if (this.controlPoints[i].mouseover()) {
+            this.draggingPoint = this.controlPoints[i];
+            this.draggingPoint.dragging = true;
+        }
+    }
+};
+
+// Select a point for editing
+Curve.prototype.mouseReleased = function() {
+    if (this.draggingPoint) {
+        this.draggingPoint.dragging = false;
+        this.draggingPoint = false;
+    }
+    
+    this.selectedPoint = false;
+    toolbar.components[2].disabled = true;
+    for (var i = 0; i < this.controlPoints.length; i++) {
+        if (this.controlPoints[i].mouseover()) {
+            this.selectedPoint = i;
+            this.controlPoints[i].selected = true;
+            toolbar.components[2].disabled = false;
+        } else {
+            this.controlPoints[i].selected = false;
+        }
+    }
+    
+    if (!this.draggingPoint &&
+         this.addPointCoord) {
+        this.addPointAt(this.addPointCoord);
+    }
+    
+    this.updateCurvePoints();
+};
+
+// Move a dragged point
+Curve.prototype.mouseDragged = function() {
+    if (this.draggingPoint) {
+        this.addPointCoord = false;
+        this.draggingPoint.x += mouseX - pmouseX;
+        this.draggingPoint.y += mouseY - pmouseY;
+    }
+    this.updateCurvePoints();
+};
+
+// Check for mouseover a line
+Curve.prototype.mouseMove = function() {
+    if (this.draggingPoint) { return; }
+    
+    this.addPointCoord = false;
+    var n = this.controlPoints.length;
+
+    for (var i = 0; i < n; i++) {
+        var p1 = this.controlPoints[i];
+        if (dist(mouseX, mouseY, p1.x, p1.y) <= CONTROL_POINT_SIZE) {
+            return;
+        }
+    }
+
+    for (var i = 0; i < n; i++) {
+        var p1 = this.controlPoints[i];
+        var p2 = this.controlPoints[(i + 1) % n];
+        var d = projectMouseOntoLine(p1, p2);
+        
+        if (d) {
+            var x = d[0];
+            var y = d[1];
+            if (dist(mouseX, mouseY, x, y) <= pointR / 2) {
+                this.addPointCoord = [x, y, i];
+                break;
+            }
+        }
+    }
+};
+
+/**************************************
+ * Creation of objects
+***************************************/
+
+myCurve = new Curve([
+    [width * 0.5, height * 0.2],
+    [width * 0.5 + height * 0.4, height * 0.8],
+    [width * 0.5 - height * 0.4, height * 0.8]
+]);
+
+toolbar = new Toolbar(toolbarX, toolbarX, toolbarWidth);
+
+toolbar.add(Slider, {
+    max: 5,
+    name: "Subdivisions",
+    trigger: function() {
+        if (myCurve.resolution !== this.val) {
+            myCurve.resolution = this.val;
+            myCurve.updateCurvePoints();
+        }
+    }
+});
+
+toolbar.add(ColorSlider, {
+    name: 'Color',
+    now: 113,
+    max: 255,
+    brightness: 174,
+    saturation: 214,
+    trigger: function() {
+        this.setColor();
+        myCurve.color = this.color;
+    }
+});
+
+toolbar.add(Button, {
+    name: "Delete point",
+    trigger: function() { myCurve.deletePoint(); },
+});
+toolbar.components[2].disabled = true;
+
+toolbar.add(Button, {
+    name: "Export curve",
+    trigger: function() { myCurve.printCurve(); }
+});
+toolbar.add(Button, {
+    name: "Export to SVG",
+    trigger: function() { myCurve.exportToSVG(); }
+});
+toolbar.add(Button, {
+    name: "Restart",
+    trigger: function() { Program.restart(); },
+});
+
+toolbar.addOptions(showing);
+
+/**************************************
+ *  Draw tooltip
+***************************************/
+
+var drawArrow = function(x1, y1, x2, y2) {
+    var angle = atan2(y2 - y1, x2 - x1);
+    var d = dist(x1, y1, x2, y2) * 0.3;
+    
+    var cx1 = x1;
+    var cy1 = y1;
+    var cx2 = x2;
+    var cy2 = y2;
+    var angle2 = angle + 20;
+    
+    if (angle > 45 && angle < 135) {
+        cx1 += d * cos(angle + 40);
+        cy1 += d * sin(angle + 40);
+        cx2 -= d * cos(angle - 40);
+        cy2 -= d * sin(angle - 40);
+        angle2 = angle - 40;
+    } else {
+        cx1 += d * cos(angle - 20);
+        cy1 += d * sin(angle - 20);
+        cx2 -= d * cos(angle + 20);
+        cy2 -= d * sin(angle + 20);
+    }
+    
+    //ellipse(cx1, cy1, 8, 8);ellipse(cx2, cy2, 8, 8);
+    
+    noFill();
+    strokeWeight(3);
+    stroke(MESSAGEBLUE);
+    bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+    
+    noStroke();
+    fill(MESSAGEBLUE);
+    pushMatrix();
+    translate(x2, y2);
+    rotate(angle2);
+    triangle(8, 0, -5, 4, -5, -4);
+    popMatrix();
+};
+
+var drawMessage = function(message, x, y, x1, y1) {
+    textFont(sansFont, 15);
+    textLeading(16);
+    
+    var nLines = message.split("\n").length;
+    var w = textWidth(message) + 20;
+    var w2 = w * 0.5;
+    var h = nLines * 22 + 3;
+    
+    strokeWeight(3);
+    stroke(MESSAGEBLUE);
+    fill(TOOLBAR);
+    fill(255);
+    var mx = max(x - w2, toolbar.x + toolbar.w + 5);
+    rect(mx, y, w, h, 20);
+    
+    textAlign(CENTER, CENTER);
+    fill(20);
+    text(message, mx + w2, y + h / 2);
+    
+    if (x1) {
+        drawArrow(mx, y + h / 2, x1, y1);
+    }
+};
+
+var getMessage = function() {
+    var message, x, y;
+    
+    if (myCurve.resolution === 0) {
+        message = "Smooth the shape by increasing the number of subdivisions.";
+        x = toolbar.x + toolbar.w + 5;
+        y = toolbar.components[0].y;
+    } else if (!myCurve.pointAdded) {
+        message = "Click on a control arm to add a new control point.";
+    } else {
+         message = "Move the control points, add more points, and change the color.\n Move on when you have a shape you like.";
+    }
+    
+    drawMessage(message, width / 2, 10, x, y);
+};
+
+/**************************************
+ *  Main loop
+***************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    myCurve.draw();
+    toolbar.draw();
+    getMessage();
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    myCurve.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    toolbar.mouseDragged();
+    myCurve.mouseDragged();
+    myCurve.mouseMove();
+};
+
+mouseReleased = function() {
+    toolbar.mouseReleased();
+    myCurve.mouseReleased();
+};
+
+mouseMoved = function() {
+    myCurve.mouseMove();
+};
+
+keyPressed = function() {
+    if (key.toString() === 's') {
+        myCurve.printCurve();
+    } else if (key.toString() === 'p') {
+        myCurve.printCurve(1);
+    }
+};

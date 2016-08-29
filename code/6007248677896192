@@ -1,0 +1,35 @@
+background(0);
+
+var WHITE = color(255, 255, 255);
+var RED = color(255, 0, 0);
+var GREEN = color(0, 255, 0);
+
+// Points for the curve (making a square)
+var points = [
+    [120, 120],
+    [280, 120],
+    [280, 280],
+    [120, 280]
+];
+
+var n = points.length;
+
+noFill();
+strokeWeight(3);
+
+// Use curveTightness values from -4 to 4
+for (var j = -4; j < 5; j++) {
+    // Colour based on curveTightness value
+    stroke(j > 0 ? lerpColor(WHITE, RED, j / 5) : lerpColor(WHITE, GREEN, -j / 5)); 
+    
+    // Set tightness
+    curveTightness(j);
+    
+    // Draw curved shape by looping through all the points
+    // Include an extra three points for the final curve vertices
+    beginShape();
+    for (var i = 0; i < n + 3; i++) {
+        curveVertex(points[i % n][0], points[i % n][1]);
+    }
+    endShape();
+}

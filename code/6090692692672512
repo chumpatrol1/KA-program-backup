@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+
+<!--
+    
+To use this for your own programs:
+    
+    1. Spin-off this program
+    2. Search through the until you find the username variable
+        Replace peterwcollingridge with your username
+        (This is the name in the URL when your visit the Your Programs page)
+    3. Delete everything the programData variable
+        Replace with var programData = {};
+    4. Click Update on the webpage to get your data
+    Hopefully your programs will appear.
+    
+    * To Save Changes *
+    5. Click Download on the webpage
+    6. Copy the programData variable created into this code window, overwriting the old one.
+    7. Save the scratchpad
+    
+    
+Features:
+    Automatically get all a user's programs
+    Displays them all with images and titles
+    Programs automatically tagged based on votes and an spin-offs
+    Filter programs by tag
+    Click an image to bring up information
+    Click description to edit it
+    Add tags as a comma-separated list
+    To save changes, click download and copy the programData variable into the code
+    
+TODO:
+    Add close button to download area
+    Highlight Download button on change
+    Show changes on Update
+    Deal with deleted programs
+    Update tag cloud when tags updated
+    Remove tags
+    Search tags
+    Add tag types
+    Autocomplete tags
+    Manage tags
+    UnFilter by tag
+    Create tag properties, including descriptions
+    (Select multiple program to add tags in bactches)
+    
+Fix:
+    Remove input value when detail window closed
+    Avoid adding two Inspiration or Votes tags
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>My programs</title>
+        <link href='https://fonts.googleapis.com/css?family=Alegreya+Sans+SC:900,500' rel='stylesheet' type='text/css'>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        
+        <style>
+            body {
+                margin: 1px;
+                font-family: sans-serif;
+                color: #222;
+            }
+            
+            .header {
+                background-color: rgb(52, 106, 41);
+                color: #fff;
+                padding: 15px 10px 10px 15px;
+            }
+            
+            h1 {
+                margin: 0;
+                font-size: 64px;
+                font-family: 'Alegreya Sans SC', impact;
+                line-height: 50px;
+            }
+            
+            h2 {
+                margin-bottom: 5px;
+            }
+            
+            #username {
+                font-size: 14px;
+                margin-top: 5px;
+                margin-left: 10px;
+            }
+            
+            #avatar {
+                position: absolute;
+                top: 5px;
+                right: 10px;
+            }
+            
+            #avatar img {
+                width: 50px;
+                margin: 0 auto;
+                display: block;
+            }
+            
+            #tag-cloud {
+                font-size: 13px;
+            }
+            
+            .program-small {
+                display: inline-block;
+                margin: 4px;
+                padding: 5px;
+                width: 105px;
+                background-color: #eee;
+                border-radius: 5px;
+            }
+            
+            .program-small:hover {
+                background-color: #ccc;
+            }
+            
+            .program-small div {
+                color: #222;
+                text-decoration: none;
+                font-size: 12px;
+                padding-top: 5px;
+                white-space: nowrap;
+                overflow: hidden;
+            }
+            
+            .program-small img {
+                width: 100px;
+                display: block;
+                margin: 0 auto;
+            }
+
+            .no-info {
+                background-color: #fdd;
+            }
+            
+            .button-container {
+                width: 100%;
+            }
+            
+            .button-container button {
+                margin: 0 auto;
+                display: block;
+            }
+            
+            .content {
+                margin: 10px;
+            }
+            
+            #download-code {
+                font-family: monospace;
+                font-size: 10px;
+                background: #ddd;
+                padding: 5px;
+                width: 98%;
+                height: 160px;
+            }
+            
+            #download-code:focus {
+                outline: none;
+            }
+            
+            #window-overlay {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.75);
+            }
+            
+            #program-details {
+                position: relative;
+                background-color: #edeff0;
+                color: #4d4d4d;
+                border-radius: 10px;
+                width: 444px;
+                height: 270px;
+                margin: 50px auto 0 auto;
+            }
+            
+            #program-details-title {
+                padding: 8px 0 4px 0;
+                text-align: center;
+                font-size: 20px;
+            }
+            
+            #program-details-title a {
+                color: #222;
+                text-decoration: none;
+            }
+            
+            #program-details-title a:hover {
+                text-decoration: underline;
+            }
+            
+            #program-details-nums {
+                position: relative;
+                font-size: 13px;
+                height: 20px;
+            }
+            
+            #program-details-votes {
+                position: absolute;
+                right: 52%;
+            }
+            
+            #program-details-spins {
+                position: absolute;
+                left: 52%;
+            }
+            
+            #program-details-img {
+                display: inline-block;
+                margin-left: 16px;
+                border-radius: 5px;
+            }
+            
+            #program-details-info {
+                padding: 5px;
+                margin-left: 8px;
+                width: 190px;
+                height: 190px;
+                background-color: #fff;
+                border-radius: 5px;
+                display: inline-block;
+                vertical-align: top;
+                overflow: scroll;
+            }
+            
+            #program-details-info div {
+                padding: 5px;
+                margin-bottom: 5px;
+                font-size: 11px;
+            }
+            
+            #program-details-desc:focus {
+                outline: none;
+                box-shadow: inset 0 0 0 1px #008ddf;
+            }
+            
+            #program-details-info input {
+                padding: 2px 5px;
+                margin-left: 4px;
+                font-size: 11px;
+                width: 100px;
+                
+            }
+            
+            #program-details-info input:focus {
+                outline: 1px solid #008ddf;
+            }
+            
+            #program-details-info h2 {
+                padding: 4px;
+                font-size: 14px;
+                margin: 0;
+            }
+            
+            #add-tag-button {
+                padding: 4px 5px;
+            }
+            
+            .close-button {
+                position: absolute;
+                right: 5px;
+                top: 5px;
+                border-radius: 50px;
+                width: 13px;
+                height: 13px;
+                border: 2px solid #666;
+                color: #666;
+                text-align: center;
+                line-height: 12px;
+                cursor: pointer;
+            }
+            
+            .close-button:hover {
+                border: 2px solid #000;
+                color: #000;
+            }
+            
+            .tag {
+                background-color: #686868;
+                color: #f8f8f8;
+                padding: 2px 6px;
+                margin-right: 5px;
+                margin-bottom: 3px;
+                border-radius: 16px;
+                white-space: nowrap;
+                display: inline-block;
+                cursor: pointer;
+            }
+            
+            .tag:hover {
+                background-color: #222;
+            }
+            
+            .tag-count {
+                font-size: 12px;
+                margin-left: 5px;
+            }
+
+            .auto-tag {
+                background-color: #005a88;
+            }
+        </style>
+    </head>
+    
+    <body>
+
+    <div class="header">
+        <h1>My Programs</h1>
+        <div id="username"></div>
+        <div id="avatar">
+            <img src="https://www.kasandbox.org/programming-images/avatars/leafers-sapling.png">
+            <div class="button-container"><button id="update-button">Update</button></div>
+            <div class="button-container"><button id="download-button">Download</button></div>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div id="download-code-container">
+            <p>Find the line in the code that defined programData and replace it with the below.</p>
+            <textarea readonly="true" id="download-code"></textarea>
+        </div>
+    
+        <div>
+            <h2>Tags</h2>
+            <div id="tag-cloud">No tags found.</div>
+        </div>
+    
+        <h2>Browse Programs</h2>
+        <img id="wait-message" src="https://www.khanacademy.org/images/throbber.gif"/>
+        
+        <div id="scratchpads"></div>
+        
+        <div id="window-overlay">
+            <div id="program-details">
+                <div class="close-button">×</div>
+                <div id="program-details-title"><a></a></div>
+                <div id="program-details-nums">
+                    <span id="program-details-votes"></span>
+                    <span id="program-details-spins"></span>
+                </div>
+                <img id="program-details-img"/>
+                <div id="program-details-info">
+                    <h2>Description:</h2>
+                    <div id="program-details-desc" contenteditable="true"></div>
+                    <h2>Tags:</h2>
+                    <input id="add-tag-input" type="text"/>
+                    <button id="add-tag-button">Add</button>
+                    <div id="program-details-tags"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Data goes here -->
+<script>
+    var username = 'peterwcollingridge';
+    var programData = {"966544138":{"name":"Bouncing balls","img":"25001.png","votes":58,"spins":42,"desc":"Simple physics simulation with unrealistic bouncing equation.","tags":["50 votes","Great Inspiration","physics","simulation","particles"]},"969600201":{"name":"Text Writer","img":"5629499534213120.png","votes":46,"spins":38,"desc":"Simple text editor.","tags":["25 votes","Great Inspiration","text","tool"]},"971239310":{"name":"3D box","img":"15001.png","votes":98,"spins":64,"desc":"3D wireframe box","tags":["50 votes","Incredible Inspiration","3D","wireframe"]},"971423230":{"name":"3D surface viewer","img":"30001.png","votes":29,"spins":18,"desc":"Representation of a 3D surface defined in a video by Sal.","tags":["25 votes","Good Inspiration","3D","math","graph","wireframe","for video","calculus"]},"971436783":{"name":"3D teapot","img":"12001.png","votes":134,"spins":51,"desc":"My version of the Utah teapot.","tags":["100 votes","Great Inspiration","3D","wireframe","Incredible Inspiration"]},"972169665":{"name":"INTERACT: Exploring orbits","img":"5838406743490560.png","votes":97,"spins":2,"desc":"Click and drag a satellite to send into orbit. Tells you the properties of the orbit.","tags":["50 votes","Inspiration","NASA","simulation","official","space","astronomy","orbit"]},"972365924":{"name":"3D checkerboard","img":"8001.png","votes":46,"spins":17,"desc":"A 3D grid you can walk across.","tags":["25 votes","Good Inspiration","3D","test"]},"972626402":{"name":"First person maze game","img":"103001.png","votes":273,"spins":193,"desc":"A first person 3D game.","tags":["250 votes","Incredible Inspiration","3D","game"]},"1038273209":{"name":"Bernoulli Distribution","img":"5001.png","votes":2,"spins":2,"desc":"Exploring the Bernoulli Distribution.","tags":["Inspiration","math","bar chart","statistics"]},"1043363292":{"name":"Shaded sphere","img":"20001.png","votes":4,"spins":3,"desc":"Attempting to shade a sphere in 3D.","tags":["Inspiration","3D","sphere","shading"]},"1058172904":{"name":"Graph isPrime speeds","img":"28001.png","votes":13,"spins":8,"desc":"Showing how increasing the size of the input number increases the time taken for two different prime testing algorithms.","tags":["10 votes","Inspiration","math","graph","for video","for Brit","primes","algorithm","number theory"]},"1058402007":{"name":"Network","img":"7001.png","votes":21,"spins":23,"desc":"Using a particle simulation to distribute a network of nodes nicely.","tags":["10 votes","Good Inspiration","particles","physics","spring"]},"1059722724":{"name":"Springy physics","img":"4001.png","votes":20,"spins":23,"desc":"Using a particle simulation to create some soft-body physics.","tags":["10 votes","Good Inspiration","physics","simulation","particles","spring"]},"1063016315":{"name":"Ping pong ball laucher","img":"31001.png","votes":46,"spins":9,"desc":"Trying to model the ping pong launcher for Karl's video.","tags":["25 votes","Inspiration","3D","for video","for Karl"]},"1064545094":{"name":"Atomic simulation","img":"5764640680181760.png","votes":88,"spins":44,"desc":"Particle simulation. Shows how diffusion works, by having half the screen with red particles and half with blue.","tags":["50 votes","Great Inspiration","particles","physics","simulation","for video"]},"1066372924":{"name":"Shaded box","img":"5757334940811264.png","votes":79,"spins":54,"desc":"A solid 3D box.","tags":["50 votes","Incredible Inspiration","3D","shading"]},"1068210830":{"name":"Shading a 3D Object","img":"14001.png","votes":24,"spins":13,"desc":"Demonstration of a shaded 3D object","tags":["10 votes","Good Inspiration","3D","demo"]},"1070343402":{"name":"Creating 3D Objects","img":"22001.png","votes":37,"spins":21,"desc":"Attempt at creating an editable 3D object","tags":["25 votes","Good Inspiration","3D","draggable"]},"1070785699":{"name":"Test ordering","img":"5001.png","votes":3,"spins":2,"desc":"Trying to figure out how to order faces correctly.","tags":["Inspiration","3D","test"]},"1071783640":{"name":"Shaded Torus","img":"5668600916475904.png","votes":74,"spins":77,"desc":"Complex 3D shape - a torus.","tags":["50 votes","Incredible Inspiration","3D"]},"1074597462":{"name":"3D ethane structure","img":"20001.png","votes":18,"spins":18,"desc":"Showing why ethane prefers a trans orientation.","tags":["10 votes","Good Inspiration","3D","molecule","chemistry","simulation","particles"]},"1075928895":{"name":"3D ghost","img":"5001.png","votes":10,"spins":7,"desc":"This was going to be a pac-man like ghost. Maybe an Android like android.","tags":["Inspiration","10 votes","3D","shading","image"]},"1080742690":{"name":"Edit 3D shapes","img":"6001.png","votes":14,"spins":6,"desc":"Attempting to create a tool more making 3D shapes","tags":["10 votes","Inspiration","3D","tool"]},"1082294758":{"name":"3D tortoise","img":"16001.png","votes":8,"spins":6,"desc":"I was going to try to make a 3D animated tortoise. This is as far as I got.","tags":["Inspiration","3D","image","shading","animation"]},"1092842126":{"name":"3D surface viewer 2","img":"15001.png","votes":33,"spins":12,"desc":"Showing a 3D shape described in a calculus video.","tags":["25 votes","Good Inspiration","3D","graph","math","for video","calculus","wireframe"]},"1092871348":{"name":"Depolarization wave in the heart","img":"26001.png","votes":8,"spins":5,"desc":"Simulation of the depolarisation wave in the heart. For a video by Rishi.","tags":["Inspiration","for Rishi","biology","simulation","heart"]},"1094509577":{"name":"Super Yoga Plans graph","img":"23001.png","votes":12,"spins":12,"desc":"Graph showing how to solve linear equations. For a video by Sal.","tags":["10 votes","Good Inspiration","for video","graph","math","algebra"]},"1099501029":{"name":"Objects rotating independently","img":"18001.png","votes":20,"spins":12,"desc":"Two 3D stars, spinning.","tags":["10 votes","Good Inspiration","3D"]},"1100270197":{"name":"Troll Riddle graph","img":"3001.png","votes":16,"spins":7,"desc":"Showing how to solve simultaneous equations. For a video by Sal.","tags":["10 votes","Inspiration","math","graph","for video","algebra"]},"1104382484":{"name":"3D viewer - AP Calc 1b","img":"7001.png","votes":6,"spins":3,"desc":"Visualisation of a shape for a video on calculus.","tags":["Inspiration","math","3D","graph","for video","calculus"]},"1105200143":{"name":"Simulation of oil in water 2","img":"3001.png","votes":10,"spins":2,"desc":"Two types of particles interacting. One attracts itself, the other doesn't.","tags":["Inspiration","10 votes","physics","simulation","particles","chemistry","atomic"]},"1113221512":{"name":"Melting solid","img":"25001.png","votes":49,"spins":28,"desc":"Simulation of a chemical freezing and melting, with controls for the container temperature.","tags":["25 votes","Great Inspiration","physics","simulation","particles","chemistry","atomic","bar chart"]},"1117118357":{"name":"Solving the Riddle of the Fruit Prices","img":"15001.png","votes":5,"spins":0,"desc":"","tags":["for video","graph","math"]},"1121357698":{"name":"Monty Hall Simulation","img":"13001.png","votes":155,"spins":117,"desc":"Simulating Monty Hall many times to see whether it is better to switch or stick.","tags":["100 votes","Incredible Inspiration","math","bar chart","simulation","statistics"]},"1122146372":{"name":"Graph worse-case times for primality test","img":"14001.png","votes":1,"spins":0,"desc":"","tags":["for Brit","math","graph","primes"]},"1122503811":{"name":"Simulation of an ionic solid","img":"16001.png","votes":82,"spins":30,"desc":"Particle simulation of an ionic substance like salt, which can be frozen or melted by changing the temperature of the container.","tags":["50 votes","Great Inspiration","physics","particles","chemistry","simulation"]},"1124582657":{"name":"Simulation of oil in water","img":"5001.png","votes":22,"spins":6,"desc":"","tags":["10 votes","Inspiration","chemistry","atomic","physics","simulation","particles"]},"1125572884":{"name":"Prime density spiral","img":"41001.png","votes":181,"spins":204,"desc":"","tags":["100 votes","Incredible Inspiration","math","primes","number theory","for Brit"]},"1126244575":{"name":"All my programs","img":"12001.png","votes":47,"spins":24,"desc":"My first attempt to organise my programs.","tags":["25 votes","Good Inspiration","3D","organisation"]},"1131049891":{"name":"3D glucose molecule","img":"33001.png","votes":29,"spins":29,"desc":"3D glucose molecule.","tags":["25 votes","Great Inspiration","3D","molecule","biology","biochemistry"]},"1131629502":{"name":"PV = nRT","img":"12001.png","votes":12,"spins":7,"desc":"","tags":["10 votes","Inspiration","physics","chemistry","particles","simulation"]},"1133544525":{"name":"Interacting magnets","img":"77001.png","votes":13,"spins":10,"desc":"Showing how magnetic dipoles interact.","tags":["10 votes","Good Inspiration","physics","magnet","simulation"]},"1138788611":{"name":"Phase Transition - melting","img":"5629499534213120.png","votes":19,"spins":12,"desc":"","tags":["10 votes","Good Inspiration","graph","physics","chemistry","simulation","particles"]},"1140660718":{"name":"Graphing inequatilities","img":"24001.png","votes":7,"spins":4,"desc":"","tags":["Inspiration","graph","math","equation","for video"]},"1141544281":{"name":"Build a network","img":"15001.png","votes":10,"spins":3,"desc":"","tags":["Inspiration","particles","interface","10 votes"]},"1151000632":{"name":"Skeleton hand","img":"35001.png","votes":8,"spins":6,"desc":"","tags":["Inspiration","3D","wireframe"]},"1152517344":{"name":"Bubbles","img":"14001.png","votes":5,"spins":2,"desc":"Figuring out how to dynamically draw two intersecting circles.","tags":["Inspiration","simulation","circle","intersection"]},"1153732313":{"name":"Mona Lisa","img":"5668600916475904.png","votes":1087,"spins":490,"desc":"Mona Lisa drawn with 4000+ rects.","tags":["1000 votes","Incredible Inspiration","image","art"]},"1154784881":{"name":"Bernoulli's equation of total energy","img":"45001.png","votes":5,"spins":4,"desc":"","tags":["Inspiration","biology","simulation","for Rishi","for video","particles"]},"1165203747":{"name":"Population variance","img":"61001.png","votes":3,"spins":2,"desc":"","tags":["Inspiration","statistics","math","graph","challenge"]},"1165293146":{"name":"3D Turtle","img":"2001.png","votes":30,"spins":28,"desc":"Trying to shade a tortoise shell.","tags":["25 votes","Great Inspiration","3D","image","shading","sphere"]},"1165665289":{"name":"Population variance 2","img":"49001.png","votes":3,"spins":1,"desc":"Experimenting with explaining variance.","tags":["Inspiration","graph","math","statistics","bar chart","challenge","test"]},"1167274497":{"name":"3D cholesterol molecule","img":"22001.png","votes":19,"spins":8,"desc":"3D model of cholesterol.","tags":["10 votes","Inspiration","biology","biochemistry","3D","molecule"]},"1167740232":{"name":"Balloon","img":"5001.png","votes":21,"spins":7,"desc":"Simulation of a balloon using attracting particles.","tags":["10 votes","Inspiration","particles","simulation","spring"]},"1168681853":{"name":"3D NADH molecule","img":"3001.png","votes":3,"spins":4,"desc":"NADH molecule.","tags":["Inspiration","3D","molecule","biology","biochemistry"]},"1168725174":{"name":"3D ATP molecule","img":"5741031244955648.png","votes":42,"spins":31,"desc":"3D ATP molecule","tags":["25 votes","Great Inspiration","3D","molecule","biology","biochemistry"]},"1168777974":{"name":"Interactive distribution","img":"69001.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"1169364753":{"name":"Single stranded DNA","img":"31001.png","votes":18,"spins":7,"desc":"3D single stranded DNA","tags":["10 votes","Inspiration","3D","molecule","biology","biochemistry","DNA"]},"1169428428":{"name":"Unbiased Estimate of Population Variance","img":"5668600916475904.png","votes":801,"spins":927,"desc":"For a challenge to explain why we divide by n - 1 for estimates of variance.","tags":["500 votes","Incredible Inspiration","challenge","official","graph","math","statistics"]},"1170514481":{"name":"3D double stranded DNA","img":"11001.png","votes":120,"spins":39,"desc":"3D molecule of DNA","tags":["100 votes","Great Inspiration","3D","molecule","biology","biochemistry","DNA"]},"1170539025":{"name":"Adenine - Thymine base pair","img":"7001.png","votes":73,"spins":37,"desc":"3D molecule of adenine-thymine base pairing.","tags":["50 votes","Great Inspiration","DNA","molecule","3D","biology","biochemistry"]},"1170757732":{"name":"Cytosine - Guanine base pair","img":"3001.png","votes":24,"spins":11,"desc":"3D model of cytosine - guanine base pairing.","tags":["10 votes","Good Inspiration","3D","molecule","DNA","biology","biochemistry"]},"1173037775":{"name":"3D glyceraldehyde 3-P molecule","img":"7001.png","votes":15,"spins":6,"desc":"","tags":["10 votes","Inspiration","3D","molecule","biology","biochemistry"]},"1173203040":{"name":"3D 3-phosphoglyceric acid molecule","img":"4001.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"1180451277":{"name":"Challenge:  Modeling Accretion Disks","img":"5629499534213120.png","votes":1582,"spins":1206,"desc":"Made for a challenges from Sal to simulate a dust cloud collapsing under its own gravity.","tags":["1000 votes","Incredible Inspiration","simulation","particles","3D","physics","collision","space","astronomy","official","challenge","graph","bar chart"]},"1184626803":{"name":"Chain Rule","img":"19001.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"1185793129":{"name":"What is this?","img":"2001.png","votes":40,"spins":6,"desc":"Mona Lisa image coming into focus.","tags":["25 votes","Inspiration","art","image"]},"1194122584":{"name":"Challenge - Visualizing the chain rule","img":"16001.png","votes":20,"spins":6,"desc":"Using 3 orthogonal graphs to illustrate why the chain rule works.","tags":["10 votes","Inspiration","3D","graph","challenge","calculus","math"]},"1200456705":{"name":"Simulation of the left ventricle","img":"183001.png","votes":7,"spins":1,"desc":"Simulation of the heart, showing various graphs of pressure and volume.","tags":["Inspiration","heart","simulation","graph","for Rishi","biology"]},"1202677659":{"name":"Garfield's proof of the Pythagorean Theorem","img":"80001.png","votes":34,"spins":14,"desc":"","tags":["25 votes","Good Inspiration","math","geometry","for video","triangle","draggable"]},"1206892058":{"name":"3D DNA backbone","img":"5001.png","votes":1,"spins":0,"desc":"A 3D model of a single strand of DNA.","tags":["3D","DNA","molecule","biology","biochemistry"]},"1208470179":{"name":"Accretion starting with a disk","img":"5629499534213120.png","votes":76,"spins":80,"desc":"","tags":["50 votes","Incredible Inspiration"]},"1224182071":{"name":"Pressure-Volume Boxes","img":"5707702298738688.png","votes":59,"spins":45,"desc":"Understand pressure-volume boxes with an interactive graph.","tags":["50 votes","Great Inspiration","for video","for Rishi","heart","graph","draggable","biology"]},"1237393731":{"name":"Maxwell's Demon","img":"28001.png","votes":18,"spins":8,"desc":"Simulation of Maxwell's demon.","tags":["10 votes","Inspiration","particles","physics","simulation","bar chart","for video"]},"1237400358":{"name":"3D Haem B molecule","img":"3001.png","votes":12,"spins":5,"desc":"3D haem molecule","tags":["10 votes","Inspiration","3D","molecule","biology","biochemistry"]},"1242792193":{"name":"2D Collision","img":"5707702298738688.png","votes":7,"spins":3,"desc":"Trying to get get 2D circle collisions working correctly.","tags":["Inspiration","collision","test","particles","physics","simulation","circle"]},"1245763433":{"name":"Collision prediction","img":"5634387206995968.png","votes":2,"spins":0,"desc":"","tags":[]},"1251227753":{"name":"Buccoli","img":"4001.png","votes":1,"spins":0,"desc":"3D wireframe pasta because why not?","tags":["3D","wireframe"]},"1258612647":{"name":"Triangle inequality theorem","img":"17001.png","votes":13,"spins":10,"desc":"Demonstrating why the triangle inequality theorem must be true.","tags":["10 votes","Inspiration","Good Inspiration","draggable","triangle","geometry","math"]},"1264460092":{"name":"Exploring triangles","img":"5707702298738688.png","votes":88,"spins":33,"desc":"Exploring various properties of a triangle, which can be dragged about.","tags":["50 votes","Great Inspiration","draggable","triangle","math","geometry"]},"1266694695":{"name":"How mutation rate affects evolution","img":"120001.png","votes":12,"spins":4,"desc":"Simulation of how evolution can cause an increase in fitness even when the majority of mutations are deleterious.","tags":["10 votes","Inspiration","evolution","simulation","graph"]},"1272473744":{"name":"Emergence of tetrahedron bond angles","img":"5001.png","votes":10,"spins":3,"desc":"","tags":["Inspiration","10 votes"]},"1273173942":{"name":"3D Penicillin G molecule","img":"5001.png","votes":9,"spins":9,"desc":"3D model of penicillin.","tags":["Inspiration","3D","molecule","biology","biochemistry"]},"1276160545":{"name":"Play Monty Hall","img":"79001.png","votes":82,"spins":44,"desc":"Play Monty Hall and see whether its better to switch or stick with your original choice.","tags":["50 votes","Great Inspiration","game","math","statistics"]},"1295571134":{"name":"Exploring inscribed angles","img":"14001.png","votes":17,"spins":7,"desc":"Interactive exploration of inscribed angles.","tags":["10 votes","Inspiration","math","geometry","angles","circle","draggable","for video"]},"1298469645":{"name":"3D O-sialic acid molecule","img":"1001.png","votes":4,"spins":3,"desc":"3D model of O-sialic acid","tags":["Inspiration","3D","molecule","biology","biochemistry","for video"]},"1312765885":{"name":"Investigating Benford's Law","img":"29001.png","votes":13,"spins":5,"desc":"","tags":["10 votes","Inspiration"]},"1319508440":{"name":"Challenge - Euler's totient function","img":"35001.png","votes":13,"spins":9,"desc":"Visualising Euler's totient function.","tags":["10 votes","Inspiration","number theory","math","challenge"]},"1321502175":{"name":"Conditional Probability Visualisation","img":"51001.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"1326082930":{"name":"Conditional Probability Visualisation","img":"69001.png","votes":14,"spins":9,"desc":"","tags":["10 votes","Inspiration"]},"1329634761":{"name":"Guess the coin","img":"5629499534213120.png","votes":229,"spins":236,"desc":"","tags":["100 votes","Incredible Inspiration","game","statistics","math","for Brit"]},"1335146638":{"name":"Heart","img":"28001.png","votes":6,"spins":2,"desc":"","tags":["Inspiration","heart","image","for Rishi"]},"1335590189":{"name":"Guess the coin dev","img":"110001.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"1352001089":{"name":"Tax brackets","img":"36001.png","votes":8,"spins":3,"desc":"Demonstration of how tax brackets work.","tags":["Inspiration","economics","graph","draggable","for video"]},"1370540395":{"name":"Graph drawer","img":"56001.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"1374814664":{"name":"Riemann sums","img":"5707702298738688.png","votes":13,"spins":5,"desc":"Interactive demonstration of different Riemann sums and how they approximate the area under a graph.","tags":["10 votes","Inspiration","math","calculus","graph","for video"]},"1399252023":{"name":"World Map","img":"18001.png","votes":68,"spins":31,"desc":"A 2D map of the world.","tags":["50 votes","Great Inspiration","map","image"]},"1410671173":{"name":"Globe","img":"5629499534213120.png","votes":82,"spins":38,"desc":"A spinning 3D globe.","tags":["50 votes","Great Inspiration","3D","sphere","image"]},"1416610737":{"name":"Skinned hand","img":"9001.png","votes":6,"spins":3,"desc":"Attempting to add skin to a 3D hand.","tags":["Inspiration","3D","shading"]},"1479710170":{"name":"Evolution of Mona Lisa","img":"17001.png","votes":96,"spins":19,"desc":"Recording of a program that evolved an image of Mona Lisa with overlapping circles.","tags":["50 votes","Good Inspiration","art","image","evolution"]},"1485250255":{"name":"Evolving an image","img":"5629499534213120.png","votes":9,"spins":5,"desc":"","tags":["Inspiration"]},"1486460294":{"name":"ANIMATE: Phases of the moon","img":"5893365145010176.png","votes":148,"spins":22,"desc":"","tags":["100 votes","Good Inspiration"]},"1497927842":{"name":"Moon","img":"17001.png","votes":108,"spins":40,"desc":"Shading an image of the moon.","tags":["100 votes","Great Inspiration","3D","image","space","astronomy","sphere","moon"]},"1517533273":{"name":"Interacting magnet test","img":"7001.png","votes":1,"spins":0,"desc":"","tags":[]},"1518316573":{"name":"Magnetic field","img":"5629499534213120.png","votes":103,"spins":191,"desc":"Showing a magnetic field.","tags":["50 votes","Incredible Inspiration","magnet","physics","simulation","official","100 votes"]},"1523498705":{"name":"Magnet and iron filings","img":"32001.png","votes":91,"spins":257,"desc":"Simulating how a magnet affects iron filings.","tags":["50 votes","Incredible Inspiration","magnet","simulation","physics","official"]},"1534799017":{"name":"Magnet and iron filings","img":"8001.png","votes":12,"spins":7,"desc":"","tags":["10 votes","Inspiration"]},"1537847495":{"name":"Magnetic field","img":"18001.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"1547004960":{"name":"Magnetic materials","img":"21003.png","votes":3,"spins":3,"desc":"","tags":["Inspiration"]},"1547272093":{"name":"3D caffeine molecule","img":"2001.png","votes":6,"spins":5,"desc":"3D model of caffeine.","tags":["Inspiration","3D","molecule","biology","biochemistry"]},"1549121998":{"name":"Magnetising materials","img":"5629499534213120.png","votes":254,"spins":853,"desc":"","tags":["250 votes","Incredible Inspiration"]},"1552640497":{"name":"Unbiased Estimate of Population Variance","img":"2001.png","votes":64,"spins":25,"desc":"","tags":["50 votes","Good Inspiration","Great Inspiration"]},"1554555033":{"name":"3D box perspective","img":"5629499534213120.png","votes":39,"spins":25,"desc":"","tags":["25 votes","Good Inspiration","Great Inspiration","3D","wireframe","perspective"]},"1554739338":{"name":"3D Glycine molecule","img":"3001.png","votes":5,"spins":2,"desc":"","tags":["Inspiration"]},"1554751301":{"name":"3D Alanine molecule","img":"3001.png","votes":1,"spins":0,"desc":"3D model of alanine.","tags":["3D","molecule","biology","biochemistry"]},"1564393660":{"name":"Survive and Evolve","img":"5668600916475904.png","votes":114,"spins":69,"desc":"Game where you play a primordial cell trying to survive and evolve.","tags":["100 votes","Incredible Inspiration","game","cell","biology","biochemistry","simulation","evolution"]},"1564685392":{"name":"Measuring magnetic force","img":"82001.png","votes":6,"spins":16,"desc":"Drag the magnet to and away from a compass until its force is matched with the Earth's.","tags":["Good Inspiration","magnet","official","experiment","physics","draggable"]},"1569150887":{"name":"Survival Version 2","img":"214001.png","votes":12,"spins":3,"desc":"Another version of my survive and evolve game.","tags":["10 votes","Inspiration","biology","game","evolution","simulation","biochemistry"]},"1584822815":{"name":"Amoeba's Life with viruses","img":"2001.png","votes":13,"spins":9,"desc":"","tags":["10 votes","Inspiration"]},"1586999909":{"name":"Bacterium","img":"9001.png","votes":15,"spins":4,"desc":"Testing a bacterial animation for my Survive and Evolve game.","tags":["10 votes","Inspiration","biology","cell","test","animation","simulation"]},"1587803214":{"name":"Tracing a magnetic field","img":"5707702298738688.png","votes":108,"spins":350,"desc":"Move a compass around a magnet. Press space to record an arrow pointing where the magnet points. Reveal the magnetic field.","tags":["100 votes","Incredible Inspiration","experiment","simulation","physics","magnet","official"]},"1588831020":{"name":"3D magnet","img":"22002.png","votes":52,"spins":35,"desc":"A 3D magnet with iron filings indicating its field.","tags":["25 votes","Great Inspiration","3D","magnet","physics","50 votes"]},"1595281509":{"name":"3D magnet with field","img":"5668600916475904.png","votes":278,"spins":44,"desc":"Showing a 3D magnet and its magnetic field.","tags":["Great Inspiration","250 votes","3D","magnet","physics"]},"1599014102":{"name":"Original Survival!","img":"1001.png","votes":13,"spins":3,"desc":"","tags":["10 votes","Inspiration"]},"1602393745":{"name":"Inverse Cube Relationship","img":"5685265389584384.png","votes":127,"spins":183,"desc":"","tags":["100 votes","Incredible Inspiration"]},"1605177380":{"name":"Bezier beat","img":"3001.png","votes":3,"spins":3,"desc":"","tags":["Inspiration"]},"1638059319":{"name":"3D tutorial 1","img":"5707702298738688.png","votes":24,"spins":77,"desc":"","tags":["10 votes","Incredible Inspiration"]},"1645062289":{"name":"3D tutorial 3","img":"4001.png","votes":13,"spins":10,"desc":"","tags":["10 votes","Inspiration","Good Inspiration"]},"1645140418":{"name":"3D tutorial 2","img":"7001.png","votes":16,"spins":19,"desc":"","tags":["10 votes","Good Inspiration"]},"1646496761":{"name":"Play Go","img":"5685265389584384.png","votes":9,"spins":3,"desc":"The game of Go.","tags":["Inspiration","board","game"]},"1648921303":{"name":"3D tutorial 4","img":"3001.png","votes":33,"spins":23,"desc":"","tags":["25 votes","Good Inspiration"]},"1652905198":{"name":"3D tutorial 5","img":"4001.png","votes":16,"spins":16,"desc":"","tags":["10 votes","Good Inspiration"]},"1659897746":{"name":"Curve in 3D space","img":"2001.png","votes":4,"spins":3,"desc":"","tags":["Inspiration"]},"1660426498":{"name":"3D tutorial 6","img":"5629499534213120.png","votes":24,"spins":22,"desc":"","tags":["10 votes","Good Inspiration"]},"1706218024":{"name":"Animated spout","img":"37001.png","votes":1,"spins":0,"desc":"","tags":[]},"1711435697":{"name":"Spout Bot collision","img":"16001.png","votes":4,"spins":5,"desc":"","tags":["Inspiration","for Karl","collision"]},"1717748160":{"name":"3D Penicillin G molecule with text","img":"1.png","votes":2,"spins":0,"desc":"","tags":[]},"1726869927":{"name":"Graph more simplified (11 lines)","img":"4001.png","votes":4,"spins":3,"desc":"","tags":["Inspiration"]},"1740954510":{"name":"3D Vitamin C molecule","img":"11001.png","votes":3,"spins":0,"desc":"","tags":[]},"1772697019":{"name":"Falling boxes","img":"34001.png","votes":4,"spins":0,"desc":"","tags":[]},"1776213198":{"name":"Markov Chain for English Words","img":"79001.png","votes":22,"spins":7,"desc":"","tags":["10 votes","Inspiration"]},"1815323963":{"name":"Prime pattern","img":"26001.png","votes":4,"spins":2,"desc":"","tags":["Inspiration"]},"1843337650":{"name":"Smaller Babbage","img":"1001.png","votes":5,"spins":1,"desc":"","tags":["Inspiration"]},"1845740105":{"name":"Spin-off of \"babbage\"","img":"1001.png","votes":2,"spins":0,"desc":"","tags":[]},"1849267053":{"name":"Who's afraid of the dark?","img":"53001.png","votes":26,"spins":8,"desc":"","tags":["10 votes","Inspiration","25 votes","test","game","unfinished","2.5D"]},"1853088275":{"name":"Subtended Angle","img":"25001.png","votes":11,"spins":4,"desc":"","tags":["10 votes","Inspiration"]},"1856896449":{"name":"Monster test","img":"1001.png","votes":5,"spins":1,"desc":"Testing the movement of a bug for the Afraid of the Dark game.","tags":["Inspiration","test","game","2.5D"]},"1859086130":{"name":"Exploring Ellipses","img":"81001.png","votes":14,"spins":7,"desc":"Exploring how to draw an ellipse with two points and a piece of string.","tags":["10 votes","Inspiration","math","geometry","ellipse"]},"1860985468":{"name":"Curiosity","img":"34001.png","votes":5,"spins":2,"desc":"Drawing the Curiosity lander for my landing game.","tags":["Inspiration","NASA","image","dev","Mars"]},"1864670392":{"name":"Orbits","img":"5707702298738688.png","votes":31,"spins":18,"desc":"Showing the orbits of Earth and Mars from different perspectives.","tags":["25 votes","Good Inspiration","NASA","Mars","orbit","space","astronomy","simulation"]},"1865375233":{"name":"INTERACT: Approaching pi","img":"70001.png","votes":26,"spins":6,"desc":"","tags":["10 votes","Inspiration","25 votes"]},"1866725773":{"name":"Estimating pi","img":"73001.png","votes":44,"spins":26,"desc":"Interactive illustration of how to approximate pi by using an increasing number of triangles to fill a circle.","tags":["25 votes","Good Inspiration","Great Inspiration","math","NASA","pi","geometry"]},"1867639754":{"name":"Ellipses and areas","img":"5642556234792960.png","votes":13,"spins":9,"desc":"","tags":["10 votes","Inspiration"]},"1867807865":{"name":"Earth telescope","img":"18001.png","votes":11,"spins":4,"desc":"","tags":["Inspiration","10 votes"]},"1870749124":{"name":"Slider","img":"15001.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"1870897864":{"name":"INTERACT: Shadows on Earth","img":"87001.png","votes":33,"spins":17,"desc":"","tags":["25 votes","Good Inspiration"]},"1891114079":{"name":"Superformula","img":"18001.png","votes":3,"spins":0,"desc":"","tags":[]},"1922084720":{"name":"Properties of an elliptic orbit 2","img":"5838406743490560.png","votes":1,"spins":0,"desc":"","tags":[]},"1926454709":{"name":"Artitrary elliptical orbit","img":"12001.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"1928364375":{"name":"Elliptic orbit","img":"5733953138851840.png","votes":18,"spins":10,"desc":"","tags":["10 votes","Inspiration","Good Inspiration"]},"1928614394":{"name":"Circular orbit","img":"5838406743490560.png","votes":23,"spins":35,"desc":"","tags":["10 votes","Great Inspiration"]},"1929106668":{"name":"Elliptic orbit using a focus","img":"5838406743490560.png","votes":19,"spins":22,"desc":"","tags":["10 votes","Good Inspiration"]},"1938320956":{"name":"Earth telescope view","img":"3002.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"1943637002":{"name":"Subtended Angle","img":"5275456790069248.png","votes":19,"spins":23,"desc":"","tags":["10 votes","Good Inspiration"]},"1945703917":{"name":"Lunar eclipse","img":"21001.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"1946032261":{"name":"INTERACT: Lunar eclipse","img":"5791918017478656.png","votes":114,"spins":341,"desc":"","tags":["100 votes","Incredible Inspiration","3D","orbit","moon","NASA","astronomy"]},"1952660154":{"name":"Right angle approximation","img":"5733953138851840.png","votes":19,"spins":18,"desc":"","tags":["10 votes","Good Inspiration"]},"1952756408":{"name":"Parallax Effect","img":"5733953138851840.png","votes":273,"spins":89,"desc":"","tags":["250 votes","Incredible Inspiration"]},"1969683682":{"name":"Circle orbit test","img":"128001.png","votes":1,"spins":3,"desc":"","tags":["Inspiration"]},"1979432907":{"name":"Elliptic orbit with the correct speed","img":"10001.png","votes":2,"spins":2,"desc":"","tags":["Inspiration"]},"1982327104":{"name":"Stock market simulation","img":"266001.png","votes":31,"spins":16,"desc":"Game with a simulated stock market. Buy and sell stocks to make a profit.","tags":["25 votes","Good Inspiration","economics","simulation","graph","game"]},"1994911779":{"name":"INTERACT: Features of Mars","img":"5634387206995968.png","votes":125,"spins":7,"desc":"","tags":["100 votes","Inspiration","NASA","Mars","astronomy","3D","sphere"]},"1996114831":{"name":"Mars Viewer","img":"49001.png","votes":50,"spins":11,"desc":"3D, rotatable image of Mars","tags":["Good Inspiration","50 votes","NASA","Mars","astronomy","3D","image","space"]},"2005175964":{"name":"Curiosity landing simulation","img":"5816803057991680.png","votes":646,"spins":676,"desc":"Simulation of the landing of Curiosity on Mars. You have to pick the right parameters or else it will crash land.","tags":["500 votes","Incredible Inspiration","simulation","game","NASA","Mars","space","astronomy","official"]},"2068178716":{"name":"Cruise Stage","img":"10001.png","votes":77,"spins":60,"desc":"","tags":["50 votes","Incredible Inspiration"]},"2088717341":{"name":"Oppositions in Geocentric Orbits","img":"6001.png","votes":8,"spins":4,"desc":"","tags":["Inspiration"]},"2088866876":{"name":"Arbitrary elliptic orbit","img":"19001.png","votes":5,"spins":5,"desc":"","tags":["Inspiration"]},"2101282775":{"name":"Orbits of Earth and Mars","img":"75001.png","votes":1,"spins":1,"desc":"","tags":["Inspiration","NASA","Mars","astronomy"]},"2131015999":{"name":"Season simulator","img":"5674248798470144.png","votes":296,"spins":3,"desc":"Interactive program to demonstrate why we have seasons.","tags":["100 votes","Inspiration","simulation","space","sphere","bar chart","official","250 votes"]},"2132245764":{"name":"GAME: Cruise to Mars ","img":"5667168544882688.png","votes":304,"spins":5,"desc":"","tags":["250 votes","Inspiration","NASA","Mars","astronomy"]},"2156500698":{"name":"Wandering planets","img":"5717271485874176.png","votes":81,"spins":31,"desc":"","tags":["50 votes","Great Inspiration"]},"2181633439":{"name":"Stars","img":"1001.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"2181972991":{"name":"Why planets wander","img":"96001.png","votes":17,"spins":12,"desc":"","tags":["10 votes","Good Inspiration"]},"2182265551":{"name":"Geocentric orbits","img":"2001.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"2182699224":{"name":"Sun","img":"4001.png","votes":1,"spins":-2,"desc":"","tags":[]},"2184946386":{"name":"Hyphae","img":"16001.png","votes":7,"spins":10,"desc":"","tags":["Inspiration","Good Inspiration"]},"2203009453":{"name":"Square orbit with epicycles","img":"10001.png","votes":27,"spins":18,"desc":"","tags":["25 votes","Good Inspiration","astronomy","orbit","test"]},"2204143208":{"name":"Visible light spectrum","img":"22001.png","votes":24,"spins":8,"desc":"","tags":["10 votes","Inspiration"]},"2204545786":{"name":"Fraunhofer lines","img":"14001.png","votes":8,"spins":3,"desc":"","tags":["Inspiration"]},"2204692157":{"name":"Light through a prism","img":"39001.png","votes":27,"spins":11,"desc":"","tags":["25 votes","Good Inspiration"]},"2205462216":{"name":"Experimenting with epicycles","img":"15001.png","votes":27,"spins":28,"desc":"","tags":["25 votes","Great Inspiration"]},"2219443045":{"name":"The orbit of Mars","img":"30001.png","votes":1,"spins":0,"desc":"","tags":["NASA","Mars","astronomy"]},"2225467301":{"name":"Rainbow","img":"2001.png","votes":12,"spins":12,"desc":"","tags":["10 votes","Good Inspiration"]},"2226438064":{"name":"INTERACT: Absorption lines","img":"162001.png","votes":357,"spins":135,"desc":"","tags":["250 votes","Incredible Inspiration"]},"2233543429":{"name":"Ellipse foci","img":"13001.png","votes":2,"spins":0,"desc":"","tags":[]},"2288781745":{"name":"Graph","img":"220001.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"2306447902":{"name":"Sugarscape","img":"900001.png","votes":7,"spins":3,"desc":"Start of a SugarScape simulation","tags":["Inspiration","simulation"]},"2357964268":{"name":"Tunnel test","img":"280001.png","votes":84,"spins":75,"desc":"Improving someone's animation of travelling through a tunnel.","tags":["50 votes","Incredible Inspiration","image","animation","help"]},"2366238770":{"name":"INTERACT: Area of a circle","img":"430001.png","votes":88,"spins":33,"desc":"Demonstrating how to calculate the area of a circle by arrange ever smaller slices into a parallelogram.","tags":["50 votes","Great Inspiration","pi","NASA","math","circle"]},"2380038500":{"name":"Spout circuit","img":"5668600916475904.png","votes":387,"spins":817,"desc":"Interactive version of Spout's circuit.","tags":["250 votes","Incredible Inspiration","for Karl","electronics","official"]},"2387446298":{"name":"Circle Mist","img":"40001.png","votes":2,"spins":1,"desc":"","tags":["Inspiration","circle","test"]},"2401149160":{"name":"Circuit builder","img":"5651442522128384.png","votes":69,"spins":33,"desc":"Program to build and test circuits.","tags":["50 votes","Great Inspiration","electronics","simulation","tool"]},"2498661382":{"name":"Circuit test","img":"5121099960418304.png","votes":18,"spins":8,"desc":"Development version of my circuit builder","tags":["10 votes","Inspiration","test","electronics","simulation","dev","tool"]},"2512228641":{"name":"Cruise Stage","img":"5629499534213120.png","votes":11,"spins":17,"desc":"","tags":["Good Inspiration","10 votes"]},"2523786745":{"name":"Spin-off of \"KP27\"","img":"60001.png","votes":2,"spins":0,"desc":"","tags":[]},"2525418758":{"name":"Features of Mars (large)","img":"5724160613416960.png","votes":17,"spins":13,"desc":"","tags":["10 votes","Good Inspiration"]},"2553167921":{"name":"Circular orbit","img":"5709068098338816.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"2555465854":{"name":"Test","img":"100001.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"2602397806":{"name":"3D phospholipid molecule","img":"20001.png","votes":5,"spins":2,"desc":"","tags":["Inspiration"]},"2609108293":{"name":"3D phospholipid molecule","img":"20001.png","votes":5,"spins":1,"desc":"","tags":["Inspiration"]},"2763817823":{"name":"Tribute to Ad Reinhardt","img":"60001.png","votes":9,"spins":2,"desc":"An almost black image, ala Ad Reinhardt.","tags":["Inspiration","art","image"]},"2782554783":{"name":"Descent stage test","img":"90001.png","votes":7,"spins":7,"desc":"Testing animation for Curiosity landing game.","tags":["Inspiration","NASA","Mars","space","image","test","animation"]},"5512811686920192":{"name":"2048","img":"5722646637445120.png","votes":469,"spins":364,"desc":"My version of 2048","tags":["250 votes","Incredible Inspiration","game"]},"4547503504621568":{"name":"Get program data","img":"5665117697998848.png","votes":255,"spins":71,"desc":"Program to use the KA API to graph the number of the votes and spin-offs your programs have.","tags":["100 votes","Incredible Inspiration","graph","webpage","API","250 votes"]},"5241208742871040":{"name":"Khan Academy 2048","img":"5665117697998848.png","votes":171,"spins":117,"desc":"A version of 2048 with KA icons","tags":["100 votes","Incredible Inspiration","game","puzzle"]},"5218123607179264":{"name":"INTERACT: Models of the solar system","img":"105001.png","votes":189,"spins":9,"desc":"","tags":["100 votes","Inspiration"]},"5075733592408064":{"name":"Path of the sun","img":"5688737870643200.png","votes":100,"spins":38,"desc":"","tags":["50 votes","Great Inspiration","100 votes"]},"4993855887769600":{"name":"Hacker puzzle","img":"5720453519769600.png","votes":58,"spins":20,"desc":"Simulation of a terminal with a simple hacking game.","tags":["50 votes","Good Inspiration","text","game","simulation"]},"6327297740374016":{"name":"My Programs","img":"5671321778257920.png","votes":54,"spins":28,"desc":"First attempt to organise my programs. Replaced by this program.","tags":["50 votes","Great Inspiration","webpage","organisation"]},"4746639363538944":{"name":"Combinations","img":"5663741160980480.png","votes":52,"spins":34,"desc":"Drag the robot parts to make different combinations.","tags":["50 votes","Great Inspiration","PiaB","Crowds","robot","draggable"]},"6234315773968384":{"name":"Weak law of large numbers","img":"5688737870643200.png","votes":389,"spins":1,"desc":"For a video by Sal and Brit. Demonstrating how the more trials you do, the closely to the real proportion you get.","tags":["250 votes","Inspiration","math","statistics","official","for video","for Brit"]},"5746312934064128":{"name":"Spreadsheet","img":"5668600916475904.png","votes":62,"spins":19,"desc":"Demonstration of how a spreadsheet could be made using an HTML table.","tags":["25 votes","Good Inspiration","webpage","help","demo","50 votes"]},"4520289299857408":{"name":"ANIMATE: Epicycles","img":"36001.png","votes":46,"spins":31,"desc":"","tags":["25 votes","Great Inspiration"]},"6352226532458496":{"name":"Oppositions","img":"70001.png","votes":125,"spins":82,"desc":"","tags":["100 votes","Incredible Inspiration"]},"5145009707810816":{"name":"Distance between Earth and Mars","img":"5908010983489536.png","votes":94,"spins":9,"desc":"","tags":["50 votes","Inspiration"]},"6523419965784064":{"name":"Cruise 2","img":"5668600916475904.png","votes":29,"spins":14,"desc":"","tags":["25 votes","Good Inspiration"]},"4903789011140608":{"name":"Weak law of large numbers (small)","img":"5741031244955648.png","votes":29,"spins":35,"desc":"","tags":["25 votes","Great Inspiration"]},"6232995006513152":{"name":"Into the Goblins' Lair","img":"5723665618436096.png","votes":27,"spins":8,"desc":"The beginnings of a text adventure game","tags":["25 votes","Inspiration","text","game","unfinished"]},"5978397440999424":{"name":"Hacker puzzle v2","img":"5650981350014976.png","votes":35,"spins":11,"desc":"Simulation of a computer, with fairly complete file directory. Plus a very tricky hacker game.","tags":["10 votes","Inspiration","25 votes","text","game","simulation","Good Inspiration"]},"6685933042663424":{"name":"Telescope tracking Mars","img":"5799236641751040.png","votes":24,"spins":8,"desc":"","tags":["10 votes","Inspiration","NASA","astronomy","Mars"]},"6131690633428992":{"name":"Modelling an epidemic","img":"5669283816275968.png","votes":36,"spins":342,"desc":"","tags":["10 votes","Incredible Inspiration","25 votes"]},"6587673208946688":{"name":"Infinite map","img":"5747350215589888.png","votes":24,"spins":11,"desc":"Start of an infinite scrolling RPG.","tags":["10 votes","Inspiration","2.5D","game","RPG","unfinished","Good Inspiration"]},"5650310981484544":{"name":"Khan Academy blog","img":"5690145009303552.png","votes":26,"spins":5,"desc":"My blog describing what I'm doing on the site.","tags":["10 votes","Inspiration","webpage","organisation","25 votes"]},"4595589453971456":{"name":"Project: Paint splatter","img":"5717271485874176.png","votes":22,"spins":10,"desc":"My paint splatter project. Looks like blood.","tags":["10 votes","Good Inspiration","image","project","effect"]},"5451114611736576":{"name":"Sphere","img":"5697982787747840.png","votes":24,"spins":17,"desc":"A sphere-like globe.","tags":["10 votes","Good Inspiration","3D","sphere","shading"]},"5871364978769920":{"name":"Destroyable landscape","img":"5703128158568448.png","votes":17,"spins":4,"desc":"","tags":["10 votes","Inspiration"]},"5259579591491584":{"name":"Spin-off of \"Project: Design an Animal\"","img":"5643440998055936.png","votes":19,"spins":1,"desc":"A scalable giraffe","tags":["10 votes","Inspiration","image","project"]},"5335518776655872":{"name":"Using scale to reflect an image","img":"5649050225344512.png","votes":16,"spins":11,"desc":"Demonstrating how to use the scale transform to flip images.","tags":["10 votes","Good Inspiration","transformation","demo"]},"5698699489443840":{"name":"Diplomacy map","img":"5711312218750976.png","votes":17,"spins":5,"desc":"A map I made for someone so they could play diplomacy.","tags":["10 votes","Inspiration","map","help","game"]},"5201252610736128":{"name":"Correct rotation","img":"5639274879778816.png","votes":49,"spins":38,"desc":"Showing someone how to correctly spin an image.","tags":["25 votes","Great Inspiration","help","image","transformation"]},"6047926155739136":{"name":"Cuboid function","img":"5707702298738688.png","votes":17,"spins":47,"desc":"","tags":["10 votes","Great Inspiration"]},"6209595164590080":{"name":"My Programs","img":"5717271485874176.png","votes":15,"spins":5,"desc":"Attempt to organise my programs. I'm using this one now instead.","tags":["10 votes","Inspiration","webpage","organisation"]},"4762226271453184":{"name":"Text adventure engine","img":"5714163003293696.png","votes":15,"spins":8,"desc":"Testing out a text adventure set-up.","tags":["10 votes","Inspiration","test","text","game"]},"5104685201489920":{"name":"Parabolic Curve","img":"5711312218750976.png","votes":15,"spins":11,"desc":"","tags":["10 votes","Good Inspiration"]},"5418138267549696":{"name":"Cruise to Mars development","img":"5712453606309888.png","votes":15,"spins":31,"desc":"","tags":["10 votes","Great Inspiration"]},"5045666778710016":{"name":"INTERACT: Parallax effect","img":"183001.png","votes":13,"spins":7,"desc":"","tags":["10 votes","Inspiration"]},"5848986646478848":{"name":"Women in history: Gertrude Bell","img":"5632984900173824.png","votes":14,"spins":1,"desc":"Essay on Gertrude Bell for an challenge.","tags":["10 votes","Inspiration","challenge","webpage","essay"]},"5953495622746112":{"name":"Cube rotating with user interaction","img":"5668600916475904.png","votes":16,"spins":38,"desc":"","tags":["10 votes","Great Inspiration"]},"5959398321029120":{"name":"Properties of an elliptical orbit","img":"73001.png","votes":14,"spins":17,"desc":"","tags":["10 votes","Good Inspiration"]},"6552432955883520":{"name":"Library of biomolecular structures","img":"5744440375246848.png","votes":14,"spins":7,"desc":"Collecting dozens of 3D molecules into a library, complete with descriptions.","tags":["10 votes","Inspiration","organisation","3D","molecule","biology","biochemistry"]},"4785323370086400":{"name":"Spin-off of \"3D Globe\"","img":"5634387206995968.png","votes":11,"spins":4,"desc":"","tags":["10 votes","Inspiration"]},"5206247414693888":{"name":"Multiple shapes","img":"5707702298738688.png","votes":14,"spins":30,"desc":"","tags":["10 votes","Good Inspiration","Great Inspiration"]},"5845425537941504":{"name":"Dungeon Quest","img":"5743680166035456.png","votes":13,"spins":5,"desc":"Start of a dungeon-exploring RPG.","tags":["10 votes","Inspiration","2.5D","RPG","game","unfinished"]},"6101762040135680":{"name":"Spin-off of \"Project: Mountain range\"","img":"5738600293466112.png","votes":13,"spins":4,"desc":"Creating a 3D landscape","tags":["10 votes","Inspiration","3D","project","shading"]},"6113412948426752":{"name":"Divided cube","img":"5700735861784576.png","votes":13,"spins":5,"desc":"Failed test of subdivision in 3D.","tags":["10 votes","Inspiration","3D","wireframe","PiaB","Subdivision","test"]},"6133434541932544":{"name":"Brownian motion","img":"5766466041282560.png","votes":11,"spins":5,"desc":"","tags":["10 votes","Inspiration"]},"4670499221274624":{"name":"Animation 3 - cubic interpolation c","img":"5757334940811264.png","votes":10,"spins":0,"desc":"","tags":["10 votes"]},"5214974007574528":{"name":"Subdivision of a hand","img":"5634387206995968.png","votes":12,"spins":2,"desc":"A 3D hand which can be smoothed by subdivision.","tags":["Inspiration","10 votes","3D","PiaB","Subdivision"]},"6710480905175040":{"name":"Moving grass 2D","img":"5634387206995968.png","votes":11,"spins":6,"desc":"","tags":["Inspiration","10 votes"]},"6711167286247424":{"name":"Design challenge: Animating grass","img":"5663284820705280.png","votes":13,"spins":3,"desc":"","tags":["Inspiration","10 votes"]},"4765722391609344":{"name":"Circle orbit 2","img":"5703128158568448.png","votes":9,"spins":52,"desc":"","tags":["Incredible Inspiration"]},"4806195854966784":{"name":"Whole holes","img":"5635415851663360.png","votes":9,"spins":1,"desc":"","tags":["Inspiration"]},"5515380745306112":{"name":"Approximating a parabola","img":"5692201761767424.png","votes":9,"spins":1,"desc":"","tags":["Inspiration"]},"5608256829652992":{"name":"Building snake bots","img":"5675267779461120.png","votes":12,"spins":5,"desc":"","tags":["Inspiration","10 votes"]},"6171035397259264":{"name":"Earth orbit 3D","img":"5732694713434112.png","votes":10,"spins":11,"desc":"Attempting to draw a 3D orbit.","tags":["Inspiration","3D","orbit","space","astronomy","circle","10 votes","Good Inspiration"]},"4622139292385280":{"name":"Interactive: String art","img":"5711312218750976.png","votes":8,"spins":5,"desc":"","tags":["Inspiration"]},"4623868778250240":{"name":"Interactive: 3D torus","img":"5669283816275968.png","votes":7,"spins":2,"desc":"","tags":["Inspiration"]},"4975614656249856":{"name":"Exploring orbits","img":"5629499534213120.png","votes":7,"spins":7,"desc":"","tags":["Inspiration"]},"5260249041469440":{"name":"Casting challenge","img":"5659645909663744.png","votes":7,"spins":2,"desc":"Interactive exercise for PiaB. Combinatorics question using robot parts.","tags":["Inspiration","PiaB","Crowds","robot","for exercise"]},"5314579572457472":{"name":"Lighting spheres","img":"5747976207073280.png","votes":8,"spins":4,"desc":"Demonstrating how light shades spheres with different specular properties.","tags":["Inspiration","3D","shading","PiaB","Rendering"]},"6094896452337664":{"name":"Simple fluid movement","img":"5707702298738688.png","votes":7,"spins":4,"desc":"","tags":["Inspiration","effect","help"]},"6225123883352064":{"name":"Spin-off of \"TARDIS in the Moonlight\"","img":"5733935958982656.png","votes":7,"spins":2,"desc":"Spin-off of someone's tardis with my moon added and a bit more detail.","tags":["Inspiration","moon","image"]},"6436122472742912":{"name":"Interactive: 3D cube","img":"5706033703944192.png","votes":7,"spins":2,"desc":"Showing subdivision with a cube.","tags":["Inspiration","3D","PiaB","Subdivision"]},"4580131035676672":{"name":"Parabola construction","img":"5634387206995968.png","votes":6,"spins":3,"desc":"","tags":["Inspiration"]},"4834587234533376":{"name":"Spherical coordinate system","img":"5758531089203200.png","votes":8,"spins":6,"desc":"My attempt at understanding spherical coordinates.","tags":["Inspiration","3D","sphere","astronomy"]},"4983288856051712":{"name":"SIR model of an epidemic","img":"5684049913839616.png","votes":6,"spins":2,"desc":"","tags":["Inspiration"]},"5015628140249088":{"name":"Interactive: Midpoint of a line segment","img":"5707274949492736.png","votes":7,"spins":2,"desc":"","tags":["Inspiration"]},"5338133020540928":{"name":"Biohazard sign","img":"5724160613416960.png","votes":6,"spins":2,"desc":"A scalable bioharzad sign.","tags":["Inspiration","image","biology"]},"5446827933696000":{"name":"Cube rotated around Z","img":"5707702298738688.png","votes":6,"spins":25,"desc":"","tags":["Good Inspiration","Great Inspiration"]},"5895543533600768":{"name":"Modelling an epidemic","img":"5665117697998848.png","votes":6,"spins":2,"desc":"","tags":["Inspiration"]},"5902864482304000":{"name":"Gene Regulation Challenge","img":"5630978613575680.png","votes":7,"spins":3,"desc":"","tags":["Inspiration","biology","biochemistry","game","unfinished"]},"5943290564444160":{"name":"Light source","img":"5676830073815040.png","votes":6,"spins":2,"desc":"","tags":["Inspiration"]},"5967782130483200":{"name":"3D Ray tracing house reflection","img":"5750085036015616.png","votes":6,"spins":0,"desc":"","tags":[]},"6055715363618816":{"name":"Animation with cubic interpolation (5 avars)","img":"5659645909663744.png","votes":6,"spins":4,"desc":"","tags":["Inspiration"]},"6539960609669120":{"name":"Simple fluid movement 2","img":"5649050225344512.png","votes":6,"spins":0,"desc":"","tags":["biology","test"]},"6703037141745664":{"name":"Spin-off of \"Contest: Linear Perspective\"","img":"5697070107197440.png","votes":6,"spins":1,"desc":"","tags":["Inspiration"]},"4650045800448000":{"name":"Interactive: Modeling grass","img":"5659118702428160.png","votes":5,"spins":5,"desc":"","tags":["Inspiration"]},"4759961515851776":{"name":"Tree of combinations","img":"5750085036015616.png","votes":5,"spins":1,"desc":"","tags":["Inspiration"]},"4798511757393920":{"name":"Moon surface","img":"5649050225344512.png","votes":6,"spins":3,"desc":"Test image of a moon","tags":["Inspiration","moon","image","space"]},"5179819717558272":{"name":"Bouncing ball","img":"5639274879778816.png","votes":5,"spins":0,"desc":"","tags":[]},"5223577086590976":{"name":"Animation with linear interpolation (4 avars)","img":"5643440998055936.png","votes":5,"spins":1,"desc":"","tags":["Inspiration"]},"5262566611484672":{"name":"Season simulator","img":"5668600916475904.png","votes":9,"spins":4,"desc":"","tags":["Inspiration"]},"5388251446378496":{"name":"Lighting spheres 2","img":"5721036024709120.png","votes":6,"spins":1,"desc":"","tags":["Inspiration"]},"6392272796516352":{"name":"Interactive: String art creates parabolas","img":"5764640680181760.png","votes":5,"spins":2,"desc":"","tags":["Inspiration"]},"5661380162093056":{"name":"Colour compression","img":"5707702298738688.png","votes":7,"spins":3,"desc":"","tags":["Inspiration"]},"4505503602442240":{"name":"Spin-off of \"Bouncing ball\"","img":"5717271485874176.png","votes":4,"spins":0,"desc":"","tags":[]},"4543353553158144":{"name":"Moving focus and directrix of a parabola","img":"5653164804014080.png","votes":4,"spins":3,"desc":"","tags":["Inspiration"]},"4618736630497280":{"name":"3D Ray tracing dev","img":"5669283816275968.png","votes":4,"spins":4,"desc":"","tags":["Inspiration"]},"4631563165761536":{"name":"Convert scribble to ellipse","img":"5717271485874176.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"4944567804887040":{"name":"Explosion of combinations","img":"5732694713434112.png","votes":4,"spins":4,"desc":"","tags":["Inspiration"]},"5090663987675136":{"name":"Directrix of a parabola","img":"5764640680181760.png","votes":4,"spins":2,"desc":"","tags":["Inspiration"]},"5183812235165696":{"name":"Space Trader","img":"5674248798470144.png","votes":5,"spins":1,"desc":"Start at making an HTML game about trading in space.","tags":["webpage","game","space","unfinished","economics","Inspiration"]},"5310569092481024":{"name":"Spin-off of \"mason's bug killer game\"","img":"5717271485874176.png","votes":4,"spins":1,"desc":"Showing someone how to finish their game.","tags":["Inspiration","help","game"]},"5422426793705472":{"name":"Animation master copy","img":"5713144022302720.png","votes":4,"spins":3,"desc":"","tags":["Inspiration"]},"5545167588425728":{"name":"RGB","img":"5766466041282560.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"5813585745281024":{"name":"Subdivision 2","img":"5717271485874176.png","votes":4,"spins":2,"desc":"","tags":["Inspiration"]},"6131803379204096":{"name":"Distance between Earth and Mars","img":"5707702298738688.png","votes":4,"spins":12,"desc":"How does the distance between Earth and Mars change over time. A surprisingly accurate simulation.","tags":["Inspiration","Good Inspiration","NASA","astronomy","Mars","orbit","official","graph","simulation"]},"6165407474647040":{"name":"Spin-off of \"Interactive: 3D torus\"","img":"5757334940811264.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"6201388103892992":{"name":"Ray tracing example","img":"5654153720233984.png","votes":4,"spins":4,"desc":"","tags":["Inspiration"]},"6283676615442432":{"name":"Input test","img":"5693417237512192.png","votes":5,"spins":1,"desc":"Testing whether I could make a text adventure using HTML","tags":["Inspiration","test","text","webpage"]},"6336879139225600":{"name":"Graph","img":"5757334940811264.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"6352183030972416":{"name":"Animation with cubic interpolation (2 avars)","img":"5733935958982656.png","votes":4,"spins":2,"desc":"","tags":["Inspiration"]},"6408817963302912":{"name":"Infinite map test","img":"5647308616105984.png","votes":4,"spins":2,"desc":"Attempting to make an infinite scrolling RPG.","tags":["Inspiration","game","RPG","test","2.5D"]},"6414042072088576":{"name":"Spin-off of \"Models of the solar system\"","img":"5707702298738688.png","votes":6,"spins":19,"desc":"","tags":["Good Inspiration"]},"6500474647871488":{"name":"3D Ray tracing exercise","img":"5661458385862656.png","votes":4,"spins":0,"desc":"","tags":[]},"4645347866181632":{"name":"Interactive: Subdivision in 3D","img":"5692201761767424.png","votes":6,"spins":4,"desc":"","tags":["Inspiration"]},"4646662727008256":{"name":"Interactive: Weighted subdivision","img":"5723151296102400.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"4685582325252096":{"name":"Spin-off of \"Lazer Additions \"","img":"5736754531270656.png","votes":3,"spins":2,"desc":"Showing someone how to use objects to make different weapons for a ship.","tags":["Inspiration","help","game","space"]},"4764233522741248":{"name":"Spin-off of \"Escape™\"","img":"5724160613416960.png","votes":3,"spins":1,"desc":"Showing someone how to make a platform game.","tags":["help","game","platform","Inspiration"]},"4776501005516800":{"name":"Simple ray-tracing - floor","img":"5634387206995968.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"4899266453569536":{"name":"Interactive: Focus and directrix","img":"5713144022302720.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"5018775083810816":{"name":"Overlap test","img":"5707702298738688.png","votes":3,"spins":2,"desc":"Showing how to calculate when two orthogonal rectangles overlap.","tags":["Inspiration","collision","demo"]},"5076559557951488":{"name":"Shape nodes","img":"5649050225344512.png","votes":3,"spins":0,"desc":"Tool for generating images used in the subdivision exercises.","tags":["image","tool","for exercise"]},"5078569327788032":{"name":"Convert scribble to shape","img":"5750085036015616.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"5080543382994944":{"name":"Multiple Transformations #2","img":"5693417237512192.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"5104617450110976":{"name":"Animation 1","img":"5647308616105984.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"5193998731313152":{"name":"Interactive: Weighted averages on a line segment","img":"5709068098338816.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"5246481382637568":{"name":"Arranging a scene - scaling","img":"5759778777202688.png","votes":3,"spins":0,"desc":"","tags":[]},"5253403185250304":{"name":"Interactive: Weighted average of three points","img":"5645478960037888.png","votes":3,"spins":6,"desc":"","tags":["Inspiration"]},"5291422344806400":{"name":"Predicting protein charge","img":"5764640680181760.png","votes":3,"spins":0,"desc":"Tool to show the charge of protein at different pHs.","tags":["biology","tool","biochemistry","graph"]},"5437862162989056":{"name":"3D arc","img":"5676830073815040.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"5550898172657664":{"name":"Spin-off of \"Subdivision 3D (Torus)\"","img":"5649050225344512.png","votes":3,"spins":0,"desc":"","tags":[]},"5566975112904704":{"name":"Combinations 1","img":"5726683906703360.png","votes":3,"spins":4,"desc":"","tags":["Inspiration"]},"5569018085769216":{"name":"Single pole double throw switch","img":"5757334940811264.png","votes":3,"spins":1,"desc":"Example of a circuit","tags":["Inspiration","electronics","simulation","tool"]},"5608147604733952":{"name":"Group transformations","img":"5661458385862656.png","votes":3,"spins":0,"desc":"","tags":[]},"5679852685885440":{"name":"Create a shape 2","img":"5673385510043648.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"5721633590870016":{"name":"Projecting a point onto a line","img":"5668600916475904.png","votes":3,"spins":0,"desc":"","tags":[]},"5763454544379904":{"name":"Ray tracing in 2D","img":"5752142325350400.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"5766398229610496":{"name":"Ray tracing example 2","img":"5697070107197440.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"5774412088082432":{"name":"Table of combinations","img":"5645478960037888.png","votes":4,"spins":1,"desc":"","tags":["Inspiration"]},"5957485025034240":{"name":"Tree of combinations","img":"5657382461898752.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"6038372042801152":{"name":"Image test alpha","img":"5738600293466112.png","votes":4,"spins":0,"desc":"","tags":[]},"6178327731109888":{"name":"Interactive: Subdivide with strings","img":"5665117697998848.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"6227402002923520":{"name":"Hex","img":"5645478960037888.png","votes":4,"spins":0,"desc":"The board game, Hex. Take turns to play and see who can connect their side first.","tags":["board","game"]},"6302938667941888":{"name":"Draggable rect","img":"5741031244955648.png","votes":3,"spins":0,"desc":"A rectangle you can drag about the screen.","tags":["demo","draggable"]},"6346499486646272":{"name":"Spin-off of \"Moveable Quad\"","img":"5668600916475904.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"6350135550410752":{"name":"Animation with rotation","img":"5673385510043648.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"6356542825431040":{"name":"Bouncing ball","img":"5741031244955648.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"6433312433504256":{"name":"Spin-off of \"Petri Dish\"","img":"5639274879778816.png","votes":3,"spins":3,"desc":"","tags":["Inspiration"]},"6473310732025856":{"name":"Shapes with HTML and CSS","img":"5649050225344512.png","votes":3,"spins":0,"desc":"Showing how to draw shapes with CSS.","tags":["webpage","test"]},"6581501373448192":{"name":"Multiple transformations","img":"5681717746597888.png","votes":3,"spins":0,"desc":"","tags":[]},"6683012481810432":{"name":"Arranging a scene","img":"5651442522128384.png","votes":4,"spins":0,"desc":"","tags":[]},"6739584228261888":{"name":"Input test","img":"5709068098338816.png","votes":3,"spins":0,"desc":"Making the basis of a text adventure using HTML.","tags":["webpage","text","test"]},"6750292743946240":{"name":"Subdivision 3D (Tetrahedron)","img":"5741031244955648.png","votes":3,"spins":0,"desc":"","tags":[]},"4640069153587200":{"name":"Graph","img":"5766466041282560.png","votes":2,"spins":1,"desc":"Creating an image for use in an exercise about rotating arbitrary points in the PiaB Layout tutorial","tags":["for exercise","image","graph","rotation","PiaB","Layout","trigonometry","Inspiration"]},"4662011776204800":{"name":"deCasteljau with varying degrees","img":"5754903989321728.png","votes":2,"spins":1,"desc":"Showing how to construct various degrees of Bezier.","tags":["Inspiration","PiaB","draggable","Animation","interpolation"]},"4688206696153088":{"name":"Spin-off of \"Cubic interpolation\"","img":"5757334940811264.png","votes":2,"spins":0,"desc":"","tags":[]},"4740252363259904":{"name":"Weighted average of a line","img":"5689792285114368.png","votes":2,"spins":2,"desc":"","tags":["Inspiration"]},"4814336265814016":{"name":"Quadrilateral test","img":"5724160613416960.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"4860984715902976":{"name":"Spin-off of \"cells\"","img":"5657382461898752.png","votes":2,"spins":0,"desc":"","tags":[]},"4936435717242880":{"name":"3D Ray tracing- fix rotate","img":"5724160613416960.png","votes":3,"spins":0,"desc":"","tags":[]},"5041064831614976":{"name":"Building a scene 1 (text boxes)","img":"5753952654065664.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5075788585500672":{"name":"Focus and directrix of a parabola","img":"5707702298738688.png","votes":2,"spins":0,"desc":"","tags":[]},"5107566131544064":{"name":"Spin-off of \"Aperture Science Cake\"","img":"5629499534213120.png","votes":2,"spins":0,"desc":"Helping someone with a drawing of a cake for a project.","tags":["help","image","project"]},"5152235221417984":{"name":"3D object test","img":"5728116278296576.png","votes":2,"spins":0,"desc":"","tags":[]},"5414532843438080":{"name":"Animation with Bezier curves","img":"5689792285114368.png","votes":3,"spins":7,"desc":"","tags":["Inspiration"]},"5424037858902016":{"name":"Triangle test","img":"5717271485874176.png","votes":2,"spins":2,"desc":"","tags":["Inspiration"]},"5500460500910080":{"name":"Pool ball","img":"5634387206995968.png","votes":3,"spins":1,"desc":"Experimenting with drawing on the surface of a shaded sphere.","tags":["Inspiration","test","PiaB","Rendering","3D","image","shading","sphere"]},"5507511252942848":{"name":"Design challenge: Modeling grass","img":"5735735550279680.png","votes":5,"spins":3,"desc":"","tags":["Inspiration"]},"5513414466076672":{"name":"Azimuth and Altitude","img":"5718998062727168.png","votes":2,"spins":3,"desc":"","tags":["Inspiration"]},"5548727999660032":{"name":"Spin-off of \"Log-in\"","img":"5629499534213120.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5556193407795200":{"name":"Using buttons to change pages","img":"5741031244955648.png","votes":2,"spins":0,"desc":"","tags":[]},"5576118515269632":{"name":"Spin-off of \"Project: Creature Colonies\"","img":"5686306919153664.png","votes":3,"spins":2,"desc":"","tags":["Inspiration"]},"5714270510383104":{"name":"Lighting a sphere","img":"5651442522128384.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5723346072502272":{"name":"Combinations with tree","img":"5718998062727168.png","votes":2,"spins":0,"desc":"","tags":[]},"5741173233156096":{"name":"Parabolic curve matching","img":"5205805305430016.png","votes":2,"spins":0,"desc":"","tags":[]},"5766019343843328":{"name":"Animation with cubic interpolation (3 avars) dev","img":"5665117697998848.png","votes":2,"spins":0,"desc":"","tags":[]},"5792832073760768":{"name":"Small angle approximation","img":"5818821692620800.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5815037254696960":{"name":"Cubic interpolation","img":"5676830073815040.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5856014274396160":{"name":"Building with line segments","img":"5717271485874176.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5889541176557568":{"name":"Text box","img":"5634387206995968.png","votes":2,"spins":6,"desc":"","tags":["Inspiration"]},"5897068346343424":{"name":"Estimating tau -- animated!","img":"5838406743490560.png","votes":2,"spins":0,"desc":"","tags":[]},"5904379997716480":{"name":"Combat test","img":"5766466041282560.png","votes":2,"spins":0,"desc":"","tags":[]},"5941036353060864":{"name":"Raytracing triangle","img":"5653164804014080.png","votes":2,"spins":0,"desc":"Demonstrating raytracing in 3D with a triangle. Showing the equations for a plane.","tags":["3D","PiaB","Rendering","triangle","equation"]},"5963147935744000":{"name":"Programs of interest","img":"5724160613416960.png","votes":2,"spins":0,"desc":"A program I started to keep track of program I like. I didn't get very far.","tags":["webpage","organisation","unfinished"]},"5964280677662720":{"name":"Arranging a scene - rotation","img":"5689792285114368.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6009138707431424":{"name":"Spin-off of \"Celbasius Galaxy Explorer\"","img":"5724160613416960.png","votes":2,"spins":0,"desc":"Demonstrating how to make objects orbit.","tags":["help","space","orbit"]},"6012455711408128":{"name":"Make a molecule","img":"5741031244955648.png","votes":2,"spins":0,"desc":"","tags":[]},"6071809471676416":{"name":"Animation 1c","img":"5700735861784576.png","votes":2,"spins":0,"desc":"","tags":[]},"6111753714794496":{"name":"Parabolic Curve (constrained)","img":"5653164804014080.png","votes":2,"spins":0,"desc":"","tags":[]},"6137098906894336":{"name":"Triangle - triangle intersection","img":"5757334940811264.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"6141345988345856":{"name":"SIRS model of an epidemic","img":"5757334940811264.png","votes":2,"spins":0,"desc":"","tags":[]},"6239267847929856":{"name":"Constructing curves using repeated linear interpolation","img":"5758531089203200.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"6288927603818496":{"name":"Subdivision","img":"5753952654065664.png","votes":2,"spins":3,"desc":"","tags":["Inspiration"]},"6363400019378176":{"name":"Interactive: Build your own shape","img":"5768755258851328.png","votes":5,"spins":6,"desc":"","tags":["Inspiration"]},"6367500417105920":{"name":"Interactive: Split and average","img":"5669283816275968.png","votes":5,"spins":2,"desc":"","tags":["Inspiration"]},"6414481970167808":{"name":"Contain points","img":"5750085036015616.png","votes":2,"spins":1,"desc":"Click to add points and a regression line will be added. Also, it will attempt to draw an ellipse that covers most points.","tags":["Inspiration","test","graph","statistics","math","regression"]},"6446820114300928":{"name":"deCasteljau with equations","img":"5704837555552256.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6479618806775808":{"name":"Image test","img":"5685265389584384.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6505155228073984":{"name":"Matrix transformations","img":"5685265389584384.png","votes":2,"spins":0,"desc":"Showing how a matrix moves points on a graph.","tags":["matrices","graph","math"]},"6591570626740224":{"name":"Interactive: Weighted subdivision","img":"5080491044634624.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6601698440642560":{"name":"Spin-off of \"Play Set!\"","img":"5631943370604544.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6608694815752192":{"name":"Spin-off of \"GAME: Cruise to Mars \"","img":"5668600916475904.png","votes":2,"spins":6,"desc":"","tags":["Inspiration"]},"6624408588386304":{"name":"Straight ahead animation","img":"5636470266134528.png","votes":6,"spins":12,"desc":"","tags":["Inspiration","Good Inspiration"]},"6722027973115904":{"name":"2D Ray tracing intuition","img":"5685265389584384.png","votes":2,"spins":0,"desc":"","tags":[]},"6751766463643648":{"name":"Animation with parabolic interpolation (2 avars)","img":"5718998062727168.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"4849727170412544":{"name":"Rotating box","img":"5724160613416960.png","votes":2,"spins":0,"desc":"","tags":[]},"4504946093064192":{"name":"Multiple Transformations #3","img":"5738600293466112.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"4531133247651840":{"name":"Spin-off of \"Project: Computational creatures\"","img":"5757334940811264.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4536755234799616":{"name":"Translation","img":"5689792285114368.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"4553963278172160":{"name":"Spin-off of \"Pong Extreme (in progress...)\"","img":"5639274879778816.png","votes":1,"spins":0,"desc":"","tags":[]},"4559745746993152":{"name":"Random network","img":"5639274879778816.png","votes":1,"spins":0,"desc":"","tags":[]},"4562318244446208":{"name":"Angle label test","img":"5629499534213120.png","votes":1,"spins":0,"desc":"","tags":[]},"4580387837837312":{"name":"Floor","img":"5738600293466112.png","votes":1,"spins":0,"desc":"","tags":[]},"4589285076893696":{"name":"Spin-off of \"Curiosity landing simulation\"","img":"5629499534213120.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4631021154467840":{"name":"Animation with no interpolation (2 avars)","img":"5661458385862656.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4635120537567232":{"name":"Arranging a scene - translation","img":"5681097123823616.png","votes":1,"spins":-1,"desc":"","tags":[]},"4692215132848128":{"name":"Scaling and translating","img":"5653164804014080.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"4707443919290368":{"name":"Ray tracing example gem","img":"5649050225344512.png","votes":1,"spins":0,"desc":"","tags":[]},"4708277061550080":{"name":"Constructing an interpolated curve - freeform","img":"5649050225344512.png","votes":1,"spins":0,"desc":"","tags":[]},"4734965188919296":{"name":"Animation 3 - cubic interpolation b","img":"5711312218750976.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4751614693081088":{"name":"Simple ray-tracing","img":"5733935958982656.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4794594515222528":{"name":"Animation with linear interpolation (5 avars)","img":"5685265389584384.png","votes":1,"spins":0,"desc":"","tags":[]},"4797073953652736":{"name":"Jointed shape","img":"5676830073815040.png","votes":2,"spins":0,"desc":"","tags":[]},"4823962370179072":{"name":"Multiple Translations and Scaling #3","img":"5668600916475904.png","votes":1,"spins":0,"desc":"","tags":[]},"4919462617415680":{"name":"Circle packing","img":"5629499534213120.png","votes":1,"spins":1,"desc":"","tags":["Inspiration","circle","geometry","test"]},"4930679668473856":{"name":"Cube rotated around X Y and Z","img":"5707702298738688.png","votes":2,"spins":14,"desc":"","tags":["Good Inspiration"]},"4959610529382400":{"name":"Rotating, scaling and translating","img":"5700735861784576.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"4966647836442624":{"name":"Interactive: Computing the touching point","img":"5730192894984192.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"4984892707569664":{"name":"Spin-off of \"Vector Subtraction Ray\":Sparkler MkI","img":"5668600916475904.png","votes":1,"spins":0,"desc":"","tags":[]},"5006562541961216":{"name":"Cubic deCasteljau","img":"5750085036015616.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5038574901133312":{"name":"Spin-off of \"Project: Fish Tank\" (In progress)","img":"5685265389584384.png","votes":1,"spins":0,"desc":"Helping someone animate a fish for a project.","tags":["project","help","image","animation"]},"5056013182959616":{"name":"Spin-off of \"Project: Build-a-House\"","img":"5649050225344512.png","votes":1,"spins":0,"desc":"","tags":[]},"5057653920497664":{"name":"String art construction","img":"5692201761767424.png","votes":2,"spins":2,"desc":"Showing how to create a parabola with string art.","tags":["draggable","PiaB","EM","official","Inspiration"]},"5105098777165824":{"name":"Divided cube","img":"5643440998055936.png","votes":2,"spins":2,"desc":"","tags":["Inspiration"]},"5119189004845056":{"name":"Ray tracing in 2D v2","img":"5709068098338816.png","votes":1,"spins":0,"desc":"","tags":[]},"5133840597385216":{"name":"Subtended Angle using planet surface","img":"5707702298738688.png","votes":1,"spins":1,"desc":"","tags":["Inspiration","NASA","angles","geometry","trigonometry"]},"5191639435313152":{"name":"deCasteljau","img":"5732694713434112.png","votes":1,"spins":6,"desc":"","tags":["Inspiration"]},"5217238940385280":{"name":"Spin-off of \"Diplomacy map\"","img":"5724160613416960.png","votes":1,"spins":0,"desc":"Another version of the diplomacy map, trying to simplify it.","tags":["map","image"]},"5228549182586880":{"name":"Spin-off of \"Isometric\"","img":"5707702298738688.png","votes":1,"spinoffs":0,"desc":"","tags":[]},"5232539302232064":{"name":"Subdivided curve","img":"5741031244955648.png","votes":2,"spins":0,"desc":"Showing how to manually draw a Bezier curve between points.","tags":["demo","PiaB","Subdivision","interpolation"]},"5245400725585920":{"name":"Matrix operations","img":"5728116278296576.png","votes":1,"spins":1,"desc":"Tool for multiplying and inverting matrices.","tags":["math","linear algebra","tool","matrices","Inspiration"]},"5271824826892288":{"name":"Parabolas in a box","img":"5741031244955648.png","votes":1,"spins":0,"desc":"","tags":[]},"5333348146872320":{"name":"Squash and squash animation with Bezier curves","img":"5689792285114368.png","votes":3,"spins":5,"desc":"","tags":["Inspiration"]},"5366116335616000":{"name":"Arranging a scene with translations","img":"5725202142986240.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5420968690057216":{"name":"Ray tracing question","img":"5668600916475904.png","votes":1,"spins":0,"desc":"","tags":[]},"5447918265565184":{"name":"Multiple Translations #3","img":"5741031244955648.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5481264216539136":{"name":"Line circle intersection","img":"5668600916475904.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5677508067852288":{"name":"deCasteljau","img":"5757334940811264.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5682111132205056":{"name":"Multiple Translations and Scaling Update","img":"5657382461898752.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5683118628667392":{"name":"Interactive exercise: Midpoint of a line segment","img":"5723151296102400.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"5693288246673408":{"name":"Line-line intersection","img":"5639274879778816.png","votes":1,"spins":1,"desc":"Interactive demonstration of how to calculate when and where two line segments intersect.","tags":["Inspiration","demo","draggable","intersection"]},"5737762068365312":{"name":"DNA","img":"5707702298738688.png","votes":1,"spins":0,"desc":"Animation of DNA unwinding","tags":["animation","image","DNA","biology","biochemistry"]},"5746702332723200":{"name":"Parabolic interpolation","img":"5757334940811264.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"5748182841688064":{"name":"Generic PiaB program","img":"5713144022302720.png","votes":1,"spins":1,"desc":"","tags":["PiaB","interface","Inspiration"]},"5772737402634240":{"name":"Spin-off of \"Exploring Ellipses\"","img":"5750085036015616.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5825960471560192":{"name":"Animation with rotation (+ save)","img":"5673385510043648.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5859446498000896":{"name":"Isometric","img":"5766466041282560.png","votes":1,"spins":1,"desc":"","tags":["Inspiration","3D","isometric"]},"5878933975465984":{"name":"Exploring Ellipses 2","img":"5668600916475904.png","votes":1,"spins":0,"desc":"","tags":[]},"5880645745377280":{"name":"Animation with linear interpolation","img":"5682617542246400.png","votes":3,"spins":5,"desc":"Tool to animate a ball. Just using y avar and linear interpolation.","tags":["Inspiration","PiaB","Animation","official","tool","draggable","interpolation"]},"5880999195705344":{"name":"Image test 64bit","img":"5723151296102400.png","votes":1,"spins":0,"desc":"Testing how to build an image from a map of pixels. This stores the data in 64 bits and converts 4 units of 64 bit data into 3 256 bit values for each pixel.","tags":["test","image","PiaB","Layout"]},"5904135987789824":{"name":"Interactive: Find weights for a point","img":"5757334940811264.png","votes":1,"spins":0,"desc":"","tags":[]},"5935242946019328":{"name":"Multiple Translations","img":"5674248798470144.png","votes":1,"spins":3,"desc":"","tags":["Inspiration"]},"6024590531493888":{"name":"Light on a circle","img":"5684049913839616.png","votes":1,"spins":2,"desc":"Figuring out how to shade objects for the rendering tutorial.","tags":["Inspiration","PiaB","Rendering","shading","test","circle"]},"6042928940843008":{"name":"Interactive: Weighted average of three points","img":"5673385510043648.png","votes":1,"spins":0,"desc":"","tags":[]},"6090692692672512":{"name":"My programs","img":"5678091720458240.png","votes":19,"spins":2,"desc":"This program. Organising my other programs.","tags":["webpage","organisation","Inspiration","10 votes"]},"6096061801431040":{"name":"Parabolic interpolation","img":"5685265389584384.png","votes":1,"spins":1,"desc":"Testing a way to create smooth parabolic interpolation between three points. Initially created for the PiaB Animation interface","tags":["Inspiration","draggable","interpolation","test","PiaB","Animation"]},"6103696663642112":{"name":"Multiple scaling and translating","img":"5651442522128384.png","votes":1,"spins":0,"desc":"Version with scaling and translation using KA icons. Has number scrubbers and icon selection.","tags":["PiaB","Layout","graph","transformation"]},"6115538597314560":{"name":"Navigation and Drop-Down Menus","img":"5707702298738688.png","votes":1,"spins":1,"desc":"Demonstrating how to make a drop-down menu for someone.","tags":["webpage","help","Inspiration"]},"6129031723089920":{"name":"Spin-off of \"Parabolic interpolation\"","img":"5741031244955648.png","votes":1,"spins":0,"desc":"Find the point on a parabola.","tags":[]},"6135339873206272":{"name":"Parabola construction","img":"5757334940811264.png","votes":1,"spins":0,"desc":"More string art","tags":["PiaB","EM"]},"6140920866275328":{"name":"Casting actors","img":"5718998062727168.png","votes":1,"spins":1,"desc":"Show how many ways to arrange r objects chosen from n.","tags":["PiaB","official","Crowds","for exercise","Inspiration"]},"6191522627715072":{"name":"Exploring Ellipses","img":"5639274879778816.png","votes":2,"spins":1,"desc":"Finding the width of an ellipse when rotated.","tags":["ellipse","geometry","math","Inspiration","test"]},"6244317435527168":{"name":"Multiple Translations 2","img":"5681717746597888.png","votes":1,"spins":1,"desc":"Showing how to use translation to arrange KA characters on a graph. This is a drag and drop version.","tags":["Inspiration","PiaB","Layout","geometry","math","graph","transforms","draggable"]},"6364209639325696":{"name":"Building a scene 1 (sliders)","img":"5676830073815040.png","votes":1,"spins":1,"desc":"Translation of KA icons using sliders","tags":["PiaB","Sets","Inspiration"]},"6370771737509888":{"name":"Multiple Translations","img":"5733935958982656.png","votes":1,"spins":1,"desc":"Translation with KA icons","tags":["PiaB","EM","Inspiration"]},"6398166159065088":{"name":"Parabolic Curve (ellipse constrained)","img":"5657382461898752.png","votes":1,"spins":0,"desc":"Experimenting with string art.","tags":["PiaB","EM","test"]},"6408214508994560":{"name":"Interactive: String art (midpoints)","img":"5649050225344512.png","votes":1,"spins":0,"desc":"Use string art to draw a parabolic blade of grass. Adds nodes at midpoints and midpoints of midpoints.","tags":["PiaB","EM"]},"6419864301076480":{"name":"Triangle - triangle intersection 3D","img":"5668600916475904.png","votes":1,"spins":0,"desc":"Showing how to calculate when two triangles intersect.","tags":["triangle","draggable","intersection","demo"]},"6420248265752576":{"name":"Area of a circle","img":"5629499534213120.png","votes":1,"spins":1,"desc":"How to approximate pi, by cutting a pizza into ever smaller slices.","tags":["Inspiration","math","geometry","pi","circle","NASA","official"]},"6532572088893440":{"name":"Scaling and translating","img":"5741031244955648.png","votes":1,"spins":0,"desc":"Scaling and translation with KA icons.","tags":["PiaB","Sets"]},"6568966755450880":{"name":"Small angle approximation (not vertical)","img":"5779342353235968.png","votes":1,"spins":2,"desc":"Demonstrating how to approximate small angles.","tags":["Inspiration","NASA","angles","geometry","math","official"]},"6309363072892928":{"name":"Create a shape","img":"5717271485874176.png","votes":4,"spins":1,"desc":"Add and delete points to make a shape and use subdivision to smooth it.","tags":["Inspiration","PiaB","Subdivision","draggable"]},"5008924287827968":{"name":"Weighted average of three points - for exercise","img":"5668600916475904.png","votes":2,"spins":0,"desc":"Showing how the weighted average of three points works. For an exercise.","tags":["for exercise","PiaB","Subdivision","equation","graph","algebra"]},"6112826890518528":{"name":"Parametric equation for a line","img":"5639274879778816.png","votes":2,"spins":0,"desc":"Program used to illustrate a parametric equation for an exercise.","tags":["for exercise","PiaB","Rendering","equation","graph","draggable"]},"6303960342331392":{"name":"Casting actors for exercise","img":"5757334940811264.png","votes":2,"spins":0,"desc":"Show how many ways to arrange n Choose r. This version for is an exercise.","tags":["for exercise","PiaB","Crowds"]},"5240718060158976":{"name":"Weighted average of a line","img":"5717271485874176.png","votes":1,"spins":1,"desc":"Draggable line with a midpoints. For a subdivision exercise.","tags":["Inspiration","draggable","for exercise","graph","equation","PiaB","Subdivision"]},"6266486115139584":{"name":"Answer Counter","img":"5750085036015616.png","votes":4,"spins":0,"desc":"","tags":[]},"6733900069076992":{"name":"Find outlines","img":"5676325415157760.png","votes":24,"spins":5,"desc":"","tags":["10 votes","Inspiration"]},"5698243230040064":{"name":"Where Does My Program Rank On The Hot List? (API version)","img":"5639274879778816.png","votes":10,"spins":1,"desc":"","tags":["10 votes","Inspiration"]},"6543641679101952":{"name":"Design challenge: Modeling grass","img":"5724160613416960.png","votes":8,"spins":3,"desc":"","tags":["Inspiration"]},"5637644097814528":{"name":"String art construction","img":"5685265389584384.png","votes":6,"spins":4,"desc":"","tags":["Inspiration"]},"6560221863477248":{"name":"Design challenge: Animating grass","img":"5668600916475904.png","votes":6,"spins":13,"desc":"","tags":["Good Inspiration"]},"5120138752950272":{"name":"Hand-drawn","img":"5653164804014080.png","votes":5,"spins":5,"desc":"","tags":["Inspiration"]},"5542540844597248":{"name":"Spin-off of \"String art construction\"","img":"5707702298738688.png","votes":5,"spins":3,"desc":"","tags":["Inspiration"]},"5294587418640384":{"name":"What is alternative splicing?","img":"5741031244955648.png","votes":4,"spins":1,"desc":"Essay describing alternative splicing","tags":["Inspiration","essay","biology","biochemistry"]},"6654178979086336":{"name":"Image holder","img":"5724160613416960.png","votes":4,"spins":0,"desc":"","tags":[]},"4866568233287680":{"name":"Path finding test","img":"5629499534213120.png","votes":3,"spins":0,"desc":"","tags":[]},"6670882719268864":{"name":"Arranging a scene - translation 2","img":"5724160613416960.png","votes":3,"spins":0,"desc":"","tags":[]},"6725096403238912":{"name":"Spin-off of \"Design challenge: Modeling grass\"","img":"5707702298738688.png","votes":3,"spins":1,"desc":"","tags":["Inspiration"]},"4919634322128896":{"name":"Space Trader","img":"5636470266134528.png","votes":2,"spins":0,"desc":"","tags":[]},"5004691424542720":{"name":"Coloured cube","img":"5707702298738688.png","votes":2,"spins":0,"desc":"","tags":[]},"5088555429920768":{"name":"Animation with linear interpolation","img":"5649050225344512.png","votes":2,"spins":2,"desc":"","tags":["Inspiration"]},"5744530725928960":{"name":"Lighting a sphere - tennis ball","img":"5665117697998848.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"5920598529277952":{"name":"Interactive: Build your own shape","img":"5668600916475904.png","votes":2,"spins":4,"desc":"","tags":["Inspiration"]},"6020837758074880":{"name":"Mass-spring system 2","img":"5709068098338816.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6064788376518656":{"name":"Table of combinations","img":"5750085036015616.png","votes":2,"spins":3,"desc":"","tags":["Inspiration"]},"6074653782179840":{"name":"Spin-off of \"Chicken simulator\"","img":"5707702298738688.png","votes":2,"spins":1,"desc":"","tags":["Inspiration"]},"6186227381436416":{"name":"Basic Neural Network","img":"5668600916475904.png","votes":2,"spins":0,"desc":"","tags":[]},"6312104530411520":{"name":"Osmosis","img":"5735735550279680.png","votes":2,"spins":2,"desc":"","tags":["Inspiration"]},"6632222667964416":{"name":"Casting challenge","img":"5707702298738688.png","votes":2,"spins":3,"desc":"","tags":["Inspiration"]},"4524763685978112":{"name":"Interactive: Computing the touching point","img":"5629499534213120.png","votes":1,"spins":0,"desc":"","tags":[]},"4553626061242368":{"name":"Animation test","img":"5724160613416960.png","votes":1,"spins":0,"desc":"","tags":[]},"4592916296237056":{"name":"Linear bounce","img":"5707702298738688.png","votes":1,"spins":0,"desc":"","tags":[]},"4652228869750784":{"name":"Mass-spring system 3 (3D)","img":"5673385510043648.png","votes":1,"spins":1,"desc":"Simulation of a hanging cloth using a mass-spring system.","tags":["Inspiration","PiaB2","Mass spring","simulation","physics","3D"]},"4660724375879680":{"name":"Arranging a scene - new catalogue","img":"5643440998055936.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4812105319579648":{"name":"Parabolic curve matching","img":"5629499534213120.png","votes":1,"spins":0,"desc":"","tags":[]},"4823430701645824":{"name":"Spin-off of \"Graph\"","img":"5681717746597888.png","votes":1,"spins":0,"desc":"","tags":[]},"4833446368247808":{"name":"Mass-spring system","img":"5645478960037888.png","votes":1,"spins":2,"desc":"Simulation of three masses on springs with different properties.","tags":["Inspiration","Physics","simulation","PiaB2","Mass spring"]},"4850025386606592":{"name":"Linear animation","img":"5668600916475904.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"4967701970812928":{"name":"Lighting a sphere - pool ball","img":"5668600916475904.png","votes":1,"spins":0,"desc":"","tags":[]},"5024423806631936":{"name":"Tree of combinations","img":"5685265389584384.png","votes":1,"spins":0,"desc":"","tags":[]},"5083920380067840":{"name":"Interactive deCasteljau construction","img":"5707702298738688.png","votes":1,"spins":0,"desc":"","tags":[]},"5219109039112192":{"name":"Bezier bounce","img":"5707702298738688.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5334168528617472":{"name":"Arranging a scene - rotation 2","img":"5759778777202688.png","votes":1,"spins":2,"desc":"","tags":["Inspiration"]},"5484099560144896":{"name":"Mass-spring system 3","img":"5741031244955648.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5628640143474688":{"name":"Bezier animation","img":"5724160613416960.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"5751891821723648":{"name":"Arranging a scene - new catalogue 2","img":"5685265389584384.png","votes":1,"spins":0,"desc":"","tags":[]},"5755795460456448":{"name":"Tree test","img":"5629499534213120.png","votes":1,"spins":0,"desc":"A stylised tree drawn using recursion","tags":["recursion","image"]},"5845638817382400":{"name":"Mass-spring system with interface","img":"5707702298738688.png","votes":1,"spins":0,"desc":"","tags":[]},"5974920285782016":{"name":"Spin-off of \"Upcoming Game: Realm of Impossibility\"","img":"5643440998055936.png","votes":1,"spins":0,"desc":"","tags":[]},"6048902355746816":{"name":"Interactive: Split and average","img":"5668600916475904.png","votes":1,"spins":6,"desc":"","tags":["Inspiration"]},"6084802756345856":{"name":"Arranging a scene - scaling 2","img":"5757334940811264.png","votes":1,"spins":1,"desc":"","tags":["Inspiration"]},"6293105639817216":{"name":"Animation with rotation and saving","img":"5733935958982656.png","votes":1,"spins":0,"desc":"","tags":[]},"6356728254955520":{"name":"Interactive exercise: Midpoint of a line segment","img":"5750085036015616.png","votes":1,"spins":0,"desc":"","tags":[]},"6486958418296832":{"name":"deCasteljau for exercise","img":"5629499534213120.png","votes":1,"spins":0,"desc":"","tags":[]},"6513688115806208":{"name":"What is DNA?","img":"5741031244955648.png","votes":1,"spins":0,"desc":"Essay describing what DNA is.","tags":["essay","biology","biochemistry"]},"6534579220512768":{"name":"Spin-off of \"Interactive: Build your own shape\"","img":"5668600916475904.png","votes":1,"spins":0,"desc":"","tags":[]},"6601807487959040":{"name":"Spin-off of \"PixelDrag.\"","img":"5668600916475904.png","votes":1,"spins":0,"desc":"Demonstrating how to make draggable windows where the selected on is drawn on top.","tags":["help","draggable"]}}
+</script>
+
+<script>
+    // Get lots of elements here to save time
+    var waitMessage = $('#wait-message');
+    var scratchpadEl = $('#scratchpads');
+    var downloadCodeContainer = $('#download-code-container');
+    var downloadCode = $('#download-code');
+    
+    var overlayEl = $('#window-overlay');
+    var imgEl = $('#program-details-img');
+    var titleEl = $('#program-details-title>a');
+    var programVotes = $('#program-details-votes');
+    var programSpins = $('#program-details-spins');
+    var programDesc = $('#program-details-desc');
+    var programTags = $('#program-details-tags');
+    
+    var addTagInput = $('#add-tag-input');
+    var addTagButton = $('#add-tag-button');
+
+    var tagsForFilter = [];
+    
+    // Create modal overlay showing program details
+    var showProgramDetail = function() {
+        var id = $(this).data('id');
+        var data = programData[id];
+        var url = "https://www.khanacademy.org/computer-programming/a/" + id;
+        
+        imgEl.attr('src', url + "/" + data.img);
+        titleEl.attr('href', url);
+        titleEl.text(data.name);
+        
+        programVotes.text("Votes: " + data.votes);
+        programSpins.text("Spin-offs: " + data.spins);
+        
+        if (data.desc) {
+            programDesc.text(data.desc);
+        } else {
+            programDesc.text("Click to edit");
+        }
+        
+        if (data.tags) {
+            programTags.empty();
+            for (var i = 0; i < data.tags.length; i++) {
+                addTagElement(data.tags[i], programTags);
+            }
+        }
+        
+        overlayEl.show();
+        overlayEl.data('id', id);
+    };
+    
+    // Get only the programs that have all the tags in the tags array
+    var filterPrograms = function(programs, tags) {
+        if (tags.length === 0) {
+            return programs;
+        }
+
+        var filtered = {};
+
+        for (var id in programs) {
+            var program = programs[id];
+            var remove = false;
+
+            for (var j = 0; j < tags.length; j++) {
+                if (program.tags.indexOf(tags[j]) === -1) {
+                    remove = true;
+                    break;
+                }
+            }
+
+            if (!remove) {
+                filtered[id] = program;
+            }
+        }
+
+        return filtered;
+    };
+
+    // Create a tag and add it to the container element
+    var addTagElement = function(tagName, container, count) {
+        var tagEl = $('<span></span>');
+        tagEl.addClass('tag');
+
+        // Change colour of auto-tag
+        // TODO: do this properly by creating tag properties
+        if (tagName.indexOf('Inspiration') > -1 || tagName.indexOf('votes') > -1) {
+            tagEl.addClass('auto-tag');
+        }
+
+        var tagName = $("<span>" + tagName + "</span>");
+        tagEl.append(tagName);
+
+        if (count) {
+            var tagCount = $("<span>(" + count + ")</span>");
+            tagCount.addClass("tag-count");
+            tagEl.append(tagCount);
+        }
+
+        container.append(tagEl);
+    };
+
+    // Add tags to top of page
+    var addTagsToCloud = function(tagCounter) {
+        // Add tags to cloud
+        var tagCloud = $('#tag-cloud');
+        tagCloud.empty();
+        
+        var keys = Object.keys(tagCounter)
+        keys.sort(function(a, b) {
+            return tagCounter[b] - tagCounter[a];
+        });
+        
+        for (var i = 0; i < keys.length; i++) {
+            var tag = keys[i];
+            addTagElement(tag, tagCloud, tagCounter[tag]);
+        }
+
+        // Add filter ability
+        $("#tag-cloud .tag").click(function() {
+            var tag = $(this).children()[0]
+            var tagName = $(tag).text();
+            
+            if (tagsForFilter.indexOf(tagName) === -1) {
+                tagsForFilter.push(tagName);
+                showPrograms();
+            } else {
+                // Remove from filter
+            }
+        });
+    };
+
+    var showPrograms = function() {
+        scratchpadEl.empty();
+        
+        var tagCounter = {};
+        var programs = filterPrograms(programData, tagsForFilter);
+
+        // Go through data, getting programs and thumbnails for them
+        for (var id in programs) {
+            var data = programs[id];
+            var url = "https://www.khanacademy.org/computer-programming/a/" + id;
+            
+            var programEl = $('<div></div>');
+            programEl.addClass("program-small");
+            programEl.data('id', id);
+            
+            // Highlight programs without a description to make it easier to see what needs updating
+            if (!data.desc) {
+                programEl.addClass("no-info");
+            }
+            
+            var headingEl = $('<div></div>');
+            headingEl.text(data.name);
+            
+            // Add image
+            if (data.img) {
+                var imgEl = $('<img />');
+                imgEl.attr('src', url + "/" + data.img);
+                programEl.append(imgEl);
+            }
+            
+            // Count tags
+            if (data.tags) {
+                for (var i = 0; i < data.tags.length; i++) {
+                    var tag = data.tags[i];
+                    tagCounter[tag] = (tagCounter[tag] || 0) + 1;
+                }
+            }
+            
+            programEl.append(headingEl);
+            scratchpadEl.prepend(programEl);
+        }
+        
+        $('.program-small').click(showProgramDetail);
+        addTagsToCloud(tagCounter);
+    };
+    
+    var updateData = function(data) {
+        var scratchpads = data.scratchpads;
+        if (!scratchpads) {
+            alert("No data found");
+            return;
+        }
+        
+        var n = scratchpads.length;
+        var votesForTags = [10, 25, 50, 100, 250, 500, 1000];
+        var spinoffBadges = [["", 1], ["Good ", 10], ["Great ", 25], ["Incredible ", 50]];
+        //alert(n + " scratchpads found");
+        
+        for (var i = 0; i < n; i++) {
+            var scratchpad = scratchpads[i];
+            var id = scratchpad.url.split("/").slice(-1)[0];
+            var img = scratchpad.thumb.split("/").slice(-1)[0];
+            
+            var existingData = programData[id];
+            var tags = existingData ? existingData.tags : [];
+            var desc = existingData ? existingData.desc : "";
+            var votes = parseInt(scratchpad.sumVotesIncremented);
+            var spins = parseInt(scratchpad.spinoffCount);
+            
+            // Add automatic tags
+            for (var t = votesForTags.length - 1; t >= 0; t--) {
+                if (votes >= votesForTags[t]) {
+                    var tag = votesForTags[t] + " votes";
+                    if (tags.indexOf(tag) === -1) {
+                        tags.push(tag);
+                    }
+                    break;
+                }
+            }
+            
+            for (var t = spinoffBadges.length - 1; t >= 0; t--) {
+                if (spins >= spinoffBadges[t][1]) {
+                    var tag = spinoffBadges[t][0] + "Inspiration";
+                    if (tags.indexOf(tag) === -1) {
+                        tags.push(tag);
+                    }
+                    break;
+                }
+            }
+            
+            programData[id] = {
+                name: scratchpad.title,
+                img: img,
+                votes: votes,
+                spins: spins,
+                desc: desc,
+                tags: tags,
+            };
+            
+        }
+        
+        waitMessage.hide();
+        showPrograms();
+    };
+    
+    var downloadProgramData = function() {
+        downloadCode.empty();
+        downloadCode.text("var programData = " + JSON.stringify(programData));
+        downloadCodeContainer.show();
+    };
+    
+    // Add tags to program from the user input
+    var addTagFromInput = function() {
+        var tags = addTagInput.val().split(',');
+        var id = overlayEl.data('id');
+        var data = programData[id];
+        
+        for (var i = 0; i < tags.length; i++) {
+            var tag = $.trim(tags[i]);
+            if (tag && data.tags.indexOf(tag) === -1) {
+                data.tags.push(tag);
+                addTagElement(tag, programTags);
+            }
+        }
+        addTagInput.val("");
+    };
+    
+    var setup = function() {
+        waitMessage.hide();
+        downloadCodeContainer.hide();
+        overlayEl.hide();
+        
+        $('#username').text('~ ' + username);
+        
+        // Button functions
+        $('#update-button').click(function() {
+            waitMessage.show();
+            
+            var url = "https://www.khanacademy.org/api/internal/user/scratchpads?username=" + encodeURIComponent(username) + "&sort=1&limit=600&page=0&lang=en&callback=?";
+            
+            $.getJSON(url, function(data) {
+                updateData(data);
+            });
+        });
+        
+        $('#download-button').click(downloadProgramData);
+        
+        $('.close-button').click(function() {
+            //$(this).parent().hide();
+            overlayEl.hide();
+            var id = overlayEl.data('id');
+            var desc = programDesc.text();
+            
+            if (desc !== 'Click to edit') {
+                programData[id].desc = desc;
+            }
+        });
+        
+        addTagButton.click(addTagFromInput);
+        
+        addTagInput.keyup(function(e){
+            if (e.keyCode === 13) {
+                addTagFromInput();
+            }
+        });
+    };
+    
+    setup();
+    showPrograms();
+    
+</script>
+
+    </body>
+</html>

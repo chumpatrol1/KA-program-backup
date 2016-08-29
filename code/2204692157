@@ -1,0 +1,123 @@
+var prismX = 160;
+var prismY = 185;
+var prismSize = 100;
+var prismHeight = prismSize * sqrt(3) / 2;
+
+var lightAngle = 17;
+var incidence1 = 30 + lightAngle;
+var refraction1 = 30 - incidence1 / 1.5;
+var spread = 25;
+
+// Given a wavelength in nm return a reasonably accurate colour
+// Colours will also depend on your monitor
+
+var wavelengthToColour = function(wavelength, alpha) {
+    var alpha = alpha || 255;
+    
+    // Black to violet (380 nm - 400 nm)
+    if (wavelength < 400) {
+        var p = max(0, 255 * (wavelength - 360) / 40);
+        return color(p, 0,  p, alpha);
+    }
+    
+    // Violet to blue  (400 nm - 450 nm)
+    if (wavelength < 450) {
+        var p = 255 * (wavelength - 400) / 50;
+        return color(255 - p, 0,  255, alpha);
+    }
+
+    // Blue to cyan (450 nm - 480 nm)
+    if (wavelength < 480) {
+        var p = 255 * (wavelength - 450) / 30;
+        return color(0, p,  255, alpha);
+    }
+
+    // Cyan to green (480 nm - 540 nm)
+    if (wavelength < 540) {
+        var p = 255 * (wavelength - 480) / 60;
+        return color(0, 255,  255-p, alpha);
+    }
+
+    // Green to yellow (540 nm - 580 nm)
+    if (wavelength < 580) {
+        var p = 255 * (wavelength - 540) / 40;
+        return color(p, 255, 0, alpha);
+    }
+
+    // Yellow to red (580 nm - 700 nm)
+    if (wavelength < 700) {
+        var p = 255 * (wavelength - 580) / 120;
+        return color(255, 255-p, 0, alpha);
+    }
+
+    // Black to red (700 nm - 760 nm)
+    if (wavelength < 750) {
+        var p = 255 * (wavelength - 700) / 60;
+        return color(255-p, 0, 0, alpha);
+    }
+
+    return color(0, 0, 0, alpha);
+};
+
+var drawPrism = function() {
+    noFill();
+    strokeWeight(3);
+    stroke(160, 230, 255, 160);
+    triangle(prismX - prismSize/2, prismY + prismHeight/2,
+             prismX + prismSize/2, prismY + prismHeight/2,
+             prismX, prismY - prismHeight/2);
+    
+    strokeWeight(1);
+    stroke(230, 240, 255);
+    triangle(prismX - prismSize/2, prismY + prismHeight/2,
+             prismX + prismSize/2, prismY + prismHeight/2,
+             prismX, prismY - prismHeight/2);
+};
+
+var drawSpectrum = function(x, y, angle, spread) {
+    var maxAngle = max(abs(angle + spread), abs(angle - spread));
+    var r = (400 - x) / cos(maxAngle);
+
+    var resolution = 300;
+    var deltaAngle = spread/resolution;
+    
+    angle += spread/2;
+    strokeWeight(2);
+    for (var i = 0; i<resolution; i++) {
+        stroke(wavelengthToColour(360 + i * 370 / resolution, 20));
+        line(x, y,
+             x + r * cos(angle - i * deltaAngle),
+             y + r * sin(angle - i * deltaAngle));
+    }
+};
+
+var draw = function() {
+    background(0);
+        
+    // Light
+    strokeWeight(2);
+    stroke(255);
+    var dy = 29;
+    var x1 = prismX - prismSize/2 + dy * tan(30) + 16;
+    var y1 = prismY - prismHeight/2 + dy;
+    line(0, y1 + x1 * tan(lightAngle), x1, y1);
+    
+    // Refraction 1
+    var l = 33;
+    var x2 = x1 + l * cos(refraction1);
+    var y2 = y1 - l * sin(refraction1);
+    line(x1, y1, x2, y2);
+    
+    /*
+    // Normal
+    stroke(255, 255, 255, 120);
+    strokeWeight(1);
+    line(x1 - 40 * cos(30), y1 + 40 * sin(30),
+         x1 + 40 * cos(30), y1 - 40 * sin(30));
+    */
+    
+    var angle = 17;
+    drawSpectrum(x2 + 1, y2, angle, spread);
+    
+    drawPrism();
+};

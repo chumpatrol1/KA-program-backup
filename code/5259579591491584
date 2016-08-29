@@ -1,0 +1,134 @@
+// Giraffe
+
+// Variables to change
+var x = width / 2;
+var neckLength = 290;
+var neckWidth = 16;
+var headSize = 30;
+var eyeSize = 14;
+var earSize = 28;
+
+background(179, 212, 252);
+noStroke();
+
+// Neck
+var headY = height - neckLength;
+fill(250, 218, 153);
+quad(x - neckWidth, height,
+     x + neckWidth, height,
+     x + neckWidth * 0.5, headY,
+     x - neckWidth * 0.5, headY);
+
+// Patches
+fill(178, 130, 70);
+
+for (var d = 0; d < height - headY - 50; d += 50) {
+    var w1 = neckWidth * (1 - 0.5 * d / (height - headY));
+    var w2 = neckWidth * (1 - 0.5 * (d - 20) / (height - headY));
+    var w3 = neckWidth * (1 - 0.5 * (d - 25) / (height - headY));
+    var w4 = neckWidth * (1 - 0.5 * (d - 45) / (height - headY));
+    
+    quad(x - w1, height - d,
+         x + w1 * 0.3, height - d,
+         x + w2 * 0.7, height - d - 20,
+         x - w2 + 1, height - d - 20);
+         
+    quad(x + w3 - 2, height - d - 25,
+         x - w3 * 0.4, height - d - 25,
+         x + w4 * 0.1, height - d - 45,
+         x + w4 - 3, height - d - 45);
+    
+}
+
+//stroke(0);
+
+// Ears
+fill(178, 130, 70);
+var earHeight = headY - headSize * 0.4 - earSize * 0.5;
+quad(x - headSize, headY - headSize * 0.4,
+     x - headSize - earSize, earHeight,
+     x - headSize - earSize * 0.25, earHeight,
+     x - headSize + earSize * 0.75, headY - headSize * 0.4);
+
+quad(x + headSize, headY - headSize * 0.4,
+     x + headSize + earSize, earHeight,
+     x + headSize + earSize * 0.25, earHeight,
+     x + headSize - earSize * 0.75, headY - headSize * 0.4);
+
+stroke(102, 51, 15);
+line(x - headSize, headY - headSize * 0.4 - 1,
+     x - headSize - earSize, earHeight + 1);
+line(x + headSize, headY - headSize * 0.4 - 1,
+     x + headSize + earSize, earHeight + 1);
+
+// Ossicones
+fill(178, 130, 70);
+noStroke();
+quad(x + headSize * 0.1, headY - headSize,
+     x + headSize * 0.36, headY - headSize,
+     x + headSize * 0.35, headY - headSize * 1.5,
+     x + headSize * 0.15, headY - headSize * 1.5);
+
+quad(x - headSize * 0.1, headY - headSize,
+     x - headSize * 0.36, headY - headSize,
+     x - headSize * 0.35, headY - headSize * 1.5,
+     x - headSize * 0.15, headY - headSize * 1.5);
+
+
+// Head
+fill(250, 218, 153);
+noStroke();
+
+beginShape();
+    vertex(x - headSize * 0.2, headY + headSize);
+    vertex(x + headSize * 0.2, headY + headSize);
+    vertex(x + headSize, headY - headSize * 0.4);
+    vertex(x + headSize * 0.4, headY - headSize);
+    vertex(x - headSize * 0.4, headY - headSize);
+    vertex(x - headSize, headY - headSize * 0.4);
+    vertex(x - neckWidth * 0.25, headY + headSize);
+endShape();
+
+// Mouth
+fill(178, 130, 70);
+beginShape();
+    vertex(x - headSize * 0.2, headY + headSize);
+    vertex(x + headSize * 0.2, headY + headSize);
+    vertex(x + headSize * 0.44, headY + headSize * 0.5);
+    vertex(x + headSize * 0.05, headY - headSize * 0.4);
+    vertex(x - headSize * 0.05, headY - headSize * 0.4);
+    vertex(x - headSize * 0.44, headY + headSize * 0.5);
+endShape();
+
+stroke(135, 65, 12);
+line(x - headSize * 0.2 + 2, headY + headSize - 3,
+     x + headSize * 0.2 - 2, headY + headSize - 3);
+
+// Nose
+noStroke();
+fill(117, 89, 69);
+ellipse(x, headY + headSize * 0.1, headSize * 0.6, headSize * 0.3);
+
+// Nostrils
+fill(102, 51, 15);
+pushMatrix();
+translate(x - headSize * 0.12, headY + headSize * 0.1);
+rotate(70);
+ellipse(0, 0, headSize * 0.25, headSize * 0.15);
+popMatrix();
+
+pushMatrix();
+translate(x + headSize * 0.12, headY + headSize * 0.1);
+rotate(-70);
+ellipse(0, 0, headSize * 0.25, headSize * 0.15);
+popMatrix();
+
+// Eyes
+var eyeX1 = x - headSize * 0.8;
+var eyeX2 = x + headSize * 0.8;
+var eyeY = headY - headSize * 0.4;
+fill(135, 65, 12);
+noStroke();
+triangle(eyeX1, eyeY, eyeX1 + eyeSize, eyeY, eyeX1 + 2, eyeY + eyeSize * 0.5);
+triangle(eyeX2, eyeY, eyeX2 - eyeSize, eyeY, eyeX2 - 2, eyeY + eyeSize * 0.5);
+

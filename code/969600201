@@ -1,0 +1,104 @@
+/******************************************************
+ * Click on the box and type some text
+ * Use the left arrow for delete.
+ * Special keys might not be right for your keyboard.
+ * 
+ * To Do
+ *   Change font
+ *   Word wrap
+ *   Fix cursor after newline.
+********************************************************/
+
+var backgroundImage = getImage("space/background");
+var paperWidth = 300;
+var paperHeight = 360;
+var paperX = (400 - paperWidth) / 2;
+var paperY = (400 - paperHeight) / 2;
+var borderX = 25;
+var borderY = 30;
+
+var myFont = createFont("Serif", 14);
+
+var lowercaseLetters = "abcdefghijklmnopqrstuvwxyz";
+var uppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+var shiftPressed = false;
+
+var special_chars = {
+    10: "\n", 32: " ", 48: '0', 49: '1', 50: '2', 51: '3',
+    52: '4', 53: '5', 54: '6', 55: '7', 56: '8',  57: '9',
+    186: ';', 187: '=', 188: ',', 189: '-', 190: '.',
+    191: '/', 220: '\\', 222: "'"
+};
+
+var special_chars_shift = {
+    48: ')', 49: '!', 50: '@', 51: '£',  52: '$',
+    53: '%', 54: '^', 55: '&', 56: '*',  57: '(',
+    186: ':', 187: '+', 188: '<', 189: '_', 190: '>',
+    191: '?', 220: '|', 222: '"'
+};
+
+var words = "";
+
+var keyPressed = function() {
+    //println(keyCode);
+    
+    if (keyCode > 64 && keyCode < 91) {
+        if (shiftPressed){
+            words += uppercaseLetters[keyCode-65];
+        } else {
+            words += lowercaseLetters[keyCode-65];
+        }
+    } else if (keyCode in special_chars) {
+        if (shiftPressed && special_chars_shift[keyCode]){
+            words += special_chars_shift[keyCode];
+        } else {
+            words += special_chars[keyCode];
+        }
+    } else if (keyCode === 37) {
+        words = words.slice(0, words.length-1);
+    } else if (keyCode === 16){
+        shiftPressed = true;
+    }
+};
+
+var keyReleased = function() {
+    if (keyCode === 16) {
+        shiftPressed = false;
+    }
+};
+
+var drawPaper = function() {
+    image(backgroundImage, 0, 0, 400, 400);
+
+    // Shadow
+    noStroke();
+    fill(0, 0, 0, 40);
+    rect(paperX-2, paperY-2, paperWidth+5, paperHeight+5,2);
+    
+    // Paper
+    stroke(0, 0, 0);
+    fill(255, 255, 255);
+    rect(paperX, paperY, paperWidth, paperHeight);
+    
+};
+
+var blinkingCursor = function (x, y) {
+    if (frameCount % 25 > 12) {
+        var w = textWidth(words);
+        var pw = paperWidth - borderX * 2;
+        var lineX = x + 3 + w % pw;
+        var lineY = y - 2 + floor(w / pw) * 16;
+        line(lineX, lineY, lineX, lineY+12);
+    }
+};
+
+var draw =function() {
+    drawPaper();
+    blinkingCursor(paperX + borderX, paperY + borderY);
+
+    textFont(myFont, 14);
+    fill(27, 28, 31);
+    text(words,
+         paperX + borderX, paperY + borderY,
+         paperWidth - borderX*2, paperHeight + borderY*2);
+};

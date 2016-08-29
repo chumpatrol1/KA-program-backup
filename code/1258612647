@@ -1,0 +1,154 @@
+ /****************************************************
+ * Drag the circles to change the length the green line.
+ * 
+ * Note how the length of the green line is between the 
+ * sum of the other two sides and the absolute value of 
+ * the difference of the other two sides.
+ * 
+ * Based on:
+ * https://www.khanacademy.org/math/geometry/basic-geometry/triangle_inequality_theorem/v/triangle-inqequality-theorem
+ *****************************************************/
+
+// Lengths of the fixed sides
+// Try changing these.
+var length_AB = 120;
+var length_AC = 180;
+
+// Colours
+var colourAB = color(42, 180, 250);
+var colourAC = color(245, 120, 255);
+var colourBC = color(18, 196, 65);
+
+// Initial values
+var theta = 100;
+var Ax = 200;
+var Ay = 280;
+var Bx = Ax - length_AB * sin(theta / 2);
+var By = Ay - length_AB * cos(theta / 2);
+var Cx = Ax + length_AC * sin(theta / 2);
+var Cy = Ay - length_AC * cos(theta / 2);
+
+// Slider
+var sliderSize = 16;
+var mouseOverSlider = false;
+
+var setPositionB = function(angle) {
+    Bx = Ax + length_AB * cos(angle);
+    By = Ay + length_AB * sin(angle);
+};
+
+var setPositionC = function(angle) {
+    Cx = Ax + length_AC * cos(angle);
+    Cy = Ay + length_AC * sin(angle);
+};
+
+var writeLength = function(length, x1, y1, x2, y2) {    
+    translate((x1 + x2)/2, (y1 + y2)/2);
+    rotate(atan2(y2 - y1, x2 - x1));
+    text(length, 0, -5);
+    resetMatrix();
+};
+
+var writePoint = function(letter, mx, my, x, y, d) {
+    var dx = mx - x;
+    var dy = my - y;
+    var dist = sqrt(dx * dx + dy * dy) + d;
+    var angle = atan2(dy, dx);
+    
+    text(letter, mx - dist * cos(angle), my - dist * sin(angle));
+};
+
+var drawShape = function() {
+    // Lines
+    strokeWeight(3);
+    stroke(colourAB);
+    line(Ax, Ay, Bx, By);
+    stroke(colourAC);
+    line(Ax, Ay, Cx, Cy);
+    stroke(colourBC);
+    line(Bx, By, Cx, Cy);
+    
+    // Labels
+    textSize(13);
+    textAlign(CENTER, BASELINE);
+    fill(colourAB);
+    writeLength(length_AB, Ax, Ay, Bx, By);
+    fill(colourAC);
+    writeLength(length_AC, Cx, Cy, Ax, Ay);
+    fill(colourBC);
+    
+    var dx = Cx - Bx;
+    var dy = Cy - By;
+    var length = "" + round(10 * sqrt(dx*dx + dy*dy)) / 10;
+    writeLength(length, Bx, By, Cx, Cy);
+    
+    // Points
+    textAlign(CENTER, CENTER);
+    fill(250, 250, 250);
+    
+    var mx = (Ax + Bx + Cx) / 3;
+    var my = (Ay + By + Cy) / 3;
+    writePoint("A", mx, my, Ax, Ay, 10);
+    writePoint("B", mx, my, Bx, By, 16);
+    writePoint("C", mx, my, Cx, Cy, 16);
+    
+    // Text
+    textSize(16);
+    textAlign(LEFT, CENTER);
+    fill(colourAB);
+    text("Line AB is " + length_AB + " units long.", 20, 20);
+    fill(colourAC);
+    text("Line AC is " + length_AC + " units long.", 20, 40);
+    fill(colourBC);
+    text("Use the circles to change the length of line BC.", 20, 60);
+};
+
+var drawSlider = function(slider, x, y) {
+    if (mouseOverSlider === slider ||
+        (mouseX >= x - sliderSize/2 &&
+         mouseX <= x + sliderSize/2 &&
+         mouseY >= y - sliderSize/2 &&
+         mouseY <= y + sliderSize/2 &&
+         !mouseOverSlider)) {
+            fill(160, 160, 160, 200);
+            stroke(240, 240, 240);
+            mouseOverSlider = slider;
+        } else {
+            fill(160, 160, 160, 100);
+            stroke(200, 200, 200, 200);
+            if (!mouseIsPressed) {
+                mouseOverSlider = false;   
+            }
+        }
+        
+    strokeWeight(2); 
+    ellipse(x, y, sliderSize, sliderSize);
+};
+
+var draw = function() {
+    background(0, 0, 0);
+    
+    drawShape();
+    drawSlider(1, Bx, By);
+    drawSlider(2, Cx, Cy);
+};
+
+var mouseDragged = function() {
+    if (mouseOverSlider) {
+        var angle = atan2(mouseY - Ay, mouseX - Ax);
+        
+        if (mouseOverSlider === 1) {
+            setPositionB(angle);
+        } else if (mouseOverSlider === 2) {
+            setPositionC(angle);
+        }
+    }
+};
+
+var mouseReleased = function () {
+    mouseOverSlider = false;
+};
+
+var mouseOut = function(){
+    mouseOverSlider = false;
+};

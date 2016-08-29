@@ -1,0 +1,506 @@
+/**************************************************
+ *   To Do
+ * 
+ *   - TWEAKS AND FIXES -
+ * Have a minimum road x position
+ * City walls only where not roads
+ * Simplify how cities are defined
+ * Simplify tileObject code
+ * Allow infinite cities
+ * Fix Signposts
+ * 
+ *   - FEATURES -
+ * Add inventory
+ * Add creatures
+ * Add combat
+ * Add levels
+***************************************************/
+
+/**************************************************
+ * 17/5/15
+ *  Fix bug: losing focus cause player to keep moving
+***************************************************/
+
+var creatureData = {
+    "Leaf sprite": {
+        image: getImage("avatars/leafers-seed"),
+        speed: 0.02
+    }
+};
+
+/**************************************************
+ *  Parameters for map properities.
+***************************************************/
+
+// Percents don't include road, city and water
+var PERCENT_TREES = 15;
+var PERCENT_ROCKS = 5;
+var PERCENT_GEMS = 0.2;
+
+// How far apart are the roads and cities
+var LARGE_GRID_SIZE = 7;
+var ROAD_DISTANCE_X = LARGE_GRID_SIZE;
+var ROAD_DISTANCE_Y = LARGE_GRID_SIZE * 2;
+
+var TILE_SCALE = 1 / 2.25;
+
+/************************************************************
+ *  Tiles for different ground types
+ *    Speed determines how fast creature walk over the tile.
+ *    If speed is undefined the tile is impassible
+*************************************************************/
+
+var tileBases = {
+    grass: {
+        image: getImage("cute/GrassBlock"),
+        speed: 1
+    },
+    path: {
+        image: getImage("cute/DirtBlock"),
+        speed: 1.6
+    },
+    bridge: {
+        image: getImage("cute/WoodBlock"),
+        speed: 1.25
+    },
+    stone: {
+        image: getImage("cute/StoneBlock"),
+        speed: 1.6
+    },
+    water: {
+        image: getImage("cute/WaterBlock"),
+    },
+    wall: {
+        image: getImage("cute/WallBlockTall"),
+    },
+};
+  
+// Map position to tile to save recalculation
+var tileCache = {};
+var MAX_TILE_CACHE = 400;
+var tileCacheCount = 0;
+
+// Save object positions so they are not spawned when the tile cache is emptied
+var objectCache = {};
+
+// Keep track of where creatures have spawned, so they can
+// respawn only once the creature has died for some time
+var creatureSpawnSites = {};
+
+var dx = tileBases.grass.image.width;
+var dy = tileBases.grass.image.height / 2;
+var TILE_SIZE = dx * TILE_SCALE;
+var mapX = width / TILE_SIZE;
+var mapY = height / TILE_SIZE;
+
+var tileObjects = {
+    tree1: {
+        image: getImage("cute/TreeShort"),
+        impassible: true,
+        draw: function(x, y) {
+            image(this.image, x, y);
+        }
+    },
+    tree2: {
+        image: getImage("cute/TreeUgly"),
+        impassible: true,
+        draw: function(x, y) {
+            image(this.image, x, y);
+        }
+    },
+    tree3: {
+        image: getImage("cute/TreeTall"),
+        impassible: true,
+        draw: function(x, y) {
+            image(this.image, x, y);
+        }
+    },
+    rock: {
+        image: getImage("cute/Rock"),
+        impassible: true,
+        draw: function(x, y) {
+            image(this.image, x, y);
+        }
+    },
+    gem: {
+        name: "gem",
+        image: getImage("cute/GemBlue"),
+        collectable: true,
+        draw: function(x, y) {
+            var w = this.image.width;
+            var h = this.image.height;
+            image(this.image, x + w * 0.2, y + h * 0.35, w * 0.6, h * 0.6);
+        }
+    },
+    signpost: {
+        draw: function(x, y) {
+            strokeWeight(1);
+            stroke(170, 90, 20);
+            fill(200, 120, 40);
+            rect(x + dx * 0.4, y + dy * 0.3, dx * 0.15, dy * 0.8);
+            rect(x + dx * 0.15, y + dy * 0.3, dx * 0.65, dx * 0.15);
+        }
+    }
+};
+
+/**************************************************
+ *  Creature object
+***************************************************/
+
+var Creature = function(x, y, level) {
+    this.x = x;
+    this.y = y;
+    this.level = level;
+    this.speed = 0;
+    this.animation = 0;
+    this.animationLength = 10;
+};
+
+Creature.prototype.draw = function(x, y) {
+    if (this.image) {
+        y -= 8 * sin(180 * this.animation / this.animationLength);
+        image(this.image, x, y);
+    }
+    if (this.animation > 0) {
+        this.animation--;
+    }
+    //println(this.y);
+};
+
+Creature.prototype.move = function(dx, dy) {
+    var bonus = tileCache[round(this.x) + "," + round(this.y)].speed || 1;
+    var speed = this.speed * bonus;
+    
+    var newX = this.x + dx * speed;
+    var newY = this.y + dy * speed;
+    
+    // Check for impassibility
+    // TODO: make this more efficient
+    var d = 0.25;
+    var x1 = floor(newX + d);
+    var x2 = ceil(newX - d);
+    var y1 = floor(newY + d);
+    var y2 = ceil(newY - 2 * d);
+    
+    if (!tileCache[x1 + "," + y1].speed ||
+        !tileCache[x1 + "," + y2].speed ||
+        !tileCache[x2 + "," + y1].speed ||
+        !tileCache[x2 + "," + y2].speed) {
+            return;
+    }
+    
+    this.x += dx * speed;
+    this.y += dy * speed;
+    
+    if (!this.animation) {
+        this.animation = this.animationLength;
+    }
+    
+    tileCache[round(this.x) + "," + round(this.y)].walkOver();
+};
+
+/**************************************************
+ *  Player is a type of Creature
+***************************************************/
+
+var Player = function(x, y, level) {
+    Creature.call(this, x, y, level);
+    
+    this.image = getImage("cute/CharacterHornGirl");
+    
+    this._base_speed = 16;
+    this.speed = log(this._base_speed) * 0.01;
+    
+    this.items = [];
+};
+Player.prototype = Object.create(Creature.prototype);
+
+// Create player
+var player = new Player(4, 3, 1);
+
+/************************************************************
+ *  Tiles Object
+*************************************************************/
+{
+var Tile = function(base) {
+    this.base = tileBases[base].image;
+    this.speed = tileBases[base].speed;
+    this.objects = [];
+};
+
+Tile.prototype.draw = function(x, y) {
+    image(this.base, x, y);
+    
+    for (var i = 0; i < this.objects.length; i++) {
+        this.objects[i].draw(x, y - dy * 0.4);
+    }
+};
+
+Tile.prototype.addObject = function(obj, id) {
+    if (id) {
+        if (!objectCache[id]) {
+            objectCache[id] = obj;
+        } else {
+            return;
+        }
+    }
+    
+    var obj = tileObjects[obj];
+
+    this.objects.push(obj);
+    if (obj.impassible) {
+        this.speed = 0;
+    }
+};
+
+Tile.prototype.walkOver = function(){
+    for (var i = this.objects.length; i > 0; i--) {
+        if (this.objects[i - 1].collectable) {
+            var item = this.objects.splice(i - 1, 1)[0];
+            println(item.name);
+        }
+    }
+};
+}
+/**************************************************
+ *  Generate map
+***************************************************/
+
+var spawnCreature = function(i, j) {
+    var id = i + "," + j;
+    if (!creatureSpawnSites[id]) {
+        var creature = new Creature(i, j, 1);
+        var data = creatureData['Leaf sprite'];
+        creature.image = data.image;
+        creature.speed = data.speed;
+    }
+};
+
+// Return the x position of a city at a given row
+var getCityPosition = function(row, multiple) {
+    return ((row * multiple) % (row + 3)) * ROAD_DISTANCE_X + 4;
+};
+
+// Looking at position (i, j), see if there is a city at a given row
+// Multiple is used to determine the spacing of cities
+var createCities = function(i, j, multiple) {
+    // Number of vertical roads from bottom
+    var row = floor((j + 4) / ROAD_DISTANCE_Y);
+    var cityX = getCityPosition(row, multiple);
+
+    var xCityDist = cityX - i;
+    var yCityDist = j % ROAD_DISTANCE_Y - round(ROAD_DISTANCE_Y / 2);
+    
+    // City
+    if (abs(xCityDist) < 3 && abs(yCityDist) < 3) {
+        // City
+        if (abs(xCityDist) * abs(yCityDist) > 1) {
+            return new Tile('wall');
+        } else {
+            return new Tile('stone');   
+        }
+    }
+};
+
+var createRoads = function(i, j, multiple, water) {
+    // Number of vertical roads from bottom
+    var row = floor((j + LARGE_GRID_SIZE - 1) / ROAD_DISTANCE_Y);
+    var cityX = getCityPosition(max(0, row - 1), multiple);
+    
+    // Vertical path
+    if (i === cityX) {
+        return water ? new Tile('bridge') : new Tile('path');
+    }
+};
+
+// Find the tile type at position (i, j)
+var calculateGround = function(i, j) {
+    // Water on left and lower edge
+    if (i <= 0 || j <= 0) {
+        return new Tile('water');
+    }
+    
+
+    // Create some noise and look at the numbers
+    // at the 4th and 5th decimal place
+    var noiseValue = noise(i * 0.07, j * 0.07);
+    var noiseNum = round(noiseValue * 100000);
+    var water = noiseNum < 36000;
+    
+    // Create cities
+    for (var n = 0; n < 2; n++) {
+        var city = createCities(i, j, 3 + n);
+        if (city) { return city; }
+    }
+    
+    // Create roads from cities
+    for (var n = 0; n < 2; n++) {
+        var road = createRoads(i, j, 3 + n, water);
+        if (road) { return road; }
+    }
+
+    var yCityDist = j % ROAD_DISTANCE_Y - round(ROAD_DISTANCE_Y / 2);
+    // Horizontal path every ROAD_DISTANCE_Y rows
+    if (i > 4 && yCityDist === 0) {
+        var tile = water ? new Tile('bridge') : new Tile('path');
+        
+        var row = floor((j + LARGE_GRID_SIZE - 2) / ROAD_DISTANCE_Y);
+        var cityX = getCityPosition(max(0, row - 1), 3);
+        if (i === cityX) {
+            tile.addObject('signpost');   
+        }
+        return tile;
+    }
+
+    // Pools of water
+    if (water) {
+        return new Tile('water');
+    }
+    
+    // Default to grass
+    var tile = new Tile('grass');
+
+    // Add creatures
+    if ((i - 4) % LARGE_GRID_SIZE + j % LARGE_GRID_SIZE === 0) {
+        spawnCreature(i, j);
+    }
+
+    // Add objects Trees
+    var n = (noiseNum % 1000) / 10;
+    if (n < PERCENT_TREES + PERCENT_ROCKS + PERCENT_GEMS) {
+        if (n < PERCENT_TREES) {
+            var tree = ['tree1', 'tree2', 'tree3'][noiseNum % 3];
+            tile.addObject(tree);
+        } else if (n - PERCENT_TREES < PERCENT_ROCKS) {
+            tile.addObject('rock');
+        } else {
+            tile.addObject('gem', i + "," + j);
+        }
+    }
+    
+    return tile;
+};
+
+// Remove the first n items in the tile cache
+var removeItemFromTileCache = function(n) {
+    n = n || 1;
+    var counter = 0;
+    
+    for (var item in tileCache) {
+        delete tileCache[item];
+        counter++;
+        
+        if (counter === n) {
+            break;   
+        }
+    }
+};
+
+// Check tileCache otherwise calculate and save
+var getTile = function(i, j) {
+    var id = i + "," + j;
+    if (!tileCache[id]) {
+        tileCache[id] = calculateGround(i, j);
+        tileCacheCount++;
+        if (tileCacheCount > MAX_TILE_CACHE) {
+            removeItemFromTileCache();
+            tileCacheCount--;
+        }
+    }
+    return tileCache[id];
+};
+
+/**************************************************
+ *  Draw map
+***************************************************/
+
+// Draw the tiles for the ground
+var drawMap = function() {
+    background(0);
+    
+    fill(0);
+    textSize(20);
+    
+    pushMatrix();
+    scale(TILE_SCALE, TILE_SCALE);
+    
+    // Calculate which tiles to draw
+    
+    // Find coordinate in top left corner
+    // Keep player in center
+    var startX = player.x - mapX / 2;
+    var startY = player.y - mapY / 2;
+    
+    // Find first tile (top left)
+    var startTileX = floor(startX);
+    var startTileY = floor(startY);
+    var offsetX = startX - startTileX;
+    var offsetY = startY - startTileY;
+    
+    for (var j = ceil(mapY) + 2; j >= -1; j--) {
+        var y = height - (j - offsetY - 4.5) * dy;
+        
+        for (var i = 0; i <= ceil(mapX); i++) {
+            var x = (i - offsetX) * dx;
+            var tile = getTile(i + startTileX, j + startTileY);
+            
+            // Draw ground
+            tile.draw(x, y);
+            
+            // Draw player
+            if (i + startTileX === ceil(player.x) &&
+                j + startTileY === round(player.y - 0.25)) {
+                var px = (player.x - startTileX - offsetX) * dx;
+                var py = height - (player.y - startTileY - offsetY - 4.1) * dy;
+                
+                player.draw(px, py);
+            }
+            
+            //text("(" + (i + startTileX) + ", " + (j  + startTileY) + ")", x, y + dy);
+        }
+    }
+    
+    popMatrix();
+};
+
+var keys = [];
+var keyHandling = function() {
+    if (!focused) {
+        keys = [];
+    }
+    
+    if (keys[UP] || keys[87]) {
+        player.move(0, 1);
+    } else if (keys[DOWN] || keys[83]) {
+        player.move(0, -1);
+    }
+    
+    if (keys[LEFT] || keys[65]) {
+        player.move(-1, 0);
+    } else if (keys[RIGHT] || keys[68]) {
+        player.move(1, 0);
+    }
+};
+
+var draw = function() {
+    var m = millis();
+    drawMap();
+    keyHandling();
+    //text(millis() - m, 10, 20);
+};
+
+/**************************************************
+ *      Event handling
+***************************************************/
+
+keyPressed = function() {
+    keys[keyCode] = true;
+    if (keyCode === 67) {
+        removeItemFromTileCache(-1);
+        tileCacheCount = 0;
+    }
+};
+
+keyReleased = function() {    
+    keys[keyCode] = false;
+};

@@ -1,0 +1,45 @@
+/**
+    The Barnsley fern
+    https://en.wikipedia.org/wiki/Barnsley_fern
+    Thanks to Bruce for introducing me to this construction.
+    See his program from which mine is spun-off.
+**/
+
+noFill();
+strokeWeight(1);
+translate(200, 390);
+scale(1, -1);
+
+var _scale = 36;
+var speed = 100;
+//rect(-2.2 * _scale, 0 * _scale, 5 * _scale, 10 * _scale);
+
+var x = 0;
+var y = 0;
+
+draw = function() {
+    stroke(0, 150, 0);
+    for (var i = 0; i < speed; i++) {
+        var p = random();
+        
+        if (p < 0.01) {
+            x = 0;
+            y = 0.16 * y;
+        } else if (p < 0.86) {
+            y = -0.04 * x + 0.85 * y + 1.6;
+            x = 0.85 * x + 0.04;
+        } else if (p < 0.93) {
+            var tx = 0.2 * x - 0.26 * y;
+            y = 0.23 * x + 0.22 * y + 1.6;
+            x = tx;
+        } else  {
+            var tx = -0.15 * x + 0.28 * y;
+            y = 0.26 * x + 0.24 * y + 0.44;
+            x = tx;
+        }
+        
+        point(x * _scale, y * _scale);
+    }
+    //stroke(255, 0, 0);
+    //ellipse(0, 0, 10, 10);
+};

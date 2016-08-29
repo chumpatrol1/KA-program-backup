@@ -1,0 +1,55 @@
+/*************************************************************
+ * Based on an idea by Eric Balingit
+ * 
+ * His latest version is much nicer:
+ * https://www.khanacademy.org/cs/omnidirectional-banking/2361182376
+*************************************************************/
+
+var position = 0;
+var speed = 20;
+
+var centerX = 200;
+var centerY = 200;
+
+var BLACK = color(0, 0, 0);
+var COLOUR1 = color(152, 40, 189);
+var COLOUR2 = color(32, 120, 179);
+var haze = lerpColor(lerpColor(COLOUR1, COLOUR2, 0.5), BLACK, 0.8);
+
+var tunnelRadius = 85;      // Radius of tunnel
+var sectionGap = 100;       // Distance between sections
+var maxDistance = 3000;     // Maximum we can see
+var angleOfView = 45;       // Angle of vision
+
+var aspect = 0.9;
+
+// Slope of trangle that forms field of view
+var slope = tan(angleOfView / 2);
+
+var drawTunnel = function(position) {
+    var startD = sectionGap - position % (sectionGap*2);
+    
+    var invert = false;
+    for (var d = startD; d < maxDistance; d += sectionGap) {
+        var w = slope * (d + 1);
+        var r = 400 * tunnelRadius / w;
+        var p = d / maxDistance;
+        
+        if (invert) {
+            fill(lerpColor(COLOUR1, haze, p));
+        } else {
+            fill(lerpColor(COLOUR2, haze, p));
+        }
+        
+        var cx = centerX + 40 * sin(d/80);
+        ellipse(cx, centerY, r, r * aspect);
+        invert = !invert;
+    }
+
+};
+
+noStroke();
+var draw = function() {
+    position += speed;
+    drawTunnel(position);
+};

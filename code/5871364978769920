@@ -1,0 +1,342 @@
+/******************************************
+ * Left and right arrow keys move the tank.
+ * Up and down arrow keys move the gun.
+ * Hold down f to fire.
+ * 
+ * 
+ * To Do
+ * 
+ * Add health
+ * Ensure explosives collide correctly
+ * Improve movement
+ * Add second player
+ * Different types of weapon?
+ * Animate falling
+******************************************/
+
+var FRICTION = 0.02;
+var GRAVITY = new PVector(0, 0.2);
+
+var landscape;
+var explosives = [];
+var keys = [];
+
+/*****************************************************
+ * Landscape object
+ *  - Consists of an array of columns.
+ *  - Each column contains an array of chunks of land.
+******************************************************/
+
+var Landscape = function(dx) {
+    this.columns = [];
+    var dy = height;
+    var r = random() * width;
+    
+    for (var x = 0; x < width; x++) {
+        this.columns.push([[dy * noise(r + x * dx), height]]);
+    }
+};
+
+Landscape.prototype.draw = function() {
+    strokeWeight(1);
+    
+    for (var x = 0; x < this.columns.length; x++) {
+        for (var i = 0; i < this.columns[x].length; i++) {
+            var chunk = this.columns[x][i];
+            stroke(25, 130, 0);
+            line(x, chunk[0], x, chunk[1]);
+            /*
+            stroke(15, 80, 0);
+            line(x, height - chunk[0], x, height - chunk[0] - 2);
+            line(x, height - chunk[1], x, height - chunk[1] + 2);
+            */
+        }
+    }
+};
+
+Landscape.prototype.getColumn = function (x) {
+    if (x < 1 || x >= this.columns.length) {
+        return false;
+    }
+    return this.columns[round(x)];
+};
+
+Landscape.prototype.collide = function(x, yMin, yMax) {
+    var col = this.getColumn(x);
+    if (!col) { return; }
+    
+    for (var i = col.length - 1; i >= 0; i--) {
+        var chunk = col[i];
+        if (yMax > chunk[0] && yMin < chunk[1]) {
+            return chunk;
+        }
+    }
+    
+    return false;
+};
+
+Landscape.prototype.removeSlice = function(x, sMin, sMax) {
+    var col = this.getColumn(x);
+    if (!col) { return; }
+    
+    for (var i = col.length - 1; i >= 0; i--) {
+        var chunk = col[i];
+        if (sMax > chunk[0] && sMin < chunk[1]) {
+            if (chunk[0] < sMin) {
+                col.push([chunk[0], sMin]);
+            }
+            if (chunk[1] > sMax) {
+                col.push([sMax, chunk[1]]);
+            }
+            col.splice(i, 1);
+        }
+    }
+};
+
+Landscape.prototype.removeCircle = function(x, y, r) {
+    var r2 = r * r;
+    
+    for (var dx = -r; dx <= r; dx++) {
+        var h = round(sqrt(r2 - dx * dx));
+        this.removeSlice(x + dx, y - h, y + h);
+    }
+};
+
+/*****************************************************
+ * Explosive object
+******************************************************/
+
+var Explosive = function(x, y, dx, dy, r, power) {
+    this.position = new PVector(x, y);
+    this.velocity = new PVector(dx, dy);
+    this.r = r;
+    this.power = power;
+};
+
+Explosive.prototype.draw = function() {
+    if (!this.exploding) {
+        strokeWeight(1);
+        stroke(40);
+        fill(120);
+        ellipse(this.position.x, this.position.y, this.r*2, this.r*2);
+    } else {
+        var alpha = map(this.exploding, 0, this.power, 255, 0);
+        strokeWeight(2);
+        stroke(250, 220, 0, alpha);
+        fill(255, 0, 0, alpha);
+        ellipse(this.position.x, this.position.y, this.exploding, this.exploding);
+    }
+};
+
+Explosive.prototype.update = function() {
+    if (this.exploding) {
+        if (this.exploding <= this.power) {
+            this.exploding += 2;
+            landscape.removeCircle(this.position.x, this.position.y, this.exploding / 2);
+        }
+    } else {
+        this.velocity.add(GRAVITY);
+        this.velocity.mult(1 - FRICTION);
+        this.position.add(this.velocity);
+        
+        var yMin = this.position.y - this.r;
+        var yMax = this.position.y + this.r;
+        var collide = landscape.collide(this.position.x, yMin, yMax);
+        
+        if (collide) {
+            this.position.y = collide[0] - this.r;
+            this.exploding = 1;
+        }
+    }
+};
+
+/*****************************************************
+ * Tank object
+******************************************************/
+
+var Tank = function(x) {
+    this.x = x;
+    this.y = 0;
+    this.w = 16;
+    this.h = 14;
+    this.findY();
+    
+    this.angle = 10;
+    this.barrel = 16;
+    this.firing = 0;
+    this.maxFirePower = 50;
+    this.direction = 1;
+};
+
+Tank.prototype.findY = function() {
+    var col = landscape.getColumn(this.x);
+    if (!col) { return; }
+    
+    for (var i = 0; i < col.length; i++) {
+        if (col[i][0] > this.y) {
+            this.y = col[i][0];
+        }
+    }
+};
+
+Tank.prototype.draw = function() {
+    strokeWeight(1);
+    stroke(100);
+    fill(160);
+    
+    var angle = this.angle;
+    if (this.direction < 0) {
+        angle = 180 - angle;
+    }
+    
+    pushMatrix();
+    translate(this.x, this.y - 2);
+    rotate(-angle);
+    rect(0, -2, this.barrel, 3);
+    
+    stroke(60);
+    fill(40);
+    rect(this.barrel - 4, -2, 4, 3);
+    popMatrix();
+    
+    fill(160);
+    arc(this.x, this.y, this.w, this.h, -180, 0);
+};
+
+Tank.prototype.fire = function() {
+    if (this.firing > 0) {
+        var power = this.firing * 0.25;
+        var dx = this.direction * cos(this.angle);
+        var dy = -sin(this.angle);
+        var x = this.x + dx * this.barrel;
+        var y = this.y + dy * this.barrel - 2;
+        explosives.push(new Explosive(x, y, dx * power, dy * power, 2, 36));
+        // -1 so we have to release key to fire again
+        this.firing = -1;
+    }
+};
+
+Tank.prototype.move = function(dx) {
+    this.direction = dx;
+    this.x = constrain(this.x + dx, 0, width);
+    this.y -= 5;
+    this.findY();
+};
+
+Tank.prototype.update = function() {
+    if (this.firing > 0) {
+        this.firing++;
+        if (this.firing === this.maxFirePower) {
+            this.fire();
+        }
+    }
+};
+
+/*****************************************************
+ * Draw functions
+******************************************************/
+
+var drawSky = function() {
+    var c1 = color(0, 0, 80);
+    var c2 = color(65, 160, 240);
+    strokeWeight(1);
+    
+    for (var y = 0; y < height; y++) {
+        stroke(lerpColor(c2, c1, y / height));
+        line(0, y, width, y);
+    }
+};
+
+var drawBar = function(x, y, w, n, m) {
+    x -= w / 2;
+    fill(200);
+    noStroke();
+    rect(x - 2, y - 5, w + 4, 11, 6);
+    
+    if (n > 0) {
+        fill(255, 0, 0);
+        rect(x, y - 4, w * n / m, 9, 9);
+    }
+};
+
+/*****************************************************
+ * Create objects
+******************************************************/
+
+landscape = new Landscape(0.005);
+//landscape.removeCircle(200, 100, 7);
+
+var tank1 = new Tank(100);
+//explosives.push(new Explosive(200, 0, 0, 0, 2, 36));
+//explosives.push(new Explosive(220, 10, 0, 0, 2, 36));
+//explosives.push(new Explosive(1, 40, 2, -5, 2, 36));
+
+
+/*****************************************************
+ * Handle key presses
+******************************************************/
+
+var handleKeys = function() {
+    if (keys[70]) {
+        if (!tank1.firing) {
+            tank1.firing = 1;   
+        }
+    }
+    
+    if (keys[UP]) {
+        tank1.angle = constrain(tank1.angle + 3, 0, 90);
+    } else if (keys[DOWN]) {
+        tank1.angle = constrain(tank1.angle - 3, 0, 90);
+    }
+    
+    if (keys[LEFT]) {
+        tank1.move(-1);
+    } else if (keys[RIGHT]) {
+        tank1.move(1);
+    }
+};
+
+/*****************************************************
+ * Main loop
+******************************************************/
+
+draw = function() {
+    drawSky();
+    landscape.draw();
+    
+    for (var i = explosives.length - 1; i >= 0; i--) {
+        var ex = explosives[i];
+        ex.draw();
+        ex.update();
+        
+        if (ex.position.y > height || ex.position.x < 0 || ex.position.x > width) {
+            // Off the screen
+            explosives.splice(i, 1);
+        } else if (ex.exploding >= ex.power) {
+            // Explosive finished
+            tank1.findY();
+            explosives.splice(i, 1);
+        }
+        
+    }
+    
+    tank1.draw();
+    tank1.update();
+    
+    drawBar(80, 12, 100, tank1.firing, tank1.maxFirePower);
+    
+    handleKeys();
+};
+
+keyPressed = function() {
+    keys[keyCode] = true;
+};
+
+keyReleased = function() {
+    keys[keyCode] = false;
+    
+    if (keyCode === 70) {
+        tank1.fire();
+        tank1.firing = 0;
+    }
+};

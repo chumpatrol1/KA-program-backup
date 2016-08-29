@@ -1,0 +1,108 @@
+/*******************************************************
+ * Spacebar = pause
+********************************************************/
+
+// Angle around the orbit
+var angle = 0;
+
+// Major axis
+var a = 160;
+
+// Minor axis
+var b = 100;
+
+// Calculating ellipse properties
+var major = max(a, b);
+var minor = min(a, b);
+var focus = sqrt(major*major - minor*minor);
+var e = focus / major;
+var area = 2*PI*a*b;
+var sector = area / 720;
+
+// Initial position (angle = 0)
+var x = a;
+var y = 0;
+
+// Move the origin to the centre of the screen
+translate(200.5, 200.5);
+
+// Variables for storing previous positions
+var oldPoints = [];
+var pointInterval = 5;
+
+// This allows us to pause the simulation
+var running = true;
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+var ORBITER = color(120, 80, 255, 255);
+var ORBITER_T = color(120, 80, 255, 0);
+
+var triangleArea = function(x1, y1, x2, y2, x3, y3) {
+    return 0.5 * abs(x1*(y2-y3) + x2*(y3-y1) + x3*(y1-y2));
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    // Background ellipse
+    fill(lerpColor(ORBITER, ORBITER_T, 0.8));
+    ellipse(0, 0, a*2, b*2);
+    
+    if (running) {
+        angle++;
+        var r = major * (1 - e*e) / (1 + e * cos(angle));
+        var newX = r * cos(angle) + focus;
+        var newY = r * sin(angle);
+        area = triangleArea(-focus, 0, x, y, newX, newY);
+        x = newX;
+        y = newY;
+ 
+        // Record some points so we can draw them
+        if (angle % pointInterval === 0) {
+            oldPoints.push([x, y]);
+            if (oldPoints.length > 360 / pointInterval) {
+                oldPoints.shift();
+            }
+        }
+    }
+    
+    // Info
+    fill(255);
+    textSize(14);
+    text("Angle: " + round(10*(angle % 360)) / 10 + "°", -192, -180);
+    text("Eccentricity: " + round(1000*e)/1000, -192, -160);
+    
+    // Axes
+    stroke(100);
+    line(-200, 0, 200, 0);
+    line(0, -200, 0, 200);
+    
+    // Connecting line
+    noFill();
+    stroke(250);
+    line(-focus, 0, x, y);
+    arc(-focus, 0, 40, 40, 0, (360 + atan2(y, x+focus)) %360);
+    
+    // Foci
+    fill(160);
+    noStroke();
+    ellipse(focus, 0, 10, 10);
+    ellipse(-focus, 0, 10, 10);
+    
+    // Draw orbiting body
+    fill(ORBITER);
+    ellipse(x, y, 10, 10);
+    
+    // Draw previous points
+    for (var i=0; i<oldPoints.length; i++) {
+        fill(lerpColor(ORBITER_T, ORBITER, i/(oldPoints.length)));
+        ellipse(oldPoints[i][0], oldPoints[i][1], 8, 8);
+    }
+    
+};
+
+// Spacebar toggles animation
+var keyPressed = function() {
+    if (keyCode === 32) { running = !running; }
+};

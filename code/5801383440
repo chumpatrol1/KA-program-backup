@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Results for Rigging Animation Contest</title>
+        <link href='https://fonts.googleapis.com/css?family=Luckiest+Guy' rel='stylesheet' type='text/css'>
+        <style>
+            body {
+                margin: 0;
+                background: rgb(82, 115, 173);
+                color: black;
+                font-family: Arial, sans-serif;
+            }
+            
+            a, a:visited {
+                color: yellow;
+            }
+            
+            h1, h2 {
+                font-family: 'Luckiest Guy', impact;
+                margin-left: 16px;
+            }
+            
+            h1 {
+                font-size: 4.4em;
+                color: #110;
+                margin: 16px 16px;
+            }
+            
+            h2 {
+                color: #fff;
+                font-size: 2em;
+            }
+            
+            p {
+                padding: 0 15px;
+            }
+            
+            li {
+                list-style-type: none;
+            }
+            
+            ul li img {
+                margin-bottom: 5px;
+                margin-right: 5px;
+                width: 60px;
+                vertical-align: middle;
+            }
+            
+            #title {
+                width: 300px;
+            }
+            
+            #lamp-box {
+                position: absolute;
+                right: 10px;
+                top: 16px;
+                height: 190px;
+                width: 160px;
+                /*border: 1px solid black;*/
+            }
+            
+            .lamp-part {
+                background: rgb(225, 230, 235);
+                position: absolute;
+                box-shadow: 2px 2px 5px #333;
+            }
+            
+            .lamp-base {
+                left: 20px;
+                top: 170px;
+                height: 12px;
+                width: 120px;
+            }
+            
+            .lamp-arm1 {
+                left: 20px;
+                top: 170px;
+                height: 12px;
+                width: 100px;
+                transform: rotate(-45deg) translate(53px, 5px);
+            }
+            
+            .lamp-arm2 {
+                left: 39px;
+                top: 30px;
+                height: 12px;
+                width: 100px;
+                transform: rotate(50deg) translate(48px, 5px);
+            }
+            
+            .lamp-head {
+                position: absolute;
+                border-bottom: 70px solid rgb(225, 230, 235);
+            	border-left: 35px solid transparent;
+            	border-right: 35px solid transparent;
+            	height: 0;
+            	width: 20px;
+            	top: 10px;
+            	left: 45px;
+            	transform: rotate(90deg) translate(0, 35px);
+                animation: turn-head 4s infinite; 
+                animation-direction: alternate;
+                animation-timing-function: ease-in;
+            }
+            
+            .lamp-head-shadow {
+                border-bottom: 70px solid rgba(60,60,60,60);
+                top: 12px;
+            }
+            
+            @keyframes turn-head {
+              0%   {
+                  transform: rotate(50deg) translate(0, 35px);
+              }
+              100% {
+                  transform: rotate(90deg) translate(0, 35px);
+              }
+            }
+            
+            .footer a {
+                color: black;
+                padding: 10px;
+                line-height: 50px;
+                font-family: 'Luckiest Guy', impact;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <div id="title">
+            <h1>Rigging Animation Contest</h1>
+        </div>
+        
+        <div id="lamp-box">
+            <div class="lamp-part lamp-base"></div>
+            <div class="lamp-part lamp-arm1"></div>
+            <div class="lamp-part lamp-arm2"></div>
+            <div class="lamp-head lamp-head-shadow"></div>
+            <div class="lamp-head"></div>
+        </div>
+        
+        <h2>...the results are in!</h2>
+        
+        <p>Thank you for participating in our second <a href="https://www.khanacademy.org/computer-programming/contest-animate-a-rigged-character/4491333245">PiaB coding contest</a>! We had a great time watching all your animations.
+        </p>
+        
+<h2>Beginner bracket:</h2>
+    <ul>
+<li>
+    <a href="https://www.khanacademy.org/computer-programming/dolphin/4504567646">
+    <img src="https://www.khanacademy.org/computer-programming/dolphin/4504567646/170001.png">
+        Dolphin, By R Johnson
+    </a>
+</li>
+
+<li>
+    <a href="https://www.khanacademy.org/computer-programming/da-flip/4531152964">
+    <img src="https://www.khanacademy.org/computer-programming/da-flip/4531152964/10001.png">
+    Da Flip, By Wonderfire</a></li>
+
+<li><a href="https://www.khanacademy.org/computer-programming/entry-jumping-lamp-finished/4552109987"><img src="https://www.khanacademy.org/computer-programming/entry-jumping-lamp-finished/4552109987/20001.png">Entry; Jumping Lamp; FINISHED;, By Master Beef </a></li>
+
+</ul>
+
+<h2>Intermediate bracket:</h2>
+<ul>
+<li><a href="https://www.khanacademy.org/computer-programming/bouncing-luxo/4673285342"><img src="https://www.khanacademy.org/computer-programming/bouncing-luxo/4673285342/180001.png">Bouncing Luxo, By Seth W.</a></li>
+
+<li><a href="https://www.khanacademy.org/computer-programming/kickball-training/4503512195"><img src="https://www.khanacademy.org/computer-programming/kickball-training/4503512195/60001.png">Kickball Training, By 17mloges</a></li>
+
+<li><a href="https://www.khanacademy.org/computer-programming/charlie-brown/4799036615"><img src="https://www.khanacademy.org/computer-programming/charlie-brown/4799036615/180001.png">Charlie Brown, By ElliotThomas</a></li>
+</ul>
+
+<h2>Advanced bracket:</h2>
+<ul>
+<li><a href="https://www.khanacademy.org/computer-programming/luxo-jr-30-years-after/5464941325"><img src="https://www.khanacademy.org/computer-programming/luxo-jr-30-years-after/5464941325/110001.png">Luxo Jr. 30 years after, By Israel Eisenberg</a></li>
+
+<li><a href="https://www.khanacademy.org/computer-programming/animated-spyro-animation-contest-entry/5500456605"><img src="https://www.khanacademy.org/computer-programming/animated-spyro-animation-contest-entry/5500456605/850001.png">Animated Spyro: Animation Contest Entry, By KWC</a></li>
+
+<li><a href="https://www.khanacademy.org/computer-programming/rigged-runner/4836778395"><img src="https://www.khanacademy.org/computer-programming/rigged-runner/4836778395/140001.png">Rigged runner, By Jett Burns </a></li>
+
+</ul>
+        
+<div class="footer"><a href="http://40.media.tumblr.com/3c8fbe4f52a9bb6d939d0d03e86bace5/tumblr_niz6r97iey1qhjm6yo1_500.jpg">Remember: you never lose. Either you win or you learn.</a></div>
+
+        
+        <script>
+        // Randomize the <li>s
+        var lists = document.getElementsByTagName("ul");
+        for (var j = 0; j < lists.length; j++) {
+            var list = lists[j];
+            for (var i = list.children.length; i >= 0; i--) {
+                list.appendChild(list.children[Math.random() * i | 0]);
+            }
+        }
+        </script>
+    </body>
+</html>

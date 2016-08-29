@@ -1,0 +1,96 @@
+/***************************************************
+ * Using noise to create a marble effect
+ * Based on the article here:
+ *    http://lodev.org/cgtutor/randomnoise.html
+ * 
+ * Feel free to use this idea for your games or whatever.
+ * No need to credit me, but I'd be interested to
+ * see if you make something cool.
+****************************************************/
+
+var noiseScale = 0.02;
+
+noiseDetail(3, 0.6);
+noStroke();
+
+var marbleEffect = function(largeTile, smallTile) {
+    // 
+    
+    var xPeriod = 4;
+    var yPeriod = 7;
+    var turbPower = 1600;
+    
+    var c1 = color(161, 153, 153);
+    var c2 = color(240);
+    var x, y, z, turbulence;
+    
+    for (y = largeTile; y; y--) {
+        for (x = largeTile; x; x--) {
+            turbulence = x * xPeriod + y * yPeriod + turbPower * noise(x * noiseScale, y * noiseScale);
+            z = abs(sin(turbulence));
+            //z = 0.5 + sin(turbulence) / 2;
+            stroke(lerpColor(c1, c2, z));
+            point(x, y);
+        }
+    }
+    
+    return [
+        get(0, 0, smallTile, smallTile),
+        get(smallTile, 0, smallTile, smallTile),
+        get(0, smallTile, smallTile, smallTile),
+        get(smallTile, smallTile, smallTile, smallTile),
+        get(smallTile / 2, smallTile / 2, smallTile, smallTile)
+    ];
+};
+
+var tileSize = 50;
+var tiles = marbleEffect(tileSize * 2, tileSize);
+var n = tiles.length;
+
+var drawTile = function(x, y, s, t) {
+    pushMatrix();
+    translate(x + s / 2, y + s / 2);
+    rotate(floor(random(90)) * 90);
+    image(tiles[floor(random(n))], -s / 2, -s / 2, s, s);
+    popMatrix();
+    
+    var r = random(0, 100);
+    var q = random(0, r);
+    fill(255 - q, 255 - q, 255 - r, 40);
+    rect(x, y, s, s);
+    
+    // Shadow
+    noStroke();
+    fill(0, 0, 0, 40);
+    beginShape();
+    vertex(x, y);
+    vertex(x + s, y);
+    vertex(x + s - t, y + t);
+    vertex(x + t, y + t);
+    vertex(x + t, y + s - t);
+    vertex(x, y + s);
+    endShape(CLOSE);
+    
+    noStroke();
+    fill(255, 255, 255, 128);
+    beginShape();
+    vertex(x + s, y + s);
+    vertex(x + s, y);
+    vertex(x + s - t, y + t);
+    vertex(x + s - t, y + s - t);
+    vertex(x + t, y + s - t);
+    vertex(x, y + s);
+    endShape(CLOSE);
+    
+};
+
+background(0);
+for (var y = 50; y < height - 50; y += tileSize) {
+    for (var x = 50; x < width -50; x += tileSize) {
+        drawTile(x, y, tileSize, 3);
+    }
+}
+
+draw = function() {
+    noLoop();
+};

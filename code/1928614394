@@ -1,0 +1,80 @@
+/*******************************************************
+ * Spacebar = pause
+********************************************************/
+
+// Angle around the orbit
+var angle = 0;
+
+// Radius of the orbit
+var r = 160;
+
+// Center of the circle
+var cx = 200;
+var cy = 200;
+
+// Variables for storing previous positions
+var oldPoints = [];
+var pointInterval = 5;
+
+// This allows us to pause the simulation
+var running = true;
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+var ORBITER = color(120, 80, 255, 255);
+var ORBITER_T = color(120, 80, 255, 0);
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    // Background circle
+    fill(lerpColor(ORBITER, ORBITER_T, 0.8));
+    ellipse(cx, cy, r*2, r*2);
+    
+    var x = cx + r * cos(angle);
+    var y = cy + r * sin(angle);
+    
+    if (running) {
+        angle++;
+ 
+        // Record some points so we can draw them
+        if (angle % pointInterval === 0) {
+            oldPoints.push([x, y]);
+            if (oldPoints.length > 360 / pointInterval) {
+                oldPoints.shift();
+            }
+        }
+    }
+    
+    fill(255);
+    textSize(14);
+    text("Angle: " + angle % 360 + "°", 8, 20);
+    
+    // Axes
+    stroke(100);
+    line(cx, 0, cx, 400);
+    line(0, cy, 400, cy);
+    
+    // Connecting line
+    noFill();
+    stroke(250);
+    line(cx, cy, x, y);
+    arc(cx, cy, 40, 40, 0, (180 + atan2(cy - y, cx - x)) % 360);
+    
+    // Draw orbiting body
+    fill(ORBITER);
+    noStroke();
+    ellipse(x, y, 10, 10);
+    
+    // Draw previous points
+    for (var i=0; i<oldPoints.length; i++) {
+        fill(lerpColor(ORBITER_T, ORBITER, i/(oldPoints.length)));
+        ellipse(oldPoints[i][0], oldPoints[i][1], 8, 8);
+    }
+    
+};
+
+// Spacebar toggles animation
+var keyPressed = function() {
+    if (keyCode === 32) { running = !running; }
+};

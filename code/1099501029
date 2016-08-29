@@ -1,0 +1,183 @@
+/*
+    Draws a shaded object, so long as it is convex.
+    You can rotate it about the centre of the screen
+    using the arrow keys or by holding the mouse down.
+*/
+
+var lightVector =[0.8,-0.2,-2];
+stroke(162, 169, 189);
+
+var createStar = function(x, y, z) {
+    var nodes = [[x, y, z - 16], [x, y, z + 16]];
+    var points = 6;
+    var size = 50;
+
+    for (var i=0; i<points; i++) {
+        var theta = i * 360 / points;
+        var x1 = x + size * sin(theta);
+        var y1 = y - size * cos(theta);
+        nodes.push([x1, y1, z]);
+        
+        theta = (i + 0.5) * 360 / points;
+        x1 = x + 0.5 * size * sin(theta);
+        y1 = y - 0.5 * size * cos(theta);
+        nodes.push([x1, y1, z]);
+    }
+
+    var faces = [];
+    for (var i=0; i<points * 2; i++) {
+        var n = 2 + (i + 1) % (points * 2);
+        faces.push([0, n, i+2]);
+        faces.push([1, i+2, n]);
+    }
+
+    return {
+        nodes: nodes,
+        faces: faces,
+        dark_color: color(138, 92, 0),
+        light_color: color(242, 211, 56)    
+    };
+};
+
+var objects = [createStar(80, 100, 0), createStar(320, 100, 0)];
+
+var subtractVectors = function(v1, v2){
+    return [[v1[0] - v2[0]],
+            [v1[1] - v2[1]],
+            [v1[2] - v2[2]]];
+};
+
+var normaliseVector = function(v) {
+    var d = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var normalOfPlane = function(face, nodes) {
+    var n1 = nodes[face[0]];
+    var n2 = nodes[face[1]];
+    var n3 = nodes[face[2]];
+    
+    var v1 = subtractVectors(n1, n2);
+    var v2 = subtractVectors(n1, n3);
+    
+    var v3 = [[v1[1]*v2[2] - v1[2]*v2[1]],
+              [v1[2]*v2[0] - v1[0]*v2[2]],
+              [v1[0]*v2[1] - v1[1]*v2[0]]];
+              
+    return v3;
+};
+
+var dotProduct = function(v1, v2){
+    // Assume everything has 3 dimensions
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+// Given a list of nodes, return the centre point
+var findCentre = function(nodes) {
+    var cx = 0;
+    var cy = 0;
+    var cz = 0;
+    
+    for (var i = 0; i < nodes.length; i++) {
+        cx += nodes[i][0];
+        cy += nodes[i][1];
+        cz += nodes[i][2];
+    }
+    
+    cx /= nodes.length;
+    cy /= nodes.length;
+    cz /= nodes.length;
+    
+    return [cx, cy, cz];
+};
+
+// Translate in three dimensions
+var translate3D = function(x, y, z, nodes) {
+    for (var i = 0; i < nodes.length; i++) {
+        nodes[i] = [nodes[i][0]+x, nodes[i][1]+y, nodes[i][2]+z];
+    }
+};
+
+// Rotate nodes about the x-axis, centred on (cx,cy,cz)
+var rotateX3D = function(theta, centre, nodes){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var cy = centre[1];
+    var cz = centre[2];
+    var x, y, z;
+    
+    for (var i = 0; i < nodes.length; i+=1) {
+        x = nodes[i][0];
+        y = nodes[i][1];
+        z = nodes[i][2];
+        nodes[i] = [x,
+                    ct*(y-cy) - st*(z-cz) + cy,
+                    st*(y-cy) + ct*(z-cz) + cz];
+    }
+};
+
+// Rotate nodes about the y-axis, centred on (cx,cy,cz)
+var rotateY3D = function(theta, centre, nodes) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var cx = centre[0];
+    var cz = centre[2];
+    var x, y, z;
+
+    for (var i = 0; i < nodes.length; i++) {
+        x = nodes[i][0];
+        y = nodes[i][1];
+        z = nodes[i][2];
+        nodes[i] = [ct*(x-cx) + st*(z-cz) + cx,
+                    y,
+                    -st*(x-cx) + ct*(z-cz) + cz];
+    }
+};
+
+lightVector = normaliseVector(lightVector);
+
+var draw = function() {
+    var i, o;
+    var face;
+    var col1, col2;
+    var nodes;
+    var node1;
+    var node2;
+    
+    background(255, 255, 255);
+
+    for (o in objects) {
+        var obj = objects[o];
+        rotateY3D(5, findCentre(obj.nodes), obj.nodes);
+        nodes = obj.nodes;
+        
+        if ('edges' in obj) {
+            var edges = obj.edges;
+        
+            for (i = 0; i < edges.length; i+=1) {
+                node1 = nodes[edges[i][0]];
+                node2 = nodes[edges[i][1]];
+                line(node1[0], node1[1], node2[0], node2[1]);
+            }     
+        }
+        
+    if ('faces' in obj) {
+      col1 = obj.dark_color;
+      col2 = obj.light_color;
+      
+      for (var f in obj.faces) {
+        face = obj.faces[f];
+        var fnorm = normalOfPlane(face, nodes);
+        if (fnorm[2] < 0) {
+          var l = dotProduct(lightVector, normaliseVector(fnorm));
+          if (l < 0) { l =0; }
+          fill(lerpColor(col1, col2, l));
+          triangle(nodes[face[0]][0], nodes[face[0]][1],
+                   nodes[face[1]][0], nodes[face[1]][1],
+                   nodes[face[2]][0], nodes[face[2]][1]);
+        }
+      }
+    }
+        
+    }
+};

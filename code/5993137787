@@ -1,0 +1,70 @@
+var tileWidth = 160;
+var tileHeight = 160;
+
+var p1x = tileWidth * 0.5;
+var p1y = tileHeight;
+var p2y = 0;
+var pdy = (p2y - p1y);
+
+draw = function() {
+    background(255);
+    
+    fill(0);
+    stroke(0);
+    //rect(0, 0, tileWidth, tileHeight);
+    
+    // Position of tip of flame
+    var pdx = sin(frameCount) * p1x;
+    var d = pdx * pdx + pdy * pdy;
+    
+    // Height of flame
+    var h = 15 * abs(sin(frameCount * 0.4)) + 5;
+    
+    stroke(0);
+    //line(p1x, p1y, p2x, p2y);
+    
+    loadPixels();
+    
+    var pix = imageData.data;
+    var alphaChange = frameCount * 0.08;
+    var colorChange = frameCount * 0.02;
+    
+    var x, y, t, dx, dy, c, n, i;
+    for (x = 0; x < tileWidth; x++) {
+        for (y = 0; y < tileHeight; y++) {
+            // Find distance to line
+            t = ((x - p1x) * pdx + (y - p1y) * pdy) / d;
+            dx = x - p1x - t * pdx;
+            dy = y - p1y - t * pdy;
+            
+            // Squared distance from line
+            c = sqrt(dx * dx + dy * dy) * 10 - 200;
+            
+            // Distance from base
+            c += (tileHeight - y) * h;
+            
+            n = noise(x * 0.03, y * 0.03, alphaChange);
+            n *= n * (3 - 2 * n);
+            n *= n * (3 - 2 * n);
+            c *= n;
+            
+            if (c > 255) { c = 255; }
+            c = 255 - c;
+            
+            n = noise(x * 0.02, y * 0.02, colorChange);
+            n *= n * (3 - 2 * n);
+            
+            i = x + y * width << 2;
+            
+            if (c > 0) {
+                pix[i++] = 50 + 205 * n;
+                pix[i++] = 50 + 150 * n * n;
+                pix[i++] = 25.5 * n;
+                pix[i] = c;
+            }
+        }
+    }
+    
+    updatePixels();
+};
+

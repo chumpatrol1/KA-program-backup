@@ -1,0 +1,236 @@
+ /******************************************************
+ * How well does a right angled triangle approximate 
+ * an isosceles triangle?
+ * 
+ * How does the approximation change as the angle changes?
+ * 
+ * Drag point B and C to change the size of the triangle.
+ *******************************************************/
+
+// Colours
+var ANGLE_COL = color(255, 242, 0);
+var ANGLE_COL_T = color(255, 242, 0, 160);
+var ARC_COL = color(40, 100, 250);
+var ARC_COL_T = color(10, 25, 62);
+var LINE_COL = color(40, 100, 250);
+var LINE_COL_T = color(10, 25, 62);
+
+// Initial values
+var theta = 20;
+var triHeight = 320;
+var triBase = 2 * triHeight * tan(theta / 2);
+var hypot, hypot2, triHeight2;
+
+var Ax = 25;
+var Bx = Ax + triHeight;
+var Cx = Bx;
+var By = 180;
+var Ay = By - triBase/2;
+var Cy = By - triBase;
+var Dx = Ax + triHeight2;
+var Dy = 250;
+
+// Slider
+var sliderSize = 16;
+var arcSize = 100;
+var mouseOverSlider = false;
+
+var findLengths = function() {
+    theta = -atan2(Cy - Ay, Cx - Ax) * 2;
+    triBase = 2 * triHeight * tan(theta / 2);
+    triHeight = Bx - Ax;
+    triHeight2 = triBase / tan(theta);
+    hypot = dist(Ax, Ay, Cx, Cy);
+    Dx = Ax + triHeight2;
+    hypot2 = dist(Ax, 0, Dx, triBase);
+};
+
+findLengths();
+
+var setPositionB = function(angle) {
+    Bx = mouseX;
+    By = mouseY;
+    if (Bx < Ax) { Bx = Ax + 1; }
+    if (By < Ay) { By = Ay + 1; }
+    Cx = Bx;
+    Cy = 2 * Ay - By;
+};
+
+var setPositionC = function() {
+    Cx = mouseX;
+    Cy = mouseY;
+    if (Cx < Ax) { Cx = Ax + 1; }
+    if (Cy > Ay) { Cy = Ay - 1; }
+    Bx = Cx;
+    By = 2 * Ay - Cy;
+};
+
+var writeLabel = function(label, x, y, angle, end) {
+    translate(x, y);
+    rotate(angle);
+    var txt = "" + round(10 * label)/10;
+    if (end) { txt += end; }
+    text(txt, 0, 0);
+    resetMatrix();
+};
+
+var writePoint = function(letter, x1, y1, x2, y2, x3, y3, d) {
+    var angle = 180+(atan2(y1-y2, x1-x2) + atan2(y1-y3, x1-x3))/2;
+    text(letter, x1 - d * cos(angle), y1 - d * sin(angle));
+};
+
+var drawShape = function() {
+    noStroke();
+    fill(LINE_COL_T);
+    triangle(Ax, Ay, Bx, By, Cx, Cy);
+    triangle(Ax, Ay+Dy, Dx, Ay+Dy, Dx, Ay+Dy-triBase);
+    
+    // Right angle
+    strokeWeight(1);
+    stroke(255);
+    noFill();
+    var s = min(10, triBase);
+    rect(Dx-s, Ay+Dy-s, s, s);
+    
+    // Lines
+    strokeWeight(2);
+    stroke(LINE_COL);
+    line(Bx, By, Cx, Cy);
+    line(Dx, Ay+Dy-1, Dx, Ay+Dy-triBase);
+    strokeWeight(1);
+    line(Ax, Ay, Bx, Ay);
+    
+    // Labels
+    textSize(13);
+    textAlign(CENTER, BASELINE);
+    fill(255);
+    writeLabel(triHeight, (Ax + Bx)/2, Ay-3, 0);
+    writeLabel(triHeight2, (Ax + Dx)/2, Ay+Dy+16, 0);
+    
+    // Hypotenuse
+    textAlign(CENTER, CENTER);
+    var x = Ax + hypot * cos(theta/2) * 0.6 + 10 * cos(theta + 90);
+    var y = Ay - hypot * sin(theta/2) * 0.6 - 10 * sin(theta + 90);
+    writeLabel(hypot, x, y, -theta/2);
+    x = Ax + hypot2 * cos(theta) * 0.6 + 10 * cos(theta + 90);
+    y = Ay - hypot2 * sin(theta) * 0.6 - 10 * sin(theta + 90) + Dy;
+    writeLabel(hypot2, x, y, -theta);
+    
+    textAlign(LEFT, CENTER);
+    writeLabel(triBase, Bx + 10, (By + Cy)/2, 0);
+    writeLabel(triBase, Dx + 10, Ay + Dy - triBase/2, 0);
+    
+    // Points
+    textAlign(CENTER, CENTER);    
+    fill(255);
+    writePoint("A", Ax, Ay, Bx, By, Cx, Cy, -10);
+    writePoint("B", Bx, By, Ax, Ay, Cx, Cy, 16);
+    writePoint("C", Cx, Cy, Ax, Ay, Bx, By, 16);
+    
+    // Draw angle
+    stroke(ANGLE_COL);
+    strokeWeight(2);
+    fill(ANGLE_COL_T);
+    var r = min(arcSize, Bx-Ax);
+    arc(Ax, Ay, r, r, 1-theta/2, theta/2);
+    r = min(arcSize, Dx-Ax);
+    arc(Ax, Ay + Dy, r, r, 2-theta, 0);
+    
+    // Lines
+    strokeWeight(2);
+    stroke(255);
+    line(Ax, Ay, Bx-1, By);
+    line(Ax, Ay, Cx, Cy);
+    line(Ax, Ay+Dy, Dx-1, Ay+Dy);
+    line(Ax, Ay+Dy, Dx, Ay+Dy-triBase);
+
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    fill(ANGLE_COL);
+  
+    x = Ax + r * cos(theta/2) / 4 + 10 * cos(theta/2 + 90);
+    y = Ay - r * sin(theta/2) / 4 - 10 * sin(theta/2 + 90);
+    writeLabel(theta, x, y, -theta/2, "°");
+    x = Ax + r * cos(theta) / 4 + 10 * cos(theta + 90);
+    y = Ay - r * sin(theta) / 4 - 10 * sin(theta + 90) + Dy;
+    writeLabel(theta, x, y, -theta, "°");
+    
+};
+
+var drawInfo = function(x, y, label, d, e) {
+    fill(0, 0, 0, 220);
+    noStroke();
+    rect(x, y, 135, 60, 10);
+    
+    textAlign(LEFT, BASELINE);
+    fill(255);
+    textSize(15);
+    text(label, x+5, y+16);
+    
+    textSize(13);
+    text("Height: " + round(10*d)/10, x+5, y+36);
+    
+    if(e) {
+        text("Error: " + round(10000*e)/100 + "%", x+5, y+54);
+    }
+};
+
+var drawSlider = function(slider, x, y) {
+    if (mouseOverSlider === slider ||
+        (mouseX >= x - sliderSize/2 &&
+         mouseX <= x + sliderSize/2 &&
+         mouseY >= y - sliderSize/2 &&
+         mouseY <= y + sliderSize/2 &&
+         !mouseOverSlider)) {
+            fill(160, 160, 160, 200);
+            stroke(240, 240, 240);
+            mouseOverSlider = slider;
+        } else {
+            fill(160, 160, 160, 100);
+            stroke(200, 200, 200, 200);
+            if (!mouseIsPressed) {
+                mouseOverSlider = false;   
+            }
+        }
+        
+    strokeWeight(2); 
+    ellipse(x, y, sliderSize, sliderSize);
+};
+
+var draw = function() {
+    background(0);
+    drawShape();
+    drawSlider(2, Cx, Cy);
+    drawSlider(1, Bx, By);
+    
+    var dy;
+    if (Bx < 200) {
+        drawInfo(Bx + 36, Cy, "Isosceles Triangle", triHeight);
+    } else {
+        dy = Ay - 30 - max(triBase/2, 35);
+        drawInfo(10, dy, "Isosceles Triangle", triHeight);
+    }
+    
+    var error = abs(triHeight2 - triHeight) / triHeight;
+    dy = Ay + Dy - 10 - max(triBase, 75);
+    if (Dx < 200) {
+        drawInfo(Dx + 36, dy+5, "Approximation", triHeight2, error);
+    } else {
+        drawInfo(10, dy, "Approximation", triHeight2, error);
+    }
+};
+
+var mouseDragged = function() {
+    if (mouseOverSlider) {
+        [setPositionB, setPositionC][mouseOverSlider-1]();
+        findLengths();
+    }
+};
+
+var mouseReleased = function () {
+    mouseOverSlider = false;
+};
+
+var mouseOut = function(){
+    mouseOverSlider = false;
+};

@@ -1,0 +1,220 @@
+/***************************************************
+ * 3D molecule viewer - Glucose (cylic form)
+ * 
+ * Red: Oxygen atoms
+ * Blue: Carbon atoms
+ * Grey: Hydrogen atoms
+ * 
+ * Coordinates from:
+ * http://www.rcsb.org/pdb/ligand/ligandsummary.do?hetId=BGC
+ * 
+ * Use the mouse or keyboard to rotate the molecule
+ ***************************************************/
+
+var atomSize = 20;
+var backgroundColour = color(250, 250, 255);
+
+var Atom = function(element, x, y, z) {
+    this.element = element;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    
+    if (element === "H") {
+        this.colour = color(180, 180, 180, 220);
+        this.size = atomSize * 1.2;
+    } else if (element === "C") {
+        this.colour = color(68, 75, 219, 220);
+        this.size = atomSize * 1.7;
+    } else if (element === "O") {
+        this.colour = color(250, 15, 15, 220);
+        this.size = atomSize * 1.52;
+    }
+    
+    this.draw = function() {
+        var fade = 1 - (this.z + 300) / 600;
+    //fill(lerpColor(this.colour, backgroundColour, fade));
+        fill(this.colour);
+        ellipse(this.x, this.y, this.size, this.size);
+    };
+};
+
+// Coordinates for molecule from http://www.rcsb.org/pdb
+var atoms = [
+    new Atom("C", -1.599,  0.273, -0.228),
+    new Atom("C", -1.032, -1.069,  0.244),
+    new Atom("C",  0.406, -1.210, -0.266),
+    new Atom("C",  1.234, -0.022,  0.232),
+    new Atom("C",  2.657, -0.124, -0.322),
+    new Atom("C", -0.694,  1.404,  0.269),
+    new Atom("O", -1.186,  2.655, -0.214),
+    new Atom("O", -2.915,  0.448,  0.302),
+    new Atom("O", -1.829, -2.135, -0.276),
+    new Atom("O",  0.971, -2.426,  0.229),
+    new Atom("O",  0.635,  1.195, -0.215),
+    new Atom("O",  3.460,  0.918,  0.235),
+    new Atom("H", -1.639,  0.290, -1.317),
+    new Atom("H", -1.038, -1.105,  1.333),
+    new Atom("H",  0.407, -1.223, -1.355),
+    new Atom("H",  1.266, -0.033,  1.322),
+    new Atom("H",  3.082, -1.092, -0.056),
+    new Atom("H",  2.632, -0.024, -1.407),
+    new Atom("H", -0.687,  1.412,  1.359),
+    new Atom("H", -0.660,  3.418,  0.062),
+    new Atom("H", -3.336,  1.279,  0.0430),
+    new Atom("H", -2.755, -2.104,  0.0010),
+    new Atom("H",  0.493, -3.221, -0.044),
+    new Atom("H",  4.377,  0.915, -0.072)
+];
+
+var Bond = function(a, b) {
+    this.atom1 = atoms[a];
+    this.atom2 = atoms[b];
+    
+    this.draw = function() {
+        var atom1 = this.atom1;
+        var atom2 = this.atom2;
+                
+        var dx = atom1.x - atom2.x;
+        var dy = atom1.y - atom2.y;
+        var r = min(atom1.size, atom2.size) /2;
+
+        if (dx*dx + dy*dy > r*r) {
+            var theta = atan2(dx, dy);
+            var x1 = atom1.x - 0.5 * atom1.size * sin(theta);
+            var y1 = atom1.y - 0.5 * atom1.size * cos(theta);
+            var x2 = atom2.x + 0.5 * atom2.size * sin(theta);
+            var y2 = atom2.y + 0.5 * atom2.size * cos(theta);
+            line(x1, y1, x2, y2);
+        }
+
+    };
+};
+
+// List of bond joining atoms by index.
+var bonds = [new Bond(0,1), new Bond(1,2), new Bond(2,3),
+             new Bond(3,4), new Bond(0,5), new Bond(5,10),
+             new Bond(5,6), new Bond(0,7), new Bond(1,8),
+             new Bond(2,9), new Bond(3,10), new Bond(4,11),
+             new Bond(0,12), new Bond(1,13), new Bond(2,14),
+             new Bond(3,15), new Bond(4,16), new Bond(4,17),
+             new Bond(5,18), new Bond(6,19), new Bond(7,20),
+             new Bond(8,21), new Bond(9,22), new Bond(11,23)
+             ];
+var bondThickness = 4;
+var bondColour = color(64, 61, 64, 160);
+
+var currentX = false;
+var currentY = false;
+
+var moveObjectToCentre = function(atoms) {
+    // Find range of x values and scale to fill screen
+    var minValue = atoms[0].x;
+    var maxValue = atoms[0].x;
+        
+    for (var i=0; i<atoms.length; i++){
+        if (atoms[i].x > maxValue) {
+            maxValue = atoms[i].x;
+        } else if (atoms[i].x < minValue) {
+            minValue = atoms[i].x;
+        }
+    }
+    var scaleValue = 300 / (maxValue - minValue);
+    
+    // Scale and shift everything
+    var dims = ['x', 'y', 'z'];
+    for (var d = 0; d<3; d++) {
+        // Find mean values for each dimension
+        var meanValue = 0;
+        var dimension = dims[d];
+        for (i=0; i<atoms.length; i++) {
+            meanValue += atoms[i][dimension];
+        }
+        meanValue /= atoms.length;
+        
+        for (i=0; i<atoms.length; i++) {
+            atoms[i][dimension] = scaleValue * (atoms[i][dimension] - meanValue);
+        }
+    }
+};
+
+moveObjectToCentre(atoms);
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, z;
+
+    for (var i = 0; i < atoms.length; i+=1) {
+        x = atoms[i].x;
+        z = atoms[i].z;
+        atoms[i].x = ct*x + st*z;
+        atoms[i].z = -st*x + ct*z;
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var y, z;
+    
+    for (var i = 0; i < atoms.length; i+=1) {
+        y = atoms[i].y;
+        z = atoms[i].z;
+        atoms[i].y = ct*y - st*z;
+        atoms[i].z = st*y + ct*z;
+    }
+};
+
+// Return the difference of the z-coordinate
+var sortByZ = function(a, b) {
+    return a.z - b.z;
+};
+
+// Move to centre of screen
+translate(200, 200);
+
+var draw = function() {
+    var i;
+    atoms.sort(sortByZ);
+    background(backgroundColour);
+
+    // Draw bonds
+    stroke(bondColour);
+    strokeWeight(bondThickness);
+    for (i = 0; i < bonds.length; i+=1) {
+        bonds[i].draw();
+    }
+    
+    // Draw atoms
+    noStroke();
+    for (i = 0; i < atoms.length; i+=1) {
+        atoms[i].draw();
+    }
+
+    if (mouseIsPressed) {
+        if (currentX !== false) {
+            rotateY3D(-(currentX - mouseX)*PI/10);
+            rotateX3D((currentY - mouseY)*PI/10);
+        }
+        currentX = mouseX;
+        currentY = mouseY;
+    } else {
+        currentX = false;
+    }  
+};
+
+var keyPressed = function() { 
+    if (keyCode === LEFT) {
+        rotateY3D(-3);
+    } else if (keyCode === RIGHT) {
+        rotateY3D(3);
+    } else if (keyCode === UP) {
+        rotateX3D(-3);
+    } else if (keyCode === DOWN) {
+        rotateX3D(3);
+    }
+};
+
+// Initial rotations
+rotateX3D(142);

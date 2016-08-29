@@ -1,0 +1,141 @@
+/********************************************************
+* What is the angle subtended by a planet?
+* 
+* Click and drag to move the planet or observer;
+* 
+* To do:
+*   - Drag to change planet radius
+*   - Prevent planet getting too close
+*********************************************************/
+
+var planetX = width * 0.8;
+var planetY = height * 0.2;
+var planetD = 64;
+var planetR = planetD / 2;
+var planetC = color(212, 95, 17);
+
+var eyeX = width * 0.12;
+var eyeY = height * 0.75;
+
+var arcSize = 80;
+
+var selected = false;
+
+var drawVision = function() {
+    var d = dist(planetX, planetY, eyeX, eyeY);
+    
+    if (d <= planetR) {
+        return;
+    }
+    
+    // Angle from eye to planet
+    var angle = atan2(planetY - eyeY, planetX - eyeX);
+    
+    // Half the subtended angle
+    var theta = atan(planetR / d);
+    var dx = planetR * cos(angle + 90);
+    var dy = planetR * sin(angle + 90);
+    
+    // Field of view
+    noStroke();
+    fill(255, 255, 255, 50);
+    triangle(eyeX, eyeY, planetX + dx, planetY + dy, planetX - dx, planetY - dy);
+    
+    strokeWeight(1);
+    stroke(255, 255, 255, 200);
+    
+    // Distance from eye to planet
+    line(eyeX, eyeY, planetX, planetY);
+    
+    // Planet radius perpendicular to the distance
+    line(planetX, planetY, planetX + dx, planetY + dy);
+    
+    // Right angle marker
+    pushMatrix();
+    translate(planetX, planetY);
+    rotate(angle);
+    rect(0, 0, -10, 10);
+    popMatrix();
+    
+    // Subtended angle marker
+    arc(eyeX, eyeY, arcSize, arcSize, angle - theta, angle + theta);
+    
+    fill(255);
+    textSize(13);
+    textAlign(CENTER, CENTER);
+    
+    // Angle label
+    var textX = eyeX + arcSize/2 * cos(angle + theta + 20);
+    var textY = eyeY + arcSize/2 * sin(angle + theta + 20);
+    text(round(20 * theta) / 10 + "°", textX, textY);
+    
+    textX = eyeX + (d+12) * cos(angle + theta/2);
+    textY = eyeY + (d+12) * sin(angle + theta/2);
+    text(planetR, textX, textY);
+    
+    // Distance label
+    pushMatrix();
+    translate(eyeX + d/2 * cos(angle), eyeY + d/2 * sin(angle));
+    rotate(angle);
+    textAlign(CENTER, BASELINE);
+    text("" + round(d * 10) / 10, 0, -3);
+    popMatrix();
+    
+    // Show eye for dragging purposes
+    if (dist(eyeX, eyeY, mouseX, mouseY) < 16) {
+        fill(255, 255, 255, 20);
+        stroke(255);
+        strokeWeight(2);
+        ellipse(eyeX, eyeY, 20, 20);
+    }
+    
+    // Write subtended angle
+    /*
+    noStroke();
+    fill(0, 0, 0, 200);
+    rect(0, height - 40, width, 40);
+    
+    fill(255);
+    textSize(15);
+    textAlign(LEFT, CENTER);
+    text("Subtended angle = 2 × " +  (round(100 * theta) / 100) + " = " +  (round(20 * theta) / 10), 20, height - 20);
+    */
+};
+
+var draw = function() {
+    background(0);
+    
+    fill(planetC);
+    noStroke();
+    ellipse(planetX, planetY, planetD, planetD);
+    
+    drawVision();
+
+};
+
+var mousePressed = function() {
+    if (dist(planetX, planetY, mouseX, mouseY) < planetR) {
+        selected = "planet";
+    } else if (dist(eyeX, eyeY, mouseX, mouseY) < 16) {
+        selected = "eye";
+    }
+};
+
+var mouseDragged = function() {
+    if (selected === "planet") {
+        planetX += mouseX - pmouseX;
+        planetY += mouseY - pmouseY;
+    }
+    if (selected === "eye") {
+        eyeX += mouseX - pmouseX;
+        eyeY += mouseY - pmouseY;
+    }
+};
+
+var mouseReleased = function() {
+    selected = false;
+};
+
+var mouseOut = function() {
+    selected = false;
+};

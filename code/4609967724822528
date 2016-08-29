@@ -1,0 +1,450 @@
+/** 
+ * Spin-off of a very cool game by Major Major
+ * https://www.khanacademy.org/computer-programming/the-error-game/5431669467774976
+ * 
+ * I've made some changes to make it easier to add levels,
+ * but it only works with Javascript code.
+ * The syntax is automatically highlighted,
+ * but not everything that should be highlighted will be,
+ * e.g. parameters inside of functions are not.
+ * 
+ * Levels are added by adding an object to the levels array.
+ * The object should have an errorOnLine attribute which gives the answer,
+ * and a code attribute which has the code as an array of strings.
+ * 
+**/
+
+var levels = [
+    {
+        errorOnLine: 1,   // Line number (starting from 0)
+        code: [
+            "var doSomething = function() {",
+            "    if (mouseIsDragged) {",
+            "        ellipse(mouseX, mouseY, 10, 10);",
+            "    }",
+            "};",
+        ]
+    },
+    {
+        errorOnLine: 8,   // Line number (starting from 0)
+        code: [
+            "if (mouseIsPressed) {",
+            "    if (mouseX <= 45) {",
+            "        background(255, 0, 0);",
+            "        fill(0);",
+            '        text("You chose left.", 200, 200);',
+            "    } else {",
+            "        background(255, 0, 0);",
+            "    }",
+            "};",
+        ]
+    },
+    {
+        errorOnLine: 4,   // Line number (starting from 0)
+        code: [
+            "var qwe = [",
+            "    [1, 'a'],",
+            "    [2, 'b'],",
+            "    [3, 'c'],",
+            "]",
+            "",
+            "var draw = function() {",
+            "    println(qwe[1][0])",
+            "};",
+        ]
+    }
+];
+
+var levelNumber = 0;
+var scene = "start";
+var lives = 3;
+var drawSmiley = false;
+var lineNumber = false;
+
+// Regex for capturing bits of syntax
+var RE_number = /^([0-9]+)(\.[0-9]+)?/;
+var RE_keyword = /^(if|else|var|for|in|continue|break|while|function|return|switch|case)\b/;
+var RE_string = /^("[^"]*")|^('[^']*')/;
+var RE_boolean = /^(true|false|null|undefined)\b/;
+var RE_function = /^([a-zA-Z0-9_])+\s*=\s*function\b/;
+var RE_comment = /^\/\//;
+
+var btn1 = {
+    stroke: color(0, 0, 0),
+    strokeWeight: 2,
+    rounded: false,
+    fillColor: color(255, 0, 0),
+    x: 10,
+    y: 315,
+    width: 380,
+    height: 35,
+    textFillColor: color(255, 255, 255),
+    buttonTextSize: 20,
+    buttonText: "P l a y  G a m e !"
+};
+
+var btn2 = {
+    stroke: color(0, 0, 0),
+    strokeWeight: 2,
+    rounded: false,
+    fillColor: color(255, 0, 0),
+    x: 10,
+    y: 360,
+    width: 380,
+    height: 35,
+    textFillColor: color(255, 255, 255),
+    buttonTextSize: 20,
+    buttonText: "I n s t r u c t i o n s"
+};
+
+var btn3 = {
+    stroke: undefined,
+    strokeWeight: null,
+    rounded: false,
+    fillColor: color(255, 0, 0),
+    x: 10,
+    y: 360,
+    width: 380,
+    height: 35,
+    textFillColor: color(255, 255, 255),
+    buttonTextSize: 20,
+    buttonText: "B a c k"
+};
+
+var btn4 = {
+    stroke: color(0, 0, 0),
+    strokeWeight: null,
+    rounded: true,
+    fillColor: color(78, 179, 45),
+    x: 95,
+    y: 353,
+    width: 295,
+    height: 35,
+    textFillColor: color(255, 255, 255),
+    buttonTextSize: 20,
+    buttonText: "Correct! Next Level"
+};
+
+var drawButton = function(btn) {
+    strokeWeight(btn.strokeWeight);
+    stroke(btn.stroke);
+    fill(btn.fillColor);
+    
+    if (btn.rounded === true) {
+        rect(btn.x, btn.y, btn.width, btn.height, 100);
+    } else {
+        rect(btn.x, btn.y, btn.width, btn.height);
+    }
+    
+    fill(btn.textFillColor);
+    textFont(createFont('sans-serif'));
+    textSize(btn.buttonTextSize);
+    textAlign(CENTER, CENTER);
+    text(btn.buttonText, btn.x + btn.width / 2, btn.y + btn.height /2);
+};
+
+var isMouseInsideButton = function(btn) {
+    return mouseX >= btn.x && mouseX <= (btn.x + btn.width) &&
+           mouseY >= btn.y && mouseY <= (btn.y + btn.height);
+};
+
+var drawMenu = function() {
+    background(255, 255, 255);
+    textFont(createFont("Impact"));
+    textSize(35);
+    textAlign(CENTER, CENTER);
+    fill(0, 0, 0);
+    text("The", 50, 50);
+    text("The", width - 50, 50);
+    text("Game", 60, 280);
+    text("Game", width - 60, 280);
+    textSize(75);
+    fill(255, 0, 0);
+    text("ERROR!", 200, 150);
+    drawButton(btn1);
+    drawButton(btn2);
+};
+
+var drawSmileyAndButton = function() {
+    fill(255, 255, 0);
+    ellipse(60, 370, 50, 50);
+    fill(0, 0, 0);
+    ellipse(50, 360, 5, 5);
+    ellipse(70, 360, 5, 5);
+    noFill();
+    stroke(0, 0, 0);
+    arc(58, 368, 25, 25, 18, 100);
+    drawButton(btn4);
+};
+
+var drawHelpScreen = function() {
+    textAlign(LEFT, BASELINE);
+    background(0, 0, 0);
+    fill(255, 0, 0);
+    textFont(createFont('sans-serif'));
+    textSize(25);
+    text("Oh Noes! A hacker has damaged\nsome software vital to Khan Aca-\ndemy's online service! The staff\nneed your help to repair the pro-\ngramming and bring the server\nback online! Use your programm-\ning skills to fix the code on each\nof the levels. Some will require fix-\ning regular JavaScript, others will\nrequire HTML or SQL. Click on\nlines that need fixing. Good luck!", 10, 45);
+    drawButton(btn3);
+};
+
+var drawCode = function(code, x, y) {
+    textFont(createFont('monospace'), 14);
+    
+    var lineHeight = 20;
+    var lineLength = width - x - 3;
+    lineNumber = false;
+    y += lineHeight;
+    
+    for (var i = 0; i < code.length; i++) {
+        var line = code[i];
+        
+        // Line number
+        fill(0);
+        textAlign(RIGHT, CENTER);
+        text(i + 1, x - 3, y);
+        
+        // Highlight line
+        if (mouseY >= y - lineHeight / 2 && mouseY < y + lineHeight / 2) {
+            noStroke();
+            fill(200);
+            rect(x + 2, y - lineHeight / 2, lineLength, lineHeight);
+            lineNumber = i;
+        }
+        
+        // Write code
+        textAlign(LEFT, CENTER);
+        var tx = x + 8;
+        var index = 0;
+        
+        while (index < line.length) {
+            var chars = line.slice(index);
+            var toWrite;
+
+            if (chars.match(RE_number)) {
+                fill(0, 0, 255);
+                toWrite = chars.match(RE_number)[0];
+            } else if (chars.match(RE_keyword)) {
+                fill(0, 0, 255);
+                toWrite = chars.match(RE_keyword)[0];
+            } else if (chars.match(RE_function)) {
+                var tmp = chars.match(RE_function)[0].split("=");
+                fill(0, 0, 148);
+                toWrite = tmp[0];
+            } else if (chars.match(RE_string)) {
+                fill(7, 91, 0);
+                toWrite = chars.match(RE_string)[0];
+            } else if (chars.match(RE_boolean)) {
+                fill(56, 45, 197);
+                toWrite = chars.match(RE_boolean)[0];
+            } else if (chars.match(RE_comment)) {
+                fill(60, 120, 88);
+                toWrite = chars;
+            } else {
+                fill(0);
+                toWrite = line[index];
+            }
+            
+            text(toWrite, tx, y);
+            tx += textWidth(toWrite);
+            index += toWrite.length;
+        }
+        
+        
+        
+        y += lineHeight;
+    }
+};
+
+var drawLevel = function() {
+    background(255);
+    
+    var x = 30;
+    var y = 52;
+    
+    // Header
+    fill(52, 106, 41);
+    noStroke();
+    rect(0, 0, width, 52);
+    
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textFont(createFont('sans', 36));
+    text("Level " + (levelNumber + 1), width / 2, y /2);
+    
+    textAlign(LEFT, BASELINE);
+    textSize(15);
+    text("Lives: " + lives, 5, y - 5);
+    
+    // Side bar
+    fill(236);
+    rect(1, y + 1, x, height);
+    
+    drawCode(levels[levelNumber].code, x, y);
+    
+    if (drawSmiley === true) {
+        drawSmileyAndButton();
+    }
+};
+
+var drawLevel7 = function() {
+    background(0, 0, 0);
+    fill(255, 255, 255);
+    textSize(35);
+    text("Level 7", 150, 45);
+    
+    /*
+    // This one's sort of tricky.
+    var isPrime = function(n) {
+        var bound = sqrt(n);
+        for (var a = 2; a <= bound; a++) {
+            if (n % a === 0) {
+                return false;
+            }
+        }
+        return true;
+    };
+    
+    var number = 127;
+    var prime = isPrime(number);
+    if (prime === true) {
+        background(0, 255, 0);
+    } else {
+        background(255, 0, 0);
+    }
+    
+    */
+    
+    // The #'s split color options.
+    var level = [
+        ["// This one is tricky..."],
+        ["var", " isPrime = ", "function", "(n) {"],
+        ["    ", "var", " bound = sqrt(n);"],
+        ["    ", "for", " (", "var", " a = 2; a <= bound; a++) {"],
+        ["        ", "if", "(n % a === 0) {"],
+        ["            ", "return", " ", "false", ";"],
+        ["        }"],
+        ["    }"],
+        ["    ", "return", " ", "true", ";"],
+        ["};"],
+        [""],
+        ["var", " number = 127;"],
+        ["var", " prime = isPrime(number);"],
+        ["if (prime === ", "true", ") {"],
+        ["    background(0, 255, 0);"],
+        ["} else {"],
+        ["    background(255, 0, 0);"],
+        ["}"]
+    ];
+    
+    // Loop through the entire level.
+    for (var i = 0; i < level.length; i++) {
+        // Line Position
+        var ypos = 80 + 18 * i;
+        
+        // Line Numbers
+        fill(255);
+        textSize(14);
+        text(i + 1, 20, ypos);
+        
+        // Loop through the different segments of the line.
+        var segs = level[i];
+        
+        // The text position.
+        var xpos = 40;
+        for (var j = 0; j < segs.length; j++) {
+            var seg = segs[j];
+            // The list of colored words: blue words and light blue words
+            var blueWords = ["if", "var", "for", "while", "function", "return"];
+            var lightBlue = ["true", "false"];
+            // The .indexOf() function on an array returns -1 if the thing isn't in the array (since 0 is already used).
+            // Here, I'm using it to find out of seg is one of the blue words.
+            if (blueWords.indexOf(seg) !== -1) {
+                fill(10, 10, 255);
+            } else if (lightBlue.indexOf(seg) !== -1) {
+                fill(180, 180, 255);
+            } else {
+                // Not a key word, so just fill white
+                fill(255);
+            }
+            // Now we draw the word or segment at the specified position.
+            text(seg, xpos, ypos);
+            // We get the text width and move the x by that amount. Nothing hard.
+            xpos += textWidth(seg);
+        }
+    }
+    
+    if (drawSmiley) {
+        drawSmileyAndButton();
+    }
+};
+
+var endOfGame = function() {
+    textAlign(LEFT, BASELINE);
+    background(0, 0, 0);
+    fill(255, 255, 255);
+    textSize(25);
+    text("That's all the levels there are", 35, 55);
+    text("for now. I didn't have time to", 35, 90);
+    text("make more before my last", 35, 125);
+    text("chance to make a program for", 35, 160);
+    text("Khantober on Tuesday came,", 35, 195);
+    text("plus there was schoolwork. So", 35, 230);
+    text("I would love it if people made", 35, 265);
+    text("their own levels and spun this", 35, 300);
+    text("off! So stay tuned for (hopefully)", 35, 335);
+    text("more levels!", 35, 370);
+};
+
+mouseClicked = function() {
+    if (scene === "start") {
+        if (isMouseInsideButton(btn1)) {
+            scene = "level";
+        } else if (isMouseInsideButton(btn2)) {
+            scene = "help";
+        }
+    } else if (scene === "help") {
+        if (isMouseInsideButton(btn3)) {
+            scene = "start";
+        }
+    } else if (scene === "level") {
+        if (drawSmiley) {
+            if (isMouseInsideButton(btn4)) {
+                // Next level
+                drawSmiley = false;
+                levelNumber++;
+                if (levelNumber >= levels.length) {
+                    scene = "end";
+                }
+            }
+        } else {
+            if (lineNumber === levels[levelNumber].errorOnLine) {
+                drawSmiley = true;
+            } else {
+                lives--;
+                // Game over
+                if (lives === 0) {
+                    scene = "start";
+                    lives = 3;
+                    levelNumber = 0;
+                }
+            }
+        }
+    }
+};
+
+draw = function() {
+    switch(scene) {
+        case "start":
+            drawMenu();
+            break;
+        case "help":
+            drawHelpScreen();
+            break;
+        case "level":
+            drawLevel();
+            break;
+        case "end":
+            endOfGame();
+            break;
+    }
+};

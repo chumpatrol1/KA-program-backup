@@ -1,0 +1,300 @@
+/***************************************************
+ * 3D molecule viewer - Single stranded DNA
+ * Double stranded DNA of sequence ACCGACGTCGGT
+ * 
+ * Red: Oxygen atoms
+ * Blue: Nitrogen atoms
+ * Dark Grey: Carbon atoms
+ * 
+ * Base pair hydrogen bonds in orange
+ * Need to add double bonds
+ * 
+ * Coordinates from:
+ * http://oca.weizmann.ac.il/oca-bin/send-pdb?id=1bna
+ * 
+ * Use the mouse or keyboard to rotate the molecule
+ ***************************************************/
+
+var atomSize = 6;
+var bondThickness = 4;
+var scaleValue = 20;
+var bondColour = color(64, 61, 64, 160);
+var hydrogenBondColour = color(255, 162, 0, 80);
+var hydrogenBondThickness = 2;
+var backgroundColour = color(250, 250, 255);
+
+var Atom = function(element, x, y, z) {
+    this.element = element;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    
+    if (element === "H") {
+        this.colour = color(180, 180, 180, 220);
+        this.size = atomSize * 1.2;
+    } else if (element === "C") {
+        this.colour = color(64, 61, 64, 220);
+        this.size = atomSize * 1.7;
+    } else if (element === "N") {
+        this.colour = color(68, 75, 219, 220);
+        this.size = atomSize * 1.55;
+    } else if (element === "O") {
+        this.colour = color(250, 15, 15, 220);
+        this.size = atomSize * 1.52;
+    } else if (element === "P") {
+        this.colour = color(237, 107, 7, 220);
+        this.size = atomSize * 1.8;
+    }
+    
+    this.draw = function() {
+        var fade = 1 - (this.z + 300) / 600;
+    //fill(lerpColor(this.colour, backgroundColour, fade));
+        fill(this.colour);
+        ellipse(this.x, this.y, this.size, this.size);
+    };
+};
+
+// Coordinates for molecule from http://www.rcsb.org/pdb
+var atoms = [
+    new Atom("O", -1.078, 66.144, 3.953),
+    new Atom("C", 0.057, 66.730, 3.314),
+    new Atom("C", 0.530, 65.771, 2.242),
+    new Atom("O", 1.035, 64.575, 2.870),
+    new Atom("C", -0.533, 65.284, 1.264),
+    new Atom("O", 0.051, 65.279, -0.029),
+    new Atom("C", -0.935, 63.924, 1.764),
+    new Atom("C", 0.382, 63.425, 2.331),
+    new Atom("N", 0.344, 62.490, 3.465),
+    new Atom("C", 1.191, 61.402, 3.495),
+    new Atom("O", 2.018, 61.172, 2.568),
+    new Atom("N", 1.143, 60.551, 4.548),
+    new Atom("C", 0.268, 60.782, 5.548),
+    new Atom("N", 0.268, 59.912, 6.553),
+    new Atom("C", -0.612, 61.894, 5.537),
+    new Atom("C", -0.565, 62.741, 4.495),
+    new Atom("P", -0.797, 65.134, -1.372),
+    new Atom("O", -0.056, 65.821, -2.475),
+    new Atom("O", -2.218, 65.453, -1.151),
+    new Atom("O", -0.702, 63.565, -1.718),
+    
+    new Atom("O", 4.440, 49.627, 5.564),
+    new Atom("P", 6.036, 49.700, 5.535),
+    new Atom("O", 6.540, 48.503, 4.800),
+    new Atom("O", 6.547, 50.011, 6.893),
+    new Atom("O", 6.341, 50.973, 4.607),
+    new Atom("C", 5.790, 50.913, 3.291),
+    new Atom("C", 6.191, 52.129, 2.499),
+    new Atom("O", 5.262, 53.209, 2.768),
+    new Atom("C", 7.560, 52.732, 2.807),
+    new Atom("O", 8.123, 53.063, 1.560),
+    new Atom("C", 7.314, 53.928, 3.676),
+    new Atom("C", 5.963, 54.378, 3.142),
+    new Atom("N", 5.145, 55.054, 4.137),
+    new Atom("C", 5.048, 54.604, 5.459),
+    new Atom("N", 4.253, 55.385, 6.150),
+    new Atom("C", 3.837, 56.359, 5.230),
+    new Atom("C", 2.984, 57.453, 5.392),
+    new Atom("O", 2.410, 57.778, 6.427),
+    new Atom("N", 2.795, 58.215, 4.242),
+    new Atom("C", 3.405, 57.908, 3.055),
+    new Atom("N", 3.107, 58.751, 2.065),
+    new Atom("N", 4.202, 56.896, 2.879),
+    new Atom("C", 4.391, 56.154, 3.977)
+];
+
+var Bond = function(a, b) {
+    this.atom1 = atoms[a];
+    this.atom2 = atoms[b];
+    
+    this.draw = function() {
+        var atom1 = this.atom1;
+        var atom2 = this.atom2;
+                
+        var dx = atom1.x - atom2.x;
+        var dy = atom1.y - atom2.y;
+        var theta = atan2(dx, dy);
+
+        var x1 = atom1.x - 0.5 * atom1.size * sin(theta);
+        var y1 = atom1.y - 0.5 * atom1.size * cos(theta);
+        var x2 = atom2.x + 0.5 * atom2.size * sin(theta);
+        var y2 = atom2.y + 0.5 * atom2.size * cos(theta);
+        line(x1, y1, x2, y2);
+    };
+};
+
+var addGroup = function(bonds, group, n) {
+    for (var i=0; i<group.length; i++){
+        bonds.push(new Bond (n + group[i][0], n + group[i][1]));
+    }
+    return bonds;
+};
+
+// Nucleoside bonds
+var phosphate = [[0,1], [0,2], [0,3]];
+
+var ribose = [[0, 1], [1, 2], [2, 3], [2, 4],
+              [4, 5], [4, 6], [6, 7], [7, 3]];
+
+var adenine = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6],
+               [5, 7], [7, 8], [8, 9], [9, 10], [10, 1], [10, 4]];
+               
+var guanine = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [5, 7],
+                [7, 8], [8, 9], [8, 10], [11, 4], [10, 11], [11,1]];
+               
+var cytosine = [[0, 1], [1, 2], [2, 3], [2, 4], [4, 5],
+                [5, 6], [5, 7], [7, 8], [8, 1]];
+
+var thymine = [[0, 1], [1, 2], [2, 3], [2, 4], [4, 5],
+               [5, 6], [5, 7], [7, 8], [7, 9], [9, 1]];
+
+var createSequence =function(seq) {
+    var bonds = [];
+    var baseBonds;
+    var n = 0;
+    
+    for (var base=1; base <= 2; base++) {
+         // Ribose
+        bonds = addGroup(bonds, ribose, n);
+        n += 7;
+        
+        // Base
+        if (base === 1) {
+            bonds = addGroup(bonds, cytosine, n);
+            baseBonds = 9;
+            
+            // Phosphate
+            bonds.push(new Bond (n - 2, n + baseBonds));
+            n += baseBonds;
+            bonds = addGroup(bonds, phosphate, n);
+        } else {
+            bonds = addGroup(bonds, guanine, n);
+            baseBonds = -10;
+            n += baseBonds;
+            bonds = addGroup(bonds, phosphate, n);
+            bonds.push(new Bond (n, n -1));
+        }
+        n += 8;   
+    }
+
+    return bonds;
+};
+// List of bond joining atoms by index.
+var bonds = createSequence("A");
+var hydrogenBonds = [new Bond(10, 40), new Bond(11, 38), new Bond(13, 37)];
+
+var currentX = false;
+var currentY = false;
+
+var moveObjectToCentre = function(atoms) {
+    // Scale and shift everything
+    var dims = ['x', 'y', 'z'];
+    var i;
+    
+    for (var d = 0; d<3; d++) {
+        // Find mean values for each dimension
+        var meanValue = 0;
+        var dimension = dims[d];
+        for (i=0; i<atoms.length; i++) {
+            meanValue += atoms[i][dimension];
+        }
+        meanValue /= atoms.length;
+        
+        for (i=0; i<atoms.length; i++) {
+            atoms[i][dimension] = scaleValue * (atoms[i][dimension] - meanValue);
+        }
+    }
+};
+
+moveObjectToCentre(atoms);
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, z;
+
+    for (var i = 0; i < atoms.length; i+=1) {
+        x = atoms[i].x;
+        z = atoms[i].z;
+        atoms[i].x = ct*x + st*z;
+        atoms[i].z = -st*x + ct*z;
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var y, z;
+    
+    for (var i = 0; i < atoms.length; i+=1) {
+        y = atoms[i].y;
+        z = atoms[i].z;
+        atoms[i].y = ct*y - st*z;
+        atoms[i].z = st*y + ct*z;
+    }
+};
+
+// Return the difference of the z-coordinate
+var sortByZ = function(a, b) {
+    return a.z - b.z;
+};
+
+// Move to centre of screen
+translate(200, 200);
+
+var draw = function() {
+    var i;
+    atoms.sort(sortByZ);
+    background(backgroundColour);
+
+    // Draw bonds
+    stroke(bondColour);
+    strokeWeight(bondThickness);
+    for (i = 0; i < bonds.length; i+=1) {
+        bonds[i].draw();
+    }
+    
+    // Draw hydrogen bonds
+    stroke(hydrogenBondColour);
+    strokeWeight(hydrogenBondThickness);
+    for (i = 0; i < hydrogenBonds.length; i+=1) {
+        hydrogenBonds[i].draw();
+    }
+    
+    // Draw atoms
+    noStroke();
+    for (i = 0; i < atoms.length; i+=1) {
+        atoms[i].draw();
+    }
+
+    if (mouseIsPressed) {
+        if (currentX !== false) {
+            rotateY3D(-(currentX - mouseX)*PI/10);
+            rotateX3D((currentY - mouseY)*PI/10);
+        }
+        currentX = mouseX;
+        currentY = mouseY;
+    } else {
+        currentX = false;
+    }  
+};
+
+var keyPressed = function() { 
+    if (keyCode === LEFT) {
+        rotateY3D(-3);
+    } else if (keyCode === RIGHT) {
+        rotateY3D(3);
+    } else if (keyCode === UP) {
+        rotateX3D(-3);
+    } else if (keyCode === DOWN) {
+        rotateX3D(3);
+    }
+};
+
+// Let go when mouse leaves canvas
+var mouseOut = function(){
+    mouseIsPressed = false;
+};
+
+// Initial rotations
+rotateY3D(100);
+rotateX3D(10);

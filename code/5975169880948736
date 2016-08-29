@@ -1,0 +1,144 @@
+// Effeciently shading a sphere based on mouse position
+// With help from: https://www.khanacademy.org/computer-programming/_/1925327317
+
+// Bump-mapping using
+// https://www.khanacademy.org/computer-programming/sphere/1744699339
+
+var sphereX = 200;
+var sphereY = 200;
+var sphereR = 100;
+var sphereR2 = sphereR * sphereR;
+var sphereR1 = sphereR - 1;
+var sphereR12 = sphereR1 * sphereR1;
+var sphereRd = 1 / (sphereR2 - sphereR12);
+
+// Inverse radius
+var ixy = 1 / sphereR;
+
+var lightZ = 80;
+var lightZ2 = lightZ * lightZ;
+
+// Generate a 1D array of the bumped normals
+var normMap = [];
+var getNormalMap = function() {
+    // Cache noise
+    var x, xrange, xp, yp, zp, m, d0, dx, dy, dz;
+    var noiseScale = 1;
+    var t = 2.5;
+    noiseDetail(4, 0.5);
+    
+    var getShiftedNoise = function(x, y, z) {
+        m = 1 - noise(x * t, y * t, z * t) * 0.86;
+        
+        // Push noise the extremes with S-curve
+        m *= m * (3 - 2 * m);
+        m = m * 1.3 - 0.25;
+        if (m > 1) { m = 1; }
+        m *= m * (3 - 2 * m);
+        m *= m * (3 - 2 * m);
+        m *= m * (3 - 2 * m);
+        // Smooth surface
+        m *= m * (6 - 5 * m) * 0.6;
+        
+        return 1 - m;
+    };
+    
+    for (var y = -sphereR; y < sphereR; y++) {
+        xrange = floor(sqrt(sphereR2 - y * y));
+        
+        for (x = -xrange; x <= xrange; x++) {
+            yp = y * ixy;
+            xp = x * ixy;
+            zp = sqrt(1 - xp * xp - yp * yp);
+            
+            d0 = getShiftedNoise(xp, yp, zp);
+            dx = getShiftedNoise(xp + 0.001, yp, zp);
+            dy = getShiftedNoise(xp, yp + 0.001, zp);
+            dz = getShiftedNoise(xp, yp, zp + 0.001);
+            
+            // Shift each position
+            m = 120;
+            xp -= (d0 - dx) * m;
+            yp -= (d0 - dy) * m;
+            zp -= (d0 - dz) * m;
+            
+            // Normalise
+            m = (255 - d0 * 80) / sqrt(xp * xp + yp * yp + zp * zp);
+            //m = 1 / sqrt(xp * xp + yp * yp + zp * zp);
+            normMap.push([xp * m, yp * m, zp * m]);
+        }
+    }
+};
+
+
+getNormalMap();
+
+//println(normMap[0]);
+
+var mx = 200;
+var my = 200;
+
+draw = function() {
+    // Only update image if we move the mouse
+    if (mx === mouseX && my === mouseY) { return; }
+    mx = mouseX;
+    my = mouseY;
+    
+    background(0);
+    loadPixels();
+    
+    var p = this.imageData.data;
+    var ms = millis();
+    
+    // Calculate normalised light vector
+    var lightXNorm = mouseX - sphereX;
+    var lightYNorm = mouseY - sphereY;
+    var lightDist = sqrt(lightXNorm * lightXNorm + lightYNorm * lightYNorm + lightZ2);
+    lightXNorm /= lightDist;
+    lightYNorm /= lightDist;
+    var lightZNorm = lightZ / lightDist;
+    
+    var light, drawY, pixelIndex;
+    var norm, dx, x, xp, yp, zp, y2;
+    var count = 0;
+    
+    for (var y = -sphereR; y < sphereR; y++) {
+        // Length of along x we go
+        y2 = y * y;
+        dx = floor(sqrt(sphereR2 - y2));
+        yp = y * ixy;
+        
+        // Where to draw the sphere
+        drawY = sphereX + (y + sphereY) * 400;
+
+        for (x = -dx; x <= dx; x++) {
+            // Dot product of light and position on sphere
+            // Normal of sphere = [xp, yp, zp]
+            norm = normMap[count++];
+            light = norm[0] * lightXNorm + norm[1] * lightYNorm + norm[2] * lightZNorm;
+            light = 0.6 * light + 80;
+
+            // anti-alias
+            var xyr = x * x + y2;
+            
+            // only pixels that touch the edge
+            if (xyr > sphereR12){
+                light *= 1 - (xyr - sphereR12) * sphereRd;
+            }
+
+            pixelIndex = x + drawY << 2;
+            p[pixelIndex] = light;
+            p[pixelIndex + 1] = light;
+            p[pixelIndex + 2] = light;
+
+        }
+    }
+    
+    ms = millis() - ms;
+    updatePixels();
+    
+    // Test speed
+    fill(200);
+    text(ms, 370, 390);
+    //text(d, 370, 370);
+};

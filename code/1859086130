@@ -1,0 +1,232 @@
+/***********************************************************
+ * Plotting an ellipse with two pegs and a piece of string.
+ * How does the ellipse changes as you move the pegs?
+ * Drag the arrows to change the length of string.
+ * 
+ * The bar represent the distance between each
+ * foci and the orbiting point.
+ *
+ * How does the change in distance relate to the 
+ * distance between the foci?
+ * 
+ * Note that the length of string equals the major axis.
+ * Where is the directix?
+ * 
+ * Spacebar = pause
+************************************************************/
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+var ORBITER = color(250, 250, 30);
+
+var orbit_plots = 5;
+var max_points = 360 / orbit_plots;
+var string = 280;
+
+// Bar positioning
+var barX = 10;
+var barY = 10;
+var barW = 16;
+
+var angle = 0;
+var selected = false;
+
+var locus1, locus2, cx, cy, ex, ey, foci_dist, old_points;
+var foci_theta = 0;
+
+var updateEllipseParameters = function() {
+    ex = string/2;
+    ey = sqrt(ex*ex - foci_dist*foci_dist/4);
+    old_points = [];
+};
+
+var updateLoci = function() {
+    foci_dist = dist(locus1.x, locus1.y, locus2.x, locus2.y);
+    foci_theta = atan2(locus2.y-locus1.y, locus2.x-locus1.x);
+    cx = (locus1.x + locus2.x) / 2;
+    cy = (locus1.y + locus2.y) / 2;
+    updateEllipseParameters();
+};
+
+var Locus = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.r = 10;
+    
+    this.draw = function() {
+        fill(120, 120, 120);
+        if (this.isSelected()) {
+            strokeWeight(3);
+            stroke(200, 200, 200);
+        } else {
+            noStroke();   
+        }
+        ellipse(this.x, this.y, this.r, this.r);
+    };
+    
+    this.isSelected = function() {
+        if (dist(this.x, this.y, mouseX, mouseY) < this.r) {
+            return true;
+        }
+    };
+    
+    this.drag = function() {
+        var temp_x = this.x;
+        var temp_y = this.y;
+        this.x = mouseX;
+        this.y = mouseY;
+        
+        if (dist(locus1.x, locus1.y, locus2.x, locus2.y) >= string){
+            // Loci further apart than string so undo
+            this.x = temp_x;
+            this.y = temp_y;
+        } else {
+            updateLoci();
+        }
+    };
+};
+
+var DragArrow = function(x, y) {
+    this.x = x;
+    this.y = y;
+    
+    this.draw = function() {
+        if (this.isSelected()) {
+            fill(255, 255, 255, 250);
+        } else {
+             fill(255, 255, 255, 150);
+        }
+        
+        triangle(this.x-5, this.y+2,
+                 this.x+5, this.y+2,
+                 this.x, this.y+9);
+        triangle(this.x-5, this.y-2,
+                 this.x+5, this.y-2,
+                 this.x, this.y-9);
+    };
+    
+    this.isSelected = function() {
+        if (mouseX < this.x+10 && mouseX > this.x-10 &&
+            mouseY < this.y+10 && mouseY > this.y-10) {
+            return true;
+        }
+    };
+    
+    this.drag = function() {
+        if (mouseY - barY - 2 > foci_dist) {
+            this.y = mouseY;
+            string = mouseY - barY - 2;
+            updateEllipseParameters();   
+        }
+    };
+};
+
+locus1 = new Locus(160, 200);
+locus2 = new Locus(280, 200);
+updateLoci();
+
+var arrow = new DragArrow(barX+barW/2, barY + string + 2);
+var selectables = [locus1, locus2, arrow];
+
+var running = true;
+var draw = function() {
+    if (running) {
+        angle = (angle + 1) % 360;
+    }
+        
+    background(BACKGROUND);
+
+    strokeWeight(1);
+    stroke(255, 255, 255);
+    line(locus1.x, locus1.y, locus2.x, locus2.y);
+    locus1.draw();
+    locus2.draw();
+    
+    noStroke();
+    for (var i=0; i<old_points.length; i++) {
+        fill(lerpColor(BACKGROUND, ORBITER, i/old_points.length));
+        ellipse(old_points[i][0], old_points[i][1], 8, 8);
+    }
+    
+    fill(ORBITER);
+    var dx = ex * cos(angle);
+    var dy = ey * sin(angle);
+    var r = sqrt(dx * dx + dy * dy);
+    var theta = atan2(dy, dx);
+    var x = cx + r * cos(foci_theta + theta);
+    var y = cy + r * sin(foci_theta + theta);
+    ellipse(x, y, 8, 8);
+    
+    if (frameCount % orbit_plots === 0) {
+        old_points.push([x,y]);
+        if (old_points.length > max_points) {
+            old_points.shift();
+        }
+    }
+    
+    // Strings
+    strokeWeight(2);
+    stroke(50, 200, 60);
+    line(locus1.x, locus1.y, x, y);
+    stroke(50, 100, 200);
+    line(locus2.x, locus2.y, x, y);
+    
+    // Directrix
+    /*
+    var d = 2*ex*ex/foci_dist;
+    var dx = cx + d * cos(foci_theta);
+    var dy = cy + d * sin(foci_theta);
+    //line(x, y, x + d*cos(foci_theta), y + d * sin(foci_theta));
+    
+    stroke(255);
+    strokeWeight(1);
+    line(dx + ey * cos(foci_theta+90),
+         dy + ey * sin(foci_theta+90),
+         dx + ey * cos(foci_theta-90),
+         dy + ey * sin(foci_theta-90));
+    */
+    
+    // Bar showing lengths
+    strokeWeight(1);
+    stroke(255, 255, 255);
+    var midY = barY + string/2;
+    line(36, midY - foci_dist/2, 36, midY + foci_dist/2);
+    line(33, midY - foci_dist/2, 39, midY - foci_dist/2);
+    line(33, midY + foci_dist/2, 39, midY + foci_dist/2);
+    
+    noFill();
+    rect(barX-2, barY-2, barW+3, string + 4);
+    
+    noStroke();
+    var a = dist(locus1.x, locus1.y, x, y);
+    var b = dist(locus2.x, locus2.y, x, y);
+    fill(50, 200, 60);
+    rect(barX, barY, barW, a);
+    fill(50, 100, 200);
+    rect(barX, barY+a+1, barW, b);
+    
+    arrow.draw();
+};
+
+var mousePressed = function() {
+    for (var i in selectables) {
+        if (selectables[i].isSelected()) {
+            selected = selectables[i];
+        }
+    }
+};
+
+var mouseReleased = function() {
+    selected = false;
+};
+
+var mouseDragged = function() {
+    if (selected) {
+        selected.drag();
+    }
+};
+
+var keyPressed = function() {
+    // Spacebar toggles animation
+    if (keyCode === 32) { running = !running; }
+};

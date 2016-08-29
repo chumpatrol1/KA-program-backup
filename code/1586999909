@@ -1,0 +1,45 @@
+var x = 40;
+var y = 200;
+var s = 8;
+var a = 0;
+
+var flagellum = function(x, y1, y2, theta) {
+    // bezier(x, y1, x-8, y2-n, x-12, y2+n, x-20, y2-n/2);
+
+    var cx1 = x - s   + 0.5*s*sin(theta);
+    var cx2 = x - s*2 + 0.5*s*sin(theta+90);
+    var x2  = x - s*3;
+    var cy1 = y1 + 2*s*cos(theta);
+    var cy2 = y1 - 2*s*cos(theta+90);
+    //x2 -= d * sin(theta+180);
+    //y2 += d * cos(theta+180);
+
+    bezier(x, y1, cx1, cy1, cx2, cy2, x2, y2);
+};
+
+var draw = function() {
+    background(24, 66, 112);
+    
+    translate(x, y);
+    rotate(a);
+    strokeWeight(2);
+    fill(220, 255, 220, 190);
+    stroke(220, 220, 255, 120);
+    rect(-s, -s/2, s*2, s, s);
+    
+    strokeWeight(1);
+    noFill();
+    flagellum(-s, 0, 0, 10 * frameCount % 360);
+    flagellum(-s, -1, -3, 30 + 10 * frameCount % 360);
+    flagellum(-s, 1, 3, 60 + 10 * frameCount % 360);
+    flagellum(-s, 0, 2, 90 + 10 * frameCount % 360);
+    flagellum(-s, 0, -2, 90 + 10 * frameCount % 360);
+    resetMatrix();
+
+    x += cos(a);
+    y += sin(a);
+
+    if (random() < 0.05) {
+        a += (random()-0.5) * 4;
+    }
+};

@@ -1,0 +1,30 @@
+
+var BACKGROUND = color(250, 250, 250);
+var WHITE = color(255, 255, 255);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+
+rectMode(CENTER);
+var cx = 200;
+var cy = 200;
+
+var maxSize = 300;
+var d = 5;
+var r = maxSize / 2;
+var speed = 8;
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    stroke(BLUE);
+    strokeWeight(3);
+    
+    if (d <= maxSize) {
+        ellipse(cx, cx, d, d);
+        d += speed;
+    } else {
+        rect(cx, cx, d, d, r);
+        r = max(8, r - speed * 2);
+    }
+};

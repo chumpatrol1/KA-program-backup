@@ -1,0 +1,777 @@
+/*******************************************************
+ * Using a mass-spring system to simulate cloth.
+*******************************************************/
+
+var BACKGROUND = color(230, 230, 255);
+var BACKGROUND = color(0, 100, 125);
+var TEXTCOL = color(20, 20, 20);
+
+var ROOT2 = sqrt(2);
+
+var sansFont = createFont("sans", 15);
+
+var light = new PVector(-2, -1, 1);
+light.normalize();
+
+var running = true;
+
+/*******************************************************
+ *  Generic GUI component from which other elements
+ * inherit
+ * 
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.name = name;
+    this.updateFunction = updateFunction;
+    
+    this.showing = true;
+    this.selected = false;
+    this.disabled = false;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && this.showing && !this.deactivated && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction();
+    }
+};
+
+GUI_Component.prototype.deactivationCondition = function() {
+    if (this.deactivationFunction) {
+        this.deactivated = this.deactivationFunction();
+    }
+};
+}
+/*******************************************************
+ *  GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, h, name, updateFunction);
+
+    this.defaultCol = color(235, 235, 235, 240);
+    this.highlightCol = color(210, 210, 210, 250);
+    this.transition = 0;
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.fade = function() {
+    if (this.mouseOver() || this.selected) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+
+var FilledButtonDraw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function(col) {
+    this.draw = FilledButtonDraw.bind(this);
+    this.defaultCol = color(0, 0, 0, 1);
+    this.highlightCol = col;
+};
+
+// Circular button
+var CircleButton = function(x, y, w, h, clickFunction, drawFunction) {
+    Button.call(this, x, y, w, h, "", clickFunction);
+    this.drawIcon = drawFunction;
+    this.cx = this.x + this.w / 2;
+    this.cy = this.y + this.w / 2;
+};
+CircleButton.prototype = Object.create(Button.prototype);
+
+CircleButton.prototype.draw = function() {
+    var c;
+    if (this.mouseOver()) {
+        c = color(20, 20, 20);
+        fill(235, 235, 235, 240);
+    } else {
+        c = color(40, 40, 40);
+        fill(255);
+    }
+    
+    stroke(c);
+    strokeWeight(2);
+    ellipse(this.cx, this.cy, this.w, this.w);
+    
+    if (this.drawIcon) {
+        fill(c);
+        this.drawIcon(this.cx, this.cy, this.w / 2);   
+    }
+};
+}
+/*******************************************************
+ *      GUI
+ * Contains and coordinates all the GUI elements.
+********************************************************/
+{
+var GUI = function() {
+    this.elements = [];
+};
+
+GUI.prototype.draw = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].draw();
+    }
+};
+
+GUI.prototype.addElement = function(element) {
+    this.elements.push(element);
+};
+
+GUI.prototype.mousePressed = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].mousePressed();
+    }
+};
+
+GUI.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].mouseReleased();
+    }
+};
+}
+/*******************************************************
+ *      Body object
+ * Bodies are Particles that move under gravity
+********************************************************/
+{
+var Body = function(system, position, r, mass) {
+    this.system = system;
+    this.position = new PVector(position[0], position[1], position[2]);
+    this.r = r;
+    this.mass = mass || 1;
+    this.velocity = new PVector(0, 0, 0);
+    this.acceleration = new PVector(0, 0, 0);
+};
+
+Body.prototype.draw = function() {
+    strokeWeight(2);
+    stroke(80, 80, 250);
+    fill(255);
+    ellipse(this.position.x, this.position.y, this.r * 2, this.r * 2);
+};
+
+Body.prototype.update = function() {
+    this.applyForce(this.system.gravity);
+    this.velocity.mult(this.system.drag);
+    
+    this.velocity.add(this.acceleration);
+    this.position.add(this.velocity);
+    // Now we make sure to clear acceleration each time
+    this.acceleration.mult(0);
+    this.bounce();
+};
+
+Body.prototype.bounce = function() {
+    var boundary = height - this.r;
+    if (this.position.y > boundary) {
+        this.velocity.mult(new PVector(1, -1));
+        this.position.y = 2 * boundary - this.position.y;
+    }
+    
+    boundary = this.r;
+    if (this.position.x < boundary) {
+        this.velocity.mult(new PVector(-1, 1));
+        this.position.x = 2 * boundary - this.position.x;
+    }
+    
+    boundary = width - this.r;
+    if (this.position.x > boundary) {
+        this.velocity.mult(new PVector(-1, 1));
+        this.position.x = 2 * boundary - this.position.x;
+    }
+};
+
+Body.prototype.applyForce = function(force) {
+  var f = PVector.div(force, this.mass);
+  this.acceleration.add(f);
+};
+
+Body.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.position.x, this.position.y) <= this.r;
+};
+}
+/*******************************************************
+ *      Spring object
+ * Generates a force that acts to move two bodies to
+ * a specific distance apart.
+********************************************************/
+{
+var Spring = function(p1, p2, restLength, strength) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.restLength = restLength;
+    this.strength = strength;
+    
+    // Display attributes
+    this.thickness = restLength / 10;
+    this.kinks = restLength / 5;
+};
+
+Spring.prototype.draw = function() {
+    /*
+    strokeWeight(2);
+    stroke(60);
+    line(this.p1.position.x, this.p1.position.y, this.p2.position.x, this.p2.position.y);
+    */
+    
+    Spring.prototype.draw = function() {
+    strokeWeight(this.strength * 4);
+    stroke(60);
+    //line(this.p1.position.x, this.p1.position.y, this.p2.position.x, this.p2.position.y);
+    
+    var angle = atan2(this.p2.position.y - this.p1.position.y, this.p2.position.x - this.p1.position.x);
+    var d = dist(this.p1.position.x, this.p1.position.y, this.p2.position.x, this.p2.position.y) / this.kinks;
+    
+    var dx1 = d * cos(angle);
+    var dy1 = d * sin(angle);
+    var dx2 = this.thickness * sin(angle);
+    var dy2 = -this.thickness * cos(angle);
+    
+    var x = this.p1.position.x;
+    var y = this.p1.position.y;
+    var dir;
+    
+    noFill();
+    beginShape();
+    for (var i = 0; i <= this.kinks; i++) {
+        dir = i % 2 === 0 ? -1 : 1;
+        if (i > 1 && i < this.kinks - 1) {
+            vertex(x + dx2 * dir, y + dy2 * dir);
+        } else {
+            vertex(x, y);
+        }
+        x += dx1;
+        y += dy1;
+    }
+    endShape();
+};
+};
+
+Spring.prototype.update = function() {
+    // Contract
+    var difference = PVector.sub(this.p1.position, this.p2.position);
+    var distance = difference.mag();
+    difference.div(distance);
+    
+    var force = (this.restLength - distance) * this.strength;
+    difference.mult(force);
+
+    this.p1.applyForce(difference);
+    difference.mult(-1);
+    this.p2.applyForce(difference);
+};
+
+Spring.prototype.mouseOver = function() {
+    // Spring are unselectable (could change at a later date)
+    return false;
+};
+}
+/*******************************************************
+ *      Chain object
+ * A fixed point at position followed by n springs of a
+ * given length and strength.
+********************************************************/
+{
+var Chain = function(system, position, n, length, strength) {
+    this.system = system;
+    
+    // Fixed point
+    this.bodies = [new Body(system, position, 5)];
+    this.springs = [];
+    
+    var x = position[0] || 0;
+    var y = position[1] || 0;
+    var z = position[2] || 0;
+    
+    // Dynamic bodies
+    for (var i = 0; i < n; i++) {
+        var angle = random(45, 135);
+        x += length * cos(angle);
+        y += length * sin(angle);
+        this.bodies.push(new Body(system, [x, y, z], 2, 100));
+        this.springs.push(new Spring(this.bodies[i], this.bodies[i + 1], length, strength));
+        
+        // Extra springs of length 2 to make curves
+        if (i) {
+            this.springs.push(new Spring(this.bodies[i - 1], this.bodies[i + 1], length * 1.6, strength / 4));
+        }
+    }
+    
+    this.color = color(random(180, 200), random(80, 120), random(0, 20));
+};
+
+Chain.prototype.drawBase = function() {
+    for (var i = 0; i < this.bodies.length; i++) {
+        this.bodies[i].draw();
+    }
+    
+    for (var i = 0; i < this.springs.length; i++) {
+        this.springs[i].draw();
+    }
+};
+
+Chain.prototype.draw = function() {
+    //this.drawBase();
+    
+    stroke(this.color);
+    strokeWeight(2);
+    noFill();
+    beginShape();
+    
+    // Calculate point before the first one
+    var p0 = PVector.add(this.bodies[0].position, PVector.sub(this.bodies[0].position, this.bodies[1].position));
+    curveVertex(p0.x, p0.y);
+    
+    for (var i = 0; i < this.bodies.length; i++) {
+        curveVertex(this.bodies[i].position.x, this.bodies[i].position.y);
+    }
+    endShape();
+};
+
+Chain.prototype.update = function() {
+    for (var i = 0; i < this.springs.length; i++) {
+        this.springs[i].update();
+    }
+    
+    for (var i = 1; i < this.bodies.length; i++) {
+        this.bodies[i].update();
+    }
+};
+
+Chain.prototype.mouseOver = function() {
+    // Spring are unselectable (could change at a later date)
+    return false;
+};
+}
+/*******************************************************
+ *      Network object
+ * Creates an n x m grid of bodies, joined by chains.
+ * The top nodes are fixed while the rest are free.
+********************************************************/
+{
+var Network = function(system, position, n, m, length, strength, mass) {
+    this.system = system;
+    this.colors = [
+        color(200, 0, 10),
+        color(250, 250, 250),
+        color(240, 140, 130),
+    ];
+    this.shades = [
+        lerpColor(this.colors[0], color(0, 0, 0), 0.25),
+        lerpColor(this.colors[1], color(0, 0, 0), 0.25),
+        lerpColor(this.colors[2], color(0, 0, 0), 0.25),
+    ];
+    
+    this.m = m;
+    
+    this.bodies = [];
+    this.springs = [];
+    
+    // Faces are arrays of 3 bodies create a triangle
+    // Used for drawing
+    this.faces = [];
+    
+    var x = position[0] || 0;
+    var y = position[1] || 0;
+    var z = position[2] || 0;
+    
+    // Create bodies and joining springs
+    for (var i = 0; i < n; i++) {
+        // Proportional along the cloth from -0.5 (left) to 0.5 (right)
+        var p = (i - n / 2) * 0.2;
+        
+        for (var j = 0; j < m; j++) {
+            this.bodies.push(new Body(system, [x + p * j, y + j * length, z + random(-2, 2)], 2, mass));
+            if (j) {
+                // Warp (vertical) threads
+                this.springs.push(new Spring(this.bodies[i * m + j], this.bodies[i * m + j - 1], length, strength));
+            }
+            
+            if (i) {
+                // Weft (horiontal) threads
+                this.springs.push(new Spring(this.bodies[i * m + j], this.bodies[(i - 1) * m + j], length + j / 2, strength));
+                if (i > 1) {
+                    // Extra threads for structure
+                    this.springs.push(new Spring(this.bodies[i * m + j], this.bodies[(i - 2) * m + j], 2 * (length + j * 0.5), strength));
+                }
+            }
+        }
+        
+        x += length;
+    }
+    
+    // Create faces
+    for (var i = 0; i < n - 1; i++) {
+        for (var j = 0; j < m - 1; j++) {
+            var p1 = i * m + j;
+            var p2 = p1 + m;
+            var col = (floor(i / 2) + floor(j / 2)) % 2;
+            
+            /*
+            var col = 1;
+            if (floor(i / 2) % 2 === 0 || floor(j / 2) % 2 === 0) {
+                col = floor(i / 2) % 2 === 0 && floor(j / 2) % 2 === 0 ? 0 : 2;
+            }
+            */
+            
+            var colour = this.colors[col];
+            var shade = this.shades[col];
+            var length2 = (length + j / 2) * ROOT2;
+            
+            if ((i + j) % 2) {
+                this.faces.push([this.bodies[p1], this.bodies[p2], this.bodies[p1 + 1], colour, shade]);
+                this.faces.push([this.bodies[p1 + 1], this.bodies[p2], this.bodies[p2 + 1], colour, shade]);
+            } else {
+                this.faces.push([this.bodies[p1], this.bodies[p2], this.bodies[p2 + 1], colour, shade]);
+                this.faces.push([this.bodies[p1], this.bodies[p2 + 1], this.bodies[p1 + 1], colour, shade]);
+            }
+            
+            // Diagonal threads for structure
+            this.springs.push(new Spring(this.bodies[p1], this.bodies[p2 + 1], length2, strength));
+            this.springs.push(new Spring(this.bodies[p1 + 1], this.bodies[p2], length2, strength));
+        }
+    }
+    
+};
+
+Network.prototype.drawBase = function() {
+    
+    for (var i = 0; i < this.bodies.length; i++) {
+        this.bodies[i].draw();
+    }
+    
+    for (var i = 0; i < this.springs.length; i++) {
+        this.springs[i].draw();
+    }
+};
+
+Network.prototype.draw = function() {
+    // Draw as solid
+    strokeWeight(1);
+    
+    var n = this.faces.length;
+    var face, n1, n2, n3, v1, normal, intensity, col;
+    
+    for (var i = 0; i < n; i++) {
+        face = this.faces[i];
+        n1 = face[0].position;
+        n2 = face[1].position;
+        n3 = face[2].position;
+        v1 = PVector.sub(n2, n1);
+        
+        normal = v1.cross(PVector.sub(n3, n1));
+        normal.normalize();
+        intensity = abs(normal.dot(light));
+        
+        col = lerpColor(face[3], face[4], intensity);
+        stroke(col);
+        fill(col);
+        
+        triangle(face[0].position.x, face[0].position.y,
+                 face[1].position.x, face[1].position.y,
+                 face[2].position.x, face[2].position.y);
+    }
+    
+    //this.drawBase();
+};
+
+Network.prototype.update = function() {
+    for (var i = 0; i < this.springs.length; i++) {
+        this.springs[i].update();
+    }
+    
+    for (var i = 0; i < this.bodies.length; i++) {
+        if (i % this.m) {
+            this.bodies[i].update();
+        }
+    }
+};
+
+Network.prototype.mouseOver = function() {
+    // Spring are unselectable (could change at a later date)
+    return false;
+};
+}
+/*******************************************************
+ *      System object
+ * This is the top-level object which contains all the
+ * objects in the universe.
+ * It handles gravity, drag and mouse events.
+********************************************************/
+{
+var System = function() {
+    // All elements
+    this.elements = [];
+    
+    this.fixedBodies = [];
+    this.dynamicBodies = [];
+    this.springs = [];
+    
+    this.gravity = new PVector(0, 10, 0);
+    this.drag = 0.98;
+    
+    this.selected = false;
+};
+
+System.prototype.addFixedPoint = function(position, r) {
+    var body = new Body(this, position, r);
+    this.fixedBodies.push(body);
+    this.elements.push(body);
+};
+
+System.prototype.addBody = function(position, r, mass) {
+    var body = new Body(this, position, r, mass);
+    this.dynamicBodies.push(body);
+    this.elements.push(body);
+};
+
+System.prototype.addSpring = function(n1, n2, length, strength) {
+    var p1 = this.elements[n1];
+    var p2 = this.elements[n2];
+    var spring = new Spring(p1, p2, length, strength);
+    this.springs.push(spring);
+    this.elements.push(spring);
+};
+
+System.prototype.addChain = function(position, n, length, strength) {
+    var chain = new Chain(this, position, n, length, strength);
+    this.springs.push(chain);
+    this.elements.push(chain);
+};
+
+System.prototype.addNetwork = function(position, n, m, length, strength, mass) {
+    var network = new Network(this, position, n, m, length, strength, mass);
+    this.springs.push(network);
+    this.elements.push(network);
+};
+
+System.prototype.draw = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].draw();
+    }
+};
+
+System.prototype.update = function() {
+    for (var i = 0; i < this.springs.length; i++) {
+        this.springs[i].update();
+    }
+    
+    for (var i = 0; i < this.dynamicBodies.length; i++) {
+        this.dynamicBodies[i].update();
+    }
+};
+
+System.prototype.mousePressed = function() {
+    // Go in inverse order, so we select the top object;
+    for (var i = this.elements.length - 1; i >= 0; i--) {
+        if (this.elements[i].mouseOver()) {
+            this.selected = this.elements[i];
+            break;
+        }
+    }
+};
+
+System.prototype.mouseDragged = function() {
+    if (this.selected) {
+        var mouseVector = new PVector(mouseX - pmouseX, mouseY - pmouseY);
+        this.selected.position.add(mouseVector);
+        this.selected.velocity = mouseVector;
+    }
+};
+
+System.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+}
+/*******************************************************
+ *      Create objects
+********************************************************/
+
+var system = new System();
+
+// Add objects here
+
+/*
+system.addFixedPoint([100, 100], 5);
+system.addBody([150, 100], 5, 100);
+system.addSpring(0, 1, 50, 10);
+*/
+
+//system.addChain([200, 50, 10], 10, 20, 20);
+
+system.addNetwork([56, 70], 31, 15, 9, 10, 40);
+//system.addNetwork([80, 50], 4, 5, 80, 15, 40);
+
+/***************************************************
+ *      Create interface
+****************************************************/
+{
+var playPause = function() {
+    running = !running;
+};
+
+var playIcon = function(x, y, r) {
+    noStroke();
+    if (running) {
+        rect(x - 4, y - 5, 3, 10, 5);
+        rect(x + 1, y - 5, 3, 10, 5);
+    } else {
+        triangle(x - r * 0.4, y - r * 0.5, x - r * 0.4, y + r * 0.5, x + r * 0.65, y);
+    }
+};
+
+var restartProgram = function() {
+    Program.restart();
+};
+
+var restartIcon = function(x, y, r) {
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    text("↻", x, y);
+};
+
+var gui = new GUI();
+gui.addElement(new CircleButton(8, 8, 24, 24, playPause, playIcon));
+gui.addElement(new CircleButton(38, 8, 24, 24, restartProgram, restartIcon));
+}
+/*******************************************************
+ *      Main loop
+ * This is where the system is updated.
+*******************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    system.draw();
+    gui.draw();
+    
+    if (running) {
+        system.update();
+    }
+
+};
+
+/*******************************************************
+ * Event handling
+********************************************************/
+
+mousePressed = function() {
+    system.mousePressed();
+    gui.mousePressed();
+};
+
+mouseReleased = function() {
+    system.mouseReleased();
+    gui.mouseReleased();
+};
+
+mouseDragged = function() {
+    system.mouseDragged();
+};
+
+mouseOut = function() {
+    system.mouseReleased();
+};
+
+keyPressed = function() {
+    if (keyCode === 32) {
+        running = !running;
+    }
+};

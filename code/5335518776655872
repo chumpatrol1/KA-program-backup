@@ -1,0 +1,24 @@
+imageMode(CENTER);
+var myImage = getImage("space/octopus");
+
+image(myImage, 100, 100);
+
+// Note that we need totranslate the image
+// so it's back on the screen
+pushMatrix();
+translate(300, 100);
+scale(-1, 1);
+image(myImage, 0, 0);
+popMatrix();
+
+
+pushMatrix();
+scale(-1, -1);
+image(myImage, -300, -300);
+popMatrix();
+
+pushMatrix();
+scale(1, -1);
+image(myImage, 100, -300);
+popMatrix();
+
