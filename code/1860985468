@@ -1,0 +1,99 @@
+/****************************************
+ * Seeing my ability to draw
+ * 
+****************************************/
+
+var drawShape = function(x, y, dx, dy) {    
+    beginShape();
+    vertex(x-dx[0], y+dy[0]);
+    bezierVertex(x-dx[1],y+dy[1], x+dx[1], y+dy[1], x+dx[0], y+dy[0]);
+    vertex(x+dx[2], y+dy[2]);
+    bezierVertex(x-dx[3],y+dy[3], x+dx[3], y+dy[3], x-dx[2], y+dy[2]);
+    vertex(x-dx[0], y+dy[0]);
+    endShape();
+};
+
+var drawCraft = function(x, y) {
+    var dx = [11, 21, 70, 124, 124, 10];
+    var dy = [-78, -62, -44, 16, 27, 63];
+    var bx = [0, 3, 12, 0, -6, 5];
+    var by = [-80, -64, -50, 25, 40, 65];
+    var cols = [color(240, 240, 240),
+                color(200, 200, 200),
+                color(160, 160, 160),
+                color(30, 30, 30),
+                color(77, 44, 9)];
+
+    beginDraw();
+    strokeWeight(1);
+    stroke(10);
+    
+    for (var i=0; i<dx.length - 1; i++) {
+        fill(cols[i]);
+        stroke(cols[i]);
+        var xs = [dx[i], bx[i], dx[i + 1], bx[i + 1]];
+        var ys = [dy[i], by[i], dy[i + 1], by[i + 1]];
+        drawShape(x, y, xs, ys);  
+    }
+    endDraw();
+};
+
+
+var drawCraft2 = function(x, y) {    
+    var dx = [11, 21, 70, 124, 124, 10];
+    var dy = [-78, -62, -44, 16, 27, 63];
+    var bx = [0, 3, 12, 0, -6, 5];
+    var by = [-80, -64, -50, 25, 40, 65];
+    var cols = [color(240, 240, 240),
+                color(200, 200, 200),
+                color(160, 160, 160),
+                color(30, 30, 30),
+                color(77, 44, 9)];
+
+    strokeWeight(1);
+    stroke(10);
+    for (var i=0; i<dx.length-1; i++) {
+        fill(cols[i]);
+        stroke(cols[i]);
+        var xs = [dx[i], bx[i], dx[i + 1], bx[i + 1]];
+        var ys = [dy[i], by[i], dy[i + 1], by[i + 1]];
+        drawShape(x, y, xs, ys);  
+    }
+
+};
+
+var drawCraft2 = function(x, y) {
+    var w = 110;
+    var h = 60;
+    noStroke();
+    fill(120);
+    rect(x-w/2, y-h/2, w, h);
+    
+    fill(230);
+    ellipse(x-w/2-3, y+4, 26, 46);
+    ellipse(x+w/2+3, y+4, 26, 46);
+    
+    fill(80);
+    quad(x-w/2-34, y+15, x-w/2-23, y+20,
+         x-w/2-34, y+37, x-w/2-43, y+32);
+    quad(x+w/2+34, y+15, x+w/2+23, y+20,
+         x+w/2+34, y+37, x+w/2+43, y+32);
+    
+    fill(180);
+    triangle(x-w/2+25, y-h/2+1, x-w/2-36, y+17, x-w/2+25, y+h/2-1);
+    triangle(x+w/2-25, y-h/2+1, x+w/2+36, y+17, x+w/2-25, y+h/2-1);
+    
+    fill(200);
+    strokeWeight(3);
+    stroke(40);
+    ellipse(x, y, 40, 40);
+};
+
+var draw = function() {
+    background(255, 255, 255);
+    
+    //drawCraft(200, 250);
+    drawCraft(200, 100);
+    
+    drawCraft2(200, 250);
+};

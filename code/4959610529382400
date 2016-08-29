@@ -1,0 +1,897 @@
+/*********************************************
+ * Add the images to the scene and
+ * position them using translations.
+ * 
+ * Once an item is on the grid,
+ * you can select it by click on it.
+**********************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(60, 60, 70);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var sansFont = createFont("sans", 14);
+var serifFont = createFont("serif", 14);
+
+// Objects
+var grid, itemSelector, scrubbers;
+
+// Number of frames that pass before number scrubbers update
+var UPDATE_DELAY = 4;
+
+var scales = [0.25, 0.5, 1, 1.5, 2, 3];
+var rotations = [];
+for (var i = -180; i <= 180; i += 10) {
+    rotations.push(i);
+}
+
+var images = [
+    getImage("avatars/mr-pink"),
+    getImage("avatars/piceratops-ultimate"),
+    getImage("avatars/leafers-tree"),
+    getImage("avatars/leafers-seed")
+];
+
+/*********************************************
+ *      Item Object
+ *  Items are images which can appear on the
+ * the grid and can be transformed.
+**********************************************/
+
+var Item = function(img, x, y, w) {
+    this.image = img;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = w * img.height / img.width;
+    
+    this.coordX = 0;
+    this.coordY = 0;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    this.angle = 0;
+};
+
+Item.prototype.draw = function(selected) {
+    var w2 = this.w / 2;
+    var h2 = this.h / 2;
+
+    pushMatrix();
+    translate(this.x, this.y);
+    scale(this.scaleX, this.scaleY);
+    translate(w2, -h2);
+    
+    if (selected) {
+        noStroke();
+        fill(0, 0, 40, 30);
+        rect(-w2, -h2, this.w, this.h, 8);
+    }
+    
+    if (this.mouseOver()) {
+        noFill();
+        stroke(0, 0, 40, 60);
+        strokeWeight(2);
+        rect(-w2, -h2, this.w, this.h, 8);
+    }
+    
+    rotate(this.angle);
+    image(this.image, -w2, -h2, this.w, this.h);
+    popMatrix();
+};
+
+
+Item.prototype.mouseOver = function(d) {
+    d = d || 0;
+    return (mouseX >= this.x - d &&
+            mouseX <= this.x + this.w * this.scaleX + d &&
+            mouseY <= this.y + d &&
+            mouseY >= this.y - this.h * this.scaleY - d);
+};
+
+/*********************************************
+ *  GUI Button
+**********************************************/
+
+var Button = function(x, y, w, h, name, clickFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultColor = color(BACKGROUND);
+    this.strokeColor = color(200, 200, 200);
+    this.highlightColor = color(TOOLBAR);
+    this.showing = true;
+    this.box = this.h - 6;
+    this.clickFunction = clickFunction;
+};
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    fill(this.defaultColor);
+    if (this.mouseOver() || this.selected) {
+        fill(this.highlightColor);
+    }
+    
+    strokeWeight(1);
+    stroke(this.strokeColor);
+    rect(this.x, this.y - 1, this.w, this.h + 3, 8);
+    
+    fill(0);
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.click = function() {
+    if (this.clickFunction) {
+        this.clickFunction();
+    }
+};
+
+Button.prototype.mouseReleased = function() {
+    if (this.showing && this.mouseOver()) {
+        this.click();
+        return true;
+    }
+};
+
+Button.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+/*********************************************
+ *          Text Box object
+ *  A box with an (x, y) coordinate, a width
+ * and a height. Clicking on it, selects it.
+ * Then it captures keyStrokes, which are saved
+ * in the value attribute.
+**********************************************/
+
+var TextBox = function(x, y, w, h, minV, maxV) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.min = minV;
+    this.max = maxV;
+    this.value = 0;
+    
+    this.textBefore = [];
+    this.textAfter = [];
+    
+    this.focussed = false;
+    this.cursorBlink = 35;
+    
+    this.font = createFont("sans", 14);
+    this.fontSize = 14;
+    
+    this.characterMap =  {
+        48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5',
+        54: '6', 55: '7', 56: '8',  57: '9', 190: "."
+    };
+    
+    // 189: "-"
+};
+
+TextBox.prototype.draw = function() {
+    // Box
+    if (this.focussed) {
+        stroke(20);
+        fill(255);
+    } else {
+        stroke(200);
+        fill(TOOLBAR);
+    }
+    strokeWeight(1);
+    rect(this.x, this.y - 1, this.w, this.h + 3, 8);
+    
+    // Colour red if off the scale
+    if (this.value < this.min || this.value > this.max) {
+        fill(255, 0, 0);
+    } else {
+        fill(20, 20, 20);
+    }
+    
+    // Text
+    textFont(this.font, this.fontSize);
+    textAlign(LEFT, BASELINE);
+    
+    var ty = this.y + textAscent() + 5;
+    var strBefore = this.textBefore.join("");
+    text(strBefore, this.x + 6, ty - 1);
+    
+    // Cursor
+    var x = this.x + textWidth(strBefore) + 6;
+    if (focused && this.focussed && frameCount % this.cursorBlink < this.cursorBlink / 2) {
+        stroke(20);
+        line(x, ty, x, ty - textAscent() - 2);
+    }
+    
+    text(this.textAfter.join(""), x, ty - 1);
+};
+
+TextBox.prototype.keyPress = function() {
+    // Press enter
+    if (keyCode === 10) {
+        this.focussed = false;
+        if (!this.value) {
+            this.setValue(0);
+        }
+    }
+    
+    if (!this.focussed) { return; }
+    
+    if (keyCode in this.characterMap) {
+        // Add number
+        if (this.textBefore.length < 3) {
+            if (this.textBefore.length === 1 && this.textBefore[0] === '0') {
+                // Remove leading 0
+                this.textBefore = [this.characterMap[keyCode]];
+            } else {
+                this.textBefore.push(this.characterMap[keyCode]);
+            }
+        }
+    } else if (keyCode === DELETE || keyCode === BACKSPACE) {
+        if (this.textBefore.length > 0) {
+            this.textBefore.splice(this.textBefore.length - 1, 1);
+        }
+    } else if (keyCode === LEFT) {
+        if (this.textBefore.length > 0) {
+            var letter = this.textBefore.pop();
+            this.textAfter.unshift(letter);
+        }
+    } else if (keyCode === RIGHT) {
+        if (this.textAfter.length > 0) {
+            var letter = this.textAfter.shift();
+            this.textBefore.push(letter);
+        }
+    }
+    
+    this.value = parseFloat(this.textBefore.concat(this.textAfter).join("")) || 0;
+};
+
+TextBox.prototype.mouseOver = function() {
+    return mouseX > this.x && mouseX < this.x + this.w &&
+           mouseY > this.y - 1 && mouseY < this.y + this.h + 3;
+};
+
+TextBox.prototype.mouseReleased = function() {
+    if (this.mouseOver()) {
+        this.focussed = true;
+        return true;
+    } else {
+        this.focussed = false;
+        if (!this.value) {
+            this.setValue(0);
+        }
+        this.setValue(this.value);
+    }
+};
+
+TextBox.prototype.setValue = function(x) {
+    this.value = max(min(this.max, x), this.min);
+    this.textBefore = this.value.toString().split("");
+    this.textAfter = [];
+};
+
+/*********************************************
+ *      Slider object
+**********************************************/
+
+var Slider = function(x, y, width, minValue, maxValue, nowValue, name, updateF) {
+    this.x = x;
+    this.x2 = x + width;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.useLog = false;
+    this.updateFunction = updateF;
+    
+    this.ballR = 8;
+    this.ballD = this.ballR * 2;
+    
+    this.min = minValue;
+    this.max = maxValue;
+    this.val = nowValue || minValue;
+    
+    if (this.useLog) {
+        this.scale = log(this.max / this.min) / log(2);
+        var n = log(this.val / this.min) / log(2);
+        this.bx = map(n, 0, this.scale, this.x, this.x2);
+    } else {
+        this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    }
+
+    this.name = name;
+    this.held = false;
+};
+
+Slider.prototype.draw = function() {
+    noStroke();
+    fill(180);
+    rect(this.x - 8, this.y - this.h / 2, this.width + 16, this.h, 8);
+
+    strokeWeight(1);
+    stroke(0, 0, 0, 120);
+    fill(180, 180, 250);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    noStroke();
+    fill(255, 255, 255, 150);
+    ellipse(this.bx - this.ballR * 0.3, this.y - this.ballR * 0.3, 5, 5);
+};
+
+Slider.prototype.mouseover = function() {
+    return mouseX >= this.x - 8 && mouseX <= this.x2 + 8 &&
+           mouseY >= this.y - this.h / 2 && mouseY <= this.y + this.h / 2;
+};
+    
+Slider.prototype.selected = function() {
+    this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+    if (!this.held && this.mouseover()) {
+        this.setBallPosition();
+    }
+};
+    
+Slider.prototype.drag = function() {
+    if (this.held) {
+        this.setBallPosition();
+        return true;
+    }
+};
+
+Slider.prototype.setBallPosition = function() {
+    this.bx = constrain(mouseX, this.x, this.x2);
+    this.setValue();
+};
+
+Slider.prototype.setValue = function(d) {
+    if (d !== undefined) {
+        this.val = constrain(d, this.min, this.max);
+        this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    } else {
+        if (this.useLog) {
+            var n = map(this.bx, this.x, this.x + this.width, 0, this.scale);
+            this.val = this.min * round(pow(2, n));
+        } else {
+            this.val = round(map(this.bx, this.x, this.x2, this.min, this.max));
+        }
+        this.update();
+    }
+};
+
+Slider.prototype.update = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.val);
+    }
+};
+
+/*********************************************
+ *      Number scrubber object
+ * Shows a number with up and down arrow
+ * buttons to change the value
+**********************************************/
+
+var Scrubber = function(x, y, w, h, nowValue, values, updateF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.font = createFont("serif", h);
+    this.fontSize = h * 0.8;
+    
+    this.index = nowValue;
+    if (Array.isArray(values)) {
+        this.mapping = values;
+        this.value = this.mapping[this.index];
+        this.maxValue = this.mapping.length - 1;
+    } else {
+        this.maxValue = values;
+        this.value = this.index;
+    }
+    
+    this.updateFunction = updateF;
+    this.selected = false;
+};
+
+Scrubber.prototype.draw = function() {
+    // Box
+    stroke(200);
+    noFill();
+    strokeWeight(1);
+    rect(this.x, this.y - 1, this.w - 1, this.h + 1, 8);
+    
+    // Text
+    textFont(this.font, this.fontSize);
+    textAlign(CENTER, BASELINE);
+    fill(20);
+    
+    var ty = this.y + textAscent() + 4;
+    text("" + this.value, this.x + this.w / 2, ty);
+    
+    // Arrow buttons
+    var mouseover = this.mouseOver();
+    if (this.selected === 1 || mouseover === 1) {
+        fill(200);
+        stroke(160);
+    } else {
+        noFill();
+        stroke(200);
+    }
+    
+    triangle(this.x + 3, this.y - 3,
+             this.x + this.w - 3, this.y - 3,
+             this.x + this.w / 2, this.y - 12);
+    
+    if (this.selected === 2 || mouseover === 2) {
+        fill(200);
+        stroke(160);
+    } else {
+        noFill();
+        stroke(200);
+    }
+    
+    triangle(this.x + 3, this.y + this.h + 3,
+             this.x + this.w - 3, this.y + this.h + 3,
+             this.x + this.w / 2, this.y + this.h + 12);
+};
+
+Scrubber.prototype.updateValue = function() {
+    if (this.selected && this.t % UPDATE_DELAY === 0) {
+        if (this.selected === 1) {
+            this.index = min(this.index + 1, this.maxValue);
+        } else if (this.selected === 2) {
+            this.index = max(this.index - 1, 0);
+        }
+
+        this.mapValue();
+        this.update();
+    }
+    this.t++;
+};
+
+Scrubber.prototype.mapValue = function() {
+    if (this.mapping) {
+        this.value = this.mapping[this.index];
+    } else {
+        this.value = this.index;
+    }
+};
+
+Scrubber.prototype.setValue = function(n) {
+    this.value = n;
+    if (this.mapping) {
+        this.index = this.mapping.indexOf(this.value);
+    } else {
+        this.index = this.value;
+    }
+};
+
+// Return 1 or 2 if mouse over top or bottom
+// arrow respectively. Otherwise return null
+Scrubber.prototype.mouseOver = function() {
+    if (mouseX >= this.x + 3 && mouseX <= this.x + this.w - 3) {
+        if (mouseY >= this.y - 12 && mouseY <= this.y) {
+            return 1;
+        } else if (mouseY >= this.y + this.h && mouseY <= this.y + this.h + 12) {
+            return 2;
+        }
+    }
+};
+
+Scrubber.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+    this.t = 0;
+};
+
+Scrubber.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+
+Scrubber.prototype.update = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.value);
+    }
+};
+
+/***************************************************
+ *      Item selector
+ *  A column of images, which can be selected
+ *  Drawn at position (x, y), with images
+ *  given a width, w and drawn d apart.
+****************************************************/
+
+var ItemSelector = function(x, y, images, w, d) {
+    this.x = x;
+    this.y = y;
+    this.d = d;
+    this.w = w;
+    this.h = d + 15;
+    
+    this.items = [];
+    this.selected = -1;
+    
+    // Calculate height
+    var x = this.x + this.d;
+    for (var i = 0; i < images.length; i++) {
+        var item = new Item(images[i], x, this.y + this.h, this.w);
+        item.y += item.h;
+        this.items.push(item);
+        this.h += item.h / item.w * this.w + this.d;
+    }
+};
+
+ItemSelector.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0, 10);
+    //rect(this.x, this.y, this.w + this.d * 2, this.h);
+    
+    textAlign(CENTER, TOP);
+    textFont(sansFont, 12);
+    fill(20);
+    text("Select an item", this.x +  this.d + this.w / 2, this.y + 2);
+    
+    for (var i = 0; i < this.items.length; i++) {
+        this.items[i].draw(i === this.selected);
+    }
+};
+
+ItemSelector.prototype.mouseReleased = function() {
+    // Check mouse is over the item selector
+    if (mouseX < this.x || mouseX > this.x + this.w ||
+        mouseY < this.y || mouseY > this.y + this.h) {
+        return;
+    }
+    
+    // Deselect items
+    itemSelector.selected = -1;
+    grid.selected = -1;
+    
+    for (var i = 0; i < this.items.length; i++) {
+        if (this.items[i].mouseOver()) {
+            this.selected = i;
+            break;
+        }
+    }
+};
+
+/********************************************************
+ *      Grid object
+*********************************************************/
+
+var Grid = function(x, y, w, h, dx, dy) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.dx = dx;
+    this.dy = dy || dx;
+    
+    this.items = [];
+    this.selected = -1;
+};
+
+Grid.prototype.draw = function() {
+    strokeWeight(1);
+    fill(GREY);
+    textSize(11);
+    textAlign(CENTER, TOP);
+
+    var maxX = this.x + this.w * this.dx;
+    var maxY = this.y - this.h * this.dy;
+
+    // X-axis
+    stroke(GREY);
+    for (var i = 0; i <= this.w; i++) {
+        var x = this.x + i * this.dx;
+        line(x, maxY, x, this.y + 1);
+        
+        if (i % 2 === 0) {
+            stroke(GREY);
+            line(x, this.y, x, this.y + 3);
+            text(i, x, this.y + 6);            
+        }
+        
+        stroke(GRIDGREY);
+    }
+    
+    // Y-axis
+    stroke(GREY);
+    textAlign(RIGHT, CENTER);
+    for (var i = 0; i <= this.h; i++) {
+        var y = this.y - i * this.dy;
+        line(this.x + 1, y, maxX, y);
+        
+        if (i % 2 === 0) {
+            stroke(GREY);
+            line(this.x - 3, y, this.x, y);
+            text(i,  this.x - 5, y);
+        }
+        stroke(GRIDGREY);
+    }
+    
+    this.drawItems();
+};
+
+Grid.prototype.drawItems = function() {
+    for (var i = 0; i < this.items.length; i++) {
+        var item = this.items[i];
+        item.draw(this.selected === i);
+        
+        // Ellipse at origin point
+        if (this.selected === i) {
+            noStroke();
+            noFill();
+            stroke(10, 10, 250);
+            strokeWeight(1);
+            ellipse(item.x, item.y, 5, 5);   
+        }
+    }
+};
+
+Grid.prototype.addItem = function(index) {
+    if (index > -1) {
+        this.items.push(new Item(images[index], this.x, this.y, this.dx * 4));
+        this.selected = this.items.length - 1;
+        this.setTextBoxes();
+    }
+};
+
+Grid.prototype.mouseReleased = function() {
+    // Check mouse is over this
+    if (mouseX < this.x || mouseX > this.x + this.w * this.dx ||
+        mouseY > this.y || mouseY < this.y - this.h * this.dy) {
+        return;
+    }
+
+    // Deselect items
+    itemSelector.selected = -1;
+    grid.selected = -1;
+
+    for (var i = 0; i < this.items.length; i++) {
+        if (this.items[i].mouseOver()) {
+            this.selected = i;
+            this.setTextBoxes();
+        }
+    }
+};
+
+// Add selected item's coordinates to the textboxes
+Grid.prototype.setTextBoxes = function() {
+    var item = this.items[this.selected];
+    scrubbers[0].setValue(item.scaleX);
+    scrubbers[1].setValue(item.coordX);
+    scrubbers[2].setValue(item.scaleY);
+    scrubbers[3].setValue(item.coordY);
+    scrubbers[4].setValue(item.angle);
+};
+
+/********************************************************
+ *      Button functions
+*********************************************************/
+
+// Function for "Add to Grid" button
+// Adds an image to the grid if it isn't already there
+var addItemToGrid = function() {
+    if (itemSelector.selected > -1) {
+        grid.addItem(itemSelector.selected);
+        itemSelector.selected = -1;
+    }
+};
+
+var removeItemFromGrid = function() {
+    if (grid.selected > -1) {
+        grid.items.splice(grid.selected, 1);
+        grid.selected = -1;
+    }
+};
+
+var updateSelectedItemScaleX = function(sx) {
+    if (grid.selected !== -1) {
+        var item = grid.items[grid.selected];
+        item.sx = scale[sx];
+        item.scaleX = sx;
+    }
+};
+
+var updateSelectedItemScaleY = function(sy) {
+    if (grid.selected !== -1) {
+        var item = grid.items[grid.selected];
+        item.sy = scale[sy];
+        item.scaleY = sy;
+    }
+};
+
+var updateSelectedItemX = function(x) {
+    if (grid.selected !== -1) {
+        var item = grid.items[grid.selected];
+        item.x = grid.x + x * grid.dx;
+        item.coordX = x;
+    }
+};
+
+var updateSelectedItemY = function(y) {
+    if (grid.selected !== -1) {
+        var item = grid.items[grid.selected];
+        item.y = grid.y - y * grid.dy;
+        item.coordY = y;
+    }
+};
+
+var updateSelectedItemRotation = function(a) {
+    if (grid.selected !== -1) {
+        var item = grid.items[grid.selected];
+        item.angle = a;
+    }
+};
+
+/*********************************************
+ *      Create objects
+**********************************************/
+
+itemSelector = new ItemSelector(25, 16, images, 64, 10);
+
+var createGrid = function(x, y) {
+    var tickSize = 16;
+    var w = 2 * floor(0.5 * (width - x) / tickSize);
+    var h = 2 * floor(0.5 * (y - 15) / tickSize);
+    grid = new Grid(x, y, w, h, tickSize);
+};
+createGrid(160, 375);
+
+var addButton = new Button(12, height - 40, 120, 24, "Add to scene", addItemToGrid);
+var removeButton = new Button(12, height - 40, 120, 24, "Remove", removeItemFromGrid);
+removeButton.showing = false;
+
+scrubbers = [
+    new Scrubber(300, grid.y + 55, 35, 20, 2, scales, updateSelectedItemScaleX),
+    new Scrubber(350, grid.y + 55, 28, 20, 0, grid.w - 4, updateSelectedItemX),
+    new Scrubber(300, grid.y + 105, 35, 20, 2, scales, updateSelectedItemScaleY),
+    new Scrubber(350, grid.y + 105, 28, 20, 0, grid.h - 4, updateSelectedItemY),
+    new Scrubber(550, grid.y + 80, 40, 20, floor(rotations.length / 2), rotations, updateSelectedItemRotation),
+];
+
+var buttons = scrubbers.concat([addButton, removeButton]);
+
+/*********************************************
+ *      Draw functions
+**********************************************/
+
+// Write a array of text with values for size
+// and dy
+// Returns the x value of the end of the text
+var writeText = function(txtArray, x, y) {
+    for (var i = 0; i < txtArray.length; i++) {
+        var t = txtArray[i];
+        var txt = t.txt;
+        var ty = y + (t.dy || 0);
+        
+        if (t.size) {
+            textSize(t.size);    
+        }
+        
+        text(t.txt, x, ty);
+        x += textWidth(txt);
+    }
+    return x;
+};
+
+var drawScrubbers = function() {
+    var labels = ['x', 'y'];
+    
+    for (var i = 0; i < labels.length; i++) {
+        var scrubber = scrubbers[i * 2];
+        var y = scrubber.y + scrubber.h - 3;
+        
+        fill(20);
+        textAlign(LEFT, BASELINE);
+        textFont(serifFont, 18);
+        var txt = [
+            { txt: labels[i], size: 30 },
+            { txt: "final", size: 14, dy: 5 },
+            { txt: " = ", size: 20, dy: 1 }
+        ];
+        
+        var x = writeText(txt, grid.x + 40, y);
+        
+        scrubber.x = x;
+        scrubber.draw();
+        x += scrubber.w;
+        
+        fill(20);
+        textAlign(LEFT, BASELINE);
+        textFont(serifFont, 18);
+        var txt = [
+            { txt: " × ", size: 20, dy: 1 },
+            { txt: labels[i], size: 30 },
+            { txt: "start", size: 14, dy: 5 },
+            { txt: " + ", size: 20, dy: 1 },
+        ];
+        var x = writeText(txt, x, y);
+        
+        scrubber = scrubbers[i * 2 + 1];
+        scrubber.x = x;
+        scrubber.draw();
+    }
+    
+    fill(20);
+    textAlign(RIGHT, CENTER);
+    textFont(serifFont, 18);
+    text("Angle = ", scrubbers[4].x, scrubbers[4].y + scrubbers[4].h / 2);
+
+    scrubbers[4].draw();
+    
+    for (var i = 0; i < scrubbers.length; i++) {
+        scrubbers[i].updateValue();
+    }
+};
+
+/********************************************************
+ *      Main loop
+*********************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    itemSelector.draw();
+    addButton.draw();
+    removeButton.draw();
+    
+    grid.draw();
+    if (grid.selected > -1) {
+        drawScrubbers();
+    }
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < scrubbers.length; i++) {
+        scrubbers[i].mousePressed();
+    }
+};
+
+mouseDragged = function() {};
+
+mouseReleased = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].mouseReleased();
+    }
+    
+    itemSelector.mouseReleased();
+    
+    // Deselect item on grid unless we're
+    // clicking on the toolbar area.
+    if (mouseY < grid.y + 10) {
+        grid.mouseReleased();    
+    }
+    
+    // Switch buttons is necessary
+    // TODO: make more efficient
+    addButton.showing = false;
+    removeButton.showing = false;
+    
+    if (itemSelector.selected > -1) {
+        addButton.showing = true;
+        removeButton.showing = false;
+    } else if (grid.selected > -1) {
+        removeButton.showing = true;
+    }
+};
+
+mouseOut = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].mouseReleased();
+    }
+};

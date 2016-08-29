@@ -1,0 +1,18 @@
+frameRate(60);
+
+var m = millis();
+var n = 20;
+
+fill(0);
+textSize(30);
+textAlign(CENTER, CENTER);
+
+draw = function() {
+    if (frameCount % n === 0) {
+        var t = millis();
+        background(255);
+        text("Frame Rate\n" + (1000 * n / (t - m)).toFixed(3), 200, 200);
+        text(this.__frameRate, 200, 260);
+        m = t;
+    }
+};

@@ -1,0 +1,44 @@
+var nCircles = 50;
+
+var circles = [];
+
+var getRandomCircle = function(d) {
+    var angle = 360 * random();
+    var d = d || random() * 200;
+    
+    return {
+        x: 200 + d * cos(angle),
+        y: 200 + d * sin(angle),
+        r: random() * 120 + 40 - d * 0.5,
+        a: angle
+    };
+};
+
+
+for (var i = 0; i < nCircles; i++) {
+    circles.push(getRandomCircle());
+}
+
+noStroke();
+var draw = function() {
+    background(255);
+    
+    for (var i = 0; i < nCircles; i++) {
+        var circle = circles[i];
+        circle.a += 4 * random() - 2;
+        circle.x += random() * cos(circle.a);
+        circle.y += random() * sin(circle.a);
+        circle.r -= 0.1;
+        
+        if (circle.r < 1 ||
+            circle.x < - circle.r || circle.x > 400 + circle.r ||
+            circle.y < - circle.r || circle.y > 400 + circle.r) {
+            circles[i] = getRandomCircle(1);
+        }
+        
+        fill(200, 0, 0, 160);
+        ellipse(circle.x, circle.y, circle.r*1.1, circle.r*1.1);
+        fill(200, 0, 0);
+        ellipse(circle.x, circle.y, circle.r, circle.r);
+    }
+};

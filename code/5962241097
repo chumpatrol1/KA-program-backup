@@ -1,0 +1,160 @@
+
+var ORANGE = color(255, 165, 0);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var BACKGROUND = (0);
+
+var thresholdD = 40;
+var thresholdT = 1 / (thresholdD * thresholdD);
+var diagonal = floor(thresholdD / 1.42);
+
+var selected = false;
+
+var callForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+/*************************************************
+ *      DraggablePoint
+ *  A point that can be dragged
+**************************************************/
+{
+var DraggablePoint = function(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r || 8;
+    this.color = ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x = mouseX + dx;
+    this.y = mouseY + dy;
+};
+}
+/*************************************************
+ *      Set-up
+**************************************************/
+
+var points = [
+    new DraggablePoint(200, 200),
+    new DraggablePoint(100, 100)
+];
+
+/*************************************************
+ *      Main calculation
+**************************************************/
+
+var thresholdFunction = function(x, y) {
+};
+
+var drawMetaBalls = function() {
+    loadPixels();
+    
+    var p = imageData.data;
+    if (!p) { return; }
+    
+    var cx = points[0].x;
+    var cy = points[0].y;
+    var n = points.length;
+    var d = diagonal;
+    
+    var y = cy - 1;
+    var minX = cx - thresholdD - 1;
+    var maxX = cx + thresholdD + 1;
+    var index, x, hit, i, t, pi;
+    
+    while (minX < maxX) {
+        hit = false;
+    
+        for (var x = minX; x <= maxX; x++) {
+            t = 0;
+            for (i = 0; i < n; i++) {
+                pi = points[i];
+                d = (x - pi.x) * (x - pi.x) + (y - pi.y) * (y - pi.y);
+                t += 1 / (1 + d);
+            }
+            
+            if (t > thresholdT) {
+                hit = true;
+                index = x + y * width << 2;
+                p[index] = 255;
+            } else {
+                if (hit) {
+                    maxX--;
+                    break;
+                } else {
+                    minX++;
+                }
+            }
+        }
+        y--;
+    }
+
+    updatePixels();
+    
+    noStroke();
+    fill(255, 0, 0);
+    //rect(cx - d, cy - d, d * 2 + 1, d * 2 + 1);
+};
+
+/*************************************************
+ *      Main loop
+**************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    cursor('default');
+    drawMetaBalls();
+    callForEach(points, 'draw');
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+{
+mousePressed = function() {
+    for (var i = points.length; i--;) {
+        if (points[i].mouseOver()) {
+            selected = points[i];
+            break;
+        }
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    }
+};
+
+mouseOut = mouseReleased;
+}

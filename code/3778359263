@@ -1,0 +1,139 @@
+
+var selected = false;
+
+var DraggablePoint = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.color = color(255, 165, 0);
+    this.animation = 0;
+    this.r = 16;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(250);
+    strokeWeight(2);
+    fill(this.color);
+    
+    var r = this.r + this.animation;
+    ellipse(this.x, this.y, r, r);
+    
+    fill(0);
+    textSize(10);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r / 2 + 1;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+    if (this.x1 || this.x2) {
+        this.x = constrain(this.x, this.x1, this.x2);
+    }
+    if (this.y1 || this.y2) {
+        this.y = constrain(this.y, this.y1, this.y2);
+    }
+};
+
+// Write the string <txt> at position <x, y>, filling width <w> and
+// ensuring the distance between each letter is equal
+// <yAlign> determines the alignment in the y-direction
+// and is optional (default value is CENTER).
+var liquidText = function(txt, x, y, w, yAlign) {
+    // If there's no text then there's no point
+    if (!txt) { return; }
+
+    if (yAlign === undefined) { yAlign = CENTER; }
+    
+    var n = txt.length;
+    // If the text is a single character, center it
+    if (n === 1) {
+        textAlign(CENTER, yAlign);
+        text(txt, x + w / 2, y);
+        return;
+    }
+    
+    // Subtract length of each letter one-by-one
+    // (Not the same as doing the whole string at once)
+    for (var i = 0; i < n; i++) {
+        w -= textWidth(txt.charAt(i));
+    }
+    
+    var dx = w / (n - 1);
+    
+    // Write the remaining letters
+    textAlign(LEFT, yAlign);
+    for (var i = 0; i < n; i++) {
+        var letter = txt.charAt(i);
+        text(letter, x, y);
+        x += dx + textWidth(letter);
+    }
+};
+
+var points = [
+    new DraggablePoint(50, 50),
+    new DraggablePoint(300, 80),
+];
+
+draw = function() {
+    background(0);
+
+    var x1 = points[0].x;
+    var x2 = points[1].x;
+    var y1 = points[0].y;
+    var y2 = points[1].y;
+    var w = x2 - x1;
+    var h = y2 - y1;
+    
+    strokeWeight(3);
+    stroke(250);
+    fill(100, 100, 150);
+    rect(x1 - 4, y1 - 4, w + 8, h + 8, 16);
+    
+    fill(250);
+    textSize(abs(h));
+    liquidText("Liquid Text", x1 + 8, y1 + h /2, x2 - x1 - 16);
+    
+    points.forEach(function(p) { p.draw(); });
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    for (var i = points.length; i--;) {
+        if (points[i].mouseOver()) {
+            selected = points[i];
+            break;
+        }
+    }
+};
+
+mouseDragged = function() {
+    if (selected) {
+        var dx = mouseX - pmouseX;
+        var dy = mouseY - pmouseY;
+        selected.move(dx, dy);
+        if (selected === points[0]) {
+            points[1].move(dx, dy);
+        }
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseOut = mouseReleased;

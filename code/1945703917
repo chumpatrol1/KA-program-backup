@@ -1,0 +1,69 @@
+/*********************************************************
+ * 
+**********************************************************/
+
+var showLines = true;
+
+var earthX = 348;
+var earthR = 10;
+var sunX = -42;
+var sunR = 111;
+
+var focus = earthR * (earthX - sunX) / (sunR - earthR);
+var sunA = 90 - atan((earthX - sunX + focus) / sunR);
+var sunA2 = 90 - atan((earthX - sunX) / (sunR + earthR));
+
+var moonColour = color(230, 230, 230, 255);
+var moonColourT = color(230, 230, 230, 0);
+var earthColour = color(40, 150, 255, 255);
+var earthColourT = color(40, 150, 255, 0);
+var sunColour = color(255, 255, 60);
+
+var draw = function() {
+    background(10, 10, 60);
+    
+    noStroke();
+    
+    fill(255, 255, 0, 80);
+    //triangle(sunX, 200-sunR, sunX, 200 + sunR, earthX + focus, 200);
+    
+    fill(0, 0, 0, 100);
+    var dx = earthR * cos(90-sunA);
+    var dy = earthR * sin(90-sunA);
+    var d = 800;
+
+    beginShape();
+        vertex(earthX + dx, 200 - dy);
+        vertex(earthX + dx, 200 + dy);
+        vertex(sunX + d*cos(sunA2), 200 - sunR+d*sin(sunA2));
+        vertex(sunX + d*cos(sunA), 200 + sunR-d*sin(sunA2));
+    endShape();
+    
+    beginShape();
+        vertex(earthX + dx, 200 - dy);
+        vertex(earthX + dx, 200 + dy);
+        vertex(earthX + focus, 200);
+    endShape();
+
+    if (showLines) {
+        stroke(120);
+        dx = d * cos(sunA);
+        dy = d * sin(sunA);
+        line(sunX, 200 - sunR, sunX + dx, 200 - sunR + dy);
+        line(sunX, 200 + sunR, sunX + dx, 200 + sunR - dy);
+        dx = d * cos(sunA2);
+        dy = d * sin(sunA2);
+        line(sunX, 200 - sunR, sunX + dx, 200 - sunR + dy);
+        line(sunX, 200 + sunR, sunX + dx, 200 + sunR - dy);
+    }
+    
+    noStroke();
+    fill(sunColour);
+    ellipse(sunX, 200, sunR*2, sunR*2);
+    fill(earthColour);
+    ellipse(earthX, 200, earthR*2, earthR*2);
+    
+    fill(255);
+    text(sunA, 10, 20);
+    text(sunA2, 10, 40);
+};

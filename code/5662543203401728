@@ -1,0 +1,26 @@
+var x1 = 10;
+var y1 = 10;
+var x2 = 110;
+var y2 = 110;
+
+strokeWeight(1);
+
+pushMatrix();
+translate(100, 100);
+line(x1, y1, x1, y2);
+line(x1, y1, x2, y1);
+popMatrix();
+
+pushMatrix();
+translate(120.5, 120.5);
+line(x1, y1, x1, y2);
+line(x1, y1, x2, y1);
+popMatrix();
+
+strokeWeight(0.5);
+
+pushMatrix();
+translate(80, 80);
+line(x1, y1, x1, y2);
+line(x1, y1, x2, y1);
+popMatrix();

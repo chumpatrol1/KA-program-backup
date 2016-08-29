@@ -1,0 +1,111 @@
+
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+
+var Site = function(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.d = r * 2;
+    this.r2 = r * r;
+    
+    this.intersections = [];
+};
+
+Site.prototype.addIntersection = function(x, y) {
+    var dx = this.x - x;
+    var dy = this.y - y;
+    var angle = atan2(dy, dx);
+    var d = dx * dx + dy * dy;
+    if (d < this.r2) {
+        var length = sqrt(this.r2 - d);
+        var x1 = x + length * cos(angle + 90);
+        var x2 = x - length * cos(angle + 90);
+        var y1 = y + length * sin(angle + 90);
+        var y2 = y - length * sin(angle + 90);
+        var angle1 = angle - asin(length / this.r) - 180;
+        var angle2 = angle + asin(length / this.r) - 180;
+        
+        var intersection = {
+            x: x,
+            y: y,
+            angle: angle,
+            angle1: angle1,
+            angle2: angle2,
+            x1: x1,
+            y1: y1,
+            x2: x2,
+            y2: y2,
+        };
+        
+        this.intersections.push(intersection);
+    }
+};
+
+Site.prototype.draw = function() {
+    // Centre
+    stroke(BLUE);
+    strokeWeight(6);
+    point(this.x, this.y);
+    
+    // Circle
+    fill(BLUE + (30 << 24));
+    strokeWeight(2);
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);
+    
+    // Intersection point
+    stroke(PINK);
+    strokeWeight(6);
+    this.intersections.forEach(function(p) {
+        point(p.x, p.y);
+    });
+    
+    // Intersection edge
+    strokeWeight(2);
+    this.intersections.forEach(function(p) {
+        line(p.x1, p.y1, p.x2, p.y2);
+    });
+
+};
+
+Site.prototype.drawOutline = function() {
+    // Centre
+    stroke(BLUE);
+    strokeWeight(6);
+    point(this.x, this.y);
+    
+    // Intersection edge
+    strokeWeight(2);
+    noFill();
+    var n = this.intersections.length;
+    
+    if (n) {
+        for (var i = 0; i < n; i++) {
+            var int = this.intersections[i];
+            line(int.x1, int.y1, int.x2, int.y2);
+            var int2 = this.intersections[(i + 1) % n];
+            arc(this.x, this.y, this.d, this.d, int.angle2, int2.angle1 + 360);
+        }
+    } else {
+        ellipse(this.x, this.y, this.d, this.d);
+    }
+};
+
+// Set-up
+var site = new Site(200, 200, 120);
+//site.addIntersection(300, 150);
+site.addIntersection(100, 150);
+
+// Draw
+background(250);
+//site.draw();
+site.drawOutline();
+
+mouseClicked = function() {
+    site.intersections = [];
+    site.addIntersection(mouseX, mouseY);
+    background(250);
+    //site.draw();
+    site.drawOutline();
+};

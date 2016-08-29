@@ -1,0 +1,480 @@
+
+var ORANGE = color(255, 165, 0);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var BACKGROUND = (250);
+var serifFont = createFont('Times');
+
+var thresholdR = 40;
+var thresholdR2 = thresholdR * thresholdR;
+var threshold = 1 / thresholdR2;
+
+var selected = false;
+var contours = [];
+
+var callForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+/*************************************************
+ *      DraggablePoint
+ *  A point that can be dragged
+**************************************************/
+{
+var DraggablePoint = function(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r || 8;
+    this.color = ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    /*
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    */
+    noStroke();
+    fill(BLUE);
+    
+    var pr = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x = mouseX + dx;
+    this.y = mouseY + dy;
+};
+}
+/*************************************************
+ *      Set-up
+**************************************************/
+
+var points = [
+    new DraggablePoint(50, 100),
+    new DraggablePoint(140, 50)
+    /*
+    new DraggablePoint(40, 50),
+    new DraggablePoint(120, 50),
+    new DraggablePoint(240, 50),*/
+];
+
+/*************************************************
+ *      Main calculation
+**************************************************/
+
+var findValue = function(x, y) {
+    var t = 0;
+    var dx, dy;
+    
+    for (var i = points.length; i--;) {
+        dx = x - points[i].x;
+        dy = y - points[i].y;
+        t += 1 / (1 + dx * dx + dy * dy);
+    }
+    
+    return t;
+};
+
+var findContourPoint = function(x, y, dx, dy, threshold) {
+    var t = 1;
+    var dt = 0.5;
+    var v = findValue(x + t * dx, y + t * dy);
+
+    do {
+        if (v < threshold) {
+            t -= dt;
+        } else {
+            t += dt;
+        }
+        dt *= 0.5;
+        v = findValue(x + t * dx, y + t * dy);
+
+    } while (abs(v - threshold) > 1e-8 && thresholdR * dt > 0.01);
+    
+    return t;
+};
+
+var testContour = function() {
+    var x = points[0].x;
+    var y = points[0].y;
+    var dx = thresholdR;
+    var dy = 0;
+    
+    var t = 1;
+    var dt = 0.25;
+    var v = findValue(x + t * dx, y + t * dy);
+
+    do {
+        println(t + " " + v);
+        if (v < threshold) {
+            t -= dt;
+        } else {
+            t += dt;
+        }
+        dt *= 0.5;
+        v = findValue(x + t * dx, y + t * dy);
+
+    } while (abs(v - threshold) > 1e-6 && thresholdR * dt > 0.01);
+};
+
+// Return an array of points around a given pint
+var getArcAroundPoint = function(x, y, dAngle, maxAngle, startAngle, r, threshold) {
+    var contour = [];
+    for (var angle = 0; angle < maxAngle; angle += dAngle) {
+        var dx = r * cos(angle + startAngle);
+        var dy = r * sin(angle + startAngle);
+        var t = findContourPoint(x, y, dx, dy, threshold);
+        contour.push([x + t * dx, y + t * dy]);
+    }
+    return contour;
+};
+
+var getContours = function(isoValue) {
+    contours = [];
+    var threshold = 1 / (isoValue * isoValue);
+    var threshold2 = 1 / ((isoValue + 0.5) * (isoValue + 0.5));
+    
+    // Find midpoint between points
+    var px1 = points[0].x;
+    var py1 = points[0].y;
+    var px2 = points[1].x;
+    var py2 = points[1].y;
+    var pdx = px2 - px1;
+    var pdy = py2 - py1;
+    var pAngle = atan2(pdy, pdx);
+    var mx = (px1 + px2) * 0.5;
+    var my = (py1 + py2) * 0.5;
+    
+    var contour = [];
+    var numAngle = 36;
+    var dAngle = 360 / numAngle;
+    
+    // TODO: test whether p1 === p2
+    if (px1 === px2 && py1 === py2) {
+        // Points in the same place so draw contour around point 1
+        contours.push(getArcAroundPoint(px1, py1, dAngle, 360, 0, isoValue, threshold));
+    } else if (findValue(mx, my) > threshold2) {
+        // Joined
+        var length = sqrt(pdx * pdx + pdy * pdy);
+        var ndx = pdx * isoValue / length;
+        var ndy = pdy * isoValue / length;
+        var n = 1 / floor(length / 5);
+        
+        // Semi-circle around point 1
+        contour.push.apply(contour, getArcAroundPoint(px1, py1, dAngle, 180, pAngle + 90, isoValue, threshold2));
+        
+        // Join from particle 1 to particle 2
+        for (var i = 0; i < 1; i += n) {
+            mx = px1 + i * pdx;
+            my = py1 + i * pdy;
+            var t = findContourPoint(mx, my, ndy, -ndx, threshold2);
+            contour.push([mx + t * ndy, my - t * ndx]);
+            //ellipse(mx + t * ndy, my - t * ndx, 8, 8);
+        }
+        
+        // Semi-circle around point 2
+        contour.push.apply(contour, getArcAroundPoint(px2, py2, dAngle, 180, pAngle - 90, isoValue, threshold2));
+        
+        // Join from particle 2 to particle 1
+        for (var i = 0; i < 1; i += n) {
+            mx = px2 - i * pdx;
+            my = py2 - i * pdy;
+            var t = findContourPoint(mx, my, -ndy, ndx, threshold2);
+            contour.push([mx - t * ndy, my + t * ndx]);
+        }
+        contours.push(contour);
+    
+    } else {
+        // Loop around point, finding points on contour
+        contours.push(getArcAroundPoint(px1, py1, dAngle, 360, pAngle, isoValue, threshold));
+        contours.push(getArcAroundPoint(px2, py2, dAngle, 360, pAngle, isoValue, threshold));
+    }
+    
+    //contours.push(getArcAroundPoint(points[2].x, points[2].y, dAngle, 360, pAngle, isoValue, threshold));
+};
+
+var getContours2 = function() {
+    contours = [];
+    
+    var n = points.length;
+    var numAngle = 36;
+    var dAngle = 360 / numAngle;
+    
+    // Get points around each particle
+    for (var i = 0; i < n; i++) {
+        var p = points[i];
+        var stakes = [];
+        
+        // Calculate where radial lines end
+        for (var angle = 0; angle < 360; angle += dAngle) {
+            var dx = thresholdR * cos(angle);
+            var dy = thresholdR * sin(angle);
+            var t = findContourPoint(p.x, p.y, dx, dy, threshold);
+            dx *= t;
+            dy *= t;
+            var x = p.x + dx;
+            var y = p.y + dy;
+            
+            // Squared distance from p
+            var d = dx * dx + dy * dy;
+            
+            // For each stake, make sure it is close to this point than any other
+            // TODO: We've already tested the distance, so shouldn't need to do again
+            var nearer = false;
+            for (var j = 0; j < n; j++) {
+                if (i !== j) {
+                    var p2 = points[j];
+                    var d2 = (p2.x - x) * (p2.x - x) + (p2.y - y) * (p2.y - y);
+                    if (d2 + 1 < d) {
+                        // TODO: Start adding point between p and p2
+                        nearer = j;
+                        break;
+                    }
+                }
+            }
+            
+            if (nearer === false) {
+                stakes.push([x, y]);
+            }
+        }
+        
+        contours.push(stakes);
+    }
+};
+
+/*var getContours2 = function(isoValue) {
+    contours = [];
+    var threshold = 1 / (isoValue * isoValue);
+    var threshold2 = 1 / ((isoValue + 0.5) * (isoValue + 0.5));
+    
+    // Find midpoint between points
+    var px1 = points[0].x;
+    var py1 = points[0].y;
+    var px2 = points[1].x;
+    var py2 = points[1].y;
+    var pdx = px2 - px1;
+    var pdy = py2 - py1;
+    var pAngle = atan2(pdy, pdx);
+    var mx = (px1 + px2) * 0.5;
+    var my = (py1 + py2) * 0.5;
+    
+    var contour = [];
+    var numAngle = 36;
+    var dAngle = 360 / numAngle;
+    
+    // TODO: test whether p1 === p2
+    if (px1 === px2 && py1 === py2) {
+        // Points in the same place so draw contour around point 1
+        contours.push(getArcAroundPoint(px1, py1, dAngle, 360, 0, isoValue, threshold));
+    } else if (findValue(mx, my) > threshold2) {
+        // Joined
+        var length = sqrt(pdx * pdx + pdy * pdy);
+        var ndx = pdx * isoValue / length;
+        var ndy = pdy * isoValue / length;
+        var n = 1 / floor(length / 5);
+        
+        // Semi-circle around point 1
+        contour.push.apply(contour, getArcAroundPoint(px1, py1, dAngle, 150, pAngle + 100, isoValue, threshold2));
+        
+        // Join from particle 1 to particle 2
+        for (var i = 0; i < 1; i += n) {
+            mx = px1 + i * pdx;
+            my = py1 + i * pdy;
+            var t = 1.1 + 0.5 * cos(i * 180 - 90);
+            //t = 2.2 - t;
+            contour.push([mx + t * ndy, my - t * ndx]);
+            //ellipse(mx + t * ndy, my - t * ndx, 8, 8);
+        }
+        
+        // Semi-circle around point 2
+        contour.push.apply(contour, getArcAroundPoint(px2, py2, dAngle, 180, pAngle - 90, isoValue, threshold2));
+        
+        // Join from particle 2 to particle 1
+        for (var i = 0; i < 1; i += n) {
+            mx = px2 - i * pdx;
+            my = py2 - i * pdy;
+            var t = findContourPoint(mx, my, -ndy, ndx, threshold2);
+            contour.push([mx - t * ndy, my + t * ndx]);
+        }
+        contours.push(contour);
+    
+    } else {
+        // Loop around point, finding points on contour
+        contours.push(getArcAroundPoint(px1, py1, dAngle, 360, pAngle, isoValue, threshold));
+        contours.push(getArcAroundPoint(px2, py2, dAngle, 360, pAngle, isoValue, threshold));
+    }
+};*/
+
+var drawContours = function() {
+    noFill();
+    stroke(BLUE);
+    strokeWeight(3);
+    
+    for (var i = contours.length; i--;) {
+        var contour = contours[i];
+        if (!contour) { continue; }
+        var n = contour.length;
+        
+        beginShape();
+        curveVertex(contour[n - 1][0], contour[n - 1][1]);
+        for (var j = 0; j < n; j++) {
+            //ellipse(contour[j][0], contour[j][1], 6, 6);
+            curveVertex(contour[j][0], contour[j][1]);
+        }
+        curveVertex(contour[0][0], contour[0][1]);
+        endShape(CLOSE);
+    }
+};
+
+var drawCircles = function() {
+    noFill();
+    stroke(BLUE);
+    strokeWeight(3);
+    
+    var r = thresholdR * 2.8;
+    
+    for (var i = points.length; i--;) {
+        ellipse(points[i].x, points[i].y, r, r);
+        //println(points[i].x + " " +points[i].y);
+    }
+};
+
+var drawOffCircles = function() {
+    noFill();
+    stroke(BLUE);
+    strokeWeight(3);
+    
+    var r = thresholdR * 2.2;
+    
+    var px1 = points[0].x;
+    var py1 = points[0].y;
+    var px2 = points[1].x;
+    var py2 = points[1].y;
+    
+    var d = 0.1;
+    var pdx = (px2 - px1) * 0.1;
+    var pdy = (py2 - py1) * 0.1;
+    
+    ellipse(points[0].x - pdx, points[0].y - pdy, r, r);
+    ellipse(points[1].x + pdx, points[1].y + pdy, r, r);
+};
+
+var drawEllipse = function() {
+    noFill();
+    stroke(BLUE);
+    strokeWeight(3);
+    
+    var r = thresholdR * 2.2;
+    
+    var px1 = points[0].x;
+    var py1 = points[0].y;
+    var px2 = points[1].x;
+    var py2 = points[1].y;
+    
+    var dx = px2 - px1;
+    var dy = py2 - py1;
+    var d = sqrt(dx * dx + dy * dy);
+    
+    var pAngle = atan2(dy, dx);
+    var mx = (px1 + px2) * 0.5;
+    var my = (py1 + py2) * 0.5;
+    
+    pushMatrix();
+    translate(mx, my);
+    rotate(pAngle);
+    ellipse(0, 0, d * 1.6, d);
+    popMatrix();
+};
+
+var drawCross = function(x, y) {
+    strokeWeight(4);
+    stroke(250);
+    var d = 5;
+    
+    line(x - d, y - d, x + d, y + d);
+    line(x - d, y + d, x + d, y - d);
+    strokeWeight(2);
+    stroke(PINK);
+    line(x - d, y - d, x + d, y + d);
+    line(x - d, y + d, x + d, y - d);
+    
+    fill(10);
+    textFont(serifFont, 18);
+    textAlign(LEFT, CENTER);
+    //text("A", x + 8, y + 7);
+};
+
+/*************************************************
+ *      Main loop
+**************************************************/
+
+getContours(thresholdR);
+
+draw = function() {
+    background(BACKGROUND);
+    cursor('default');
+    
+    drawContours();
+    //drawOffCircles();
+    //drawCircles();
+    //drawEllipse();
+    
+    callForEach(points, 'draw');
+    //toolbar.draw();
+    
+    //drawCross(60, 141);
+    //drawCross(115, 112);
+    //drawCross(90, 78);
+    //drawCross(30, 120);
+    
+    stroke(0);
+    strokeWeight(1);
+    noFill();
+    rect(0, 0, 191, 149);
+
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+{
+mousePressed = function() {
+    for (var i = points.length; i--;) {
+        if (points[i].mouseOver()) {
+            selected = points[i];
+            return;
+        }
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move(mouseX - pmouseX, mouseY - pmouseY);
+        getContours(thresholdR);
+    }
+};
+
+mouseOut = mouseReleased;
+}

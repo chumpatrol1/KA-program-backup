@@ -1,0 +1,1240 @@
+/*******************************************************
+ *      Rigging interative with drag 'n' drop interface
+ * Version with relative transformations
+ * 
+ * TODO:
+ * Indicate the number of deformers on a node
+ * Add reset button to sliders
+ * Give deformers an angle which controls the direction
+ * of their effect
+ * Make central GUI object to keep track of where the mouse is
+*******************************************************/
+
+// Standard colours and variables
+{
+var BACKGROUND = color(250, 250, 250);
+var BACKGROUND1 = color(82, 115, 173);
+var BACKGROUND2 = color(33, 75, 110);
+//var BACKGROUND = color(10, 10, 20);
+var NULLCOL = color(0, 0, 0, 0);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var GUI_GREY = color(180, 180, 180);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var MESSAGEBLUE = color(20, 60, 160);
+var TICKGREEN = color(0, 200, 0);
+var CS_GREEN = color(67, 122, 57);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+}
+
+var Floor = getImage("pixar/floorplanes");
+
+var callFunctionForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+/*******************************************************
+ *      Transformation functions
+*******************************************************/
+
+var translateXFunction = function(p, origin, value) {
+    p.x += value;
+};
+
+var translateYFunction = function(p, origin, value) {
+    p.y -= value;
+};
+
+var scaleFunction = function(p, origin, value) {
+    p.x *= value;
+    p.y *= value;
+};
+
+var rotateFunction = function(p, origin, value) {
+    var cosAngle = cos(value);
+    var sinAngle = sin(value);
+    var x = p.x;
+    var y = p.y;
+    
+    p.x = x * cosAngle - y * sinAngle;
+    p.y = x * sinAngle + y * cosAngle;
+};
+
+/*******************************************************
+ *  Generic GUI component from which other elements
+ * inherit
+ * 
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.name = name;
+    this.updateFunction = updateFunction;
+    
+    this.showing = true;
+    this.selected = false;
+    this.disabled = false;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && this.showing && !this.deactivated && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction();
+    }
+};
+
+GUI_Component.prototype.deactivationCondition = function() {
+    if (this.deactivationFunction) {
+        this.deactivated = this.deactivationFunction();
+    }
+};
+}
+/*******************************************************
+ *  GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, h, name, updateFunction);
+
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = color(210, 210, 210, 250);
+    this.transition = 0;
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.fade = function() {
+    if (this.mouseOver() || this.selected) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+
+var FilledButtonDraw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function(col) {
+    this.draw = FilledButtonDraw.bind(this);
+    this.defaultCol = color(0, 0, 0, 1);
+    this.highlightCol = col;
+};
+}
+/*******************************************************
+ * GUI Slider to vary parameters
+********************************************************/
+{
+var Slider = function(x, y, w, minValue, maxValue, nowValue, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, 4, name, updateFunction);
+    
+    this.x2 = x + w;
+    this.ballR = 10;
+    this.ballD = this.ballR * 2;
+    
+    this.min = minValue || 0;
+    this.max = maxValue === undefined ? 1 : maxValue;
+    this.val = nowValue === undefined ? this.min : nowValue;
+    this.setValue(this.val);
+    
+    this.held = false;
+    this.decimalPlaces = 0;
+    if (this.min > 0 && this.min < 1) {
+        this.decimalPlaces = 1;
+    }
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(TEXTCOL);
+        textSize(15);
+        textAlign(CENTER, BASELINE);
+        text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 13);
+    }
+    
+    if (this.selected || this.mouseOver()) {
+        fill(GUI_GREY);
+    } else {
+        fill(BACKGROUND);
+    }
+    
+    stroke(GUI_GREY);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    /*
+    fill(TEXTCOL);
+    textFont(sansFont, 12);
+    textAlign(CENTER, CENTER);
+    text(this.val, this.bx, this.y);
+    */
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.val);
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Contains other GUI elements
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 7;
+    
+    this.buttons = [];
+    this.sliders = [];
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    noStroke();
+    fill(230, 230, 230, 200);
+    rect(this.x, this.y, this.w, this.h, 8);
+    callFunctionForEach(this.components, 'draw');
+};
+
+Toolbar.prototype.addButton = function(name, updateF, options) {
+    var h = 18;
+    var x = this.x + 5;
+    var y = this.y + this.h;
+    var w = this.w - 10;
+    var button = new Button(x, y, w, h, name, updateF);
+    
+    if (options) {
+        for (var opt in options) {
+            button[opt] = options[opt];
+        }
+    }
+    
+    this.buttons.push(button);
+    this.components.push(button);
+    this.h += h + 8;
+    return button;
+};
+
+Toolbar.prototype.addSlider = function(minX, maxX, nowX, name, updateF) {
+    var h = name ? 24 : 10;
+    var x = this.x + 15;
+    var y = this.y + this.h + h;
+    var w = this.w - 30;
+    var slider = new Slider(x, y, w, minX, maxX, nowX, name, updateF);
+    
+    this.sliders.push(slider);
+    this.components.push(slider);
+    this.h += h + 16;
+    return slider;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    callFunctionForEach(this.components, 'mousePressed');
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    callFunctionForEach(this.components, 'mouseReleased');
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    for (var i = 0; i < this.sliders.length; i++) {
+        if (this.sliders[i].mouseDragged()) {
+            return true;
+        }
+    }
+};
+}
+/*******************************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+*******************************************************/
+{
+var DraggablePoint = function(x, y, colour) {
+    this.x = x;
+    this.y = y;
+    this.r = 6;
+    this.color = colour || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(250, 250, 250);
+    if (this.selected) {
+        fill(PINK);
+    } else {
+        fill(this.color);
+    }
+    
+    var d = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, d, d);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+};
+}
+/*******************************************************
+ * DraggableDeformer
+ * An unattached deformer which can be dragged to a 
+ * node on a shape to attach a deformer to it.
+*******************************************************/
+{
+var DraggableDeformer = function(x, y, name, createDeformer) {
+    DraggablePoint.call(this, x, y);
+    this.name = name;
+    this.originX = x;
+    this.originY = y;
+    this.r = 10;
+    this.createDeformer = createDeformer;
+};
+DraggableDeformer.prototype = Object.create(DraggablePoint.prototype);
+
+DraggableDeformer.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(250, 250, 250);
+    fill(this.color);
+    
+    var r = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, r, r);
+    
+    fill(0);
+    textFont(serifFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y);
+};
+}
+/*******************************************************
+ *          Deformer Toolbar
+ * A place for DraggableDeformers to sit.
+*******************************************************/
+{
+var DeformerToolbar = function(x, y, model) {
+    this.x = x;
+    this.y = y;
+    this.model = model;
+    this.deformers = [];
+    this.selected = false;
+};
+
+DeformerToolbar.prototype.draw = function() {
+    if (this.selected) {
+        var x = this.selected.originX;
+        var y = this.selected.originY;
+        var d = this.selected.r * 2;
+        stroke(200);
+        strokeWeight(1);
+        fill(120);
+        ellipse(x, y, d, d);
+        
+        fill(80);
+        textFont(serifFont, 16);
+        textAlign(CENTER, CENTER);
+        text(this.selected.name, x, y);
+    }
+    
+    callFunctionForEach(this.deformers, 'draw');
+};
+
+DeformerToolbar.prototype.addDeformer = function(name, func) {
+    this.deformers.push(new DraggableDeformer(this.x, this.y, name, func));
+    this.x += 25;
+};
+
+DeformerToolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.deformers.length; i++) {
+        if (this.deformers[i].mouseOver()) {
+            this.selected = this.deformers[i];
+            break;
+        }
+    }
+};
+
+DeformerToolbar.prototype.mouseReleased = function() {
+    if (this.selected) {
+        this.model.addDeformer(this.selected);
+        this.selected.x = this.selected.originX;
+        this.selected.y = this.selected.originY;
+        this.selected = false;
+    }
+};
+
+DeformerToolbar.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    }
+};
+}
+/*******************************************************
+ *          Deformer Control
+ * A slider that controls a deformer.
+ * Has a close button to remove it from a node and a
+ * handle to allow reordering.
+*******************************************************/
+{
+var DeformerControl = function(parent, n, deformer, min, max, now) {
+    this.parent = parent;
+    this.x = parent.x;
+    this.y = parent.y + n * parent.dy;
+    this.w = parent.w;
+    this.h = 46;
+    this.deformer = deformer;
+    this.selected = false;
+    
+    var updateFunction = function(value) {
+        this.deformer.update(value);
+    };
+    
+    this.slider = new Slider(this.x + 35, this.y + 32, this.w - 50, min, max, now, "", updateFunction.bind(this));
+};
+
+DeformerControl.prototype.draw = function() {
+    // Background
+    if (this.deformer.shape.mouseOverOrigin()) {
+        strokeWeight(3);
+        stroke(PINK);
+    } else {
+        strokeWeight(1);
+        stroke(GUI_GREY);
+    }
+
+    fill(BACKGROUND);
+    rect(this.x, this.y, this.w, this.h, 8);
+    
+    // Label
+    fill(TEXTCOL);
+    textAlign(CENTER, TOP);
+    textFont(sansFont, 14);
+    text(this.deformer.name, this.x + (20 + this.w) / 2, this.y + 3);
+    
+    // Grip effect
+    strokeWeight(1);
+    stroke(200);
+    line(this.x + 20, this.y + 1, this.x + 20, this.y + this.h - 1);
+    
+    for (var i = 3; i < 17; i += 4) {
+        stroke(220);
+        line(this.x + i, this.y + 22,
+             this.x + i, this.y + this.h - 6);
+        stroke(200);
+        line(this.x + i + 1, this.y + 22,
+             this.x + i + 1, this.y + this.h - 6);
+    }
+    
+    // TODO: improve how slider is down
+    this.slider.y = this.y + 32;
+    this.slider.draw();
+    this.drawCloseButton(this.x + 11, this.y + 11);
+};
+
+DeformerControl.prototype.drawCloseButton = function(x, y) {
+    strokeWeight(1);
+    if (!this.selected && dist(mouseX, mouseY, x, y) <= 7) {
+        fill(200, 0, 0);
+        stroke(200, 0, 0);
+        ellipse(x, y, 14, 14);
+        stroke(255);
+    } else {
+        stroke(GUI_GREY);
+        fill(BACKGROUND);
+        ellipse(x, y, 14, 14);
+        stroke(100);
+    }
+    
+    strokeWeight(2);
+    var d = 3;
+    line(x - d, y - d, x + d, y + d);
+    line(x - d, y + d, x + d, y - d);
+};
+
+DeformerControl.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+DeformerControl.prototype.mouseOverCloseButton = function() {
+    return dist(mouseX, mouseY, this.x + 11, this.y + 11) <= 7;
+};
+
+DeformerControl.prototype.mouseOverMoveTab = function() {
+    return mouseX >= this.x && mouseX <= this.x + 20 &&
+           mouseY > this.y + 16 && mouseY <= this.y + this.h;
+};
+
+DeformerControl.prototype.mousePressed = function() {
+    if (!this.mouseOver()) { return; }
+    
+    if (this.slider.mouseOver()) {
+        this.selected = this.slider;
+        this.slider.selected = true;
+    }
+    
+    // Are we going to drag this
+    return this.mouseOverMoveTab();
+};
+
+DeformerControl.prototype.mouseReleased = function() {
+    // Click close button
+    if (!this.selected && this.mouseOverCloseButton()) {
+        this.parent.removeDeformer(this);
+        this.deformer.shape.removeDeformer(this);
+    } else {
+        this.selected.selected = false;
+        this.selected = false;
+    }
+};
+
+DeformerControl.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.mouseDragged();
+    }
+};
+}
+/*******************************************************
+ *          Deformer Control Container
+ * A place for all the deformer interfaces to sit
+*******************************************************/
+{
+var DeformerContainer = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.dy = 50;
+    this.controls = [];
+    this.selected = false;
+};
+
+DeformerContainer.prototype.draw = function() {
+    var cursorType = false;
+    var y = this.y;
+    
+    for (var i = 0; i < this.controls.length; i++) {
+        var control = this.controls[i];
+        
+        if (control === this.selectedControl) {
+            // Draw empty box where controls would go
+            noStroke();
+            fill(220);
+            rect(control.x, control.y, control.w, control.h, 8);
+            cursorType = MOVE;
+        } else {
+            control.draw();
+            if (control.mouseOverMoveTab() ||
+                control.slider.mouseOver()) {
+                cursorType = MOVE;
+            } else if (control.mouseOverCloseButton()) {
+                cursorType = HAND;
+            }
+        }
+        y += control.h + 5;
+    }
+    
+    if (cursorType) {
+        cursor(cursorType);
+    }
+    
+    if (this.selectedControl) {
+        var x = this.selectedControl.x;
+        var y = this.selectedControl.y;
+        var dx = x + this.selectedControl.dragX;
+        var dy = y + this.selectedControl.dragY;
+        
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(dx, dy);
+        rotate(5);
+        rect(3, 3, this.selectedControl.w, this.selectedControl.h, 8);
+        popMatrix();
+        
+        pushMatrix();
+        translate(dx, dy);
+        rotate(5);
+        translate(-x, -y);
+        this.selectedControl.draw();
+        popMatrix();
+    }
+};
+
+DeformerContainer.prototype.addDeformer = function(deformer, min, max, now) {
+    var controller = new DeformerControl(this, this.controls.length, deformer, min, max, now);
+    deformer.controller = controller;
+    this.controls.push(controller);
+};
+
+// Remove deformer control from container
+DeformerContainer.prototype.removeDeformer = function(control) {
+    var index = this.controls.indexOf(control);
+    if (index !== -1) {
+        this.controls.splice(index, 1);
+    } else {
+        println("ERROR: unable to remove object");
+        return;
+    }
+    this.reorderControls(index);
+};
+
+// Change the y positions of deformer controls to match
+// their order, starting with a given control
+DeformerContainer.prototype.reorderControls = function(start) {
+    for (var i = start; i < this.controls.length; i++) {
+        this.controls[i].y = this.y + i * this.dy;
+    }
+};
+
+// Drag and drop controls to move controls
+DeformerContainer.prototype.rearrangeControls = function() {
+    var t = this.selectedControl;
+    if (!t || this.controls.length < 2) { return; }
+    
+    var index = this.controls.indexOf(t);
+    
+    if (index < this.controls.length - 1 && t.dragY > t.h / 2) {
+        // Move down
+        this.controls[index] = this.controls[index + 1];
+        this.controls[index + 1] = t;
+        t.dragY -= this.controls[index].h;
+        this.reorderControls(index);
+        var shape = this.selectedControl.deformer.shape;
+        shape.reorderDeformers(this.controls);
+    } else if (index > 0 && -t.dragY > t.h / 2) {
+        // Move up
+        this.controls[index] = this.controls[index - 1];
+        this.controls[index - 1] = t;
+        t.dragY += this.controls[index].h;
+        this.reorderControls(index - 1);
+        var shape = this.selectedControl.deformer.shape;
+        shape.reorderDeformers(this.controls);
+    }
+};
+
+DeformerContainer.prototype.mousePressed = function() {
+    for (var i = 0; i < this.controls.length; i++) {
+        if (this.controls[i].mousePressed()) {
+            this.selectedControl = this.controls[i];
+            this.selectedControl.dragX = 0;
+            this.selectedControl.dragY = 0;
+        }
+    }
+};
+
+DeformerContainer.prototype.mouseReleased = function() {
+    if (this.selectedControl) {
+        this.selectedControl = false;
+    } else {
+        callFunctionForEach(this.controls, 'mouseReleased');
+    }
+    
+};
+
+DeformerContainer.prototype.mouseDragged = function() {
+    if (this.selectedControl) {
+        var dx = mouseX - pmouseX;
+        //this.selectedTrans.dragX = constrain(this.selectedTrans.dragX + dx, -20, 20);
+        this.selectedControl.dragY += mouseY - pmouseY;
+        this.rearrangeControls();
+    } else {
+        callFunctionForEach(this.controls, 'mouseDragged');
+    }
+};
+}
+/*******************************************************
+ *          Deformer
+ * An avar that controls a set of shapes.
+ * There are Translation, Rotation and Scaling types.
+ * Changing the value of a deformer applies a
+ * transformation based on an origin and a direction.
+*******************************************************/
+{
+var Deformer = function(shape, name, value) {
+    this.shape = shape;
+    this.origin = shape.origin;
+    this.name = name + " node " + shape.name;
+    this.value = value || 0;
+};
+
+// Update the position of dependent nodes with given value
+Deformer.prototype.update = function(value) {
+    this.value = value;
+    this.shape.getFinalPoints();
+};
+
+Deformer.prototype.transform = function(coord) {
+    this.transformFunction(coord, this.origin, this.value);
+};
+
+// To be overwritten
+Deformer.transformFunction = function() {};
+}
+/*******************************************************
+ *          Specific Deformers
+ * Each of the following inherits from Deformer, but
+ * uses a particular transformation.
+*******************************************************/
+{
+var TranslateXDeformer = function(node) {
+    Deformer.call(this, node, "TranslateX");
+};
+TranslateXDeformer.prototype = Object.create(Deformer.prototype);
+TranslateXDeformer.prototype.transformFunction = translateXFunction;
+
+var TranslateYDeformer = function(node) {
+    Deformer.call(this, node, "TranslateY");
+};
+TranslateYDeformer.prototype = Object.create(Deformer.prototype);
+TranslateYDeformer.prototype.transformFunction = translateYFunction;
+
+// Scale deformer
+var ScaleDeformer = function(node) {
+    Deformer.call(this, node, "Scale", 1);
+};
+ScaleDeformer.prototype = Object.create(Deformer.prototype);
+ScaleDeformer.prototype.transformFunction = scaleFunction;
+
+// Rotate deformer
+var RotateDeformer = function(node) {
+    Deformer.call(this, node, "Rotate");
+};
+RotateDeformer.prototype = Object.create(Deformer.prototype);
+RotateDeformer.prototype.transformFunction = rotateFunction;
+}
+/*******************************************************
+ *          Shape
+ * A set of points, which are connected by straight
+ * lines, and filled. Points are drawn relative to
+ * an origin, which is a node where deformers can be
+ * added.
+*******************************************************/
+{
+var Shape = function(origin, points, name, fillColor, strokeColor, drawShape) {
+    this.name = name;
+    this.origin = new PVector(origin[0], origin[1]);
+    
+    // Deformers that control this shape
+    this.deformers = [];
+    
+    // Shapes controlled by this one
+    this.dependentShapes =  [];
+    
+    // Coordinate of origins of dependent shapes
+    // relative to this shape's origin
+    this.dependentOriginsRelative =  [];
+    
+    this.getInitialCoords(points);
+    this.getFinalPoints();
+    
+    this.fillColor = fillColor;
+    this.strokeColor = strokeColor;
+    if (drawShape) { this.drawShape = drawShape.bind(this); }
+    
+    this.nodeR = 5;
+};
+
+// Convert arrays of two coordinates, [x, y], into PVectors
+// With values relative to the origin
+Shape.prototype.getInitialCoords = function(points) {
+    this.initialCoords = [];
+    
+    for (var i = 0; i < points.length; i++) {
+        var p = new PVector(points[i][0], points[i][1]);
+        p.sub(this.origin);
+        this.initialCoords.push(p);
+    }
+};
+
+Shape.prototype.getFinalPoints = function() {
+    this.finalCoords = [];
+    
+    var n = this.initialCoords.length;
+    var m = this.deformers.length;
+    var i, j, coord;
+    
+    for (i = 0; i < n; i++) {
+        coord = this.initialCoords[i].get();
+        for (j = 0; j < m; j++) {
+            this.deformers[j].transform(coord);
+        }
+        coord.add(this.origin);
+        this.finalCoords.push(coord);
+    }
+    
+    n = this.dependentShapes.length;
+    for (i = 0; i < n; i++) {
+        coord = this.dependentOriginsRelative[i].get();
+        for (j = 0; j < m; j++) {
+            this.deformers[j].transform(coord);
+        }
+        coord.add(this.origin);
+        this.dependentShapes[i].origin = coord;
+        this.dependentShapes[i].getFinalPoints();
+    }
+    
+    
+};
+
+Shape.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0, 50);
+    
+    pushMatrix();
+    translate(2, 3);
+    this.drawShape();
+    popMatrix();
+    
+    
+    if (this.fillColor) {
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(1);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    beginShape();
+    for (var i = 0; i < this.finalCoords.length; i++) {
+        var p = this.finalCoords[i];
+        vertex(p.x, p.y);
+    }
+    endShape(CLOSE);
+};
+
+Shape.prototype.drawNode = function() {
+    var d = this.nodeR * 2;
+    
+    if (this.deformers.length) {
+        d += 4;
+        var isPink = this.mouseOverOrigin();
+        if (!isPink) {
+            for (var i = 0; i < this.deformers.length; i++) {
+                var controller = this.deformers[i].controller;
+                if (controller && controller.mouseOver()) {
+                    isPink = true;
+                    break;
+                }
+            }
+        }
+        fill(isPink ? PINK : ORANGE);
+    } else {
+        fill(120);
+    }
+    
+    strokeWeight(1);
+    stroke(250, 250, 250);
+    ellipse(this.origin.x, this.origin.y, d, d);
+    
+    textAlign(LEFT, BASELINE);
+    textFont(serifFont, 16);
+    fill(0);
+    text(this.name, this.origin.x + this.nodeR, this.origin.y);
+};
+
+Shape.prototype.addDependentShape = function(shape) {
+    this.dependentShapes.push(shape);
+    this.dependentOriginsRelative.push(PVector.sub(shape.origin, this.origin));
+};
+
+Shape.prototype.addDeformer = function(createDeformer) {
+    this.deformers.push(createDeformer(this));
+};
+
+Shape.prototype.removeDeformer = function(deformer) {
+    var index = this.deformers.indexOf(deformer);
+    this.deformers.splice(index, 1);
+    this.getFinalPoints();
+};
+
+// If controls have been reordered then reorder deformers on this shape
+Shape.prototype.reorderDeformers = function(controls) {
+    if (this.deformers.length > 1) {
+        this.deformers = [];
+        for (var i = 0; i < controls.length; i++) {
+            var deformer = controls[i].deformer;
+            if (deformer.shape === this) {
+                this.deformers.push(deformer);
+            }
+        }
+    }
+    this.getFinalPoints();
+};
+
+Shape.prototype.mouseOverOrigin = function() {
+    return dist(mouseX, mouseY, this.origin.x, this.origin.y) <= this.nodeR;
+};
+}
+/*******************************************************
+ *          Model
+ * A character consisting of a set shapes.
+ * It also stores the deformers when they are added.
+*******************************************************/
+{
+var Model = function() {
+    this.shapes = {};
+    this.deformers = [];
+    this.shapeCount = 0;
+};
+
+Model.prototype.draw = function() {
+    for (var el in this.shapes) {
+        this.shapes[el].draw();
+    }
+    
+    for (var el in this.shapes) {
+        this.shapes[el].drawNode();
+    }
+};
+
+Model.prototype.getShapes = function(names) {
+    var shapes = [];
+    
+    for (var i = 0; i < names.length; i++) {
+        var shape = this.shapes[names[i]];
+        if (shape) {
+            shapes.push(shape);
+        } else {
+            println("ERROR: Invalid index: " + names[i]);
+        }
+    }
+    
+    return shapes;
+};
+
+Model.prototype.addShape = function(name, origin, points, dependentOn, fillColor, strokeColor, drawShape) {
+    this.shapeCount++;
+    var shape = new Shape(origin, points, this.shapeCount, fillColor, strokeColor, drawShape);
+    this.shapes[name] = shape;
+    
+    if (dependentOn && this.shapes[dependentOn]) {
+        this.shapes[dependentOn].addDependentShape(shape);
+    }
+};
+
+// Check whether dropped deformer hits node,
+// in which case add it
+Model.prototype.addDeformer = function(deformer) {
+    // Check whether deformer overlaps with node
+    for (var el in this.shapes) {
+        var node = this.shapes[el];
+        
+        if (dist(deformer.x, deformer.y, node.origin.x, node.origin.y) <= deformer.r + node.nodeR) {
+            // Add deformer
+            node.addDeformer(deformer.createDeformer);
+            break;
+        }
+    }
+};
+}
+/**************************************
+ * Create display objects
+***************************************/
+
+var luxo = new Model();
+
+var addShapes = function(x, y) {
+    var c1 = color(225, 230, 235);
+    var c2 = color(200, 200, 200);
+    
+    var w1 = 60;
+    var baseY = y - 15;
+    var uprightY = baseY - 15;
+    var w2 = 8;
+    
+    var base = [
+        [x - w1 - 4, y], [x + w1 + 4, y],
+        [x + w1, baseY], [x + w2, baseY],
+        [x + w2, uprightY], [x - w2, uprightY],
+        [x - w2, baseY], [x - w1, baseY]];
+    var basePoint = [x, y];
+    
+    y -= 13;
+    var d1 = 10;
+    var d2 = d1 * 8;
+    
+    var arm1 = [
+        [x, y], [x - d1, y - d1],
+        [x - d1 + d2, y - d1 - d2],
+        [x + d2, y - d2]
+    ];
+    var arm1Point = [x, y - 9];
+    
+    y -= d2;
+    var arm2 = [
+        [x + d2, y], [x + d2 - d1, y + d1],
+        [x - d1, y + d1 - d2],
+        [x, y - d2]
+    ];
+    var arm2Point = [x + d2 - 10, y];
+    
+    y -= d2;
+    var d3 = 20;
+    var lamp = [
+        [x - d3, y + d3], [x, y],
+        [x + d3, y + d3],
+        [x, y + d3 * 2],
+        [x - d3, y + d3 * 5],
+        [x - d3 * 4, y + d3 * 2]
+    ];
+    var lampPoint = [x + 3, y + 17];
+
+    // Add shapes
+    luxo.addShape('base', basePoint, base, false, c1, c2);
+    luxo.addShape('arm 1', arm1Point, arm1, 'base',  c1, c2);
+    luxo.addShape('arm 2', arm2Point, arm2, 'arm 1', c1, c2);
+    luxo.addShape('lamp', lampPoint, lamp, 'arm 2', c1, c2);
+};
+addShapes(250, 350);
+
+/**************************************
+ * Create interface
+***************************************/
+{
+var toolbar = new Toolbar(10, 10, 128);
+
+var deformerInterface = new DeformerContainer(width - 160, 10, 150);
+
+// Functions to build deformers
+var createRotateDeformer = function(shape) {
+    var deformer = new RotateDeformer(shape);
+    deformerInterface.addDeformer(deformer, -180, 180, 0);
+    return deformer;
+};
+
+var createTranslateXDeformer = function(shape) {
+    var deformer = new TranslateXDeformer(shape);
+    deformerInterface.addDeformer(deformer, -200, 200, 0);
+    return deformer;
+};
+
+var createTranslateYDeformer = function(shape) {
+    var deformer = new TranslateYDeformer(shape);
+    deformerInterface.addDeformer(deformer, -200, 200, 0);
+    return deformer;
+};
+
+var createScaleDeformer = function(shape) {
+    var deformer = new ScaleDeformer(shape);
+    deformerInterface.addDeformer(deformer, 0.2, 3, 1);
+    return deformer;
+};
+
+// Create toolbar of draggable deformers
+var deformerToolbar = new DeformerToolbar(20, 20, luxo);
+deformerToolbar.addDeformer("↻", createRotateDeformer);
+deformerToolbar.addDeformer(String.fromCharCode(0x2194), createTranslateXDeformer);
+deformerToolbar.addDeformer(String.fromCharCode(0x2195), createTranslateYDeformer);
+deformerToolbar.addDeformer(String.fromCharCode(0x25F1), createScaleDeformer);
+}
+
+var items = [deformerToolbar, deformerInterface];
+
+/**************************************
+ *  Extra draw functions
+***************************************/
+
+var drawBackground = function() {
+    background(BACKGROUND);
+    strokeWeight(2);
+    for (var i = 0; i <= 300; i += 2) {
+        stroke(lerpColor(BACKGROUND2, BACKGROUND1, i / 300));
+        line(0, i, width, i);
+    }
+    
+    // Floor boards
+    pushMatrix();
+    scale(1, 0.5);
+    image(Floor, 2 * Floor.width - 1, 600);
+    image(Floor, Floor.width - 1, 600);
+    image(Floor, -1, 600);
+    image(Floor, Floor.width * 2 - 40, 725); 
+    image(Floor, Floor.width - 40, 725); 
+    image(Floor, -40, 725);
+    popMatrix();
+};
+
+/**************************************
+ *  Main loop
+***************************************/
+
+draw = function() {
+    cursor();
+    drawBackground();
+    luxo.draw();
+    callFunctionForEach(items, 'draw');
+    //toolbar.draw();
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    callFunctionForEach(items, 'mousePressed');
+};
+
+mouseDragged = function() {
+    callFunctionForEach(items, 'mouseDragged');
+};
+
+mouseReleased = function() {
+    callFunctionForEach(items, 'mouseReleased');
+};
+
+mouseOut = function() {
+    toolbar.mouseReleased();
+    deformerToolbar.mouseReleased();
+};

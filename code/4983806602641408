@@ -1,0 +1,61 @@
+var points = [[100, 120], [150, 80], [200, 80], [250, 150], [200, 250], [100, 200]];
+
+stroke(SQUARE);
+//stroke(PROJECT);
+
+var drawShape = function(points) {
+    var n = points.length;
+
+    var dx, dy, i, d;
+    var p1, p2;
+    var deltas = [];
+    var dists = [];
+    
+    // Calculate some useful values
+    for (i = 0; i < n; i++) {
+        p1 = points[i];
+        p2 = points[(i + 1) % n];
+        dx = p2[0] - p1[0];
+        dy = p2[1] - p1[1];
+        d = sqrt(dx * dx + dy * dy);
+        dists.push(d);
+        deltas.push([dx / d, dy / d]);
+    }
+    
+    strokeWeight(2);
+    stroke(250, 0, 0);
+    
+    var len = 10;
+    var len2 = len * 2;
+    var t = (frameCount * 0.5) % len2;
+    var s, x, y, totalDist;
+    
+    for (i = 0; i < n; i++) {
+        totalDist = dists[i];
+        x = points[i][0];
+        y = points[i][1];
+        dx = deltas[i][0];
+        dy = deltas[i][1];
+        
+        // Draw partial line start if necessary
+        if (t > len) {
+            s = t - len;
+            line(x, y, x + dx * s, y + dy * s);
+        }
+
+        for (; t < totalDist; t += len2) {
+            s = min(totalDist, t + len - 1);
+            line(x + t * dx, y + t * dy, x + s * dx, y + s * dy);
+        }
+        
+        t -= totalDist;
+    }
+};
+
+draw = function() {
+    background(255);
+    drawShape(points);
+};
+
+
+

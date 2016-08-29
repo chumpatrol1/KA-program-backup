@@ -1,0 +1,279 @@
+/***************************************************
+ * 3D molecule viewer - Penicillin G
+ * 
+ * Red: Oxygen atoms
+ * Blue: Nitrogen atoms
+ * Dark Grey: Carbon atoms
+ * Light Grey: Hydrogen atoms
+ * Yellow: Sulfur atoms
+ * 
+ * Need to add double bonds
+ * 
+ * Coordinates from:
+ * http://www.rcsb.org/pdb/ligand/ligandsummary.do?hetId=PNN
+ * 
+ * For more information about the structure of penicillin G see:
+ * https://www.khanacademy.org/science/organic-chemistry/bond-line-structures-alkanes-cycloalkanes/bond-line-structures/v/3-d-bond-line-structures
+ * 
+ * Use the mouse or keyboard to rotate the molecule
+ ***************************************************/
+//Draw some text at the specified location.//
+
+
+
+//Draw some text at the specified location.//
+var atomSize = 8;
+var bondThickness = 4;
+var bondColour = color(64, 61, 64, 160);
+
+var backgroundColour = color(240, 240, 240);
+
+var Atom = function(element, x, y, z) {
+    this.element = element;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    
+    if (element === "H") {
+        this.colour = color(180, 180, 180, 220);
+        this.size = atomSize * 1.2;
+    } else if (element === "C") {
+        this.colour = color(64, 61, 64, 220);
+        this.size = atomSize * 1.7;
+    } else if (element === "N") {
+        this.colour = color(68, 75, 219, 220);
+        this.size = atomSize * 1.55;
+    } else if (element === "O") {
+        this.colour = color(250, 15, 15, 220);
+        this.size = atomSize * 1.52;
+    } else if (element === "S") {
+        this.colour = color(237, 107, 7, 220);
+        this.size = atomSize * 1.8;
+    }
+    
+    this.draw = function() {
+        var fade = 1 - (this.z + 300) / 600;
+    //fill(lerpColor(this.colour, backgroundColour, fade));
+        fill(this.colour);
+        ellipse(this.x, this.y, this.size, this.size);
+    };
+};
+
+// Coordinates for molecule from http://www.rcsb.org/pdb
+var atoms = [
+    new Atom("O", -2.611, -0.398, 0.977),
+    new Atom("C", -1.463, -0.753, 1.145),
+    new Atom("N", -0.643, -0.879, 2.269),
+    new Atom("C", -0.264, 0.372, 2.934),
+    new Atom("C", -1.064, 0.515, 4.204),
+    new Atom("O", -1.351, 1.736, 4.682),
+    new Atom("O", -1.447, -0.468, 4.791),
+    new Atom("C", 1.255, 0.414, 3.255),
+    new Atom("C", 1.583, -0.367, 4.529),
+    new Atom("C", 1.773, 1.851, 3.335),
+    new Atom("S", 1.881, -0.451, 1.746),
+    new Atom("C", 0.428, -1.548, 1.493),
+    new Atom("C", -0.369, -1.247, 0.223),
+    new Atom("N", 0.222, -0.198, -0.610),
+    new Atom("C", 0.047, -0.219, -1.946),
+    new Atom("O", -0.599, -1.108, -2.458),
+    new Atom("C", 0.656, 0.859, -2.803),
+    new Atom("C", 0.314, 0.605, -4.249),
+    new Atom("C", -0.836, 1.144, -4.792),
+    new Atom("C", -1.149, 0.911, -6.118),
+    new Atom("C", -0.311, 0.139, -6.901),
+    new Atom("C", 0.840, -0.398, -6.358),
+    new Atom("C", 1.155, -0.161, -5.033),
+    new Atom("H", -0.492, 1.209, 2.274),
+    new Atom("H", -1.864, 1.829, 5.496),
+    new Atom("H", 2.663, -0.386, 4.676),
+    new Atom("H", 1.108, 0.113, 5.383),
+    new Atom("H", 1.212, -1.388, 4.434),
+    new Atom("H", 2.854, 1.840, 3.478),
+    new Atom("H", 1.534, 2.375, 2.410),
+    new Atom("H", 1.300, 2.362, 4.174),
+    new Atom("H", 0.603, -2.602, 1.709),
+    new Atom("H", -0.642, -2.137, -0.344),
+    new Atom("H", 0.740, 0.512, -0.200),
+    new Atom("H", 0.260, 1.829, -2.501),
+    new Atom("H", 1.739, 0.855, -2.679),
+    new Atom("H", -1.491, 1.747, -4.181),
+    new Atom("H", -2.049, 1.331, -6.543),
+    new Atom("H", -0.556, -0.043, -7.937),
+    new Atom("H", 1.495, -1.001, -6.969),
+    new Atom("H", 2.055, -0.582, -4.608)
+];
+
+var Bond = function(a, b) {
+    this.atom1 = atoms[a];
+    this.atom2 = atoms[b];
+    
+    this.draw = function() {
+        var atom1 = this.atom1;
+        var atom2 = this.atom2;
+                
+        var dx = atom1.x - atom2.x;
+        var dy = atom1.y - atom2.y;
+        var theta = atan2(dx, dy);
+
+        var x1 = atom1.x - 0.5 * atom1.size * sin(theta);
+        var y1 = atom1.y - 0.5 * atom1.size * cos(theta);
+        var x2 = atom2.x + 0.5 * atom2.size * sin(theta);
+        var y2 = atom2.y + 0.5 * atom2.size * cos(theta);
+        line(x1, y1, x2, y2);
+    };
+};
+
+// List of bond joining atoms by index.
+var bonds = [
+    new Bond(0,1),
+    new Bond(1,2), new Bond(1,12),
+    new Bond(2,3), new Bond(2,11),
+    new Bond(3,4), new Bond(3,7), new Bond(3,23),
+    new Bond(4,5), new Bond(4,6),
+    new Bond(5,24),
+    new Bond(7,8), new Bond(7,9), new Bond(7,10),
+    new Bond(8,25), new Bond(8,26), new Bond(8,27),
+    new Bond(9,28), new Bond(9,29), new Bond(9,30),
+    new Bond(10,11),
+    new Bond(11,12), new Bond(11,31),
+    new Bond(12,13), new Bond(12,32),
+    new Bond(13,14), new Bond(13,33),
+    new Bond(14,15), new Bond(14,16),
+    new Bond(16,17), new Bond(16,34), new Bond(16,35),
+    new Bond(17,18), new Bond(17,22),
+    new Bond(18,19), new Bond(18,36),
+    new Bond(19,20), new Bond(19,37),
+    new Bond(20,21), new Bond(20,38),
+    new Bond(21,22), new Bond(21,39),
+    new Bond(22,40)
+];
+
+var currentX = false;
+var currentY = false;
+
+var moveObjectToCentre = function(atoms) {
+    // Find range of x values and scale to fill screen
+    var minValue = atoms[0].y;
+    var maxValue = atoms[0].y;
+        
+    for (var i=0; i<atoms.length; i++){
+        if (atoms[i].y > maxValue) {
+            maxValue = atoms[i].y;
+        } else if (atoms[i].y < minValue) {
+            minValue = atoms[i].y;
+        }
+    }
+    var scaleValue = 300 / (maxValue - minValue);
+    scaleValue = 20;
+    
+    // Scale and shift everything
+    var dims = ['x', 'y', 'z'];
+    for (var d = 0; d<3; d++) {
+        // Find mean values for each dimension
+        var meanValue = 0;
+        var dimension = dims[d];
+        for (i=0; i<atoms.length; i++) {
+            meanValue += atoms[i][dimension];
+        }
+        meanValue /= atoms.length;
+        
+        for (i=0; i<atoms.length; i++) {
+            atoms[i][dimension] = scaleValue * (atoms[i][dimension] - meanValue);
+        }
+    }
+};
+
+moveObjectToCentre(atoms);
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, z;
+
+    for (var i = 0; i < atoms.length; i+=1) {
+        x = atoms[i].x;
+        z = atoms[i].z;
+        atoms[i].x = ct*x + st*z;
+        atoms[i].z = -st*x + ct*z;
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var y, z;
+    
+    for (var i = 0; i < atoms.length; i+=1) {
+        y = atoms[i].y;
+        z = atoms[i].z;
+        atoms[i].y = ct*y - st*z;
+        atoms[i].z = st*y + ct*z;
+    }
+};
+
+// Return the difference of the z-coordinate
+var sortByZ = function(a, b) {
+    return a.z - b.z;
+};
+
+// Move to centre of screen
+translate(200, 200);
+
+var draw = function() {
+    var i;
+    atoms.sort(sortByZ);
+    background(backgroundColour);
+
+    // Draw bonds
+    stroke(bondColour);
+    strokeWeight(bondThickness);
+    for (i = 0; i < bonds.length; i+=1) {
+        bonds[i].draw();
+    }
+    
+    // Draw atoms
+    noStroke();
+    for (i = 0; i < atoms.length; i+=1) {
+        atoms[i].draw();
+    }
+
+    if (mouseIsPressed) {
+        if (currentX !== false) {
+            rotateY3D(-(currentX - mouseX)*PI/10);
+            rotateX3D((currentY - mouseY)*PI/10);
+        }
+        currentX = mouseX;
+        currentY = mouseY;
+    } else {
+        currentX = false;
+    } 
+    
+    fill(15, 2, 2);
+    textSize (28);
+    text("Name the Functional Groups!", -187, -170);
+};
+
+var keyPressed = function() { 
+    if (keyCode === LEFT) {
+        rotateY3D(-3);
+    } else if (keyCode === RIGHT) {
+        rotateY3D(3);
+    } else if (keyCode === UP) {
+        rotateX3D(-3);
+    } else if (keyCode === DOWN) {
+        rotateX3D(3);
+    }
+};
+
+// Let go when mouse leaves canvas
+var mouseOut = function(){
+    mouseIsPressed = false;
+};
+
+// Initial rotations
+rotateX3D(90);
+rotateY3D(90);
+rotateX3D(90);
+rotateY3D(90);
+rotateX3D(180);

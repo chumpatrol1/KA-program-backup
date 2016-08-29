@@ -1,0 +1,812 @@
+/*************************************
+ * 
+ * Version history
+ * {
+ * 5.4 {
+ *    Create grid of hex tiles
+ *    Find neighbours
+ *    Mouseover selection
+ *    Start generating tile images
+ * }
+ * 6.4 {
+ *    Create two-colour textures
+ *    Load multiple images
+ * }
+ * 7.4 {
+ *    Get nice looking contours based on surface heights
+ * }
+ * }
+ * 
+ * TODO:
+ *  Use 3D noise with height map
+ *  Alter colour of tiles with noise
+**************************************/
+
+// Square root of 3 is very useful for regular hexagons
+var R3 = sqrt(3);
+var halfAngle = 2 * asin(1);
+var hexAngle = halfAngle / 3;
+var hexAngleI = 1 / hexAngle;
+
+// Light vector
+var lightX = 8;
+var lightY = 5;
+var lightZ = -8;
+
+// Normalise
+var lightD = -sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
+lightX /= lightD;
+lightY /= lightD;
+lightZ /= lightD;
+
+var DRAW_BORDER = 0;
+var LOAD_TILES = -1;
+
+var sansFont = createFont("Trebuchet MS");
+noiseDetail(3, 0.4);
+
+// Map tile ID to its properties
+var tileTypes = {
+    G: {
+        name: 'Grassland',
+        color1: color(60, 150, 70),
+        color2: color(106, 176, 92),
+        getColorAtPoint: function(x, y, z) {
+            var c = 1.2 * noise(x * 0.1, y * 0.2);
+            if (c > 1) { c = 1; }
+            c *= c * (3 - 2 * c);
+            c *= c * (3 - 2 * c);
+            return (c * 60 + (1 - c) * 106 << 16) |
+                   (c * 150 + (1 - c) * 176 << 8) |
+                   (c * 70 + (1 - c) * 92);
+        },
+        actions: ['Gather berries']
+    },
+    F: {
+        name: 'Forest',
+        color1: color(30, 120, 50),
+        color2: color(100, 170, 90),
+        getColorAtPoint: function(x, y, z) {
+            var c = 1.6 * noise(x * 0.2, y * 0.2);
+            if (c > 1) { c = 1; }
+            c *= c * (3 - 2 * c);
+            c *= c * (3 - 2 * c);
+            //c *= c * (3 - 2 * c);
+            return (c * 30 + (1 - c) * 100 << 16) |
+                   (c * 120 + (1 - c) * 170 << 8) |
+                   (c * 50 + (1 - c) * 90);
+        }
+    },
+    L: {
+        name: 'Lava',
+        color1: color(235, 107, 38),
+        color2: color(237, 220, 33),
+        getColorAtPoint: function(x, y, z) {
+            var c = 1.2 * noise(x * 0.07, y * 0.07);
+            if (c > 1) { c = 1; }
+            c *= c * (3 - 2 * c);
+            c *= c * (3 - 2 * c);
+            return (235 << 16) |
+                   (c * 220 + (1 - c) * 100 << 8) |
+                   (c * 32 + (1 - c) * 40);
+        }
+    },
+    S: {
+        name: 'Sand',
+        color1: color(180, 150, 90),
+        color2: color(195, 175, 145),
+        getColorAtPoint: function(x, y, z) {
+            //println(x*0.12 + " " + z);
+            var c = 1.2 * noise(x * 0.12, y * 0.3);
+            if (c > 1) { c = 1; }
+            c *= c * (3 - 2 * c);
+            c *= c * (3 - 2 * c);
+            return (c * 180 + (1 - c) * 195 << 16) |
+                   (c * 150 + (1 - c) * 175 << 8) |
+                   (c * 90 + (1 - c) * 154);
+        }
+    },
+    W: {
+        name: 'Water',
+        color1: color(40, 100, 185),
+        getColorAtPoint: function(x, y) {
+            return 40 << 16 | 100 << 8 | 185;
+        }
+    }
+};
+
+// 2D array of the types for each tile
+var terrainMap = [
+    'SLSS',
+    'SFGG',
+    'SGFF',
+];
+
+// 2D array of heights for tile centers
+var heightMap = [
+    [10,  80,  60, 120],
+    [20, 180, 180, 250],
+    [40, 160, 120, 300]
+];
+
+/*************************************
+ *  A player controlling a civilisation
+**************************************/
+{
+var Player = function() {
+    this.population = 20;
+    this.food = 0;
+};
+
+var player = new Player();
+}
+/*************************************
+ *  An action a player can take
+ * represented as a circle
+**************************************/
+{
+var Action = function(x, y, r, name) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.d = r * 2;
+    this.name = name;
+};
+
+Action.prototype.draw = function() {
+    strokeWeight(3);
+    stroke(255);
+    noFill();
+    ellipse(this.x, this.y, this.d, this.d);
+    
+    fill(255);
+    textFont(sansFont, 13);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.r + 4, this.y);
+};
+
+Action.prototype.drawSelected = function() {
+    strokeWeight(3);
+    stroke(255);
+    noFill();
+    ellipse(this.x, this.y, this.d, this.d);
+    fill(50, 100, 255, 160);
+    stroke(50, 100, 255);
+    ellipse(this.x, this.y, this.dragR, this.dragR);
+    
+    fill(255);
+    textFont(sansFont, 13);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.r + 4, this.y);
+};
+
+Action.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+
+Action.prototype.mousePressed = function() {
+    this.dragR = 0;
+    this.startX = mouseX;
+    this.startY = mouseY;
+};
+
+Action.prototype.mouseDragged = function() {
+    this.dragR = dist(mouseX, mouseY, this.startX, this.startY);
+};
+
+}
+/*************************************
+ *  A hexagonal tile on the grid
+**************************************/
+{
+var HexTile = function(x, y, r, row, col, type, height) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.row = row;
+    this.col = col;
+    this.height = height || 0;
+    
+    this.type = type;
+    if (type) {
+        this.color1 = type.color1;
+        this.color2 = type.color2;
+    } else {
+        this.color1 = color(240);
+    }
+    
+    // Coordinates for drawing tile
+    // TODO: should only calculate coords once per grid
+    this.getCoords(this.x, this.y, this.r, this.tilt);
+    
+    // Which tiles touch this one
+    this.neighbours = [false, false, false, false, false, false];
+    
+    // Add action buttons
+    this.actions = [];
+    this.createActions(type.actions || []);
+    this.selectedAction = false;
+};
+
+HexTile.prototype.findNormals = function() {
+    this.heights = [];
+    this.normals = [];
+
+    var nx = 0;
+    var ny = 0;
+    var nz = 0;
+    var r = this.r * 2;
+    var h = this.height;
+    var x, y, z, h1, h2, dx1, dy1, dz1, dx2, dy2, dz2, d, neighbour;
+    var oneThird = 1/30000;
+    
+    // Normal of vertex is normal to the plane connecting the center
+    // of three tiles surrounding that vertex
+    
+    for (var i = 0; i < 6; i++) {
+        // Find vectors for edges of triangle
+        dx1 = r * cos(hexAngle * (i - 0.5));
+        dy1 = r * sin(hexAngle * (i - 0.5));
+        dx2 = r * cos(hexAngle * (i + 0.5));
+        dy2 = r * sin(hexAngle * (i + 0.5));
+        
+        neighbour = this.neighbours[(i + 5) % 6];
+        h1 = neighbour ? neighbour.height : 0;
+        dz1 = h1 - h;
+        
+        neighbour = this.neighbours[i];
+        h2 = neighbour ? neighbour.height : 0;
+        dz2 = h2 - h;
+        
+        //dz1 *= 2;
+        //dz2 *= 2;
+        
+        // Find normal of plane using cross-product
+        x = dy1 * dz2 - dz1 * dy2;
+        y = dz1 * dx2 - dx1 * dz2;
+        z = dx1 * dy2 - dy1 * dx2;
+        x = dy1 * dz2 - dz1 * dy2;
+        y = dz1 * dx2 - dx1 * dz2;
+        z = dx1 * dy2 - dy1 * dx2;
+        
+        // Normalise
+        d = sqrt(x * x + y * y + z * z);
+        x /= d;
+        y /= d;
+        z /= d;
+        
+        this.heights.push((h1 + h2 + h) * oneThird);
+        this.normals.push([x, y, z]);
+        
+        // Normal at center point
+        nx += x;
+        ny += y;
+        nz += z;
+    }
+    
+    var d = sqrt(nx * nx + ny * ny + nz * nz);
+    this.normal = [nx / d, ny / d, nz / d];
+};
+
+HexTile.prototype.createImage = function() {
+    // Make things global
+    var tileX = this.x;
+    var tileY = this.y;
+    
+    var midX = this.r;
+    var midY = this.r * R3 / 2;
+    var tileWidth = midX * 2;
+    var tileHeight = midY * 2;
+    
+    // Squared distance from where we start merging
+    var minR2 = midY * midY / 4;
+    // Value we subtract squared distance from
+    var minR2b = minR2 * 9;
+    
+    var colorFunc2, colorFunc3, colorFunc = this.type.getColorAtPoint;
+    var neighbourColors = [];
+    var neighbourPositions = [];
+    var neighbour;
+    for (var i = 0; i < 6; i++) {
+        neighbour = this.neighbours[i];
+        if (neighbour) {
+            neighbourColors.push(neighbour.type.getColorAtPoint);
+        } else {
+            //neighbourColors.push(tileTypes.W.getColorAtPoint)
+            neighbourColors.push(false);
+        }
+        neighbourPositions.push([
+            tileHeight * cos(hexAngle * (i + 0.5)),
+            tileHeight * sin(hexAngle * (i + 0.5))
+        ]);
+    }
+    
+    background(0);
+    loadPixels();
+    
+    var p = imageData.data;
+    var x, y, z, dx, dy, d, h, da, p1, p2, v;
+    var triangle2, d1, d2, d3;
+    var c, r, g, b;
+    var angle, triangle, index, nx, ny, nz;
+    var n2, n3, n1 = this.normal;
+    var h = this.height;
+    
+    // How noisy the distance calculation is for merging tiles.
+    var dN = 0.05;
+    
+    for (y = 0; y < tileHeight; y++) {
+        for (x = 0; x < tileWidth; x++) {
+            dx = x - midX;
+            dy = y - midY;
+            index = x + y * width << 2;
+
+            if ((midX - abs(dx)) * R3 >= abs(dy) - 1) {
+                // Distance from center
+                d = dx * dx + dy * dy;
+                
+                // Angle around center
+                angle = atan2(dy, dx) * hexAngleI;
+                if (angle < 0) { angle += 6 ; }
+                
+                // Which triangle are we in?
+                triangle = floor(angle);
+                
+                // How far around the triangle (0 - 1)
+                p2 = angle - triangle;
+                
+                // Smooth angle
+                p2 *= p2 * (3 - 2 * p2);
+                p2 *= p2 * (3 - 2 * p2);
+                
+                p1 = sqrt(d) / midY;
+
+                // Smooth distance
+                p1 *= p1 * (3 - 2 * p1);
+
+                // Calculate height at this point
+                z = (1 - p1) * h + p1 * (
+                    (1 - p2) * this.heights[triangle] + 
+                    p2 * this.heights[(triangle + 1) % 6]);
+
+                // Get initial color
+                // Tile colour plus any noise
+                c = colorFunc(tileX + x, tileY + y, z);
+                r = c >> 16 & 255;
+                g = c >> 8 & 255;
+                b = c & 255;
+
+                // Acts a flag for adding contours
+                d1 = 1;
+                
+                // Merge colour with neighbours
+                if (d > minR2) {
+                    // Get distance from each neighbouring tile
+                    triangle2 = neighbourPositions[triangle];
+                    d2 = (triangle2[0] - dx) * (triangle2[0] - dx) +
+                         (triangle2[1] - dy) * (triangle2[1] - dy);
+                    triangle2 = neighbourPositions[(triangle + (p2 < 0.5 ? 5 : 1)) % 6];
+                    d3 = (triangle2[0] - dx) * (triangle2[0] - dx) +
+                         (triangle2[1] - dy) * (triangle2[1] - dy);
+                    
+                    // Invert distance
+                    d1 = minR2b - d;
+                    d2 = minR2b - d2;
+                    d3 = minR2b - d3;
+                    
+                    colorFunc2 = neighbourColors[triangle];
+                    colorFunc3 = neighbourColors[(triangle + (p2 < 0.5 ? 5 : 1)) % 6];
+                    
+                    d1 -= minR2b * (noise((x + tileX) * dN, (y + tileY) * dN));
+                    d2 -= minR2b * (noise((x + tileX) * dN, (y + tileY) * dN));
+                    d3 -= minR2b * (noise((x + tileX) * dN, (y + tileY) * dN));
+                    if (d1 < 0) { d1 = 0; }
+                    if (d2 < 0) { d2 = 0; }
+                    if (d3 < 0) { d3 = 0; }
+                    
+                    // Normalise distances
+                    c = 1 / (d1 + d2 + d3);
+                    d1 *= c;
+                    d2 *= c;
+                    d3 *= c;
+                    
+                    // Reduce blurring with sea edge
+                    if (!colorFunc2) {
+                        c = min(d1, d2 * 2.5);
+                        d1 -= c;
+                        d2 += c;
+                    }
+                    
+                    if (!colorFunc3) {
+                        c = min(d1, d3 * 2.5);
+                        d1 -= c;
+                        d3 += c;
+                    }
+
+                    r *= d1;
+                    g *= d1;
+                    b *= d1;
+                    
+                    if (d2) {
+                        if (colorFunc2) {
+                            c = colorFunc2(tileX + x, tileY + y, z);
+                            r += d2 * (c >> 16 & 255);
+                            g += d2 * (c >> 8 & 255);
+                            b += d2 * (c & 255);
+                        } else {
+                            r += d2 * 40;
+                            g += d2 * 100;
+                            b += d2 * 185;
+                        }
+                    }
+                    
+                    if (d3) {
+                        if (colorFunc3) {
+                            c = colorFunc3(tileX + x, tileY + y, z);
+                            r += d3 * (c >> 16 & 255);
+                            g += d3 * (c >> 8 & 255);
+                            b += d3 * (c & 255);
+                        } else {
+                            r += d3 * 40;
+                            g += d3 * 80;
+                            b += d3 * 185;
+                        }
+                    }
+                }
+
+                // Calculate contours
+                /*
+                if (d1) {
+                    d = sqrt(d);
+                    p1 = d / midY;
+    
+                    // Smooth distance
+                    p1 *= p1 * (3 - 2 * p1);
+                    // Smooth angle
+                    p2 *= p2 * (3 - 2 * p2);
+                    p2 *= p2 * (3 - 2 * p2);
+    
+                    // Calculate normal at this point
+                    n2 = this.normals[triangle];
+                    n3 = this.normals[(triangle + 1) % 6];
+                    nx = (1 - p1) * n1[0] + p1 * ((1 - p2) * n2[0] + p2 * n3[0]);
+                    ny = (1 - p1) * n1[1] + p1 * ((1 - p2) * n2[1] + p2 * n3[1]);
+                    nz = (1 - p1) * n1[2] + p1 * ((1 - p2) * n2[2] + p2 * n3[2]);
+    
+                    // Intensity based on contours
+                    v = 0.5 + 0.6 * max(0, lightX * nx + lightY * ny + lightZ * nz);
+                    
+                    if (!colorFunc2) {
+                        v = 1 - d1 * (1 - v);
+                    }
+                    
+                    r *= v;
+                    g *= v;
+                    b *= v;
+                    
+                }
+                */
+                p[index] = r;
+                p[index + 1] = g;
+                p[index + 2] = b;
+            } else {
+                p[index + 3] = 0;
+            }
+            
+        }
+    }
+    
+    updatePixels();
+    this.img = get(0, 0, tileWidth, tileHeight);
+};
+
+HexTile.prototype.draw = function(highlight) {
+    if (this.img) {
+        imageMode(CENTER);
+        image(this.img, this.x, this.y);
+        noFill();
+    } else {
+        fill(this.color1);
+    }
+    
+    if (highlight || DRAW_BORDER) {
+        stroke(highlight ? 250: 220);
+        beginShape();
+        for (var i = 0; i < this.coords.length; i++) {
+            vertex(this.coords[i][0], this.coords[i][1]);
+        }
+        endShape(CLOSE);
+    }
+
+    if (highlight) {
+        fill(255);
+        textFont(sansFont, 16);
+        textAlign(CENTER, TOP);
+        text(this.type.name, this.x, this.y - this.r + 16);
+        
+        if (this.selectedAction) {
+            this.selectedAction.drawSelected();
+        } else {
+            for (var i = 0; i < this.actions.length; i++) {
+                this.actions[i].draw();
+            }
+        }
+    }
+
+};
+
+HexTile.prototype.getCoords = function(x, y, r, tilt) {
+    this.coords = [];
+    for (var theta = tilt ? 30 : 0; theta < 360; theta += 60) {
+        this.coords.push([x + r * cos(theta), y + r * sin(theta)]);
+    }
+};
+
+HexTile.prototype.createActions = function(actions) {
+    var n = actions.length;
+    if (!n) { return; }
+    
+    // TODO: dynamically scale based on number
+    var h = this.r * R3;
+    var dy = h / n;
+    var x = this.x - this.r * 0.66;
+    var y = this.y - (h - dy) * 0.5;
+    
+    for (var i = 0; i < n; i++) {
+        this.actions.push(new Action(x, y, 6, actions[i]));
+        y += dy;
+    }
+};
+
+HexTile.prototype.mousePressed = function() {
+    for (var i = 0; i < this.actions.length; i++) {
+        if (this.actions[i].mouseOver()) {
+            this.selectedAction = this.actions[i];
+            this.selectedAction.mousePressed();
+            break;
+        }
+    }
+};
+
+HexTile.prototype.mouseDragged = function() {
+    if (this.selectedAction) {
+        this.selectedAction.mouseDragged();
+    }
+};
+
+HexTile.prototype.mouseReleased = function() {
+    //if (this.selectedAction) {
+    //    this.selectedAction.mouseReleased();
+        this.selectedAction = false;
+    //}
+};
+
+}
+/*************************************
+ *  A grid of hexagonal tiles
+**************************************/
+{
+var Grid = function(terrainMap, heightMap, tileSize) {
+    this.cols = terrainMap[0].length;  // Number of tiles across
+    this.rows = terrainMap.length;     // Number of tiles down
+    this.nTiles = this.cols * this.rows;
+    this.tileSize = tileSize;
+    this.tileHeight = tileSize * R3;
+    
+    // Get board dimensions
+    this.width = (this.cols * 3 + 1) * tileSize * 0.5;
+    this.height = (this.rows + 0.5) * this.tileHeight;
+    
+    // Put board in the center of the screen
+    this.x = (width - this.width) / 2;
+    this.y = (height - this.height) / 2;
+    
+    this.makeTiles(terrainMap, heightMap);
+    this.tilesLoaded = 0;
+    this.selectedTile = false;
+};
+
+Grid.prototype.makeTiles = function(terrainMap, heightMap) {
+    this.tiles = [];
+    
+    var i, j;
+    var x = this.x + this.tileSize;
+    for (i = 0; i < this.cols; i++) {
+        var row = [];
+        var y = this.y + (i % 2 + 1) * this.tileHeight * 0.5;
+        
+        for (j = 0; j < this.rows; j++) {
+            var type = tileTypes[terrainMap[j][i]];
+            var height = heightMap[j][i];
+            var tile = new HexTile(x, y, this.tileSize, i, j, type, height);
+            row.push(tile);
+            y += this.tileHeight;
+        }
+        
+        x += this.tileSize * 1.5;
+        this.tiles.push(row);
+    }
+    
+    // Add neighbours
+    for (i = 0; i < this.cols; i++) {
+        for (j = 0; j < this.rows; j++) {
+            // Add tile below
+            this.addNeighbour(this.tiles[i][j], i, j + 1, 1);
+            if (i % 2) {
+                this.addNeighbour(this.tiles[i][j], i + 1, j, 5);
+                this.addNeighbour(this.tiles[i][j], i + 1, j + 1, 0);
+            } else {
+                this.addNeighbour(this.tiles[i][j], i + 1, j, 0);
+                this.addNeighbour(this.tiles[i][j], i + 1, j - 1, 5);
+            }
+        }
+    }
+    
+    
+    // Add normals
+    for (i = 0; i < this.cols; i++) {
+        for (j = 0; j < this.rows; j++) {
+            this.tiles[i][j].findNormals();
+        }
+    }
+};
+
+Grid.prototype.addNeighbour = function(tile1, x, y, n) {
+    var tile2 = this.getTile([x, y]);
+    if (tile2 && tile2.type !== 'Water') {
+        tile1.neighbours[n] = tile2;
+        tile2.neighbours[(n + 3) % 6] = tile1;
+    }
+};
+
+Grid.prototype.loadTileImage = function() {
+    if (LOAD_TILES < 0) { LOAD_TILES = this.nTiles; }
+    
+    if (this.tilesLoaded < LOAD_TILES) {
+        var x = floor(this.tilesLoaded / this.rows);
+        var y = this.tilesLoaded - x * this.rows;
+        this.tiles[x][y].createImage();
+        this.tilesLoaded++;
+        return true;
+    }
+};
+
+Grid.prototype.draw = function() {
+    stroke(40);
+    strokeWeight(2);
+    noFill();
+    //rect(this.x, this.y, this.width, this.height);
+    
+    for (var i = 0; i < this.cols; i++) {
+        var row = this.tiles[i];
+        for (var j = 0; j < this.rows; j++) {
+            row[j].draw();
+        }
+    }
+    
+    var highlight = this.selectedTile || this.getTile(this.pixelToHex(mouseX, mouseY));
+    if (highlight) {
+        strokeWeight(3);
+        highlight.draw(true);
+    }
+};
+
+Grid.prototype.pixelToHex = function(x, y) {
+    var boardX = x - this.x;
+    var boardY = y - this.y;
+    
+    if (boardX >= 0 && boardX <= this.width && boardY >= 0 && boardY <= this.height) {
+        var tileX = boardX / (this.tileSize * 1.5);
+        var fTileX = floor(tileX);
+        var downRow = fTileX % 2;
+        var tileY = boardY / this.tileHeight - downRow * 0.5;
+        var fTileY = floor(tileY);
+        
+        // Take into account jagged edge
+        if (3 * (tileX - fTileX) < 1) {
+            var dy = 0.5 + fTileY - tileY;
+            var fTileX2 = floor(tileX - abs(dy) * 2 / 3);
+            
+            // If we back a column, check whether we should move up or down a row
+            if (fTileX2 !== fTileX) {
+                if (downRow) {
+                    if (dy < 0) { fTileY++; }
+                } else {
+                    if (dy > 0) { fTileY--; }
+                }
+                fTileX = fTileX2;
+            }
+        }
+        //println(fTileX + " " + fTileY);
+        return [fTileX, fTileY];
+    }
+    
+    return [-1, -1];
+};
+
+Grid.prototype.getTile = function(coord) {
+    var row = this.tiles[coord[0]];
+    if (!row) {
+        return false;
+    } else {
+        return row[coord[1]];
+    }
+};
+
+Grid.prototype.mousePressed = function() {
+    var tile = this.getTile(this.pixelToHex(mouseX, mouseY));
+    if (tile) {
+        tile.mousePressed();
+        this.selectedTile = tile;
+    }
+};
+
+Grid.prototype.mouseDragged = function() {
+    if (this.selectedTile) {
+        this.selectedTile.mouseDragged();
+    }
+};
+
+Grid.prototype.mouseReleased = function() {
+    if (this.selectedTile) {
+        this.selectedTile.mouseReleased();
+        this.selectedTile = false;
+    }
+};
+
+}
+/*************************************
+ *  Setup
+**************************************/
+
+var grid = new Grid(terrainMap, heightMap, 65);
+
+/*************************************
+ *      Draw interface
+**************************************/
+
+var drawToolbar = function() {
+    strokeWeight(1);
+    stroke(45, 48, 42);
+    stroke(200);
+    fill(18, 20, 16);
+    rect(-1, -1, width + 1, 24);
+    
+    var ty = 12;
+    fill(250);
+    textAlign(LEFT, CENTER);
+    textFont(sansFont, 14);
+    text("Population: " + player.population, 5, ty);
+    text("Food: " + player.food, 120, ty);
+};
+
+/*************************************
+ *      Main loop
+**************************************/
+
+var draw = function() {
+    grid.loadTileImage();
+    
+    background(tileTypes.W.color1);
+    grid.draw();
+    drawToolbar();
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+{
+mousePressed = function() {
+    grid.mousePressed();
+};
+
+mouseDragged = function() {
+    grid.mouseDragged();
+};
+
+mouseReleased = function() {
+    grid.mouseReleased();
+};
+
+mouseOut = mouseReleased;
+}

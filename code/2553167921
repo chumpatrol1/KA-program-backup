@@ -1,0 +1,21 @@
+background(0, 0, 0);
+
+var starX = 200;
+var starY = 200;
+var planetAngle = 0;
+var planetRadius = 50;
+
+ellipse(starX, starY, 20, 20);
+
+var orbitRadius = 200;
+noFill();
+stroke(50, 200, 0);
+
+var orbitRadius = 200;
+noFill();
+stroke(50, 200, 0);
+
+ellipse(starX, starY, 2 * orbitRadius, orbitRadius * 2);
+
+var x = planetRadius * cos(planetRadius);
+var y = planetRadius * sin(planetRadius);

@@ -1,0 +1,208 @@
+/*****************************************************
+ * Using a Bezier curve to approximate an arc.
+******************************************************/
+
+// With four arcs
+var bezierCircle = function(x, y, r) {
+    // Factor to make beziers arc-lie
+    var d = r * 0.55;
+    
+    strokeWeight(2);
+    beginShape();
+    vertex(x, y - r);
+    bezierVertex(x + d, y - r, x + r, y - d, x + r, y);
+    bezierVertex(x + r, y + d, x + d, y + r, x, y + r);
+    bezierVertex(x - d, y + r, x - r, y + d, x - r, y);
+    bezierVertex(x - r, y - d, x - d, y - r, x, y - r);
+    endShape();
+    
+    // Show joins
+    strokeWeight(6);
+    point(x + r, y);
+    point(x - r, y);
+    point(x, y - r);
+    point(x, y + r);
+    
+    stroke(0, 0, 200);
+    point(x + d, y - r);
+    point(x + r, y - d);
+    
+    //println(atan2(-r, d) + 90);
+};
+
+// Draw arc with bezierVertex
+// angle is symmetry over x-axis
+var bezierArc = function(x, y, r, start, stop) {
+    noFill();
+    stroke(100);
+    strokeWeight(1);
+    ellipse(x, x, r * 2, r * 2);
+    
+    var angle = (stop - start) / 2;
+    var ca = cos(angle);
+    var sa = sin(angle);
+    
+    // Start and end point
+    var x1 = x + r * cos(start);
+    var x2 = x + r * cos(stop);
+    var y1 = y + r * sin(start);
+    var y2 = y + r * sin(stop);
+    
+    // Control points
+    var cx = r * (4 - ca) / 3;
+    var cy = r * sa - (cx - r * ca) / sa * ca;
+    
+    // Rotate to correct angle
+    angle = (stop + start) / 2;
+    ca = cos(angle);
+    sa = sin(angle);
+    
+    var cxa = x + cx * ca;
+    var sya = cy * sa;
+    var sxa = y + cx * sa;
+    var cya = cy * ca;
+    
+    // Rotate control points
+    var cx1 = cxa + sya;
+    var cx2 = cxa - sya;
+    var cy1 = sxa - cya;
+    var cy2 = sxa + cya;
+    
+    stroke(255,0,0);
+    strokeWeight(6);
+    point(x1, y1);
+    point(x2, y2);
+    
+    stroke(0,200,0);
+    point(cx1, cy1);
+    stroke(0,0,200);
+    point(cx2, cy2);
+
+    stroke(255,0,0);
+    strokeWeight(2);
+    bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+};
+
+var bezierArc2 = function(x, y, r, angle) {
+    noFill();
+    stroke(100);
+    strokeWeight(1);
+    ellipse(x, x, r * 2, r * 2);
+    
+    var k = 4/3 * (Math.SQRT2 - 1);
+
+    var ca = cos(angle);
+    var sa = sin(angle);
+    
+    // Start and end point
+    var x1 = x + r * ca;
+    var y1 = y - r * sa;
+    var x2 = x + r * ca;
+    var y2 = y + r * sa;
+    
+    // Control point
+    var cx1 = x1 + k * r * sa;
+    var cy1 = y1 + k * r * ca;
+    
+    stroke(255, 0, 0);
+    strokeWeight(6);
+    point(cx1, cy1);
+    
+    var cx2 = x2 + k * r * sa;
+    var cy2 = y2 - k * r * ca;
+    point(cx2, cy2);
+    
+    strokeWeight(1);
+    line(x1, y1, cx1, cy1);
+    line(x2, y2, cx2, cy2);
+    
+    // Control point in polar form
+    //var cAngle = angle - atan2(cy - y, cx - x);
+    //var cDist = dist(x, y, cx, cy);
+    /*
+    // Rotate control points
+    var cx1 = x + cDist * cos(cAngle);
+    var cy1 = y + cDist * sin(cAngle);
+    var cx2 = x + cDist * cos(cAngle);
+    var cy2 = y + cDist * sin(cAngle);
+    */
+    stroke(255,0,0);
+    strokeWeight(6);
+    point(x1, y1);
+    point(x2, y2);
+    
+    //point(cx1, cy1);
+    //point(cx2, cy2);
+
+    stroke(255,0,0);
+    strokeWeight(2);
+    bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+};
+
+var bezierArc3 = function(x, y, r, start, stop) {
+    noFill();
+    stroke(100);
+    strokeWeight(1);
+    ellipse(x, x, r * 2, r * 2);
+    
+    // Start and end point
+    var x1 = r * cos(start);
+    var x2 = r * cos(stop);
+    var y1 = r * sin(start);
+    var y2 = r * sin(stop);
+    
+    // Center point
+    var angle = (stop + start) / 2;
+    var cx = r * cos(angle);
+    var cy = r * sin(angle);
+    
+    var ax = x1 - cx;
+    var ay = y1 - cy;
+    var bx = x2 - cx;
+    var by = y2 - cy;
+    
+    var q1 = ax * ax + ay * ay;
+    var q2 = q1 + ax * bx + ay * by;
+    var k = 4 / 3 * (sqrt(2 * q1 * q2) - q2) / (ax * by - ay * bx);
+
+    println(sqrt(q1));
+
+    k *= 1.0;
+
+    var cx1 = cx + x1 - k * y1;
+    var cy1 = cy + y1 + k * x1;
+    var cx2 = cx + x2 + k * y2;
+    var cy2 = cy + y2 - k * x2;
+    
+    println(cx1 + " " + cy1);
+    
+    x1 += x;
+    x2 += x;
+    y1 += y;
+    y2 += y;
+   
+    cx += x;
+    cy += y; 
+    cx1 += x;
+    cx2 += x;
+    cy1 += y;
+    cy2 += y;
+    
+    
+    stroke(255,0,0);
+    strokeWeight(6);
+    point(x1, y1);
+    point(x2, y2);
+    point(cx, cy);
+    
+    point(cx1, cy1);
+    point(cx2, cy2);
+
+    stroke(255,0,0);
+    strokeWeight(2);
+    bezier(x1, y1, cx1, cy1, cx2, cy2, x2, y2);
+};
+
+//bezierCircle(100, 100, 75);
+bezierArc(200, 200, 120, -100, 40);
+//bezierArc2(200, 200, 127, 40);

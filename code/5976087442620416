@@ -1,0 +1,178 @@
+/*******************************************************
+ *      Exercise 3
+ * Adding arbitrary shapes
+*******************************************************/
+
+var hatVertices = [
+    [170, 90], [170, 130], [150, 130], [150, 140],
+    [250, 140], [250, 130], [230, 130], [230, 90]
+];
+
+// Write your code here
+var shapes = [
+    {
+        name: 'body',
+        radius: 150,
+        center: [200, 250]
+    },
+    {
+        name: 'head',
+        radius: 80,
+        center: [200, 160]
+    }
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*******************************************************
+ *          Shape
+ * A set of points, which are connected by straight
+ * lines, and filled to draw part of a skeleton.
+*******************************************************/
+
+var drawCircle = function() {
+    var r = dist(this.drawPoints[0].x, this.drawPoints[0].y,
+                 this.drawPoints[1].x, this.drawPoints[1].y);
+    ellipse(this.drawPoints[0].x, this.drawPoints[0].y, r, r);
+};
+
+var Shape = function(data) {
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    }
+    
+    // Are we creating a circle
+    if (data.radius && data.center) {
+        var center = data.center;
+        data.vertices = [center, [center[0] + data.radius, center[1]]];
+        data.drawShape = drawCircle;
+    }
+    
+    this.originalPoints = data.vertices || [];
+    
+    this.nodeColor = color(120);
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    
+    if (data.drawShape) { this.drawShape = data.drawShape.bind(this); }
+    
+    this.reset();
+};
+
+// Set the position of drawPoints equal to originalPoints
+Shape.prototype.reset = function() {
+    this.drawPoints = this.originalPoints.map(function(p) {
+        return new PVector(p[0], p[1]);
+    });
+    
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+
+Shape.prototype.draw = function() {
+    if (this.fillColor || this.drawShape) {
+        // Shadow
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(2, 3);
+        this.drawShape();
+        popMatrix();
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(this.strokeWeight);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    // Draw a polygon by drawing a line from each point in drawPoints
+    beginShape();
+    this.drawPoints.forEach(function(p) {
+        vertex(p.x, p.y);
+    });
+    endShape(CLOSE);
+};
+
+/*******************************************************
+ *          Model
+ * A character consisting of a set Shapes and a set of
+ * Deformers that transform those shapes.
+*******************************************************/
+
+var Model = function(shapes) {
+    this.shapes = {};
+    this.id = 0;
+    
+    if (shapes) {
+        shapes.forEach(function(shape) {
+            if (shape) {
+                var name = shape.name || "shape" + this.id++;
+                this.shapes[name] = new Shape(shape);
+            }
+        }, this);
+    }
+};
+
+Model.prototype.draw = function() {
+    for (var el in this.shapes) {
+        this.shapes[el].draw();
+    }
+};
+
+/*******************************************************
+ * Create Model
+*******************************************************/
+
+// Create our model object
+var snowman = new Model(shapes);
+
+/**************************************
+ * Main loop
+***************************************/
+
+draw = function() {
+    // Sky
+    background(82, 115, 173);
+    
+    // Snowy ground
+    strokeWeight(3);
+    fill(255);
+    stroke(240, 245, 255);
+    beginShape();
+    curveVertex(0, height - 60);
+    curveVertex(0, height - 100);
+    curveVertex(width * 0.3, height - 85);
+    curveVertex(width * 0.65, height - 100);
+    curveVertex(width, height - 75);
+    curveVertex(width, height);
+    curveVertex(0, height);
+    endShape(CLOSE);
+    
+    snowman.draw();
+};

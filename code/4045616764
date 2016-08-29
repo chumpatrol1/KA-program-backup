@@ -1,0 +1,110 @@
+// Square root of 3 is very useful for equilateral triangles
+var R3 = sqrt(3);
+var halfAngle = 2 * asin(1);
+var hexAngle = halfAngle / 3;
+
+// Colours
+var R1 = 75;
+var G1 = 175;
+var B1 = 90;
+
+var R2 = 180;
+var G2 = 150;
+var B2 = 90;
+/*
+var R2 = 0;
+var G2 = 0;
+var B2 = 255;
+*/
+
+var tileX = width / 2;
+var tileY = height / 2;
+var tileR = 80;
+var tileH = round(tileR * R3 / 2);
+
+var tileX1 = tileX - tileR;
+var tileX2 = tileX + tileR;
+var tileY1 = tileY - tileH;
+var tileY2 = tileY + tileH;
+
+// Height of middle
+var midHeight = 1;
+// Heights of vertices
+
+var heights = [0.4, 1, 0.25, 1, 0.75, 0.5];
+
+
+noiseDetail(3, 0.4);
+//noiseDetail(2, 0.6);
+
+draw = function() {
+    background(0);
+    
+    loadPixels();
+    var p = imageData.data;
+    
+    var x, y, dx, dy, d, angle, triangle, index, c, p1, p2, v;
+
+    for (y = tileY1; y <= tileY2; y++) {
+        for (x = tileX1; x <= tileX2; x++) {
+            dx = x - tileX;
+            dy = y - tileY;
+
+            if ((tileR - abs(dx)) * R3 > abs(dy)) {
+                // Distance from center
+
+                d = sqrt(dx * dx + dy * dy);
+
+                // Distance as a proportion
+                p1 = d / tileR;
+
+                // Smooth distance
+                p1 *= p1 * (3 - 2 * p1);
+
+                // Merge the colour for this tile with its neighbout
+                c = min(1, 0.8 + 0.5 * noise(x * 0.015, y * 0.015) - p1 * 0.5);
+
+                // Add contrast
+                c *= c * (3 - 2 * c);
+                c *= c * (3 - 2 * c);
+                c *= c * (3 - 2 * c);
+
+                // Angle around center
+                angle = ((halfAngle + atan2(dy, dx)) / hexAngle) % 6;
+
+                // Which triangle are we in?
+                triangle = floor(angle);
+
+                // How far around the triangle
+                p2 = angle - triangle;
+
+                // Smooth angle
+                p2 *= p2 * (3 - 2 * p2);
+
+                // Intensity is based on linear interpolation on triangle vertices
+                v = (1 - p1) * midHeight + p1 * ((1 - p2) * heights[triangle] + p2 * heights[(triangle + 1) % 6]);
+                v = v * 0.8 + 0.2 * noise(x * 0.05, y * 0.05);
+                index = x + y * width << 2;
+                p[index] = (c * R1 + (1 - c) * R2) * v;
+                p[index + 1] = (c * G1 + (1 - c) * G2) * v;
+                p[index + 2] = (c * B1 + (1 - c) * B2) * v;
+                //println((p * R1 + (1 - p) * R2) * v  | 0);
+            }
+        }
+    }
+
+    updatePixels();
+
+    // Draw outline
+    stroke(255);
+    strokeWeight(2);
+    noFill();
+
+    beginShape();
+    for (var side = 0; side < 6; side++) {
+        vertex(tileX + tileR * cos(side * hexAngle), tileY + tileR * sin(side * hexAngle));
+    }
+    endShape(CLOSE);
+
+    noLoop();
+};

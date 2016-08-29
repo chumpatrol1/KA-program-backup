@@ -1,0 +1,157 @@
+
+var shuffle = function(arr) {
+    for (var top = arr.length; top > 0; top--) {
+        var newEnd = floor(random() * top);
+        var tmp = arr[newEnd];
+        arr[newEnd] = arr[top - 1];
+        arr[top - 1] = tmp;
+    }
+    return arr;
+};
+
+/*******************************************************
+ *      Tile data
+********************************************************/
+
+// Tile of each tile type
+var tileDistribution = [4, 10, 30, 32, 16, 5];
+
+var tileImages = [
+    function() {
+        // Solid block
+    },
+    // Dead end
+    function(s1, s3) {
+        rect(s3, 0, s3, s3 * 2);
+    },
+    function(s1, s3) {
+        // Straight corridor
+        rect(s3, 0, s3, s1);
+    },
+    function(s1, s3) {
+        // Bent corridor
+        rect(s3, 0, s3, s3 * 2);
+        rect(0, s3, s3 * 2, s3);
+    },
+    function(s) {
+        // T-junction
+        var s3 = s / 3;
+        rect(s3, 0, s3, s3 * 2);
+        rect(0, s3, s, s3);
+    },
+    function(s) {
+        // Cross roads
+        var s3 = s / 3;
+        rect(s3, 0, s3, s);
+        rect(0, s3, s, s3);
+    }
+];
+
+/*******************************************************
+ *      Tile Object
+ * Represents one square in the board.
+ * It will have 0 - 4 exits.
+********************************************************/
+
+var Tile = function(type, x, y, size) {
+    this.type = type;
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.rotation = floor(random() * 4);
+};
+
+Tile.prototype.draw = function() {
+    fill(135, 99, 38);
+    //stroke(0);
+    //rect(this.x, this.y, this.size, this.size, this.size * 0.08);
+    rect(this.x, this.y, this.size, this.size);
+    
+    var s1 = this.size;
+    var s2 = this.size / 2;
+    var s3 = this.size / 3;
+    pushMatrix();
+    translate(this.x + s2, this.y + s2);
+    rotate(this.rotation * 90);
+    translate(-s2, -s2);
+    fill(235);
+    noStroke();
+    tileImages[this.type](s1, s3);
+    popMatrix();
+};
+
+/*******************************************************
+ *      Board Object
+ * A set of tiles arranged in an <width> by <height> grid.
+********************************************************/
+
+var Board = function(tiles, width, height, size) {
+    this.width = width;
+    this.height = height;
+    this.size = size;
+    this.setUpTiles(tiles);
+};
+
+// Arrange tiles in a grid
+Board.prototype.setUpTiles = function(tiles) {
+    var tiles = shuffle(tiles);
+    
+    this.tiles = [];
+    
+    var i = 0;
+    for (var y = 0; y < this.height; y++) {
+        var row = [];
+        for (var x = 0; x < this.width; x++) {
+            var tile = tiles[i++];
+            if (tile) {
+                tile.x = x * this.size;
+                tile.y = y * this.size;
+                tile.size = this.size;
+                row.push(tile);
+            }
+        }
+        this.tiles.push(row);
+    }
+};
+
+Board.prototype.draw = function(x, y) {
+    pushMatrix();
+    translate(x, y);
+    for (var y = 0; y < this.tiles.length; y++) {
+        var row = this.tiles[y];
+        for (var x = 0; x < row.length; x++) {
+            row[x].draw();
+        }
+    }
+    popMatrix();
+};
+
+/*******************************************************
+ *      Create a deck of tiles
+********************************************************/
+
+var createTileSet = function(tileDistribution) {
+    var tiles = [];
+    var tileSize = 60;
+
+    for (var i = 0; i < tileDistribution.length; i++) {
+        for (var j = 0; j < tileDistribution[i]; j++) {
+            var tile = new Tile(i);
+            tiles.push(tile);
+        }
+    }
+    
+    return tiles;
+};
+
+var tiles = createTileSet(tileDistribution);
+
+var board = new Board(tiles, 12, 8, 60);
+
+draw = function() {
+    background(0);
+    pushMatrix();
+    scale(0.5, 0.5);
+    board.draw(40, 40);
+    popMatrix();
+};

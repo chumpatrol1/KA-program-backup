@@ -1,0 +1,105 @@
+/**************************************************************
+ * Representing the Earth and sky using a sphere
+**************************************************************/
+
+// Move to centre of screen
+translate(200, 200);
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+
+/*******************************************
+ * Linear algebra functions
+ * All assume vector has 3 dimensions
+********************************************/
+var addVectors = function(v1, v2) {
+    return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
+};
+
+var subtractVectors = function(v1, v2) {
+    return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+};
+
+var vectorTimesScalar = function(v, s) {
+    return [v[0] * s, v[1] * s, v[2] * s];
+};
+
+var vectorLength = function(v) {
+    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+};
+
+var normaliseVector = function(v) {
+    var d = vectorLength(v);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var dotProduct = function(v1, v2) {
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+// Given a face, find one of its normals
+var normalOfPlane = function(face, nodes) {
+    var n1 = nodes[face[0]];
+    var n2 = nodes[face[1]];
+    var n3 = nodes[face[2]];
+    
+    var v1 = subtractVectors(n1, n2);
+    var v2 = subtractVectors(n1, n3);
+    
+    var v3 = [[v1[1]*v2[2] - v1[2]*v2[1]],
+              [v1[2]*v2[0] - v1[0]*v2[2]],
+              [v1[0]*v2[1] - v1[1]*v2[0]]];
+              
+    return v3;
+};
+
+// Given two vectors return a vector representing the normal
+var normalOfTwoVectors = function(v1, v2) {
+    return [[v1[1] * v2[2] - v1[2] * v2[1]],
+            [v1[2] * v2[0] - v1[0] * v2[2]],
+            [v1[0] * v2[1] - v1[1] * v2[0]]];
+};
+
+// Draw a 180 degree arc between angles a1 and a2, with diameter d
+var drawArc = function(x, y, a, a1, a2, d) {
+    var v1 = normaliseVector([cos(a + 90), sin(a + 90), 0]);
+    var v2 = normaliseVector([0, 0.1, -1]);
+    var normal = normalOfTwoVectors(v1, v2);
+    var minor = d * sqrt(1 - normal[0] * normal[0] - normal[1] * normal[1]);
+    var angle = atan2(normal[1], normal[0]) + 90;
+    
+    pushMatrix();
+    translate(x, y);
+    rotate(angle);
+    if (normal[2] < 0) {
+        arc(0, 0, d, minor, a1, a2);
+    } else {
+        arc(0, 0, d, minor, -a2, -a1);
+    }
+    popMatrix();
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    var a = atan2(mouseY - 200, mouseX - 200);
+    var d = 80 * sin(frameCount);
+    var x = d * cos(a);
+    var y = d * sin(a);
+    var r = abs(160 * cos(frameCount));
+    
+    stroke(255, 255, 0);
+    //line(0, 0, x, y);
+    
+    noFill();
+    stroke(255, 0, 0, 100);
+    drawArc(x, y, a, 0, 180, r);
+    
+    noStroke();
+    fill(20, 160, 0);
+    ellipse(0, 0, 50, 50);
+    
+    noFill();
+    stroke(255, 0, 0, 200);
+    drawArc(x, y, a, -180, 0, r);
+};

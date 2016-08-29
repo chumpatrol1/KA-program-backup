@@ -1,0 +1,354 @@
+/*******************************************************
+ *      Exercise 4
+ * Write the code for each of the deformer functions.
+*******************************************************/
+
+// In this challenge we'll fill the functions below
+
+var translateXFunction = function(coordinate, value) {
+
+};
+
+var translateYFunction = function(coordinate, value) {
+
+};
+
+var scaleFunction = function(coordinate, value) {
+
+};
+
+var rotateFunction = function(coordinate, value) {
+
+};
+
+
+// Defining the shape for our snowman
+var shapes = [
+    {
+        name: 'body',
+        radius: 150,
+        center: [200, 250]
+    },
+    {
+        name: 'head',
+        radius: 80,
+        center: [200, 160]
+    },
+    {
+        name: 'hat',
+        fill: color(0, 0, 0),
+        vertices:  [
+            [170, 75], [170, 130], [150, 130], [150, 140],
+            [250, 140], [250, 130], [230, 130], [230, 90]
+        ]
+    }
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*******************************************************
+ *          Shape
+ * A set of vertices, which are connected by straight
+ * lines, and filled to draw part of a model.
+*******************************************************/
+{
+var drawCircle = function() {
+    var r = dist(this.drawPoints[0].x, this.drawPoints[0].y,
+                 this.drawPoints[1].x, this.drawPoints[1].y);
+    ellipse(this.drawPoints[0].x, this.drawPoints[0].y, r, r);
+};
+
+var Shape = function(data) {
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    }
+    
+    // Are we creating a circle
+    if (data.radius && data.center) {
+        var center = data.center;
+        data.vertices = [center, [center[0] + data.radius, center[1]]];
+        data.drawShape = drawCircle;
+    }
+    this.originalPoints = data.vertices || [];
+    
+    this.nodeColor = color(120);
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    
+    if (data.drawShape) { this.drawShape = data.drawShape.bind(this); }
+    
+    this.dependentShapes = [];
+    this.reset();
+};
+
+// Set the position of drawPoints equal to originalPoints
+Shape.prototype.reset = function() {
+    this.drawPoints = this.originalPoints.map(function(p) {
+        return new PVector(p[0], p[1]);
+    });
+    
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+
+Shape.prototype.draw = function() {
+    if (this.fillColor || this.drawShape) {
+        // Shadow
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(2, 3);
+        this.drawShape();
+        popMatrix();
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(this.strokeWeight);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    // Draw a polygon by drawing a line from each point in drawPoints
+    beginShape();
+    this.drawPoints.forEach(function(p) {
+        vertex(p.x, p.y);
+    });
+    endShape(CLOSE);
+};
+
+Shape.prototype.drawNode = function() {
+    if (this.origin) {
+        fill(this.nodeColor);
+        stroke(250);
+        strokeWeight(1);
+        ellipse(this.origin.x, this.origin.y, 10, 10);
+    }
+};
+
+Shape.prototype.transform = function(transform, value, origin) {
+    // Update the vertices of this shape
+    this.drawPoints.forEach(function(coord) {
+        coord.sub(origin);
+        transform(coord, value);
+        coord.add(origin);
+    });
+    
+    this.dependentShapes.forEach(function(shape) {
+        shape.origin.sub(origin);
+        transform(shape.origin, value);
+        shape.origin.add(origin);
+        shape.transform(transform, value, origin);
+    });
+};
+}
+/*******************************************************
+ *          Deformer
+ * An avar that transforms a set of shapes with a given
+ * transformation. Deformer have an origin, which
+ * determines the origin of its transformation.
+*******************************************************/
+{
+var Deformer = function(transform, shape) {
+    this.transform = transform;
+    this.shape = shape;
+    this.value = 0;
+};
+
+// Update the position of dependent shapes with given value
+Deformer.prototype.update = function() {
+    this.shape.transform(this.transform, this.value, this.shape.origin);
+};
+}
+/*******************************************************
+ *          Model
+ * A character consisting of a set Shapes and a set of
+ * Deformers that transform those shapes.
+*******************************************************/
+{
+var Model = function(shapes, connections, deformers) {
+    this.shapes = {};
+    this.deformers = [];
+    this.id = 0;
+    
+    if (shapes) { this.addShapes(shapes); }
+    if (deformers) { this.addDeformers(deformers); }
+    if (connections) { this.addConnections(connections); }
+};
+
+Model.prototype.draw = function() {
+    for (var el in this.shapes) {
+        this.shapes[el].draw();
+    }
+    
+    for (var el in this.shapes) {
+        this.shapes[el].drawNode();
+    }
+};
+
+Model.prototype.addShapes = function(shapes) {
+    shapes.forEach(function(shape) {
+        if (shape) {
+            var name = shape.name || "shape" + this.id++;
+            this.shapes[name] = new Shape(shape);
+        }
+    }, this);
+};
+
+Model.prototype.getShape = function(name) {
+    var shape = this.shapes[name];
+    if (shape) {
+        return shape;
+    } else {
+        println("ERROR: Invalid index: " + name);
+    }
+};
+
+Model.prototype.addDeformers = function(deformers) {
+    for (var i = 0; i < deformers.length; i++) {
+        var d = deformers[i].split(/\s*->\s*/);
+        var shape = this.getShape(d[1]);
+        
+        if (shape) {
+            switch(d[0]) {
+                case 'translateX':
+                    this.addDeformer(translateXFunction, shape);
+                    break;
+                case 'translateY':
+                    this.addDeformer(translateYFunction, shape);
+                    break;
+                case 'scale':
+                    this.addDeformer(scaleFunction, shape);
+                    break;
+                case 'rotate':
+                    this.addDeformer(rotateFunction, shape);
+                    break;
+                default:
+                    println("ERROR: no such deformer, " + d[0]);
+                    break;
+            }
+        }
+    }
+};
+
+Model.prototype.addDeformer = function(transform, shape) {
+    this.deformers.push(new Deformer(transform, shape));
+    shape.nodeColor = color(255, 165, 0);
+};
+
+Model.prototype.addConnections = function(connections) {
+    for (var i = 0; i < connections.length; i++) {
+        var shapes = connections[i].split(/\s*->\s*/);
+        for (var j = 0; j < shapes.length - 1; j++) {
+            this.addConnection(shapes[j], shapes[j + 1]);
+        }
+    }
+};
+
+Model.prototype.addConnection = function(parent, child) {
+    parent = this.getShape(parent);
+    child = this.getShape(child);
+    if (parent && child) {
+        if (parent === child) {
+            println("ERROR: cannot make node dependent on itself");
+        } else {
+            parent.dependentShapes.push(child);
+        }
+    }
+};
+
+Model.prototype.update = function() {
+    // Move drawPoint to their original positions
+    for (var el in this.shapes) {
+        this.shapes[el].reset();
+    }
+    
+    // Update the position of shapes using deformers
+    this.deformers.forEach(function(deformer) {
+        deformer.update();
+    });
+};
+
+Model.prototype.updateDeformer = function(deformer, value) {
+    var deformer = this.deformers[deformer];
+    if (deformer) {
+        deformer.value = value;
+        this.update();
+    }
+};
+}
+/*******************************************************
+ * Create Model
+*******************************************************/
+
+// Create our model object
+var snowman = new Model(shapes);
+
+/**************************************
+ * Main loop
+***************************************/
+
+draw = function() {
+    // Sky
+    background(82, 115, 173);
+    
+    // Snowy ground
+    strokeWeight(3);
+    fill(255);
+    stroke(240, 245, 255);
+    beginShape();
+    curveVertex(0, height - 60);
+    curveVertex(0, height - 100);
+    curveVertex(width * 0.3, height - 85);
+    curveVertex(width * 0.65, height - 100);
+    curveVertex(width, height - 75);
+    curveVertex(width, height);
+    curveVertex(0, height);
+    endShape(CLOSE);
+    
+    snowman.draw();
+    
+    // Axis
+    strokeWeight(1);
+    stroke(255);
+    line(8, 8, 48, 8);
+    line(8, 8, 8, 48);
+    line(47, 8, 40, 5);
+    line(47, 9, 40, 12);
+    line(8, 47, 5, 40);
+    line(9, 47, 12, 40);
+    
+    fill(255);
+    textSize(12);
+    textAlign(LEFT, CENTER);
+    text('x', 52, 8);
+    textAlign(CENTER, TOP);
+    text('y', 8, 50);
+    
+};

@@ -1,0 +1,731 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var NULLCOL = color(0, 0, 0, 0);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var MESSAGEBLUE = color(20, 60, 160);
+var TICKGREEN = color(0, 200, 0);
+var CS_GREEN = color(67, 122, 57);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var CONTROL_POINT_SIZE = 12;
+
+var toolbar;
+var toolbarWidth = 128;
+
+var showing = {
+    Points: true,
+    Line: true,
+    Message: true,
+};
+var tooltipPosition = 0;
+
+var forEach = function(arr, func) {
+    var i, n = arr.length;
+    for (i = 0; i < n; i++) {
+        arr[i][func]();
+    }
+};
+
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+        this.transition = 0;
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *  GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.highlightCol = params.filled;
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, {name: name});
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+
+var RadioButton = function(x, y, w, h, name, trigger) {
+    Button.call(this, x, y, w, h, {name: name, trigger: trigger});
+    this.r = this.h - 6;
+    this.cx = this.x + this.r / 2 + 5;
+    this.cy = this.y + this.h / 2;
+    this.marked = false;
+};
+RadioButton.prototype = Object.create(Button.prototype);
+
+RadioButton.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(10);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.cx + this.r /2 + 4, this.cy + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    ellipse(this.cx, this.cy, this.r, this.r);
+    
+    if (this.marked) {
+        fill(10);
+        ellipse(this.cx, this.cy, this.r / 2, this.r / 2);
+    }
+};
+
+}
+/*******************************************************
+ * GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ * GUI Label
+********************************************************/
+var Label = function(x, y, w, h, name) {
+    this.x = x + w / 2;
+    this.x1 = x + 8;
+    this.x2 = x + w - 8;
+    this.y = y + h + 1;
+    this.y2 = y + h / 2 + 3;
+    this.name = name;
+};
+
+Label.prototype.draw = function() {
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y2);
+    
+    strokeWeight(1);
+    stroke(20);
+    line(this.x1, this.y, this.x2, this.y);
+};
+/*************************************
+ *      Number scrubber object
+ * Shows a number with up and down
+ * arrow buttons to change the value
+**************************************/
+{
+var Scrubber = function(x, y, w, h, nowValue, values, updateF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.index = nowValue;
+    if (Array.isArray(values)) {
+        this.mapping = values;
+        this.value = this.mapping[this.index];
+        this.maxValue = this.mapping.length;
+    } else {
+        this.maxValue = values;
+        this.value = this.index;
+    }
+    
+    this.updateFunction = updateF;
+    this.selected = false;
+};
+
+Scrubber.prototype.draw = function(x, y) {
+    if (x) { this.x = x; }
+    if (y) { this.y = y; }
+    
+    // Box
+    var d = 16;
+    stroke(200);
+    fill(BACKGROUND);
+    strokeWeight(1);
+    rect(this.x + d - 1, this.y - 1, this.w - d * 2, this.h + 1, 8);
+    
+    // Text
+    textSize(15);
+    textAlign(CENTER, CENTER);
+    fill(TEXTCOL);
+    
+    var ty = this.y + this.h / 2;
+    text("" + this.value, this.x + this.w / 2, ty);
+    
+    // Arrow buttons
+    var mouseover = this.mouseOver();
+    fill(ORANGE);
+    if (this.selected === 1 || mouseover === 1) {
+        //fill(200);
+        stroke(160);
+    } else {
+        noStroke();
+    }
+    
+    triangle(this.x + 3, ty,
+             this.x + d - 2, this.y + 1,
+             this.x + d - 2, this.y + this.h - 1);
+    
+    if (this.selected === 2 || mouseover === 2) {
+        //fill(200);
+        stroke(160);
+    } else {
+        //fill(ORANGE);
+        noStroke();
+    }
+    
+    triangle(this.x + this.w - 3, ty,
+             this.x + this.w - d + 2, this.y + 1,
+             this.x + this.w - d + 2, this.y + this.h -1);
+};
+
+Scrubber.prototype.updateValue = function() {
+    if (this.selected === 1) {
+        this.index = (this.index - 1 + this.maxValue) % this.maxValue;
+    } else if (this.selected === 2) {
+        this.index = (this.index + 1) % this.maxValue;
+    }
+
+    this.mapValue();
+    this.update();
+};
+
+Scrubber.prototype.mapValue = function() {
+    if (this.mapping) {
+        this.value = this.mapping[this.index];
+    } else {
+        this.value = this.index;
+    }
+};
+
+Scrubber.prototype.setValue = function(n) {
+    this.value = n;
+    if (this.mapping) {
+        this.index = this.mapping.indexOf(this.value);
+    } else {
+        this.index = this.value;
+    }
+};
+
+// Return 1 or 2 if mouse over top or bottom
+// arrow respectively. Otherwise return null
+Scrubber.prototype.mouseOver = function() {
+    if (mouseY >= this.y && mouseY <= this.y + this.h) {
+        if (mouseX >= this.x && mouseX <= this.x + 16) {
+            return 1;
+        } else if (mouseX >= this.x + this.w - 16 && mouseX <= this.x + this.w) {
+            return 2;
+        }
+    }
+};
+
+Scrubber.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+Scrubber.prototype.mouseReleased = function() {
+    if (this.selected) {
+        this.updateValue();
+        this.selected = false;
+    }
+};
+
+Scrubber.prototype.click = function() {
+    this.selected = this.mouseOver();
+    this.updateValue();
+};
+
+Scrubber.prototype.update = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.index);
+    }
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+    this.labels = [];
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    forEach(this.components, 'draw');
+    forEach(this.labels, 'draw');
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addLabel = function(name) {
+    var h = 20;
+    this.labels.push(new Label(this.x, this.y + this.h, this.w, h, name));
+    this.h += h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.addRadioButtons = function(options, trigger, defaultOption) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var radioButtons = [];
+    
+    var triggerFunction = function() {
+        if (!this.marked) {
+            this.marked = true;
+            
+            // Deselected other buttons
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i] !== this) {
+                    radioButtons[i].marked = false;
+                }
+            }
+            trigger(this.name);
+        }
+    };
+    
+    for (var i = 0; i < options.length; i++) {
+        var button = new RadioButton(x, y, w, 22, options[i], triggerFunction);
+        radioButtons.push(button);
+        y += 27;
+        this.h += 27;
+    }
+    
+    radioButtons[defaultOption || 0].trigger();
+    
+    this.components = this.components.concat(radioButtons);
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    forEach(this.components, 'mousePressed');
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    forEach(this.components, 'mouseReleased');
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    forEach(this.components, 'mouseDragged');
+};
+}
+/*******************************************************
+ *  System object for handling what to draw and
+ *  interact with 
+********************************************************/
+
+var system = {
+    elements: [],
+    modes: {},
+    
+    addMode: function(name, drawFunction, elements, functions) {
+        this.modes[name] = {
+            draw: drawFunction,
+            elements: elements || [],
+        };
+        
+        for (var f in functions) {
+            this.modes[name][f] = functions[f];
+        }
+    },
+    
+    changeMode: function(mode) {
+        var data = this.modes[mode];
+        if (data) {
+            this.elements = data.elements;
+            this.drawFunction = data.draw;
+            if (data.setup) { data.setup.call(this); }
+            this.data = data;
+        } else {
+            println("No such mode " + mode);
+        }
+    },
+    
+    draw: function() {
+        if (this.drawFunction) {
+            this.drawFunction();
+        }
+        
+        for (var i = 0; i < this.elements.length; i++) {
+            this.elements[i].draw();
+        }
+    },
+    
+    mousePressed: function() {
+        if (this.data.mousePressed) {
+            this.data.mousePressed();
+        }
+        for (var i = 0; i < this.elements.length; i++) {
+            this.elements[i].mousePressed();
+        }
+    },
+
+    mouseDragged: function() {
+        for (var i = 0; i < this.elements.length; i++) {
+            this.elements[i].mouseDragged();
+        }
+    },
+    
+    mouseReleased: function() {
+        for (var i = 0; i < this.elements.length; i++) {
+            this.elements[i].mouseReleased();
+        }
+    }
+};
+
+/*******************************************************
+ *      Set-up system 
+********************************************************/
+
+// Draw functions
+var drawScene1 = function() {
+    background(100, 200, 250);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    fill(255);
+    text("Scene 1", 200, 40);
+};
+
+var drawScene2 = function() {
+    background(100, 200, 100);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    fill(255);
+    text("Scene 2", 200, this.y);
+};
+
+var drawScene3 = function() {
+    background(240, 100, 100);
+    textAlign(CENTER, CENTER);
+    textSize(32);
+    fill(255);
+    text("Scene 3", 200, 40);
+};
+
+// Create buttons
+var scene1Buttons = [
+    new Button(100, 200, 90, 24, {
+        name: 'Scene 2',
+        filled: CS_GREEN,
+        trigger: function() { system.changeMode('mode2'); }
+    }),
+    new Button(210, 200, 90, 24, {
+        name: 'Scene 3',
+        filled: CS_GREEN,
+        trigger: function() { system.changeMode('mode3'); }
+    })
+];
+
+var backButton = new Button(10, 366, 72, 24, {
+    name: 'BACK',
+    filled: BLUE,
+    trigger: function() { system.changeMode('start'); }
+});
+
+var upButton = new Button(160, 130, 80, 24, {
+    name: 'Up',
+    trigger: function() { system.y -= 10; }
+});
+
+var downButton = new Button(160, 160, 80, 24, {
+    name: 'Down',
+    trigger: function() { system.y += 10; }
+});
+
+// Create modes
+system.addMode('start', drawScene1, scene1Buttons);
+system.addMode('mode2', drawScene2, [backButton, upButton, downButton], {
+    setup: function() {
+        this.y = 40;
+    }
+});
+system.addMode('mode3', drawScene3, [backButton], {
+    mousePressed: function() {
+        println("Click");
+    }
+});
+system.changeMode('start');
+
+/**************************************
+ *  Processing.js functions
+***************************************/
+
+draw = system.draw.bind(system);
+mousePressed = system.mousePressed.bind(system);
+mouseDragged = system.mouseDragged.bind(system);
+mouseReleased = system.mouseReleased.bind(system);
+mouseOut = mouseReleased;

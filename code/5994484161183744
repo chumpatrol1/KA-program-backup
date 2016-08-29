@@ -1,0 +1,229 @@
+/*******************************************
+ * Various functions to transform and print
+ * a 2D array of N-dimensional coordinates.
+********************************************/
+
+// An array of arrays/coordinates
+var arr3D = [[10, 20, 30], [100, 100, 100]];
+
+var arr2D = [[10, 20], [100, 100]];
+
+var printArray = function(arr) {
+    var s = "[";
+    for (var i = 0; i < arr.length; i++) {
+        s += i ? "," : "";
+        s += "[" + arr[i] + "]";
+    }
+    println(s + "]");
+};
+
+// Because I want the restart button
+draw = function() { noLoop(); };
+
+/*******************************************
+ *      Mapping function
+********************************************/
+
+// Apply a function to each member of an array, passing in an array of parameters
+var applyToArray = function(arr, transform, parameters) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+        newArr.push(transform(arr[i], parameters));
+    }
+    return newArr;
+};
+
+// Apply a function to each member of an array, passing in a corresponding parameter
+// The length of arr and parameters must be equal
+var applyToCoordinate = function(arr, transform, parameters) {
+    return arr.map(function(item, index) {
+        return transform(item, parameters[index]);
+    });
+};
+
+/*******************************************
+ *      Base transformations
+********************************************/
+
+var _zip = function(arr1, arr2) {
+    return [arr1, arr2];
+};
+
+var _translate = function(coordinate, delta) {
+    return coordinate + (delta || 0);
+};
+
+var _scale = function(coordinate, parameters) {
+    var delta = parameters[0] || 0;
+    var origin = parameters[1] || 0;
+    return origin + (coordinate - origin) * delta;
+};
+
+/*******************************************
+ *      Coordinate transformations
+********************************************/
+
+var translateCoordinate = function(coordinate, delta) {
+    return applyToCoordinate(coordinate, _translate, delta);
+};
+
+var scaleCoordinate = function(coordinate, parameters) {
+    return applyToCoordinate(coordinate, _scale, parameters);
+};
+
+/*******************************************
+ *      Array transformations
+********************************************/
+
+var translateArray = function(arr, delta) {
+    return applyToArray(arr, translateCoordinate, delta);
+};
+
+var scaleArray = function(arr, delta, origin) {
+    origin = origin || [];
+    var parameters = applyToCoordinate(delta, _zip, origin);
+    return applyToArray(arr, scaleCoordinate, parameters);
+};
+
+/*******************************************
+ *      Object functions
+********************************************/
+
+// Transform an object of shapes
+var transformShapes = function(shapes, transform, value) {
+    for (var shapeName in shapes) {
+        var shape = shapes[shapeName];
+        if (shape.origin) {
+            shape.origin = transform([shape.origin], value)[0];
+        }
+        if (shape.vertices) {
+            shape.vertices = transform(shape.vertices, value);
+        }
+    }
+    return shapes;
+};
+
+var objectToString = function(prop, depth) {
+    depth = depth || 1;
+    var s = "";
+    if (typeof prop === 'string') {
+        s += '"' + prop + '"';
+    } else if (prop instanceof Array) {
+        var contents = prop.map(function(el) { return objectToString(el, depth); });
+        s += "[" + contents.join(", ") + "]";
+    } else if (typeof prop  === "function") {
+        var txt = prop.toString().split("\n");
+        s += txt[0] + "\n";
+        var txt = txt.slice(6).join("\n");
+        s += txt.replace(/__env__\./g, "");
+    } else if (prop instanceof Object) {
+        s += "{";
+        var indent = "\n" + new Array(depth).join("    ");
+        var addComma = false;
+        for (var k in prop) {
+            if (addComma) { s += ","; }
+            s += indent + "  " + k + ": " + objectToString(prop[k], depth + 1);
+            addComma = true;
+        }
+        s += indent + "}";
+    } else if (!isNaN(parseFloat(prop))) {
+        s += round(prop * 100) / 100;
+    } else {
+        s += prop;
+    }
+    return s;
+};
+
+/*******************************************
+ *      Testing functions
+********************************************/
+
+var lamp = [[180,197],[200,177],[220,197],[200,217],[180,277],[120,217]];
+//printArray(translateArray(p, [-10]));
+
+var shapes = {
+    face: {
+        origin: [220, 230],
+        fill: color(250, 250, 255),
+        stroke: color(150, 180, 255),
+        subdivide: 3,
+        vertices: [
+            [150,150],[295,150],[320,220],[320,260],
+            [270,330],[180,330],[125,270],[125,210]
+        ]
+    },
+    hat: {
+        origin: [220, 160],
+        fill: color(10, 10, 10),
+        vertices: [
+            [140,60],[300,60],[300,160],[350,160],
+            [350,170],[90,170],[90,160],[140,160]
+        ]
+    },
+    eye1: {
+        origin: [190, 210],
+        fill: color(10, 10, 10),
+        subdivide: 2,
+        vertices: [
+            [180,200],[200,200],[205,210],[200,220],
+            [180,220],[175,210]
+        ]
+    },
+    eye2: {
+        origin: [250, 210],
+        fill: color(10, 10, 10),
+        subdivide: 2,
+        vertices: [
+            [240,200],[260,200],[265,210],[260,220],
+            [240,220],[235,210]
+        ]
+    },
+    brow1: {
+        origin: [190, 190],
+        fill: color(10, 10, 10),
+        vertices: [
+            [173,186],[207,186],[207,194],[173,194]
+        ]
+    },
+    brow2: {
+        origin: [250, 190],
+        fill: color(10, 10, 10),
+        vertices: [
+            [233,186],[267,186],[267,194],[233,194]
+        ]
+    },
+    mouth: {
+        origin: [220, 280],
+        fill: color(10, 10, 10),
+        vertices: [[170, 270],[220,310],[270,270],[220,280]],
+        drawShape: function() {
+            var v = this.finalCoords;
+            
+            noStroke();
+            beginShape();
+            for (var t = 0; t <= 1; t += 0.1) {
+                var s = 1 - t;
+                curveVertex(
+                    s*s*v[0].x + 2*s*t*v[1].x + t*t*v[2].x,
+                    s*s*v[0].y + 2*s*t*v[1].y + t*t*v[2].y
+                );
+            }
+            for (var t = 0; t <= 1; t += 0.1) {
+                var s = 1 - t;
+                curveVertex(
+                    s*s*v[2].x + 2*s*t*v[3].x + t*t*v[0].x,
+                    s*s*v[2].y + 2*s*t*v[3].y + t*t*v[0].y
+                );
+            }
+            endShape(CLOSE);
+        }
+    }
+};
+
+//shapes = transformShapes(shapes, scaleArray, [2, 2]); 
+shapes = transformShapes(shapes, translateArray, [0, 40]);
+println(objectToString(shapes));
+
+
+
+

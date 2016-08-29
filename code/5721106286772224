@@ -1,0 +1,61 @@
+/****************************************
+ * Move ball along multiple cubic splines
+*****************************************/
+
+// Visualise the control points and curve for debugging purposes
+var drawSpline = true;
+
+// Make some splines by defining coordinate for the points.
+// Ideally, the start point of one should be the end point of another
+var splines = [
+    [20, 20, 20, 160, 260, 20, 320, 100],
+    [320, 100, 380, 180, 320, 320, 100, 380],
+];
+
+/****************************************
+ *      Display functions
+****************************************/
+
+var t = 0;
+var speed = 0;
+
+draw = function() {
+    background(250);
+
+    // Not necessary
+    if (drawSpline) {
+        noFill();
+        strokeWeight(3);
+        stroke(28, 173, 123);
+        for (var i = 0; i < splines.length; i++) {
+            bezier.apply(null, splines[i]);
+        }
+    }
+
+    // Accelerate until a particular speed is reached
+    if (t < 1 && speed < 0.03) {
+        speed += 0.00025;
+    } else if (t > 1 && speed > 0) {
+        speed -= 0.00025;
+    }
+
+    // Move along spline
+    t += speed;
+    
+    // Return to beginning once we've finished
+    if (t > splines.length) {
+        t %= 1;
+        speed = 0;
+    }
+    
+    // Find position of ellipse
+    var position = splines[floor(t)];
+    var x = bezierPoint(position[0], position[2], position[4], position[6], t % 1);
+    var y = bezierPoint(position[1], position[3], position[5], position[7], t % 1);
+    
+    // Draw ellipse
+    strokeWeight(1);
+    stroke(250);
+    fill(200, 0, 0);
+    ellipse(x, y, 20, 20);
+};

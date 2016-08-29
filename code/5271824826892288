@@ -1,0 +1,26 @@
+var NUM_LINES = 30;
+var BACKGROUND = color(255, 255, 255);
+
+var boxWidth = 300;
+var boxHeight = 200;
+var boxX = (width - boxWidth) * 0.5;
+var boxY = (height - boxHeight) * 0.5;
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    stroke(0);
+    strokeWeight(1);
+    for (var i = 1; i < NUM_LINES; i++) {
+        var p = i / NUM_LINES;
+        line(boxX + p * boxWidth, boxY, boxX + boxWidth, boxY + p * boxHeight);
+        line(boxX + p * boxWidth, boxY + boxHeight, boxX + boxWidth, boxY + (1 - p) * boxHeight);
+        line(boxX + p * boxWidth, boxY + boxHeight, boxX, boxY + p * boxHeight);
+        line(boxX + p * boxWidth, boxY, boxX, boxY + (1 - p) * boxHeight);
+    }
+    
+    noFill();
+    stroke(20);
+    strokeWeight(2);
+    rect(boxX, boxY, boxWidth, boxHeight);
+};

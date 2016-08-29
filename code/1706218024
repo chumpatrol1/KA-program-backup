@@ -1,0 +1,247 @@
+var spoutSize = 80;
+var maxSpeed = 7;
+var reverseTime = 12;
+
+var startX = 150;
+var startY = 350;
+var startAngle = 0;
+
+var running = true;
+
+var walls;
+
+var findPointLineDist = function(x1, y1, x2, y2, angle) {
+    var grad = tan(angle);
+    var d = abs(y1 - y2 + grad * (x2 - x1));
+	return d / sqrt(grad * grad + 1);
+};
+
+var createSpoutImage = function() {
+    var img = createGraphics(300, 300, JAVA2D);
+    img.beginDraw();
+    img.noStroke();
+    img.background(0, 0, 0, 0);
+    
+    //motors
+    img.fill(214, 201, 201);
+    img.ellipse(93, 125, 55, 50);
+    img.ellipse(207, 125, 55, 50);
+    
+    //body
+    img.fill(31, 21, 21);
+    img.rect(100, 120, 100, 140);
+    
+    //black lever switches
+    img.translate(70, 184);
+    img.rotate(-PI/12);
+    img.rect(0, 0, 50, -50);
+    img.resetMatrix();
+    
+    img.translate(181, 172);
+    img.rotate(PI/12);
+    img.rect(0, 0, 50, -50);
+    img.resetMatrix();
+    
+    //antenae
+    img.strokeWeight(3);
+    img.stroke(120, 120, 120);
+    img.line(108, 155, 301, -11);
+    img.line(188, 155, 10, -11);
+    
+    //eyes
+    img.strokeWeight(2);
+    img.stroke(30, 30, 30);
+    img.fill(231, 244, 245);
+    img.ellipse(110, 120, 70, 70);
+    img.ellipse(190, 120, 70, 70);
+    //pupils
+    img.fill(255, 0, 0);
+    img.ellipse(190, 120, 25, 25);
+    img.fill(0, 255, 30);
+    img.ellipse(110, 120, 25, 25);
+    
+     //wires
+    img.noFill();
+    img.stroke(217, 67, 87);
+    img.strokeWeight(4);
+    img.bezier(33, 163, -95, 248, 400, 248, 265, 163);
+    img.bezier(39, 178, -19, 240, 320, 240, 259, 178);
+    img.bezier(81, 199, -19, 220, 314, 220, 218, 199);
+    img.bezier(65, 125, -19, 248, 314, 248, 235, 125);
+    
+    //spade connector covers
+    img.noStroke();
+    img.strokeWeight(2);
+    img.fill(235, 23, 83);
+    img.translate(31, 152);
+    img.rotate(-PI/12);
+    img.rect(0, 0, 43, 18);
+    img.rect(0, 20, 43, 18);
+    img.rect(37, 49, 43, 18);
+    img.resetMatrix();
+    img.translate(226, 142);
+    img.rotate(PI/12);
+    img.rect(0, 0, 43, 18);
+    img.rect(0, 20, 43, 18);
+    img.rect(-35, 48, 43, 18);
+    img.resetMatrix();
+    
+    //sliding silver switches
+    img.fill(217, 213, 213);
+    img.rect(125, 198, 50, 23);
+    img.rect(125, 229, 50, 23);
+    img.fill(0, 0, 0);
+    img.rect(144, 202, 11, 15);
+    img.rect(144, 252, 11, 19);
+    
+    return img;
+};
+
+var spoutImage = createSpoutImage();
+
+var Spout = function(x, y, angle) {
+    this.x = x;
+    this.y = y;
+    this.angle = angle;
+    this.speed = 0;
+    this.acceleration = 0.5;
+    
+    this.motorL = 0;
+    this.motorR = 0;
+    
+    this.draw = function() {
+        noStroke();
+        
+        translate(this.x, this.y);
+        rotate(this.angle);
+        if (this.collided) {
+            fill(255, 100, 100, 100);   
+        } else {
+            fill(100, 100, 100, 50);
+        }
+        ellipse(0, 0, spoutSize+12, spoutSize+12);
+        image(spoutImage, -spoutSize/2, -spoutSize/2+12,
+              spoutSize, spoutSize);
+        resetMatrix();
+    };
+    
+    this.collisions = function() {
+        var collideLeft = false;
+        var collideRight = false;
+        
+        for (var i=0; i<walls.length; i++) {
+            var collide = walls[i].collide(this);
+            if (collide && abs(collide < 90)) {
+                if (collide <= 0) {
+                    collideLeft = true;
+                } else {
+                    collideRight = true;
+                }   
+            }
+        }
+        
+        // Collisions
+        if (collideLeft) {
+            this.motorR = reverseTime;
+            println("Left");
+        }
+        if (collideRight) {
+            this.motorL = reverseTime;
+            println("Right");
+        }
+    };
+    
+    this.update = function() {
+        // Move
+        if (this.motorL === 0 && this.motorR === 0) {
+            // Forwards
+            this.x += this.speed * sin(this.angle);
+            this.y -= this.speed * cos(this.angle);
+        } else if (this.motorL > 0 && this.motorR > 0) {
+            // Both reverse
+            this.x -= this.speed * sin(this.angle);
+            this.y += this.speed * cos(this.angle);   
+            this.motorL--;
+            this.motorR--;
+        } else if (this.motorL > 0) {
+            // Left reverse
+            this.angle--;
+            this.motorL--;
+            this.x -= this.speed/2 * sin(this.angle);
+            this.y += this.speed/2 * cos(this.angle);   
+        }  else if (this.motorR > 0) {
+            // Right reverse
+            this.angle++;
+            this.motorR--;
+            this.x -= this.speed/2 * sin(this.angle);
+            this.y += this.speed/2 * cos(this.angle);   
+        }
+        
+        // Wobble
+        this.angle += random() - 0.5;
+        
+        // Accelerate
+        if (this.speed < maxSpeed) {
+            this.speed += this.acceleration;
+        }
+        
+        if (this.speed > 0) {
+            this.collisions();   
+        }
+    };
+};
+
+var Wall = function(x1, y1, x2, y2) {
+    this.x1 = x1;
+    this.y1 = y1;
+    this.x2 = x2;
+    this.y2 = y2;
+    this.angle = (360 - atan2(y2-y1, x2-x1)) % 180;
+    this.grad = tan(this.angle);
+    
+    this.draw = function() {
+        stroke(80, 80, 80);
+        strokeWeight(3);
+        line(this.x1, this.y1, this.x2, this.y2);
+    };
+    
+    this.collide = function(bot) {
+        var d = abs(bot.y - this.y1 + this.grad * (bot.x - this.x1));
+        d /= sqrt(this.grad * this.grad + 1);
+        var deltaA = false;
+        if (d < spoutSize/2) {
+            var bAngle = 90 - bot.angle;
+            deltaA = bAngle - this.angle - 90;
+        }
+
+        return deltaA;
+    };
+};
+
+// Create walls
+walls = [new Wall(10, 120, 270, 20),
+         new Wall(270, 20, 390, 50),
+         new Wall(10, 120, 50, 360)];
+
+// Create spout
+var spout1 = new Spout(startX, startY, startAngle);
+//var spout2 = new Spout(300, 300, 0);
+
+var draw= function() {
+    background(180, 240, 180);
+    
+    for (var i=0; i<walls.length; i++) {
+        walls[i].draw();
+    }
+    
+    if (running) {
+        spout1.update();
+    }
+    spout1.draw();
+    //spout2.update();
+    //spout2.draw();
+};
+
+var mouseClicked = function() {
+    running = !running;
+};

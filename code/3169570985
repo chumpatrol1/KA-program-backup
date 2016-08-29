@@ -1,0 +1,109 @@
+var path = "M90 40 C80,50 70,30 60,40 S50,50, 40,40 20,50, 10,40 M86 50 Q74 40 62 50T38 50 14 50 L30 90 H45 V80 L55,80 55,90 70,90z";
+
+var parsePath = function(dAttr) {
+    var reCommands = /([ACHLMQSTVZ])([-\+\d\.\s,e]*)/gi;
+    var reDigits = /([-+]?[\d\.]+)([eE][-+]?[\d\.]+)?/g;
+    var commands, path = [];
+
+    // Converts a string of digits to an array of floats
+    var getDigits = function(digitString) {
+        var digits = [];
+        var digit = reDigits.exec(digitString);
+        while (digit) {
+            digits.push(parseFloat(digit[0]));
+            digit = reDigits.exec(digitString);
+        }
+        return digits;
+    };
+
+    var commands = reCommands.exec(dAttr);
+    while (commands) {
+        var letter = commands[1];
+        var digits = getDigits(commands[2]);
+        // TODO: convert H and V to L
+        path.push([letter].concat(digits));
+        commands = reCommands.exec(dAttr);
+    }
+
+    return path;
+};
+
+var drawPath = function(path) {
+    var x = 0;
+    var y = 0;
+    
+    if (path[0][0].toLowerCase() !== 'm') {
+        // Invalid path
+        return;
+    }
+    
+    for (var i = 0; i < path.length; i++) {
+        var command = path[i];
+        println(command[0]);
+        switch (command[0]) {
+            case 'm':
+                if (i) { endShape(); }
+                beginShape();
+                for (var j = 1; j < command.length; j++) {
+                    x += command[j++];
+                    y += command[j];
+                    vertex(x, y);
+                }
+                break;
+            case 'M':
+                if (i) { endShape(); }
+                beginShape();
+                for (var j = 1; j < command.length; j++) {
+                    x = command[j++];
+                    y = command[j];
+                    vertex(x, y);
+                }
+                break;
+            case 'l':
+                for (var j = 1; j < command.length; j++) {
+                    x += command[j++];
+                    y += command[j];
+                    vertex(x, y);
+                }
+                break;
+            case 'L':
+                for (var j = 1; j < command.length; j++) {
+                    x = command[j++];
+                    y = command[j];
+                    vertex(x, y);
+                }
+                break;
+            case 'c':
+                for (var j = 1; j < command.length; j++) {
+                    x += command[j++];
+                    y += command[j];
+                    bezierVertex(x, y,
+                        x + command[j++], y + command[j++],
+                        x + command[j++], y + command[j++],
+                        x + command[j], y + command[j + 1]);
+                    x += command[j++];
+                    y += command[j];
+                }
+                break;
+            case 'z':
+            case 'Z':
+                endShape(CLOSE);
+                beginShape();
+                break;
+        }
+    }
+    endShape();
+    
+};
+
+parsePath(path);
+
+
+strokeWeight(5);
+stroke(200, 100, 250);
+
+var p = parsePath("M50 180 L150 280 L250 180 z");
+var p = parsePath("m195 50 l100 100 l-100 100 z");
+//var p = parsePath("m50 120 100 -100 100 100 z");
+drawPath(p);
+

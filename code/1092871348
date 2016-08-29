@@ -1,0 +1,105 @@
+/************************************************************
+ * Simulation of a wave of depolarization travelling
+ * through the heart muscle.
+ * 
+ * Based on http://www.khanacademy.org/science/healthcare-and-medicine/new-topic-5/v/depolarization-waves-flowing-through-the-heart
+**************************************************************/
+
+strokeWeight(2);
+// Parameters
+var muscleConductance = 0.3;
+var nerveConductance = 1.5;
+var muscleThreshold = 120;
+var nerveThreshold = 40;
+var cellWidth = 10;
+var startX = 6;
+var startY = 50;
+var gridWidth = 30;
+var gridHeight = 24;
+
+var Cell = function(threshold, conductance) {
+    this.charge = 0;    // represents distance from threshold
+    this.threshold = threshold;
+    this.conductance = conductance;
+    this.depolarized = false;
+};
+
+// Create 2D array of cells
+var cellRow;
+var cells = [];
+
+for (var y=0; y<gridHeight; y++) {
+    cellRow = [];
+    for (var x=0; x<gridWidth; x++) {
+        if ((x>3 && ((x<12 && y>3 && y<9) || y===6) ||
+            (y>6 && x===17))) {
+            // nerve cell
+            cellRow.push(new Cell(nerveThreshold, nerveConductance));
+        } else {
+            // myocyte
+            cellRow.push(new Cell(muscleThreshold,muscleConductance));
+        }
+    }
+    cells.push(cellRow);
+}
+
+cells[5][9].depolarized = true;
+
+var drawGrid= function(cells) { 
+    for (var y=0; y<gridHeight; y++) {
+        for (var x=0; x<gridWidth; x++) {
+            var cell = cells[y][x];
+            var col;
+            
+            // Determine what cell type and so its colour
+            if (cell.conductance === muscleConductance) {
+                col =  color(196, 0, 0);
+            } else { 
+                col = color(71, 204, 184);
+            }
+            stroke(col);
+             
+            // Determine fill
+            if (cell.depolarized) { fill(col); }
+            else { noFill(); }
+            
+            rect(startX + x * (cellWidth + 3),
+                 startY + y * (cellWidth + 3),
+                 cellWidth, cellWidth);
+        }
+    }
+};
+
+var chargeSpread = function(cell, x, y) {
+    var dx, dy;
+    var d = [[0, 1], [0, -1], [-1, 0], [1, 0]];
+    
+    for (var i in d) {
+        dx = x + d[i][0];
+        dy = y + d[i][1];
+        if (dx >= 0 && dx < gridWidth &&
+            dy >= 0 && dy < gridHeight) {
+            cells[dy][dx].charge += cells[y][x].conductance;
+            if ( cells[dy][dx].charge > cells[dy][dx].threshold ) {
+                cells[dy][dx].depolarized = true;
+            }
+        }
+    }    
+};
+
+var diffusion = function() {    
+    for (var y = 0; y < gridHeight; y++) {
+        for (var x = 0; x < gridWidth; x++) {
+            if ( cells[y][x].depolarized ) {
+                chargeSpread(cells[y][x], x, y);
+            }
+        }
+    }
+    
+};
+
+var draw = function() {
+    background(5, 5, 5);
+    diffusion();
+    drawGrid(cells);
+};

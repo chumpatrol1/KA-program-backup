@@ -1,0 +1,68 @@
+/*********************************************
+* 
+**********************************************/
+
+var BACKGROUND = color(0, 0, 0);
+var RED = color(255, 40, 40);
+
+ellipseMode(CENTER);
+
+var dy = 0;
+
+// Make a circle with 3 on it
+var makeImage = function(w, h, r) {
+    var img = createGraphics(w, h, P2D);
+    var cx = w >> 1;
+    var cy = h >> 1;
+    
+    if (img) {
+        img.background(RED);
+        img.angleMode = "degrees";
+        img.fill(250);
+        img.noStroke();
+        img.ellipse(cx, cy, w - 4, h - 4);
+        img.textFont(createFont("serif", 50), w);
+        img.textAlign(CENTER, CENTER);
+        img.fill(0);
+        img.translate(cx, cy);
+        img.rotate(r);
+        img.text("3", 0, 0);
+    }
+    return img;
+};
+
+var img = makeImage(80, 80, -60);
+var img2 = makeImage(320, 320, -60);
+image(img2, 1, 1);
+
+var scaleUp = function(img, s) {
+    if (dy < img.height * s) {
+        for (var dx = 0; dx < img.width * s; dx++) {
+            var c = img.get(dx / s, dy / s);
+            stroke(c);
+            point(dx + 100, dy);
+        }
+        dy++;
+    } else {
+        noLoop();
+    }
+};
+
+var scaleUp = function(img, s) {
+    if (dy < img.height * s) {
+        for (var dx = 0; dx < img.width * s; dx++) {
+            var c = img.get(dx / s, dy / s);
+            stroke(c);
+            point(dx + 1, dy + 290);
+        }
+        
+        dy++;
+    } else {
+        noLoop();
+    }
+};
+
+draw = function() {
+    scaleUp(img2, 1 / 3);
+};
+

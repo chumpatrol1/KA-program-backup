@@ -1,0 +1,37 @@
+var wiggleSpeed = 25; 
+var wiggleWidth = 5; 
+var wiggleFrequency = 1;
+
+frameRate(15);
+translate(200, 200);
+scale(0.7, 0.7);
+
+stroke(160);
+strokeWeight(0.5);
+noFill();
+
+draw = function() {
+    background(0);
+    pushMatrix();
+    
+    for (var reps = 0; reps < 24; reps++){
+        var y = 0; 
+    
+        for (var i = 20; i < 58; i++){
+            var a = y * wiggleFrequency + (frameCount * wiggleSpeed);
+            var x = wiggleWidth * sin(a); 
+            ellipse(y + x - 260, x + 10, 16 - y, y/6); 
+            y += 4.4;
+        }
+        rotate(15);
+    }
+    
+    popMatrix(); 
+};
+
+
+
+
+
+
+

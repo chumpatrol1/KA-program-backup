@@ -1,0 +1,121 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var GRIDGREY = color(230, 240, 230);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+
+textSize(14);
+var pointR = 10;
+
+// Global variables specific for this program
+var gridSize = 20;
+var lineLength = 300;
+var numPoints = 7;
+
+var selected = false;
+
+var draggablePoint = function(x, y) {
+    this.x = x;
+    this.y = y;
+    
+    this.draw = function() {
+        var colour = BLUE;
+        var pr = pointR;
+        
+        if (selected === this || this.mouseover()) {
+            colour = ORANGE;
+            pr += 4;
+        }
+        
+        // Point
+        noStroke();
+        fill(colour);
+        ellipse(this.x, this.y, pr, pr);
+    };
+    
+    this.mouseover = function() {
+        return dist(mouseX, mouseY, this.x, this.y) <= pointR / 2 + 4;
+    };
+};
+
+var createPoints = function() {
+    var points = [];
+    var x = (width - lineLength) / 2;
+    var y = 160;
+    var dx = 0.5* width / (numPoints + 1);
+    
+    for (var i = 0; i < numPoints; i++) {
+        points.push(new draggablePoint(x, y));
+        x += dx;
+    }
+    
+    return points;
+};
+
+var points = createPoints();
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    for (var x = 1; x < width / gridSize; x++) {
+        line(x * gridSize, 0, x * gridSize, height);
+    }
+    for (var y = 1; y < height / gridSize; y++) {
+        line(0, y * gridSize, width, y * gridSize);
+    }
+};
+
+var drawMousePoint = function() {
+    noStroke();
+    fill(BLUE);
+    ellipse(mouseX, mouseY, pointR, pointR);
+};
+
+var drawLine = function() {
+    stroke(BLUE);
+    strokeWeight(2);
+    
+    var x1 = points[0].x;
+    var y1 = points[0].y;
+    
+    for (var i = 1; i < points.length; i++) {
+        var x2 = points[i].x;
+        var y2 = points[i].y;
+        line(x1, y1, x2, y2);
+        x1 = x2;
+        y1 = y2;
+    }
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    drawGrid();
+    drawLine();
+    
+    for (var i = 0; i < points.length; i++) {
+        points[i].draw();
+    }
+};
+
+var mousePressed = function() {
+    for (var i = 0; i < points.length; i++) {
+        if (points[i].mouseover()) {
+            selected = points[i];
+        }
+    }
+};
+
+var mouseReleased = function() {
+    selected = false;
+};
+
+var mouseDragged = function() {
+    if (selected) {
+        selected.x = mouseX;
+        selected.y = mouseY;
+    }
+};

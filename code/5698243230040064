@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Where Does My Program Rank On The Hot List? (API version)</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    </head>
+    
+    <body style="background: #f6f6f6">
+        <h1 style="color: #1767a1">Where Does My Program Rank On The Hot List?</h1>
+        <p>Ever wanted to know your Hot List rank but don't want to bother counting?</p>
+        <p>Enter your program ID (10 or 16 characters):</p>
+        
+        <input type="text" id="program-id">
+        <button id="find-program-button">Find program</button>
+        <p></p>
+        <img id="wait-message" src="https://www.khanacademy.org/images/throbber.gif"/>
+        <div id="result"></div>
+        
+        <script>
+            var resultDiv = $('#result');
+            var throbber = $('#wait-message');
+            var howManyToCheck = 200;
+            throbber.hide();
+            
+            var searchForProgram = function(data, name) {
+                var list = data.scratchpads;
+                var targetId = $('#program-id').val();
+                var hit = false;
+                throbber.hide();
+            
+                for (var i = 0; i < list.length; i++) {
+                    var url = list[i].url;
+                    var id = url.split("/").slice(-1)[0];
+                    console.log(id);
+                    if (id === targetId) {
+                        resultDiv.append($("<p>Your program is at position " + (i + 1) + " in the " + name + " list.</p>"));
+                        hit = true;
+                        break;
+                    }
+                }
+                
+                if (!hit) {
+                    resultDiv.append($("<p>Sorry, your program could not be found in the top " + howManyToCheck + " of the " + name + " list.</p>"));
+                }
+            }
+            
+            $('#find-program-button').on("click", function() {
+                resultDiv.empty();
+                throbber.show();
+                
+                $.getJSON("https://www.khanacademy.org/api/internal/scratchpads/top?casing=camel&topic_id=xffde7c31&sort=3&limit=" + howManyToCheck + "&page=0&lang=en&_=1437730996421&callback=?", function(data) {
+                    searchForProgram(data, "hot");
+                });
+                
+                $.getJSON("https://www.khanacademy.org/api/internal/scratchpads/top?casing=camel&topic_id=xffde7c31&sort=5&limit=" + howManyToCheck + "&page=0&lang=en&_=1437730996421&callback=?", function(data) {
+                    searchForProgram(data, "top");
+                });
+            });
+        </script>
+    </body>
+</html>

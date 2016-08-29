@@ -1,0 +1,300 @@
+ /**********************************************************
+ * Calculating how much tax you pay based on US tax brackets.
+ * 
+ * Based on this video:
+ * https://www.khanacademy.org/science/core-finance/taxes-topic/taxes/v/basics-of-us-income-tax-rate-schedule
+ ***********************************************************/
+
+// Gives the tax rate for income about a threshold 000 $.
+// Approximate values from http://en.wikipedia.org/wiki/Income_tax_in_the_United_States#Marginal_tax_rates_for_2013
+var brackets = [
+    { threshold: 0, tax: 0.1 },
+    { threshold: 9, tax: 0.15 },
+    { threshold: 36, tax: 0.25 },
+    { threshold: 88, tax: 0.28 },
+    { threshold: 183, tax: 0.33 },
+    { threshold: 398, tax: 0.35 }
+  //{ threshold: 400, tax: 0.40 }
+];
+
+var graph1, netPercents;
+var sliderSelected = false;
+var sliderSize = 22;
+var myIncome = 100;
+var maxIncome = 200;
+var taxPaid;
+var myBracket;
+
+var lineCol1 = color(50, 100, 255);
+var lineCol2 = color(255, 0, 0);
+var percentCol = color(255, 255, 20);
+
+var colourByBracket = function(i) {
+    var p = i / (brackets.length - 1);
+    return lerpColor(lineCol1, lineCol2, p);
+};
+
+var getNetPercent = function() {
+    // Create an array with the value of f(x) for every
+    // pixel in the graph
+    var resolution = graph1.maxX / graph1.width;
+    var yValues = [brackets[0].tax*100];
+    
+    for (var x=resolution; x<=graph1.maxX; x+=resolution) {
+        var paid = 0;
+        for (var i=1; i<brackets.length; i++) {
+            if (x >= brackets[i].threshold) {
+                paid +=  (brackets[i].threshold - brackets[i-1].threshold) * brackets[i-1].tax;
+            } else {
+                paid += (x - brackets[i-1].threshold) * brackets[i-1].tax;
+                break;
+            }
+        
+        }
+        
+        yValues.push(100*paid/x);
+    }
+    
+    return yValues;
+};
+
+// Graph display parameters
+var Graph = function(x, y, w, h, mx, my, dx, dy) {
+    this.x1 = x;
+    this.y1 = y;
+    this.width = w;
+    this.height = h;
+    this.maxX = mx;
+    this.maxY = my;
+    this.tickX = dx;
+    this.tickY = dy;
+    
+    // Points opposite the origin
+    this.x2 = x + w;
+    this.y2 = y - h;
+    
+    this.scaleX = this.width / this.maxX;
+    this.scaleY = this.height / this.maxY;
+    
+    this.plotX = function(x) {
+        return this.x1 + this.scaleX * x;
+    };
+    
+    this.plotY = function(y) {
+        return this.y1 - this.scaleY * y;
+    };
+    
+    this.drawArea = function() {
+        // Draw the axes and gridlines for a graph
+    
+        strokeWeight(1);
+        fill(250, 250, 250);
+        textSize(12);
+        textAlign(CENTER, BASELINE);
+        
+        for (var x=0; x<=this.maxX; x+=this.tickX) {
+            var x1 = this.plotX(x);
+            stroke(25, 25, 25);
+            line(x1, this.y2, x1, this.y1);
+            
+            stroke(250, 250, 250);
+            text(x, x1 + 1, this.y1 + 17);
+            line(x1, this.y1, x1, this.y1 + 4);
+        }
+        
+        for (var y=0; y<=this.maxY; y+=this.tickY) {
+            var y1 = this.plotY(y);
+            stroke(25, 25, 25);
+            line(this.x1, y1, this.x2, y1);
+            
+            stroke(250, 250, 250);
+            textAlign(RIGHT, BASELINE);
+            text(y, this.x1 - 7, y1 + 4);
+            textAlign(LEFT, BASELINE);
+            text(y + "%", this.x2 + 7, y1 + 4);
+            
+            line(this.x1, y1, this.x1 - 3, y1);
+            line(this.x2, y1, this.x2 + 3, y1);
+        }
+    };
+    
+    this.plotFunction = function(yValues, c, strokeW, minX) {
+        // Plot each value in an array
+            
+        strokeWeight(strokeW);
+        stroke(c);
+        
+        if (minX === undefined) { minX = 0; }
+        
+        var y1 = this.plotY(yValues[0]);
+        var dx = this.width / yValues.length;
+        var x = this.x1 + minX * dx;
+        
+        for (var i=0; i<yValues.length-minX; i++) {
+            var y2 = this.plotY(yValues[i+minX]);
+            line(x, y1, x + dx, y2);
+            x += dx;
+            y1 = y2;
+        }
+    };
+    
+    this.plotTaxAmount = function () {
+        strokeWeight(2);
+        
+        var paid1 = 0;
+        var th1 = 0;
+        var paid2, th2;
+        taxPaid = false;
+        
+        for (var i=0; i<brackets.length-1; i++) {
+            th2 = min(brackets[i+1].threshold, maxIncome);
+            paid2 = paid1 + brackets[i].tax * (th2 - th1);
+            
+            if (myIncome <= th2 & !taxPaid) {
+                var diff = myIncome - th1;
+                taxPaid = paid1 + brackets[i].tax * diff;
+                myBracket = i;
+            }
+
+            // Draw line
+            stroke(colourByBracket(i));
+            line(this.plotX(th1), this.plotY(paid1),
+                 this.plotX(th2), this.plotY(paid2));
+            
+            paid1 = paid2;
+            th1 = th2;
+        }
+        
+        // Line showing tax paid
+        strokeWeight(1);
+        stroke(colourByBracket(myBracket));
+        var x = this.plotX(myIncome);
+        var y = this.plotY(taxPaid);
+        line(this.x1, y, x-1, y);
+    
+        stroke(percentCol);
+        y = this.plotY(netPercents[round(myIncome*this.width/maxIncome)]);
+        line(this.x2, y, x+1, y);
+    };
+    
+    this.drawAxes = function(xLabel, yLabel) {
+        stroke(240, 240, 240);
+        strokeWeight(1);
+        line(this.x1, this.y1, this.x1, this.y2);
+        line(this.x2, this.y1, this.x2, this.y2);
+        line(this.x1, this.y1, this.x2, this.y1);
+        
+        // Axis labels
+        fill(250, 250, 250);
+        textAlign(CENTER, BASELINE);
+        textSize(14);
+        text(xLabel, this.x1 + this.width/2, this.y1 + 35);
+        
+        translate(this.x1 - 30, this.y1 - this.height/2);
+        rotate(270);
+        text(yLabel, 0, 0);
+        resetMatrix();
+    };
+};
+
+var drawSlider = function() {
+    stroke(255, 255, 255, 128);
+    strokeWeight(2);
+    var x = graph1.plotX(myIncome);
+    var y = graph1.y2;
+    
+    line(x, graph1.y2, x, graph1.y1 - 1);
+    if (sliderSelected) { fill(250, 250, 250); }
+    else { fill(80, 80, 80); }
+    ellipse(x, y, sliderSize, sliderSize);
+    textSize(10);
+    
+    if (sliderSelected) { fill(0,0,0); }
+    else { fill(255,255,255); }
+    textAlign(CENTER, CENTER);
+    text(myIncome, x, y-1);
+};
+
+var writeExplanation = function() {
+    fill(250, 250, 255);
+    textSize(15);
+    textAlign(LEFT, BASELINE);
+    
+    var x = 18;
+    var y = 315;
+    var s = "If you earn $" + myIncome + ",000 you are in ";
+    text(s, x, y);
+    x += textWidth(s);
+    
+    fill(colourByBracket(myBracket));
+    s = "tax bracket " + (myBracket + 1);
+    text(s, x, y);
+    x += textWidth(s);
+
+    fill(250, 250, 255);
+    s = " (" + round(100 * brackets[myBracket].tax) + "% tax).";
+    text(s, x, y);
+    
+    x = 18;
+    s ="You will pay $";
+    if (round(taxPaid) > 0) { s += round(taxPaid) + ","; }
+    s += round((taxPaid*1000) % 1000) +" in tax";
+    s += " (assuming no deductions).";
+    y += 24;
+    text(s, x, y);
+    
+    s = "This works out as ";
+    y += 24;
+    text(s, x, y);
+    
+    fill(percentCol);
+    x += textWidth(s);
+    s = round(1000*taxPaid/myIncome)/10 + "%";
+    text(s, x, y);
+    
+    fill(255, 255, 255);
+    x += textWidth(s);
+    s = " of your income.";
+    text(s, x, y);
+
+};
+
+graph1 = new Graph(55, 240, 300, 200, maxIncome, 50, 25, 10);
+netPercents = getNetPercent();
+
+var draw = function() {
+    background(0, 0, 0);
+    
+    graph1.drawArea();
+    graph1.plotTaxAmount();
+    graph1.plotFunction(netPercents, percentCol, 2);
+    graph1.drawAxes("Income (Thousand $)", "Tax paid (Thousand $)");
+    
+    drawSlider();
+    writeExplanation();
+};
+
+var mousePressed = function() {
+    var x = graph1.plotX(myIncome);
+    var y = graph1.y2 - 14;
+    
+    if (abs(mouseX - x) <= sliderSize &&
+        abs(mouseY - y) <= sliderSize) {
+        sliderSelected = true;
+    }
+};
+
+var mouseDragged = function() {
+  if (sliderSelected) {
+    myIncome = round((mouseX - graph1.x1) / graph1.scaleX);
+    myIncome = constrain(myIncome, 1, maxIncome);
+  }
+};
+
+var mouseReleased = function() {
+    sliderSelected = false;
+};
+
+var mouseOut = function() {
+    sliderSelected = false;
+};

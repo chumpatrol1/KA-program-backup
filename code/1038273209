@@ -1,0 +1,42 @@
+// Distribution values
+var p = 0.1;
+var s = round(100 * p * (1 - p)) / 100;
+
+// Display Variables
+var axisX = 80;
+var axisY = 200;
+var axisLength = 240;
+var axisHeight = 160;
+var barWidth = 80;
+
+var barGap = (axisLength - 2 * barWidth)/3;
+var x1 = axisX + barGap;
+var x2 = x1 + barGap + barWidth;
+
+textSize(16); 
+
+var draw = function() {
+    background(255, 255, 255);
+    
+    // Bars
+    noStroke();
+    fill(73, 60, 171);
+    rect(x1, axisY, barWidth, axisHeight*-p);
+    fill(82, 176, 58);
+    rect(x2, axisY, barWidth, axisHeight*(p-1));
+
+    // Axes
+    stroke(20, 20, 20);
+    strokeWeight(2);
+    line(axisX, axisY+1, axisX + axisLength, axisY+1);
+    line(axisX, axisY, axisX, axisY - axisHeight);
+
+    // Labels
+    fill(20, 20, 20);
+    text("A", x1+barWidth/2, axisY + 22);
+    text("B", x2+barWidth/2, axisY + 22);
+    
+    text("x̄:  " + p, 100, 270);
+    text("σ:  " + s, 100, 295);
+
+};

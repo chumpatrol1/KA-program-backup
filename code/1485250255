@@ -1,0 +1,233 @@
+/******************************************************
+ * Very simple genetic algorithm to generate an image.
+ * 
+ *   - Genome -
+ * The position, size, colour and opacity of 24 circles
+ * is stored as an array of numbers, called the genome.
+ * Each generation, one number is randomly mutated and
+ * a new image generated.
+ * 
+ *   - Fitness -
+ * The distance between the evolved image and the target
+ * image is used as a measure of fitness. Fitness is the 
+ * average Euclidean distance between the evolved and 
+ * target image for each pixel as a percent of the 
+ * maximum distance and subtracted from the maximum
+ * distance. Only the pixels within the black outline
+ * are considered.
+ * 
+ *   - Selection -
+ * Any mutation that increases the fitness is kept,
+ * otherwise it is discarded.
+ * 
+ *    - Evolution is slow! -
+ * It take ~2000 generations before the evolved image
+ * even begins to looks like the target.
+ * 
+ * If you make any changes to the code be sure to
+ * restart the program to avoid weird bugs.
+ * 
+ * For more info:
+ * http://petercollingridge.co.uk/evolving-images
+******************************************************/
+
+var targetImage = getImage("avatars/robot_male_3");
+var imageWidth = 160; // targetImage.width;
+var imageHeight = 160; //targetImage.height;
+var imageX = 200;
+var imageY = 220;
+
+// The more circles, the more accurate the evolved image,
+// but the slower evolution will take.
+// Should add the ability to +/- circles
+var nCircles = 24;
+
+// Genes are for R, G, B, A, x, y, w, h
+// Factor are the maximum value each number can take to start with
+var geneFactors = [256, 256, 256, 256, imageWidth, imageHeight, imageWidth * 0.5, imageWidth * 0.5];
+
+var geneNumber = geneFactors.length;
+
+var genomeLength = nCircles * geneNumber;
+
+// Mutations per genome per generation
+var nMutations = 1;
+
+var generation = 1;
+
+frameRate(100);
+
+var drawTargetImage = function(x, y) {
+    image(targetImage, x, y, imageWidth, imageHeight);
+    
+    // Outline
+    stroke(10);
+    noFill();
+    rect(x, y, imageWidth, imageHeight);
+    
+    fill(30, 30, 50);
+    textSize(16);
+    text("Target Image", 10, 30);   
+};
+
+var getTargetData = function() {
+    image(targetImage, 0, 0, imageWidth, imageHeight);
+    loadPixels();
+    var p = imageData.data;
+    
+    var x, y, i, target = [];
+    
+    for (x = 0; x < imageWidth; x++) {
+        for (y = 0; y < imageHeight; y++) {
+            i = x + y * width << 2;
+            // Add RGB of this pixel to target array
+            target.push(p[i++], p[i++], p[i]);
+        }
+    }
+    
+    return target;
+};
+
+// Get and array of pixel indices for a rect starting
+// at (x, y) with size imageWidth, imageHeight
+var getIndices = function(x1, y1) {
+    var x, y, i, indices = [];
+    
+    var x2 = x1 + imageWidth;
+    var y2 = y1 + imageHeight;
+    
+    for (x = x1; x < x2; x++) {
+        for (y = y1; y < y2; y++) {
+            i = x + y * width << 2;
+            indices.push(i, i + 1,  i + 2);
+        }
+    }
+
+    return indices;
+};
+
+// Colour masks
+var B_MASK = 255;
+var G_MASK = 255<<8;
+var R_MASK = 255<<16;
+
+var splitColour = function(c) {
+    var r = (c & R_MASK)>>16;
+    var g = (c & G_MASK)>>8;
+    var b = c & B_MASK;
+    return [r, g, b];
+};
+
+// A genome is an array of integers
+// It is split into groups of 7, which define
+// fill(a, b, c, d);
+// ellipse(e, f, g, g);
+var initialiseGenome = function() {
+    var genome = [];
+    
+    for (var gene = 0; gene < nCircles; gene++) {
+        for (var g = 0; g < geneNumber; g++) {
+            genome.push(floor(geneFactors[g] * random()));
+        }
+    }
+    
+    return genome;
+};
+
+// Display circles as defined by genome
+var genomeToImage = function(x, y, genome) {
+    var g, r;
+    
+    noStroke();
+    for (var g = 0; g < genomeLength; g += geneNumber) {
+        fill(genome[g], genome[g + 1], genome[g + 2], genome[g + 3]);
+        ellipse(x + genome[g + 4], y + genome[g + 5], genome[g + 6], genome[g + 7]);
+    }
+
+    // Frame
+    noFill();
+    stroke(10, 10, 10);
+    rect(x - 1, y - 1, imageWidth + 1, imageWidth + 2);
+    fill(30, 30, 50);
+};
+
+// Copy a genome and mutate the copy
+// Mutations randomly change a gene to a new value
+var getDaughterGeneome = function(genome, mutations) {
+    var daughter = genome.slice();  // Copy genome
+    
+    for (var m = 0; m < mutations; m++) {
+        var n = floor(genomeLength * random());
+        daughter[n] = floor(geneFactors[n % geneNumber] * random());
+    }
+    
+    return daughter;
+};
+
+// Given a rect, find the sum squared Euclidean distance
+// between the image there and a target image
+var getGenomeDivergence = function(target, indices) {
+    var divergence = 0;
+    var n = indices.length;
+    var i, d;
+    
+    loadPixels();
+    var pixels = imageData.data;
+    
+    for (i = 0; i < n; i++) {
+        d = pixels[indices[i]] - target[i];
+        divergence += d * d;
+        //println(indices[i] + " " + target[i]);
+    }
+    //updatePixels();
+    return divergence;
+};
+
+// Convert total pixel difference to per-pixel closeness
+var divergenceToFitness = function(divergence) {
+    var perpixel = sqrt(divergence / (imageWidth * imageHeight * 3));
+    return 100 * (256 - perpixel) / 256;
+};
+
+// Get target image data
+var target;
+
+// Create random ancestral genome
+var parent = initialiseGenome();
+
+var indices = getIndices(imageX, imageY);
+
+var fitness, divergence;
+
+var draw = function() {
+    if (!target) {
+        target = getTargetData();
+        genomeToImage(imageX, imageY, parent);
+        divergence = getGenomeDivergence(target, indices);
+        fitness = divergenceToFitness(divergence);
+    }
+    
+    background(255);
+    
+    drawTargetImage(imageX, 10);
+    
+    fill(0, 0, 0);
+    textSize(16);
+    text("Evolved Image", 10, 230);
+    text("Generation: " + generation, 10, 250);
+    text("Fitness: " + round(10000*fitness)/10000, 10, 280);
+
+    var daughter = getDaughterGeneome(parent, nMutations);
+    genomeToImage(imageX, imageY, daughter);
+    var div = getGenomeDivergence(target, indices);
+    
+    //println(div + " " + divergence);
+    
+    if (generation < 2 || div < divergence) {
+        parent = daughter;
+        divergence = div;
+        fitness = divergenceToFitness(divergence);
+    }
+    
+    generation++;
+};

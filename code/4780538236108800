@@ -1,0 +1,1803 @@
+/*
+rop - A series of fun & addictive puzzles.
+
+Inspired by: http://mildmania.com/rop-detailed/
+
+By: Blue Leaf  *//** Sometimes Difficult, Always Solvable™ **//*
+
+Subscribe: https://www.khanacademy.org/cs/-/6145891777511424
+
+ACKNOWLEDGEMENTS:
+    Special thanks to Jake for having recommended this game to me:
+        https://www.khanacademy.org/profile/bookworm1202/
+        
+    Adapted rope physics from Kazza++:
+        https://www.khanacademy.org/profile/Kazzababe/
+        https://www.khanacademy.org/cs/-/6345828438376448
+        
+    Adapted rounded polygons & detection of a point inside a polygon from Peter Collingridge:
+        https://www.khanacademy.org/profile/peterwcollingridge/
+        https://www.khanacademy.org/cs/-/6175046368624640
+        https://www.khanacademy.org/pixar/-/6674052302897152
+    
+    Adapted easing function from Robert Penner:
+        http://robertpenner.com/easing/
+        http://gizma.com/easing/
+*//**
+INSTRUCTIONS:
+    • Move the hexagons on the bottom so that their connecting "ropes" form the image shown inside the large hexagon at the top.
+    • Have Fun! :)
+
+MORE ABOUT THE GAME:
+    • There are 30 levels of increasing difficulty.  Your progress is represented by the "lines & dots" at the bottom.
+    • Hover over the "lines & dots" at the bottom to see your progress numerically.
+    • You may go back to previously completed puzzles, but may not skip ahead.
+    • There are 10 color themes.  Color themes may be added/changed in the `themes` object declared on line 84.
+    • All canvas sizes are supported.
+**/
+
+/* These definitions are here to help keep things straight in my head! :)
+
+*//** DEFINITION OF TERMS **//*
+• Graph: A set of connected vertices, where all edges are bidirectional (an undirected graph).
+• Vertex: A point in a graph.
+        Vertices are named by a single letter in the range: "a".."s".
+• Ordered:  Refers to two or more vertices where the names are sorted.
+        E.g., "ab", but not "ba".
+        E.g., "abc", but neither "acb", "bac", "bca", "cab", nor "cba".
+• Adjacent:  Refers to two vertices that have no other vertices centered beneath the path that connects them.
+        E.g., For the graph "a-b-c", "ab" and "bc" are adjacent but "ac" is not.
+• Edge: A orderd pair of vertices defining a connection between two adjacent vertices.
+        An edge is represented as a two-character, ordered string.
+        E.g., "ab", but not "ba".
+• Path: An ordered set of two or more adjacent vertices.
+        A path is represented as either an ordered string or an unordered array of edges.
+        E.g., "ab" or ["ab"]
+        E.g., "abc" or ["ab", "bc"] or ["bc", "ab"].
+• Segment: An ordered set of two or more vertices whose edges all lie on a straight line and, therefore, form a line segment.
+        A segment is represented as either an orderd string or an unordered array of endpoints.
+        E.g., "ab" or ["ab"]
+        E.g., "abc" or ["ab", "bc"] or ["bc", "ab"] or ["ba", "bc"] or ["ba", "cb"] ... etc. (there are 8 array permutation).
+                    or ["ac"] or ["ca"]
+• Endpoints: An unordered pair of vertices defining the two endpoints of a path or segment.
+        Endpoints are represented as an unordered, two-character string.
+        E.g., For the path/segment "ab", the endpoints may be either "ab" or "ba".
+        E.g., For the path/segment "abc", the endpoints may be either "ac" or "ca".
+
+===== JavaScript implementation terms =====
+• Board: A specific graph of 19 vertices that form the playing and answer fields.
+• Node: A board's vertex.
+• Piece: A moveable peg, usually positioned on an otherwise unoccupied node.
+• Rope: A segment between two pieces.
+• Solution: The line(s) formed by the ropes.
+• Puzzle: The player's board.  Includes nodes, pieces, ropes, and solution.
+• Answer: The board that the player endeavors to replicate.  The correct solution.
+
+The answer and solution are "normalized" so as to be comparable.  The normalization process includes: combining all edges, removing duplicates, ordering (sorting), and concatenating to a single string.
+*/
+
+var mouse = {}, controls = {};  // hoisted
+
+//                                                     
+//      Add/change/remove color themes from here.      
+//                                                     
+var themes = [  // available color themes
+    /** Themes may be added, changed, and/or delete.  Just make sure there's at least one! **/
+    {
+        light: color(250),
+        medium: color(165),
+        dark: color(80)
+    },
+    {
+        light: color(255, 183, 66),
+        medium: color(153, 148, 57),
+        dark: color(115, 62, 30)
+    },
+    {
+        light: color(253, 231, 146),
+        medium: color(209, 87, 12),
+        dark: color(90, 31, 1)
+    },
+    {
+        light: color(255, 243, 209),
+        medium: color(152, 180, 142),
+        dark: color(233, 118, 87)
+    },
+    {
+        light: color(209, 243, 255),
+        medium: color(142, 180, 152),
+        dark: color(87, 118, 233)
+    },
+    {
+        light: color(243, 255, 209),
+        medium: color(180, 142, 152),
+        dark: color(118, 233, 87)
+    },
+    {
+        light: color(153, 222, 151),
+        medium: color(230, 133, 112),
+        dark: color(50, 124, 52)
+    },
+    {
+        light: color(222, 152, 222),
+        medium: color(230, 230, 112),
+        dark: color(124, 51, 124)
+    },
+    {
+        light: color(255, 255, 128),
+        medium: color(128, 192, 192),
+        dark: color(0, 128, 255)
+    },
+    {
+        light: color(80, 190, 128),
+        medium: color(190, 128, 80),
+        dark: color(128, 80, 190)
+    }
+    ];  // available color themes
+
+var theme = {  // color theme being displayed
+    _index: -1,  // index into the `themes` array
+    contrast: false,  // indicates if the light & dark colors are to be reversed
+    
+    next: function(mouseButton) {
+        // Index the next/previous entry of `themes`.
+        this._index = (mouseButton === LEFT ? ++this._index : --this._index + themes.length) % themes.length;
+        
+        // Copy the properties, pre-pending the names with an "_".
+        var t = themes[this._index];
+        for (var name in t) {
+            this["_" + name] = t[name];
+        }
+        
+        // Update button's tooltip text.
+        controls.findById('theme').tooltipText = 'Change color scheme (left/right click for next/previous).' +
+            '\nShowing theme #' + (this._index + 1) + ' of ' + themes.length + '.';
+    },
+    
+    get light() {
+        return this.contrast ? this._dark : this._light;
+    },
+    
+    get medium() {
+        return this._medium;
+    },
+    
+    get dark() {
+        return this.contrast ? this._light : this._dark;
+    }
+};  // color theme being displayed
+
+var system = {
+    scene: 'splash',
+    frames: 0,  // frame counter for the current scene
+    scaleFactor: min(width / 400, height / 600),
+    left: (width - 400 * min(width / 400, height / 600)) / 2,  // drawn to board size of 400 x 600
+    fps: 60,  // must be evenly divisible by 12 to support 1/3, 1/4, and 1/12 second animations/transitions
+
+    entityUnderMouse: undefined,
+    selectedPiece: undefined,  // the one that's currently chosen (clicked) or being dragged
+    isDragging: false,  // indicates if `selectedPiece` is being dragged
+    draggingStartTime: undefined,
+
+    _newSceneData: false,  // temporarily holds info about the next scene
+    
+    // Set-up a new scene.  The actual scene change occurs in `prepareNextFrame`.
+    changeScene: function(newScene, sceneInfo) {
+        /** Actual change deferred to avoid resetting `system.frames` while a scene is being drawn. **/
+        this._newSceneData = {newScene: newScene, sceneInfo: sceneInfo};
+        
+        mouse.isLocked = (newScene === 'play') || (newScene === 'finale');
+    },
+    
+    // Advance frame for current scene -OR- set-up new scene.
+    prepareNextFrame: function() {
+        // Had `changeScene` been called?
+        if (this._newSceneData) {
+            // Execute the requested scene change.
+            this.previousScene = this.scene;
+            this.scene = this._newSceneData.newScene;
+            this.sceneInfo = this._newSceneData.sceneInfo;
+            this.frames = 1;
+
+            this._newSceneData = false;
+            
+        // Update current scene.
+        } else {
+            this.frames++;
+        }
+    }
+};
+
+var mouse = {
+    get x() { return (mouseX - system.left) / system.scaleFactor; },
+    get y() { return mouseY / system.scaleFactor; },
+    
+    get 'point'() { return new PVector(this.x, this.y); },
+    
+    isLocked: false,  // indicates if mouse inputs will be ignored
+    
+    isInRect: function(point, w, h) {
+        return this.x >= point.x && this.x < point.x + w && this.y >= point.y && this.y < point.y + h;
+    },
+
+    isInEllipse: function(point, w, h) { // `h` is optional for circles
+        if (arguments.length < 4) { h = w; }
+        return sq((this.x - point.x) / (w / 2)) + sq((this.y - point.y) / (h / 2)) <= 1;
+    },
+    
+    isInPolygon: function(vertices) {
+        var n = vertices.length;
+        var c = false;
+        var v1, v2;
+
+        for (var i = 0, j = n - 1; i < n; j = i++) {
+            v1 = vertices[i];
+            v2 = vertices[j];
+            
+            if (((v1.y > this.point.y) !== (v2.y > this.point.y)) &&
+                 (this.point.x < (v2.x - v1.x) * (this.point.y - v1.y) / (v2.y - v1.y) + v1.x)) {
+               c = !c;
+            }
+        }
+        
+        return c;
+    }
+};
+
+var fonts = {
+    logo:    createFont('Arial Bold', 48),
+    title:   createFont('Verdana', 100),
+    tooltip: createFont('Verdana', 12),
+    
+    get textHeight() {
+        return (textAscent() + textDescent()) * 1.2;
+    }
+};
+
+{ // RoundedPolygon
+var RoundedPolygon = function(vertices, curvature) {
+    this.vertices = vertices;
+
+    // Convert each `vertex` to a set of three points.
+    
+    var complement = 1 - curvature;
+    var n = vertices.length;
+    var p1 = vertices[n - 1];
+    var p2;
+    
+    this._points = [];
+    
+    for (var i = 0; i < n; i++) {
+        p2 = vertices[i];
+        var dx = p2.x - p1.x;
+        var dy = p2.y - p1.y;
+        this._points.push(new PVector(p1.x + curvature * dx, p1.y + curvature * dy));
+        this._points.push(new PVector(p1.x + complement * dx, p1.y + complement * dy));
+        this._points.push(new PVector(p2.x, p2.y));
+        p1 = p2;
+    }
+    
+    // Move first entry to end of array.
+    this._points.push(this._points.shift());
+};
+
+Object.defineProperty(RoundedPolygon.prototype, 'mouseIsOver', {
+    get: function() {
+        return mouse.isInPolygon(this.vertices);
+    }
+});
+
+RoundedPolygon.prototype.draw = function(weight, strokeColor, fillColor) {
+    if (fillColor === undefined) {
+        noFill();
+    } else {
+        fill(fillColor);
+    }
+    if (weight <= 0 || strokeColor === undefined) {
+        noStroke();
+    } else {
+        strokeWeight(weight);
+        stroke(strokeColor);
+    }
+
+    beginShape();
+    for (var i = 0; i < this._points.length; /* do nothing here */) {
+        var v1 = this._points[i++];
+        var v2 = this._points[i++];
+        var v3 = this._points[i++];
+        vertex(v1.x, v1.y);
+        bezierVertex(v2.x, v2.y, v2.x, v2.y, v3.x, v3.y);
+    }
+    endShape(CLOSE);
+};
+} // RoundedPolygon
+
+{ // Hexagon
+var Hexagon = function(center, diameter, curvature) { // if `diameter` < 0, rotate 90 degrees
+    this.center = center.get();
+    this.diameter = diameter;
+    
+    var a = abs(diameter) / 4;
+    var b = sqrt(3) * a;
+    var vertices;
+    if (diameter > 0) {
+        vertices = [
+            new PVector(center.x, center.y - 2 * a),
+            new PVector(center.x + b, center.y - a),
+            new PVector(center.x + b, center.y + a),
+            new PVector(center.x, center.y + 2 * a),
+            new PVector(center.x - b, center.y + a),
+            new PVector(center.x - b, center.y - a)
+            ];
+    } else {
+        vertices = [
+            new PVector(center.x - 2 * a, center.y),
+            new PVector(center.x - a, center.y + b),
+            new PVector(center.x + a, center.y + b),
+            new PVector(center.x + 2 * a, center.y),
+            new PVector(center.x + a, center.y - b),
+            new PVector(center.x - a, center.y - b)
+            ];
+    }
+    
+    RoundedPolygon.call(this, vertices, curvature);
+};
+
+Hexagon.prototype = Object.create(RoundedPolygon.prototype);
+} // Hexagon
+
+{ // Honeycomb
+var Honeycomb = function(center, diameter, curvature) {
+    this.center = center.get();
+    this.diameter = diameter;
+    
+    var h = diameter;  // horizontal (x) offset.
+    var v = diameter * sin(60);  // vertical (y) offset
+    this.nodes = {
+        a: new Hexagon(new PVector(center.x - h, center.y - 2 * v), diameter, curvature),  // top row
+        b: new Hexagon(new PVector(center.x,     center.y - 2 * v), diameter, curvature),
+        c: new Hexagon(new PVector(center.x + h, center.y - 2 * v), diameter, curvature),
+
+        d: new Hexagon(new PVector(center.x - 1.5 * h, center.y - v), diameter, curvature),  // 2nd row
+        e: new Hexagon(new PVector(center.x - 0.5 * h, center.y - v), diameter, curvature),
+        f: new Hexagon(new PVector(center.x + 0.5 * h, center.y - v), diameter, curvature),
+        g: new Hexagon(new PVector(center.x + 1.5 * h, center.y - v), diameter, curvature),
+
+        h: new Hexagon(new PVector(center.x - 2 * h, center.y), diameter, curvature),  // middle row
+        i: new Hexagon(new PVector(center.x - h,     center.y), diameter, curvature),
+        j: new Hexagon(new PVector(center.x,         center.y), diameter, curvature),
+        k: new Hexagon(new PVector(center.x + h,     center.y), diameter, curvature),
+        l: new Hexagon(new PVector(center.x + 2 * h, center.y), diameter, curvature),
+
+        m: new Hexagon(new PVector(center.x - 1.5 * h, center.y + v), diameter, curvature),  // 4th row
+        n: new Hexagon(new PVector(center.x - 0.5 * h, center.y + v), diameter, curvature),
+        o: new Hexagon(new PVector(center.x + 0.5 * h, center.y + v), diameter, curvature),
+        p: new Hexagon(new PVector(center.x + 1.5 * h, center.y + v), diameter, curvature),
+
+        q: new Hexagon(new PVector(center.x - h, center.y + 2 * v), diameter, curvature),  // bottom row
+        r: new Hexagon(new PVector(center.x,     center.y + 2 * v), diameter, curvature),
+        s: new Hexagon(new PVector(center.x + h, center.y + 2 * v), diameter, curvature)
+        };
+    
+    // Give each node a numeric reference and set `length` so it can be accessed like an array.
+    //   E.g., 'a' <=> 0, 's' <=> 18
+    this.nodes.length = 19;
+    var aCode = 'a'.charCodeAt(0);
+    for (var i = 0; i < this.nodes.length; i++) {
+        var c = String.fromCharCode(i + aCode);
+        this.nodes[i] = this.nodes[c];
+        this.nodes[i].id = c;
+    }
+};
+
+Honeycomb.prototype.findVertexClosestToMouse = function() {
+    var vertex;
+    var distance = Infinity;
+    
+    var m = mouse.point;
+    for (var i = 0; i < this.nodes.length; i++) {
+        var d = m.dist(this.nodes[i].center);
+        if (d < distance) {
+            vertex = String.fromCharCode('a'.charCodeAt(0) + i);
+            distance = d;
+        }
+    }
+
+    return vertex;
+};
+
+Honeycomb.prototype.draw = function(weight, strokeColor, fillColor) {
+    for (var i = 0; i < this.nodes.length; i++) {
+        this.nodes[i].draw(weight, strokeColor, fillColor);
+    }
+};
+} // Honeycomb
+
+{ // Easer
+var Easer = function(start, target, duration, rippleWhenDone) {
+    this.start = start.get();
+    this.target = target;  // destination (DON'T DO;  `target.get();`)
+    this.duration = duration;
+    /** As a contravention from Rober Penner's method, I've replaced "change" with "target".
+        Since the destination may not be static (the mouse), I'll need to recompute the
+        total change in distance to accomodate a moving target. **/
+    
+    this.rippleWhenDone = rippleWhenDone;
+    
+    this.current = 0;
+};
+
+Object.defineProperty(Easer.prototype, 'isDone', {
+    get: function() {
+        return this.current >= this.duration;
+    }
+});
+
+Easer.prototype.calculatePosition = function() {
+    this.current = constrain(this.current + 1, 1, this.duration);
+    var t = this.current / this.duration;
+
+    var f = sqrt(1 - sq(t - 1));  // easeOutCirc
+    //var f = pow(t - 1, 3) + 1;  // easeOutCube
+    //var f = -t * (t - 2);  // easeOutQuad
+    //var f = pow(t - 1, 5) + 1;  // easeOutQuint
+    /** It took a little while to figure out which I preferred. :) **/
+
+    var change = PVector.sub(this.target, this.start);
+
+    return new PVector(change.x * f + this.start.x, change.y * f + this.start.y);
+};
+} // Easer
+
+var pieceImage = {
+    frameCount: 14,
+    _frames: [],
+    _centerHexagon: undefined,
+
+    initialize: function() {
+        if (!this._centerHexagon) {
+            this._centerHexagon = new Hexagon(new PVector(45, 45), 70, 0.25);
+        }
+
+        this._frames = [];
+        for (var i = 0; i < this.frameCount; i++) {
+            background(0, 0, 0, 0);
+            this._centerHexagon.draw(3, theme.dark, theme.dark);
+            var rippleHexagon = new Hexagon(this._centerHexagon.center, 72 + i, 0.25);
+            rippleHexagon.draw(3, color(theme.dark, map(i, 0, this.frameCount + 1, 255, 0)));
+            this._frames.push(get(0, 0, 90, 90));
+            noStroke();
+        }
+    },
+    
+    draw: function(center, frame) {
+        image(this._frames[frame % this._frames.length], center.x - 45, center.y - 45);
+    }
+};
+
+{ // Rippler
+var Rippler = function(interval, startItUp) {
+    this.interval = this._delay = constrain(interval, 1, Infinity);
+    this._isDone = !startItUp;
+
+    this._frame = 0;
+};
+
+Rippler.prototype.computeFrame = function() {
+    if (!this._isDone && --this._delay <= 0) {
+        this._delay = this.interval;
+        
+        // Has the 16-frame cycle completed?
+        if (++this._frame >= pieceImage.frameCount) {
+            this._frame = 0;
+            this._isDone = true;
+        }
+    }
+    
+    return this._frame;
+};
+} // Rippler
+
+{ // Piece
+var Piece = function(center, vertex, nodes, duration) {
+    this.center = center.get();
+    this.vertex = vertex;  // "a".."s"
+    this._nodes = nodes;  // object that's keyed by vertex; and contains objects with `x` & `y` properties.
+
+    // Trigger a move from the position of creation to its initial position within the puzzle (which may be the same).
+    this.moveTo(nodes[vertex].center, duration);
+
+    // Initialize with a "dummy" Rippler.
+    this._rippler = new Rippler(0, false);
+    
+    this.tooltipText = 'Move this piece by dragging and\ndropping into an empty hexagon.';
+};
+
+Object.defineProperty(Piece.prototype, 'isMoving', {
+    get: function() {
+        return !this._easer.isDone;
+    }
+});
+
+Piece.prototype.moveTo = function(target, duration, rippleWhenDone) {
+    // Should piece go back from whence it came?
+    if (target === undefined) {
+        target = this._nodes[this.vertex].center;
+    }
+    this._easer = new Easer(this.center, target, duration, rippleWhenDone);
+    this.isLockedToMouse = false;
+};
+
+Piece.prototype.setRipple = function(interval) {
+    this._rippler = new Rippler(interval, true);
+};
+
+Piece.prototype.draw = function() {
+    if (this.isLockedToMouse) {
+        this.center = mouse.point;
+    } else if (this.isMoving) {
+        this.center = this._easer.calculatePosition();
+        
+        // Has the piece reached its target?
+        if (this._easer.isDone) {
+            this.isLockedToMouse = this._easer.target === mouse;
+            if (this._easer.rippleWhenDone) {
+                this.setRipple(this.isLockedToMouse ? 1 : 3);
+            }
+        }
+    }
+
+    pieceImage.draw(this.center, this._rippler.computeFrame());
+};
+} // Piece
+
+{ // Rope
+var ROPE_POINTS = 10;
+var ROPE_SEGMENT_SIZE = 3;
+var ROPE_WIGGLE = 2;
+
+var Rope = function(piece1, piece2) {
+    this._piece1 = piece1;
+    this._piece2 = piece2;
+    
+    // All points in a rope are created at the same location.
+    var x = piece1.center.x;
+    var y = piece1.center.y;
+    this._joints = [];
+    for(var i = 0; i < ROPE_POINTS; i++) {
+        this._joints.push({x: x, y: y, prevX: x, prevY: y});
+    }
+
+    // 1st & last Points are pinned
+    this._point1 = this._joints[0];
+    this._point2 = this._joints[ROPE_POINTS - 1];
+    this._point1.pinned = this._point2.pinned = true;
+};
+
+Rope.prototype._applyPhysics = function() {
+    var p1, nextX, nextY, diff, diffX, diffY, distance;
+    
+    var p2 = this._joints[0];
+    for(var i = 1; i < ROPE_POINTS; i++) {
+        p1 = this._joints[i];
+        
+        nextX = p1.x + (p1.x - p1.prevX);
+        nextY = p1.y + (p1.y - p1.prevY);
+        
+        p1.prevX = p1.x;
+        p1.prevY = p1.y;
+        
+        if (!p1.pinned) {
+            p1.x = nextX;
+            p1.y = nextY;
+        }
+
+        // Solve constraints.
+        diffX = p1.x - p2.x;
+        diffY = p1.y - p2.y;
+        distance = sqrt(sq(diffX) + sq(diffY));
+        if (distance) {
+            diff = (ROPE_SEGMENT_SIZE - distance) / distance;
+        
+            if(!p1.pinned) {
+                p1.x += diffX * diff / ROPE_WIGGLE;
+                p1.y += diffY * diff / ROPE_WIGGLE;
+            }
+        
+            if(!p2.pinned) {
+                p2.x -= diffX * diff / ROPE_WIGGLE;
+                p2.y -= diffY * diff / ROPE_WIGGLE;
+            }
+        }
+
+        p2 = p1;
+    }
+};
+
+Rope.prototype.draw = function() {
+    // Update rope's endpoint coordinates.
+    this._point1.x = this._piece1.center.x;
+    this._point1.y = this._piece1.center.y;
+    this._point2.x = this._piece2.center.x;
+    this._point2.y = this._piece2.center.y;
+
+    this._applyPhysics();
+
+    strokeWeight(16);
+    stroke(theme.dark);
+    var point, previousPoint = this._joints[0];
+    for(var index = 1; index < ROPE_POINTS; index++) {
+        point = this._joints[index];
+        line(previousPoint.x, previousPoint.y, point.x, point.y);
+        previousPoint = point;
+    }
+};
+
+Rope.prototype.toString = function() {
+    return this._piece1.vertex + this._piece2.vertex;
+};
+} // Rope
+
+var convertPathOrSegmentFromStringToArray = function(s) {
+/** Convert the representation of a path or segment from a string to an array.
+ *  E.g., "ab"   => ["ab"]
+ *        "abc"  => ["ab", "bc"]
+ *        "abcd" => ["ab", "bc", "cd"]
+**/
+    var a = [];
+    for (var i = 0; i < s.length - 1; i++) {
+        a.push(s.substr(i, 2));
+    }
+    return a;
+};
+
+var drawProgress = function() {};  // hoisted
+
+var puzzles = [
+    // `answerSegments` define the segments of the target answer.
+    // `pieceSegments` define the starting segments of all pieces.
+    {answerSegments: ['hl'],                   pieceSegments: ['al']},                 // 0: 1st puzzle
+    {answerSegments: ['cq'],                   pieceSegments: ['ik']},                 // 1
+    {answerSegments: ['arc'],                  pieceSegments: ['hjl']},                // 2
+    {answerSegments: ['bmpb'],                 pieceSegments: ['cjqc']},               // 3
+    {answerSegments: ['dgpmd'],                pieceSegments: ['acqsa']},              // 4
+    {answerSegments: ['acsqa'],                pieceSegments: ['hijklh']},             // 5
+    {answerSegments: ['ajl', 'jq'],            pieceSegments: ['cajls', 'jqh']},       // 6
+    {answerSegments: ['acsqa', 'dgpmd'],       pieceSegments: ['dfged', 'mponm']},     // 7
+    {answerSegments: ['nhcsnekn'],             pieceSegments: ['acba', 'qsrq']},       // 8
+    {answerSegments: ['hlsqh'],                pieceSegments: ['snfhan']},             // 9
+    {answerSegments: ['achsqla'],              pieceSegments: ['bljikhb']},            // 10
+    {answerSegments: ['sacq'],                 pieceSegments: ['pbkibm']},             // 11
+    {answerSegments: ['br', 'hl'],             pieceSegments: ['hacls']},              // 12
+    {answerSegments: ['rblhb'],                pieceSegments: ['hlkjikh']},            // 13
+    {answerSegments: ['hqc', 'js'],            pieceSegments: ['hjl', 'ik']},          // 14
+    {answerSegments: ['nmbpnf'],               pieceSegments: ['acba', 'qs']},         // 15
+    {answerSegments: ['lhaj'],                 pieceSegments: ['acba', 'qs']},         // 16
+    {answerSegments: ['hl', 'irk'],            pieceSegments: ['aqia', 'cskc']},       // 17
+    {answerSegments: ['hl', 'bkrib'],          pieceSegments: ['lhklik', 'br']},       // 18
+    {answerSegments: ['ahlc', 'br'],           pieceSegments: ['hjl', 'iqsk', 'qr']},  // 19
+    {answerSegments: ['aom', 'ges'],           pieceSegments: ['abc', 'qrs']},         // 20
+    {answerSegments: ['nhqsnfaclf'],           pieceSegments: ['dfgd', 'enopmo']},     // 21
+    {answerSegments: ['dfom', 'genp'],         pieceSegments: ['acqs', 'mdpg']},       // 22
+    {answerSegments: ['kecshe'],               pieceSegments: ['jcqjpdj']},            // 23
+    {answerSegments: ['ac', 'qs', 'hl', 'br'], pieceSegments: ['qiabj', 'cbrsk']},     // 24
+    {answerSegments: ['brpjmr', 'dm', 'gp'],   pieceSegments: ['jbcrab', 'aq', 'cs']}, // 25
+    {answerSegments: ['lcslhaqh'],             pieceSegments: ['bcabjlhj']},           // 26
+    {answerSegments: ['mbp', 'drg'],           pieceSegments: ['iajck', 'qabcs']},     // 27
+    {answerSegments: ['sibkq'],                pieceSegments: ['rbcs', 'jbaq']},       // 28
+    {answerSegments: ['bgmrpdb'],              pieceSegments: ['ijksljhqik', 'hl']}    // 29: 30th puzzle
+    ];
+
+var allSegments = {};  // all segments of a board; keyed by endpoints & contains segments as an array of edges
+
+var normalizeEndpoints = function(endpoints) { // `endpoints` is an array of endpoints or edges
+    if (endpoints.length === 0) { return ''; }
+    
+    // Convert & combine all endpoints to edges.
+    var edges = [];
+    for (var i = 0; i < endpoints.length; i++) {
+        Array.prototype.push.apply(edges, allSegments[endpoints[i]]);
+    }
+
+    // Remove duplicate edges.
+    return edges.filter(function(edge, i, self) {
+        // Returns true only when `i` is the first occurrence of `edge`;
+        //   thereby filtering-out subsequent occurrences.
+        return self.indexOf(edge) === i;
+    })
+    // Order edges.
+    .sort()
+    // Concatenate edges into a single string.
+    .reduce(function(all, edge) { return all + ',' + edge; }, '').substr(1);
+};
+
+var normalizeSegmentStrings = function(segments) { // `segments` is an array of ordered strings of endpoints
+    if (segments.length === 0) { return ''; }
+
+    var endpoints = [];
+    for (var i = 0; i < segments.length; i++) {
+        var p = segments[i];
+        var v = p[0];
+        for (var j = 1; j < p.length; j++) {
+            endpoints.push(v + p[j]);
+            v = p[j];
+        }
+    }
+
+    return normalizeEndpoints(endpoints);
+};
+
+var answer = {
+    _board: new Honeycomb(new PVector(200, 115), 44.8, 0.25),
+    // The outline of the board (since the board's nodes are not drawn).
+    _hexagon: new Hexagon(new PVector(200, 115), -203, 0.25),
+    _segments: [],  // an array of segment strings
+    _comparable: undefined,  // a representation used to compare against the player's solution
+    
+    get center() {
+        return this._board.center.get();
+    },
+
+    get vertices() {
+        return this._hexagon.vertices;
+    },
+
+    load: function(segmentStrings) {
+        this._segments = segmentStrings;
+        this._comparable = normalizeSegmentStrings(segmentStrings);
+    },
+    
+    drawHexagon: function(weight, color) {
+        this._hexagon.draw(weight, color);
+    },
+    
+    draw: function(opacity) {
+        var l, j, center;
+        strokeJoin(BEVEL);
+        strokeWeight(3);
+        (stroke)(theme.dark, opacity);
+        noFill();
+        for (var i = 0; i < this._segments.length; i++) {
+            l = this._segments[i];
+            beginShape();
+            for (j = 0; j < l.length; j++) {
+                center = this._board.nodes[l[j]].center;
+                vertex(center.x, center.y);
+            }
+            endShape();
+        }
+    },
+    
+    toString: function() {
+        return this._comparable;
+    }
+};
+
+{ // puzzle
+var puzzle = {
+    _board: new Honeycomb(new PVector(200, 390), 70, 0.25),
+    // The boundries of the board.
+    _hexagon: new Hexagon(new PVector(200, 390), -365, 0.25),
+    index: undefined,  // index into `puzzles` of the current puzzle
+    _ropes: [],
+    _pieces: [],
+    isSolved: false,
+    
+    get centerNode() {
+        return this._board.nodes.j;
+    },
+    
+    get nodes() {
+        return this._board.nodes;
+    },
+
+    _findPieceByVertex: function(vertex) {
+        return this._pieces.find(function(piece) { return piece.vertex === vertex; });
+    },
+    
+    _findOrCreatePiece: function(vertex, duration) {
+        var piece = this._findPieceByVertex(vertex);
+        if (piece === undefined) {
+            // All pieces are created in the board's center.
+            piece = new Piece(this._board.center, vertex, this._board.nodes, duration);
+            this._pieces.push(piece);
+        }
+        return piece;
+    },
+
+    findNodeOrPieceUnderMouse: function() {
+        if (this._hexagon.mouseIsOver) {
+            var vertex = this._board.findVertexClosestToMouse();
+            var piece = this._findPieceByVertex(vertex);
+
+            return piece ? piece : this._board.nodes[vertex];
+        }
+        
+        return undefined;
+    },
+    
+    load: function(index, duration) {
+        this.index = index;
+
+        controls.findById('previous').isVisible = index > 0;
+        controls.findById('next').isVisible = puzzles[index + 1] && puzzles[index + 1].hasBeenVisited;
+        var pct = round((index + 1) * 100 / puzzles.length * 1000) / 1000;  // round to three decimal places
+        controls.findById('progress').tooltipText = 'Puzzle #' + (index + 1) + ' of ' + puzzles.length + ' (' + pct + '%).';
+
+        answer.load(puzzles[index].answerSegments);
+
+        { // Populate `ropes` & `pieces`
+            // Convert from an array of segment strings to an array of endpoints.
+            var endpoints = [];
+            var segments = puzzles[index].pieceSegments;
+            for (var i = 0; i < segments.length; i++) {
+                Array.prototype.push.apply(endpoints, convertPathOrSegmentFromStringToArray(segments[i]));
+            }
+
+            this._ropes = [];
+            this._pieces = [];
+            endpoints.forEach(function(points) {
+                var n1 = this._findOrCreatePiece(points[0], duration);
+                var n2 = this._findOrCreatePiece(points[1], duration);
+                this._ropes.push(new Rope(n1, n2));
+            }, this);
+        } // Populate `ropes` & `pieces`
+
+        puzzles[index].hasBeenVisited = true;
+
+        this.redrawEmptyBoardImage();
+        
+        this.isSolved = false;
+    },
+    
+    createExclamationPoint: function(duration) {
+        this._ropes = [];
+        this._pieces = [];
+        var nodes = {
+            x: {center: this._board.center},
+            y: {center: new PVector(this._board.center.x, answer.center.y)},
+            z: {center: this._board.nodes.r.center},
+            };
+        var p1 = new Piece(this._board.center, 'x', nodes, duration);
+        var p2 = new Piece(this._board.center, 'y', nodes, duration);
+        var p3 = new Piece(this._board.center, 'z', nodes, duration);  // the period
+        this._pieces.push(p1, p2, p3);
+        this._ropes.push(new Rope(p1, p2));
+    },
+    
+    draw: function() {
+        this._pieces.forEach(function(piece) { piece.draw(); });
+        this._ropes.forEach(function(rope) { rope.draw(); });
+    },
+    
+    drawBoard: function(opacity) {
+        this._board.draw(3, color(theme.medium, opacity));
+    },
+    
+    moveToCenter: function(duration) {
+        this._pieces.forEach(function(piece, i) {
+            piece.moveTo(this._board.center, duration);
+        }, this);
+    },
+
+    _emptyBoardImage: false,
+    redrawEmptyBoardImage: function() {
+        // Defer drawing until the image is actually requested.
+        this._emptyBoardImage = false;
+        
+        // During the "finale" scene, immediately recreate the pieces.
+        if (system.scene === 'finale') {
+            resetMatrix();
+            
+            var img = get(0, 0, width, height);
+            pieceImage.initialize();
+            image(img, 0, 0);
+        }
+    },
+    
+    toString: function() {
+        // Gather all the ropes' endpoints and create the "solution".
+        return normalizeEndpoints(this._ropes.map(function(rope) { return rope.toString(); }));
+    }
+};
+
+Object.defineProperty(puzzle, 'mouseIsOver', {
+    /** ??? For some reason, declaring this inside the `puzzle` object above is causing unwanted side-effects ?? **/
+    get: function() {
+        return this._hexagon.mouseIsOver;
+    }
+});
+
+Object.defineProperty(puzzle, 'emptyBoardImage', {
+    /** ??? For some reason, declaring this inside the `puzzle` object above is causing unwanted side-effects ?? **/
+    get: function() {
+        // Image drawn on-demand and cached.
+        if (!this._emptyBoardImage) {
+            pieceImage.initialize();
+            
+            translate(system.left, 0);
+            scale(system.scaleFactor);
+            
+            background(theme.light);
+            this._board.draw(3, theme.medium);
+            drawProgress.call(controls.findById('progress'));
+            answer.drawHexagon(3, theme.medium);
+    
+            this._emptyBoardImage = get(0, 0, width, height);
+            
+            resetMatrix();
+        }
+        
+        return this._emptyBoardImage;
+    }
+});
+} // puzzle
+
+{ // Control
+var Control = function(id, type, point, width, height, tooltipText, isVisible) {
+    this.id = id;
+    this.type = type;  // if 'polygon', the `vertices` property must be set for use is `mouseIsOver`
+    
+    // Meaning of the values for `point`, `width`, and `height` depend on `type`.
+    this.point = point.get();
+    this.width = width;
+    this.height = height;
+    
+    this.tooltipText = tooltipText;
+    this.opacity = isVisible || isVisible === undefined ? 255 : 0;  // default is "visible" & "enabled"
+    
+    this._opacityOffset = 0;
+    this.cursor = HAND;  // cursor type when mouse hovers over control
+    
+    this.draw = function() { println('ERROR: Must override "draw" function: ' + id); };
+    this.action = function() { println('ERROR: Must override "action" function: ' + id); };
+};
+
+Object.defineProperty(Control.prototype, 'mouseIsOver', {
+    get: function() {
+        if (this.isEnabled && !system.isDragging) {
+            switch (this.type) {
+                case 'ellipse': return mouse.isInEllipse(this.point, this.width, this.height);
+                case 'rect':    return mouse.isInRect(this.point, this.width, this.height);
+                case 'polygon': return mouse.isInPolygon(this.vertices);
+                default:        println('PROGRAMMER ERROR: Unrecognized control type: ' + this.type);
+            }
+        }
+    }
+});
+
+Object.defineProperty(Control.prototype, 'isEnabled', {
+    /** If the control is (or is becomming) invisible, it's NOT enabled. **/
+    get: function() {
+        // Is the opacity transparent and not rising?
+        if (this.opacity === 0 && this._opacityOffset <= 0) {
+            return false;
+        
+        // Check for non-transparency or increasing/decreasing opacity.
+        } else {
+            // Returns false if the opacity is declining (about to be invisible).
+            // Returns true if the opacity is rising or holding steady at a non-transparent value.
+            return this.opacity + this._opacityOffset >= this.opacity;
+        }
+    },
+    set: function(newValue) {
+        this.isVisible = newValue;
+    }
+});
+
+Object.defineProperty(Control.prototype, 'isVisible', {
+    get: function() {
+        // Return true if not transparent.
+        return this.opacity > 0 || this._opacityOffset > 0;
+    },
+    set: function(newValue) {
+        // Set the rate of change to a 1 second duration in whichever "direction" is being requested.
+        this._opacityOffset = 255 / system.fps * (newValue ? 1 : -1);
+    }
+});
+
+Control.prototype.updateVisibility = function() {
+    this.opacity = peg(this.opacity + this._opacityOffset);
+};
+} // Control
+
+var controls = {
+    _list: [],
+    
+    add: function(id, type, point, width, height, tooltipText, isVisible) {
+        var control = new Control(id, type, point, width, height, tooltipText, isVisible);
+        this._list.push(control);
+        return control;
+    },
+    
+    findById: function(id) {
+        return this._list.find(function(control) { return id === control.id; });
+    },
+    
+    findUnderMouse: function() {
+        return this._list.find(function(control) { return control.mouseIsOver; });
+    },
+    
+    draw: function() {
+        this._list.forEach(function(control) { control.draw(); });
+    }
+};
+
+{ // Control drawing functions.
+    /** These functions MUST be bound to their respective Control objects to give them the correct value for `this`. **/
+
+var drawThemeButton = function() {
+    if (!this.isVisible) { return; }
+    
+    var w = this.mouseIsOver && !mouse.isLocked ? this.width * 1.25 : this.width;
+    
+    strokeWeight(1);
+    stroke(theme.medium);
+    noFill();
+    ellipse(this.point.x, this.point.y, w, w);
+    
+    stroke(theme.dark);
+    fill(theme.dark);
+    if (this.id === 'contrast') {
+        arc(this.point.x, this.point.y, w, w, -45, 135);
+    } else /* this.id === 'theme' */ {
+        arc(this.point.x, this.point.y, w, w, -30, 90);
+        stroke(theme.medium);
+        fill(theme.medium);
+        arc(this.point.x, this.point.y, w, w, 90, 210);
+    }
+};
+
+var drawArrow = function() {
+    if (!this.isVisible) { return; }
+    
+    // Create polygons on-demand and cache.
+    if (!this.polygons) {
+        this.polygons = [];  // [0] = normal; [1] = mouse is over
+        // Place x,y @ the center.
+        var x = this.point.x + this.width / 2;
+        var y = this.point.y + this.height / 2;
+        for (var i = 0; i <= 1; i++) {
+            // Half height/width.
+            var h = this.height * (i ? 1.15 : 1) / 2;
+            var w = this.width * (this.id === 'previous' ? -1 : 1) * (i ? 1.15 : 1) / 2;
+            
+            this.polygons.push(new RoundedPolygon(
+                [
+                    new PVector(x - w,     y - h),  // top point
+                    new PVector(x + w,     y),      // tip of arrowhead
+                    new PVector(x - w,     y + h),  // bottom point
+                    new PVector(x + w / 3, y)       // inside center of arrowhead
+                ],
+                0.25));
+        }
+    }
+    
+    this.updateVisibility();
+    var c = color(theme.medium, this.opacity);
+    this.polygons[this.mouseIsOver && !mouse.isLocked ? 1 : 0].draw(3, c, c);
+};
+
+var drawProgress = function() {
+    /** The progress "bar" is composed of six parts; each representing five puzzles. **/
+    if (!this.isVisible) { return; }
+    
+    var width = this.width / 6;  // width per part
+    var wholeParts = floor((puzzle.index + 1) / 5);  // # of parts that are completely filled-in
+    
+    strokeWeight(2);
+
+    this.updateVisibility();
+    // Draw each part left-to-right.
+    for (var i = 0; i < puzzles.length / 5; i++) {
+        pushMatrix();
+        translate(this.point.x + width * i, this.point.y + this.height / 2);  // left/center of part
+        
+        if (i < wholeParts) {
+            (stroke)(theme.dark, this.opacity);
+            line(0, 0, width - this.height, 0);
+            
+            (fill)(theme.dark, this.opacity);
+        } else {
+            (stroke)(theme.medium, this.opacity);
+            line(0, 0, width - this.height, 0);
+            
+            var partialSize = (puzzle.index + 1) % 5;
+            if (partialSize && (i === wholeParts)) {
+                (stroke)(theme.dark, this.opacity);
+                line(0, 0, (width - this.height) * partialSize / 4, 0);
+                
+                (stroke)(theme.medium, this.opacity);
+            }
+            
+            noFill();
+        }
+        ellipse(width - this.height / 2, 0, this.height, this.height);
+
+        popMatrix();
+    }
+};
+} // Control drawing functions.
+
+var tooltip = {
+    _isActive: false,
+    _text: undefined,
+    _left: undefined,
+    _top: undefined,
+    _width: undefined,
+    _height: undefined,
+
+    dismiss: function() {
+        this._isActive = false;
+    },
+    
+    setText: function(text) {
+        this._text = text.split('\n');
+        this._isActive = true;
+        this._delay = system.fps / 2;  // 1/2 second delay
+    },
+    
+    get isActive() {
+        return this._isActive;
+    },
+    
+    get _isVisible() {
+        return this._isActive && this._delay <= 0;
+    },
+    
+    draw: function() {
+        if (this._isActive) {
+            if (--this._delay === 0) {
+                textFont(fonts.tooltip);
+                this._width = 0;
+                this._text.forEach(function(line) { this._width = max(this._width, textWidth(line)); }, this);
+                this._width += 8;
+                this._height = fonts.textHeight * this._text.length + 6;
+                this._top = mouse.y + 25;
+                if (this._top + this._height > 599) {
+                    this._top = mouse.y - 2 - this._height;
+                    this._left = min(mouse.x + 2, 399 - this._width);
+                } else {
+                    this._left = min(mouse.x, 399 - this._width);
+                }
+                this._text = this._text.join('\n');
+            }
+            if (this._isVisible) {
+                textFont(fonts.tooltip);
+                textLeading(fonts.textHeight);
+                textAlign(LEFT, TOP);
+                strokeWeight(1);
+                stroke(theme.dark);
+                fill(theme.medium);
+                rect(this._left - 4, this._top, this._width, this._height);
+                fill(theme.light);
+                text(this._text, this._left, this._top + 3);
+            }
+        }
+    }
+};
+
+var sceneFinale = function() {
+    resetMatrix();
+    background(theme.light);
+    translate(system.left, 0);
+    scale(system.scaleFactor);
+
+    if (system.frames < system.fps) {  // 1 second fade-out of puzzle
+        if (system.frames === 1) {
+            puzzle.moveToCenter(system.fps);
+            controls.findById('previous').isVisible = false;
+            controls.findById('progress').isVisible = false;
+            controls.findById('answer').isVisible = false;
+        }
+
+        var opacity = map(system.frames, 0, system.fps, 255, 0);
+        puzzle.drawBoard(opacity);
+        answer.drawHexagon(3, color(theme.medium, opacity));
+        answer.draw(opacity);
+        controls.draw();
+        drawProgress.call(controls.findById('progress'));
+        puzzle.draw();
+    } else {
+        if (system.frames === system.fps) {
+            puzzle.createExclamationPoint(system.fps);
+            mouse.isLocked = false;
+        }
+
+        controls.draw();
+        
+        pushMatrix();
+        translate(200, 300);
+        rotate(cos(system.frames * 3.3) * 4);
+        scale(cos(system.frames * 1.9) / 4 + 1);
+        translate(-200, -315);
+        puzzle.draw();
+        popMatrix();
+    
+        tooltip.draw();
+    }
+};
+
+var scenePlay = function() {
+    resetMatrix();
+    noStroke();
+    
+    if (system.frames < system.fps) {
+        if (system.previousScene === 'play') {  // 1 second fade-out of prior puzzle
+            if (system.frames === 1) {
+                puzzle.moveToCenter(system.fps);
+            }
+
+            image(puzzle.emptyBoardImage, 0, 0);
+            translate(system.left, 0);
+            scale(system.scaleFactor);
+
+            answer.draw(map(system.frames, 0, system.fps, 255, 0));
+            controls.draw();
+            puzzle.draw();
+        
+        } else if (system.previousScene === 'finale') {  // 1 second fade-out of finale
+            if (system.frames === 1) {
+                puzzle.moveToCenter(system.fps);
+                controls.findById('previous').isVisible = true;
+                controls.findById('progress').isVisible = true;
+                controls.findById('answer').isVisible = true;
+            }
+
+            background(theme.light);
+            translate(system.left, 0);
+            scale(system.scaleFactor);
+    
+            var opacity = map(system.frames, 0, system.fps, 0, 255);
+            puzzle.drawBoard(opacity);
+            answer.drawHexagon(3, color(theme.medium, opacity));
+            controls.draw();
+            drawProgress.call(controls.findById('progress'));
+            puzzle.draw();
+
+        // system.previousScene === 'title'
+        } else if (system.frames < system.fps / 3) {    // 1/3 second fade-out from title
+            if (system.frames === 1) {
+                scenePlay.titleImage = get(0, 0, width, height);
+            } else {
+                image(scenePlay.titleImage, 0, 0);
+            }
+
+            (fill)(theme.dark, map(system.frames, 0, system.fps / 3, 0, 255));
+            rect(0, 0, width, height);
+        
+        } else if (system.frames < system.fps * 2/3) {  // 1/3 second background color change
+            fill(lerpColor(theme.dark,  // orange
+                           theme.light,
+                           map(system.frames, system.fps / 3, system.fps * 2/3, 0, 1)));
+            rect(0, 0, width, height);
+        
+        } else {                                        // 1/3 second fade-in
+            image(puzzle.emptyBoardImage, 0, 0);
+            translate(system.left, 0);
+            scale(system.scaleFactor);
+            
+            puzzle.centerNode.draw(3, theme.dark, theme.dark);
+            controls.draw();
+
+            noStroke();
+            (fill)(theme.light, map(system.frames, system.fps * 2/3, system.fps, 255, 0));
+            rect(0, 0, 400, 600);
+        }
+    
+    // Initialize new puzzle; fade-in answer; position pieces.
+    } else if (system.frames <= system.fps * 2) {  // 1 second fade-in & piece positioning
+        if (system.frames === system.fps) {
+            puzzle.load(system.sceneInfo, system.fps);
+            // Give a hint on the first two puzzles, so long as they haven't already been solved.
+            scenePlay.showHelp = (puzzle.index === 0 && !puzzles[1].hasBeenVisited) ||
+                                 (puzzle.index === 1 && !puzzles[2].hasBeenVisited);
+        }
+        
+        image(puzzle.emptyBoardImage, 0, 0);
+        translate(system.left, 0);
+        scale(system.scaleFactor);
+        
+        answer.draw(map(system.frames, system.fps, system.fps * 2, 0, 255));
+        controls.draw();
+        puzzle.draw();
+
+        if (system.frames === system.fps * 2) {
+            mouse.isLocked = false;
+            // Clean-up.
+            if (scenePlay.titleImage) {
+                delete scenePlay.titleImage;
+            }
+        }
+    
+    // Post-transition game play.
+    } else {
+        image(puzzle.emptyBoardImage, 0, 0);
+        translate(system.left, 0);
+        scale(system.scaleFactor);
+
+        answer.draw(255);
+        controls.draw();
+        puzzle.draw();
+        
+        if (scenePlay.showHelp) {
+            strokeWeight(6);
+            stroke(lerpColor(theme.medium, theme.dark, 0.5));
+            noFill();
+            if (puzzle.index === 0) {
+                var center = puzzle.nodes.a.center;
+                ellipse(center.x, center.y, 95, 95);
+                center = puzzle.nodes.j.center;
+                arc(center.x, center.y, 280, 280, 190, 220);
+                center = puzzle.nodes.h.center;
+                pushMatrix();
+                translate(center.x, center.y - 10);
+                rotate(10);
+                bezier(-30, -50, -20, 20, 20, 20, 30, -50);
+                popMatrix();
+            } else /* puzzle.index === 1 */ {
+                var center = puzzle.nodes.c.center;
+                ellipse(center.x, center.y, 95, 95);
+                center = puzzle.nodes.q.center;
+                ellipse(center.x, center.y, 95, 95);
+            }
+        }
+    
+        tooltip.draw();
+        
+        if (puzzle.isSolved && --scenePlay.delayToNextPuzzle === 0) {
+            if (puzzle.index < puzzles.length - 1) {
+                system.changeScene('play', puzzle.index + 1);
+            } else {
+                system.changeScene('finale');
+            }
+        }
+    }
+};
+
+var sceneTitle = function() {
+    resetMatrix();
+
+    if (system.frames <= system.fps / 3) {  // 1/3 second fade-out from logo
+        if (system.frames === 1) {
+            sceneTitle.logoImage = get(0, 0, width, height);
+
+            textAlign(CENTER, CENTER);
+            textFont(fonts.title);
+            
+            sceneTitle.hexagon = new Hexagon(new PVector(200, 300), 350, 0.25);
+            var h = sceneTitle.hexagon.diameter / 4;
+            
+            var vertices = [
+                new PVector(sceneTitle.hexagon.vertices[0].x,     sceneTitle.hexagon.vertices[2].y - 5 - h),
+                new PVector(sceneTitle.hexagon.vertices[2].x - 5, sceneTitle.hexagon.vertices[2].y - 5),
+                new PVector(sceneTitle.hexagon.vertices[3].x,     sceneTitle.hexagon.vertices[3].y - 5),
+                new PVector(sceneTitle.hexagon.vertices[4].x + 5, sceneTitle.hexagon.vertices[4].y - 5),
+                ];
+            sceneTitle.diamond = new RoundedPolygon(vertices, 0.25);
+            
+            var vertices = [
+                new PVector(sceneTitle.hexagon.vertices[0].x,     sceneTitle.hexagon.vertices[0].y),
+                new PVector(sceneTitle.hexagon.vertices[1].x - 5, sceneTitle.hexagon.vertices[1].y + 5),
+                new PVector(sceneTitle.hexagon.vertices[2].x - 5, sceneTitle.hexagon.vertices[2].y + 5 - h),
+                new PVector(sceneTitle.hexagon.vertices[3].x,     sceneTitle.hexagon.vertices[3].y + 10 - h),
+                new PVector(sceneTitle.hexagon.vertices[4].x + 5, sceneTitle.hexagon.vertices[4].y + 5 - h),
+                new PVector(sceneTitle.hexagon.vertices[5].x + 5, sceneTitle.hexagon.vertices[5].y + 5),
+                ];
+            sceneTitle.flatHexagon = new RoundedPolygon(vertices, 0.25);
+
+            sceneTitle.dismiss = false;
+        } else {
+            image(sceneTitle.logoImage, 0, 0);
+        }
+
+        fill(250, 174, 80, map(system.frames, 0, system.fps / 3, 0, 255));  // orange
+        rect(0, 0, width, height);
+    
+    } else if (system.frames <= system.fps * 2/3) {  // 1/3 second background color change
+        fill(lerpColor(color(250, 174, 80),  // orange
+                       theme.dark,
+                       map(system.frames, system.fps / 3, system.fps * 2/3, 0, 1)));
+        rect(0, 0, width, height);
+    
+    // Draw/reveal the title scene.
+    } else {
+        translate(system.left, height/2);
+        scale(system.scaleFactor, system.scaleFactor * (sceneTitle.displayForThumbnail ? 1.5 : 1));
+        translate(0, -300);
+        
+        background(theme.dark);
+
+        sceneTitle.hexagon.draw(10, theme.light, theme.dark);
+        sceneTitle.diamond.draw(10, theme.medium, theme.medium);
+        var c = color(lerpColor(theme.medium, theme.dark, 0.5), 128);
+        sceneTitle.flatHexagon.draw(0, 0, c);
+        sceneTitle.hexagon.draw(10, theme.light);  // redraw boarder
+
+        // Draw "rop" centered at the middle of the "o" and spread-out the letters slightly.
+        pushMatrix();
+        translate(200, 325);
+        scale(1, 1.5);
+        fill(theme.light);
+        text('r', -textWidth('r')/2 - textWidth('o') * 3/4, 0);
+        text('o', 0, 0);
+        text('p', textWidth('p')/2 + textWidth('o') * 3/4, 0);
+        popMatrix();
+
+        // Draw the portion of the line that's over the "o" with a border.
+        strokeWeight(10);
+        stroke(theme.dark);
+        line(200, 300, 200, 309);
+        // Draw the line connecting the top of the hexagon with the "o"
+        strokeWeight(8);
+        stroke(theme.light);
+        line(200, 135, 200, 309);
+        noStroke();
+
+        // 1/3 second fade-in.
+        if (system.frames < system.fps) {
+            (fill)(theme.dark, map(system.frames, system.fps * 2/3, system.fps, 255, 0));
+            rect(0, 0, 400, 600);
+            
+        } else if (system.frames === system.fps) {
+            mouse.isLocked = false;
+            // Clean-up.
+            delete sceneTitle.logoImage;
+        }
+    }
+
+    sceneTitle.dismiss = sceneTitle.dismiss || system.frames >= system.fps * 3;  // 3-second duration
+    if (!mouseIsPressed && sceneTitle.dismiss) { system.changeScene('play', 0); }
+};
+
+var appInit = function() {
+    frameRate(system.fps);
+    imageMode(CORNER);
+    noStroke();
+    randomSeed((hour() * 60 + minute()) * 60 + second());
+
+    { // create controls
+        var control = controls.add('contrast', 'ellipse', new PVector(25, 25), 20, 20, 'Invert the light & dark theme colors.');
+        control.draw = drawThemeButton.bind(control);
+        control.action = function() { theme.contrast = !theme.contrast; puzzle.redrawEmptyBoardImage(); };
+        
+        control = controls.add('theme', 'ellipse', new PVector(375, 25), 20, 20, '* ERROR *'); // tooltipText set by `theme.next`
+        control.draw = drawThemeButton.bind(control);
+        control.action = function() { theme.next(mouseButton); puzzle.redrawEmptyBoardImage(); };
+        
+        control = controls.add('previous', 'rect', new PVector(40, answer.center.y - 60), 30, 120, 'Go to previous puzzle.', false);
+        control.draw = drawArrow.bind(control);
+        control.action = function() { system.changeScene('play', puzzle.index - 1); };
+    
+        control = controls.add('next', 'rect', new PVector(330, answer.center.y - 60), 30, 120, 'Go to next puzzle.', false);
+        control.draw = drawArrow.bind(control);
+        control.action = function() { system.changeScene('play', puzzle.index + 1); };
+        
+        control = controls.add('progress', 'rect', new PVector(15, 571), 370, 18, '* ERROR *'); // tooltipText set by `puzzle.load`
+        control.draw = control.action = function() { /* do nothing on draw or click */ };
+        control.cursor = ARROW;
+        
+        control = controls.add('answer', 'polygon', answer.center, undefined, undefined,
+                               'This is the "answer".\n\n' +
+                               'Move the hexagons on the board below so that their\n' +
+                               'connecting "ropes" form the image shown inside\n' +
+                               'this large hexagon.');
+        control.draw = control.action = function() { /* do nothing on draw or click */ };
+        control.vertices = answer.vertices;
+        control.cursor = ARROW;
+    } // create controls
+    
+    // Set to 1st color theme.  Can't be done until theme button has been created (above).
+    theme.next(LEFT);
+    
+    { // compute/populate `allSegments`
+        /*  Board Configuration:            Matrix Configuration:
+                    A  B  C                     A B C
+                  D  E  F  G                    D E F G
+                H  I  J  K  L                   H I J K L
+                  M  N  O  P                      M N O P
+                    Q  R  S                         Q R S   */
+        var matrix = ['abc  ', 'defg ', 'hijkl', ' mnop', '  qrs'];  // 19 board vertices shifted into a "square" box.
+        for (var i1 = 0; i1 < 25; i1++) {
+            var row1 = floor(i1 / 5);
+            var col1 = i1 % 5;
+            var vertex1 = matrix[row1][col1].trim();
+            if (vertex1) {
+                for (var i2 = i1 + 1; i2 < 25; i2++) { // compare to vertices *after* vertex #1
+                    var row2 = floor(i2 / 5);
+                    var col2 = i2 % 5;
+                    var vertex2 = matrix[row2][col2].trim();
+                    if (vertex2) {
+                        var segment = vertex2; // build the segment as a string from vertex2 back to vertex1
+                        var rowDiff = row2 - row1;  // can't be negative, may be zero
+                        var colDiff = abs(col2 - col1);
+                        
+                        // Compute if vertex1 and vertex2 are adjacent or could have intermediate verticies.
+                        // A fractional value indicates adjacent.
+                        // An integral value indicates the *possibility* of intermediate verticies.
+                        var f = max(rowDiff, colDiff) / min(rowDiff, colDiff);
+
+                        var colOffset = 0, rowOffset = 0;
+                        if (colDiff === 0 || rowDiff === 0) { // verticies are either horizontally or vertically alligned
+                            colOffset = colDiff ? colDiff / (col2 - col1) : 0;  // -1 or 1 : 0
+                            rowOffset = rowDiff ? 1 : 0;
+                        } else if (rowDiff === 1 || colDiff === 1 || f !== floor(f)) {
+                            // No intermediate verticies exist - vertex1 & vertex2 are adjacent.
+                        } else if (f === 1) { // vertex #2 is at a 45 degree diagonal relative to vertex #1
+                            colOffset = colDiff / (col2 - col1);  // -1 or 1
+                            rowOffset = 1;
+                        } else /* f === 2 */ { // the rise:run or run:rise between vertices is a 2:1 ratio
+                            colOffset = (col2 - col1) / 2;
+                            rowOffset = rowDiff / 2;
+                        }
+                        
+                        if (rowOffset !== 0 || colOffset !== 0) {
+                            // Search for intermediate verticies along the segment between vertex1 and vertex2.
+                            row2 -= rowOffset;
+                            col2 -= colOffset;
+                            while (row2 !== row1 || col2 !== col1) {
+                                segment = matrix[row2][col2] + segment;
+                                row2 -= rowOffset;
+                                col2 -= colOffset;
+                            }
+                        }
+                        
+                        // Entries are keyed by unordered endpoints.
+                        segment = convertPathOrSegmentFromStringToArray(vertex1 + segment);
+                        allSegments[vertex1 + vertex2] = allSegments[vertex2 + vertex1] = segment;
+                    }
+                }
+            }
+        }
+        
+        /*
+        var endCount = 0, edgeCount = 0;
+        for (var endpoints in allPaths) {
+            println(endpoints + ' ' + allPaths[endpoints]);
+            endCount++;
+            edgeCount += allPaths[endpoints].length;
+        }
+        println((endCount>>1) + ' ordered endpoints; ' + (edgeCount>>1) + ' edges');
+        */
+    } // compute/populate `allSegments`
+
+    system.changeScene('title');
+};
+
+var sceneSplash = function() {
+    if (system.frames === 1) {
+        frameRate(45);
+
+        textFont(fonts.logo);
+        textAlign(CENTER, TOP);
+        
+        sceneSplash.image = getImage('avatars/leaf-blue');
+        sceneSplash.startTime = millis();
+    }
+    
+    // Center logo, scale to 400x400.
+    resetMatrix();
+    translate(width > height ? (width - height) / 2 : 0, height > width ? (height - width) / 2 : 0);
+    scale(min(width / 400, height / 400));
+
+    // 4 seconds <=> 180 frames @ 45 fps
+    var frame = map(millis() - sceneSplash.startTime, 0, 4000, 1, 180);
+
+    // Compute size & position of leaf image.
+    var angle = 90;
+    var radius = 160;
+    var rotation = 0;
+    var size = map(frame, 0, 120, 0, 300);
+    var xSize = abs(size * cos(frame * 360 / 120));
+    var ySize = abs(size * sin(frame * 90 / 120));
+    if (frame <= 60) {
+        angle = map(frame, 0, 60, 180, 35);
+        radius = map(frame, 0, 60, 200, 170);
+        rotation = map(frame, 0, 60, 0, 270);
+    } else if (frame <= 100) {
+        angle = map(frame, 60, 100, 35, 119);
+        radius = map(frame, 60, 100, 170, 250);
+        rotation = map(frame, 60, 100, 270, 630);
+    } else if (frame <= 120) {
+        angle = map(frame, 100, 120, 119, 90);
+        radius = map(frame, 100, 120, 250, 160);
+        rotation = map(frame, 100, 120, 630, 720);
+    } else {
+        xSize = ySize = 300;
+    }
+
+    background(250, 174, 80);  // orange
+    fill(29, 86, 170, peg(map(frame, 100, 120, 0, 255)));  // blue
+    text('Blue Leaf Studio', 200, 300);
+
+    translate(220 + cos(angle) * radius, sin(angle) * radius);
+    rotate(rotation);
+    image(sceneSplash.image, -xSize/2, -ySize/2, xSize, ySize);
+
+    sceneSplash.dismiss = sceneSplash.dismiss || frame >= 180;  // 180 frames / 45 fps = 4 second duration
+    if (!mouseIsPressed && sceneSplash.dismiss) { appInit(); }
+};
+
+var findEntityUnderMouse = function() {
+    if (mouse.isLocked || system.scene !== 'play') {
+        return system.scene === 'finale' ? controls.findUnderMouse() : undefined;
+    } else {
+        var nodeOrPiece = puzzle.findNodeOrPieceUnderMouse();
+        return nodeOrPiece ? nodeOrPiece : controls.findUnderMouse();
+    }
+};
+
+var confetti = {
+    _shards: [],
+    
+    add: function(howMuch, maxQuantity) {
+        while (howMuch-- > 0 && this._shards.length < maxQuantity) {
+            var points = [];
+            do {
+                points.push(random(-15, 15));
+            } while (points.length < 6);
+            this._shards.push({
+                x: random(50, 350),
+                y: random(-50, 0),
+                xSpeed: random(-3, 3),
+                ySpeed: random(2, 5),
+                points: points,
+                colorAmount: random()
+            });
+        }
+    },
+    
+    draw: function() {
+        resetMatrix();
+        translate(system.left, 0);
+        scale(system.scaleFactor);
+        
+        noStroke();
+        for (var i = this._shards.length - 1; i >= 0; i--) {
+            var shard = this._shards[i];
+
+            fill(shard.colorAmount < 0.5 ? lerpColor(theme.medium, theme.light, shard.colorAmount) :
+                                           lerpColor(theme.medium, theme.dark, shard.colorAmount));
+
+            pushMatrix();
+            translate(shard.x, shard.y);
+            triangle.apply(null, shard.points);
+            popMatrix();
+
+            shard.x += shard.xSpeed;
+            shard.y += shard.ySpeed;
+            if (shard.x < -20 || shard.x > 420 || shard.y > 620) {
+                this._shards.splice(i, 1);
+            }
+        }
+    }
+};
+
+{ // Processing.js events
+mouseMoved = mouseOver = function() {
+    if (system.scene !== 'play' && system.scene !== 'finale') {
+        cursor(ARROW);
+    } else {
+        var lastEntityUnderMouse = system.entityUnderMouse;
+        system.entityUnderMouse = undefined;
+        
+        var entity = findEntityUnderMouse();  // Control, Piece, or Hexagon object (or undefined)
+
+        if (mouse.isLocked) {
+            cursor(WAIT);
+            tooltip.dismiss();
+            
+        } else if (system.selectedPiece) {
+            // A piece may be dropped on an empty node or the one from whence it came.
+            cursor(entity instanceof Hexagon || entity === system.selectedPiece ? HAND : 'not-allowed');
+        
+        } else if (entity instanceof Control) {
+            cursor(entity.cursor);
+            system.entityUnderMouse = entity;
+        
+        } else {
+            cursor(entity instanceof Piece ? HAND : ARROW);
+            system.entityUnderMouse = entity;
+        }
+        
+        if (lastEntityUnderMouse !== system.entityUnderMouse) {
+            tooltip.dismiss();
+        } else if (!tooltip.isActive && system.entityUnderMouse && system.entityUnderMouse.tooltipText) {
+            tooltip.setText(system.entityUnderMouse.tooltipText);
+        }
+    }
+};
+
+mouseOut = function() {
+    mouseX = mouseY = Infinity;
+
+    system.isDragging = false;
+
+    tooltip.dismiss();
+    
+    if (system.selectedPiece) {
+        system.selectedPiece.moveTo(undefined, system.fps / 4, false);
+        system.selectedPiece = undefined;
+    }
+};
+
+mousePressed = function() {
+    system.isDragging = false;
+
+    tooltip.dismiss();
+
+    var entity = findEntityUnderMouse();
+    if (entity instanceof Piece) {
+        system.selectedPiece = entity;
+        entity.moveTo(mouse, system.fps / 12, true);
+    }
+};
+
+mouseDragged = function() {
+    system.isDragging = true;
+    system.draggingStartTime = system.frames;
+};
+
+mouseReleased = function() {
+    if (system.selectedPiece) {
+        var entity = findEntityUnderMouse();
+        if (entity instanceof Hexagon) {
+            system.selectedPiece.moveTo(entity.center, system.fps / 12, true);
+            system.selectedPiece.vertex = entity.id;
+            if (puzzle.toString() === answer.toString()) {
+                scenePlay.showHelp = false;  // dismiss puzzle hints
+                mouse.isLocked = puzzle.isSolved = true;
+                scenePlay.delayToNextPuzzle = system.fps;
+                confetti.add(120, 120);
+            }
+        } else {
+            system.selectedPiece.moveTo(undefined, system.fps / 4, false);
+        }
+        system.selectedPiece = undefined;
+    } else if (system.isDragging) {
+        system.isDragging = false;
+        mouseClicked();
+    }
+    system.isDragging = false;
+};
+
+mouseClicked = function() {
+    tooltip.dismiss();
+    
+    if (system.scene === 'splash') {
+        sceneSplash.dismiss = true;
+    } else if (system.scene === 'title') {
+        sceneTitle.dismiss = mouseButton === LEFT;
+        sceneTitle.displayForThumbnail = mouseButton === RIGHT;
+    } else if (!mouse.isLocked) {
+        /** Don't use `system.entityUnderMouse` because the mouseMoved function doesn't always fire for touch devices. **/
+        var entity = findEntityUnderMouse();
+        if (entity instanceof Control) {
+            entity.action(entity);
+        } else if (system.scene === 'finale') {
+            // Go back to last puzzle.
+            system.changeScene('play', puzzles.length - 1);
+        }
+    }
+};
+
+draw = function() {
+    system.prepareNextFrame();
+    
+    switch (system.scene) {
+        case 'play':    scenePlay();            break;
+        case 'finale':  sceneFinale();
+                        confetti.add(1, 300);   break;
+        case 'title':   sceneTitle();           break;
+        case 'splash':  sceneSplash();          break;
+        default:
+            println('PROGRAMMER ERROR: Unrecognized scene: ' + system.scene);
+            noLoop();
+    }
+    
+    confetti.draw();
+
+    // A transition or other event may change the state of a control beneath the mouse.
+    mouseMoved();  // sets cursor
+};
+} // Processing.js events

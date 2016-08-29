@@ -1,0 +1,313 @@
+/************************************************
+ * Given two 3D triangles, figure out which is
+ * in front of the other (if they overlap).
+ * Assume they don't intersect in 3 dimensions
+*************************************************/
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var PURPLE = color(157, 56, 189);
+var GREY = color(200, 200, 200);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 200);
+
+var BLUE_T = color(64, 95, 237, 100);
+var PINK_T = color(255, 0, 175, 100);
+var GREEN_T = color(28, 173, 123, 100);
+
+var myFont = createFont("Times", 20);
+var CONTROL_POINT_SIZE = 12;
+
+var selected = false;
+
+/****************************************
+ *      Calculations
+****************************************/
+// Assume everything has 2 dimensions
+var dotProduct = function(v1, v2){
+    return v1.x * v2.x + v1.y * v2.y;
+};
+
+var crossProduct2D = function(v1, v2) {
+    return v1.x * v2.y - v2.x * v1.y;
+};
+
+var subtractVectors = function(v1, v2) {
+    return { x: v1.x - v2.x, y: v1.y - v2.y };
+};
+
+// Test whether point, p, is inside the 
+// triangle, t, defined by an array of points
+var pointInTriangle = function(p, t) {
+    // Calculate vectors BA and BC, and BM
+    var v1 = subtractVectors(t.points[0], t.points[1]);
+    var v2 = subtractVectors(t.points[2], t.points[1]);
+    var v3 = subtractVectors(p, t.points[1]);
+    
+    // Calculate dot products
+    var dot11 = dotProduct(v1, v1);
+    var dot12 = dotProduct(v1, v2);
+    var dot13 = dotProduct(v1, v3);
+    var dot22 = dotProduct(v2, v2);
+    var dot23 = dotProduct(v2, v3);
+    
+    // Calculate barycentric coordinates
+    var d = 1 / (dot11 * dot22 - dot12 * dot12);
+    var u = (dot22 * dot13 - dot12 * dot23) * d;
+    var v = (dot11 * dot23 - dot12 * dot13) * d;
+    
+    return (u >= 0 && v >= 0 && u + v < 1);
+};
+
+var lineLineIntersection = function(p1, p2, p3, p4) {
+    var r = subtractVectors(p2, p1);
+    var s = subtractVectors(p4, p3);
+    
+    var rs = crossProduct2D(r, s);
+    var qp = subtractVectors(p3, p1);
+    var qpr = crossProduct2D(qp, r);
+    
+    if (rs !== 0) {
+        var t = crossProduct2D(qp, s) / rs;
+        var u = qpr / rs;
+        return (t >= 0 && t <= 1 && u >= 0 && u <= 1);
+    }
+};
+
+// Calculate whether vectors r and s intersect
+// a is the vector between the starting points of r and s
+var vectorVectorIntersection = function(r, s, a) {
+    var rs = crossProduct2D(r, s);
+    var ar = crossProduct2D(a, r);
+    
+    if (rs !== 0) {
+        var t = crossProduct2D(a, s) / rs;
+        var u = ar / rs;
+        return (t >= 0 && t <= 1 && u >= 0 && u <= 1);
+    }
+};
+
+var triangleTriangleIntersection = function(t1, t2) {
+    // Calculate bounding box exclusion
+    
+    // Are any of the triangle vertices in the other triangle?
+    for (var i = 0; i < 3; i++) {
+        if (pointInTriangle(t1.points[i], t2)) { return true; }
+        if (pointInTriangle(t2.points[i], t1)) { return true; }
+    }
+    
+    // Edge - edge intersections
+    var t1a = t1.points[0];
+    var t1b = t1.points[1];
+    var t1c = t1.points[2];
+    var t2a = t2.points[0];
+    var t2b = t2.points[1];
+    var t2c = t2.points[2];
+    
+    if (lineLineIntersection(t1a, t1b, t2a, t2b)) { return true; }
+    if (lineLineIntersection(t1a, t1c, t2a, t2b)) { return true; }
+    if (lineLineIntersection(t1a, t1b, t2a, t2c)) { return true; }
+    if (lineLineIntersection(t1a, t1c, t2a, t2c)) { return true; }
+};
+
+var triangleTriangleIntersection2 = function(t1, t2) {
+    // About twice as fast as the above as it doesn't recalculate so many variables
+    
+    var AB1 = subtractVectors(t1.points[1], t1.points[0]);
+    var AC1 = subtractVectors(t1.points[2], t1.points[0]);
+    var ABAB1 = dotProduct(AB1, AB1);
+    var ABAC1 = dotProduct(AB1, AC1);
+    var ACAC1 = dotProduct(AC1, AC1);
+    var d1 = 1 / (ABAB1 * ACAC1 - ABAC1 * ABAC1);
+    
+    // Are any of the triangle vertices in the other triangle?
+    for (var i = 0; i < 3; i++) {
+        var p = subtractVectors(t2.points[i], t1.points[0]);
+        var dot1 = dotProduct(AB1, p);
+        var dot2 = dotProduct(AC1, p);
+        var u = (ACAC1 * dot1 - ABAC1 * dot2) * d1;
+        var v = (ABAB1 * dot2 - ABAC1 * dot1) * d1;
+        if (u >= 0 && v >= 0 && u + v < 1) { return true; }
+    }
+    
+    var AB2 = subtractVectors(t2.points[1], t2.points[0]);
+    var AC2 = subtractVectors(t2.points[2], t2.points[0]);
+    var ABAB2 = dotProduct(AB2, AB2);
+    var ABAC2 = dotProduct(AB2, AC2);
+    var ACAC2 = dotProduct(AC2, AC2);
+    var d2 = 1 / (ABAB2 * ACAC2 - ABAC2 * ABAC2);
+    
+    for (var i = 0; i < 3; i++) {
+        var p = subtractVectors(t1.points[i], t2.points[0]);
+        var dot1 = dotProduct(AB2, p);
+        var dot2 = dotProduct(AC2, p);
+        var u = (ACAC2 * dot1 - ABAC2 * dot2) * d2;
+        var v = (ABAB2 * dot2 - ABAC2 * dot1) * d2;
+        if (u >= 0 && v >= 0 && u + v < 1) { return true; }
+    }
+    
+    // Edge - edge intersections
+    var a = subtractVectors(t2.points[0], t1.points[0]);
+    if (vectorVectorIntersection(AB1, AB2, a)) { return true; }
+    if (vectorVectorIntersection(AC1, AB2, a)) { return true; }
+    if (vectorVectorIntersection(AB1, AC2, a)) { return true; }
+    if (vectorVectorIntersection(AC1, AC2, a)) { return true; }
+};
+
+/****************************************
+ *  Draggable point object
+****************************************/
+
+var draggablePoint = function(x, y, color, name) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.name = name || "";
+};
+
+draggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2 + 2;
+};
+
+draggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+draggablePoint.prototype.draw = function() {
+    if (selected === this || (!selected && this.mouseover())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+draggablePoint.prototype.mousePressed = function() {
+    if (this.mouseover()) {
+        selected = this;
+    }
+};
+
+/****************************************
+ *  Triangle object
+****************************************/
+
+var Triangle = function(p1, p2, p3, col1, col2) {
+    this.points = [p1, p2, p3];
+    this.color1 = col1;
+    this.color2 = col2;
+};
+
+Triangle.prototype.draw = function(hit) {
+    // Filled triangle
+    noStroke();
+    if (hit) {
+        fill(this.color2);    
+    } else {
+        fill(this.color1);
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    
+    triangle(this.points[0].x, this.points[0].y,
+             this.points[1].x, this.points[1].y,
+             this.points[2].x, this.points[2].y);
+ 
+    for (var i = 0; i < this.points.length; i++) {
+        this.points[i].draw();
+    }
+};
+
+Triangle.prototype.mousePressed = function() {
+    for (var i = 0; i < this.points.length; i++) {
+        this.points[i].mousePressed();
+    }
+};
+
+/****************************************
+ *      Create objects
+****************************************/
+
+var triangle1 = new Triangle(
+    new draggablePoint(width * 0.2, height * 0.4),
+    new draggablePoint(width * 0.1, height * 0.9),
+    new draggablePoint(width * 0.5, height * 0.7),
+    BLUE_T, PINK_T);
+    
+var triangle2 = new Triangle(
+    new draggablePoint(width * 0.6, height * 0.1),
+    new draggablePoint(width * 0.5, height * 0.5),
+    new draggablePoint(width * 0.9, height * 0.4),
+    BLUE_T, PINK_T);
+    
+var selectables = [triangle1, triangle2];
+
+/****************************************
+ *      Main loop
+****************************************/
+frameRate(30);
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    // Time trials
+    /*
+    var m1 = millis();
+    for (var i = 0; i < 5000; i++) {
+        triangleTriangleIntersection(triangle1, triangle2);    
+    }
+    m1 = millis() - m1;
+    
+    var m2 = millis();
+    for (var i = 0; i < 5000; i++) {
+        triangleTriangleIntersection2(triangle1, triangle2);    
+    }
+    m2 = millis() - m2;
+    
+    fill(0);
+    text(m1, 10, 16);
+    text(m2, 10, 32);
+    */
+    
+    var hit = triangleTriangleIntersection(triangle1, triangle2);
+    triangle1.draw(hit);
+    triangle2.draw(hit);
+};
+
+/****************************************
+ *      Event handling
+****************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].mousePressed();
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseOut = function() {
+    mouseReleased();
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move();
+    }
+};

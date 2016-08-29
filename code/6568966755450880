@@ -1,0 +1,214 @@
+ /******************************************************
+ * How well does a straight line between B and C
+ * approximate the length of the arc between B and C?
+ * 
+ * How does the approximation change as the angle changes?
+ * 
+ * Drag point B to change the length of the line.
+ * Drag point C to change the angle.
+ *******************************************************/
+
+// Colours
+var ANGLE_COL = color(255, 242, 0);
+var ARC_COL = color(42, 101, 250);
+var LINE_COL = color(18, 196, 65);
+var LINE_COL_T = color(18, 196, 65, 100);
+
+// Initial values
+var theta = 30;
+var side_length = 320;
+var Ax = 30;
+var Ay = 375;
+var Bx = Ax + side_length;
+var By = Ay;
+var Cx = Ax + side_length * cos(theta);
+var Cy = Ay - side_length * sin(theta);
+var line_length, arc_length;
+
+// Slider
+var sliderSize = 16;
+var arcSize = 100;
+var mouseOverSlider = false;
+
+var findLengths = function() {
+    line_length = 2 * side_length * sin(theta/2);
+    arc_length = PI * side_length * theta/180;
+};
+
+findLengths();
+
+var setPositionB = function(angle) {
+    Bx = mouseX;
+    side_length = Bx - Ax;
+    if (side_length < 0) { side_length = 0.01; }
+    Cx = Ax + side_length * cos(theta);
+    Cy = Ay - side_length * sin(theta);
+    findLengths();
+};
+
+var setPositionC = function() {
+    theta = -atan2(mouseY - Ay, mouseX - Ax);
+    if (theta < 0) { theta = 0; }
+    Cx = Ax + side_length * cos(theta);
+    Cy = Ay - side_length * sin(theta);
+    findLengths();
+};
+
+var writeLabel = function(label, x, y, angle) {
+    translate(x, y);
+    rotate(angle);
+    text("" + round(10 * label)/10, 0, 0);
+    resetMatrix();
+};
+
+var writePoint = function(letter, x1, y1, x2, y2, x3, y3, d) {
+    var angle = 180+(atan2(y1-y2, x1-x2) + atan2(y1-y3, x1-x3))/2;
+    text(letter, x1 - d * cos(angle), y1 - d * sin(angle));
+};
+
+var writeInfo = function() {
+    var x = 250;
+    var y = 10;
+    var w = 140;
+    var h = 82;
+    var dx = 20;
+    
+    strokeWeight(1);
+    stroke(100);
+    fill(30);
+    rect(x, y, w, h);
+    
+    fill(255);
+    textSize(13);
+    textAlign(LEFT, BASELINE);
+    
+    var params = ["Theta", "Straight line", "Arc length"];
+    var values = [theta, line_length, arc_length];
+    var colors = [ANGLE_COL, LINE_COL, ARC_COL];
+    
+    y += 16;
+    for (var i in params) {
+        fill(colors[i]);
+        var txt = params[i] + ": ";
+        text(txt, x + 5, y + dx * i);
+        var tx = x+5+textWidth(txt);
+        
+        fill(255);
+        text("" + round(1000 * values[i])/1000, tx, y+dx*i);
+    }
+    
+    var d = 0;
+    if (theta > 0) {
+        var d = round(100000 * (arc_length / line_length - 1))/1000;   
+    }
+    text("Error: " + d + "%", x + 5, y + dx*params.length);
+};
+
+var drawShape = function() {
+    // Triangle
+    noStroke();
+    fill(LINE_COL_T);
+    triangle(Ax, Ay, Bx, By, Cx, Cy);
+    
+    // Line
+    stroke(LINE_COL);
+    line(Bx, By, Cx, Cy);
+    
+    // Arc
+    noFill();
+    stroke(ARC_COL);
+    arc(Ax, Ay, side_length*2, side_length*2, 1-theta, 0);
+    
+    // Labels
+    textSize(13);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    writeLabel(side_length, (Ax + Bx)/2, Ay + 10, 0);
+    
+    var x = Ax + side_length * cos(theta) / 2;
+    x += 10 * cos(theta + 90);
+    var y = Ay - side_length * sin(theta) / 2;
+    y -= 10 * sin(theta + 90);
+    writeLabel(side_length, x, y, -theta);
+    
+    var s = sin(theta/2);
+    var c = cos(theta/2);
+    
+    x = Ax + (side_length * c - 10) * c;
+    y = Ay - (side_length * c - 10) * s;
+    writeLabel(line_length, x, y, 90 - theta/2);
+    
+    x = Ax + (side_length + 10) * c;
+    y = Ay - (side_length + 10) * s;
+    writeLabel(arc_length, x, y, 90 - theta/2);
+    
+    // Points
+    textAlign(CENTER, CENTER);    
+    fill(255);
+    writePoint("A", Ax, Ay, Bx, By, Cx, Cy, 10);
+    writePoint("B", Bx, By, Ax, Ay, Cx, Cy, 16);
+    writePoint("C", Cx, Cy, Ax, Ay, Bx, By, 16);
+    
+    // Draw angle
+    stroke(ANGLE_COL);
+    strokeWeight(1);
+    fill(0, 0, 0, 160);
+    arc(Ax, Ay, arcSize, arcSize, 1-theta, 0);
+    
+    // Lines
+    strokeWeight(2);
+    stroke(255);
+    line(Ax, Ay, Bx-1, By);
+    line(Ax, Ay, Cx, Cy);
+
+    textAlign(CENTER, CENTER);
+    textSize(11);
+    fill(ANGLE_COL);
+    var x = Ax + 36 * cos(theta/2);
+    var y = Ay - 36 * sin(theta/2);
+    text(round(theta) + "°", x, y);
+};
+
+var drawSlider = function(slider, x, y) {
+    if (mouseOverSlider === slider ||
+        (mouseX >= x - sliderSize/2 &&
+         mouseX <= x + sliderSize/2 &&
+         mouseY >= y - sliderSize/2 &&
+         mouseY <= y + sliderSize/2 &&
+         !mouseOverSlider)) {
+            fill(160, 160, 160, 200);
+            stroke(240, 240, 240);
+            mouseOverSlider = slider;
+        } else {
+            fill(160, 160, 160, 100);
+            stroke(200, 200, 200, 200);
+            if (!mouseIsPressed) {
+                mouseOverSlider = false;   
+            }
+        }
+        
+    strokeWeight(2); 
+    ellipse(x, y, sliderSize, sliderSize);
+};
+
+var draw = function() {
+    background(0);
+    drawShape();
+    drawSlider(2, Cx, Cy);
+    drawSlider(1, Bx, By);
+    writeInfo();
+};
+
+var mouseDragged = function() {
+    if (mouseOverSlider) {
+        [setPositionB, setPositionC][mouseOverSlider-1]();
+    }
+};
+
+var mouseReleased = function () {
+    mouseOverSlider = false;
+};
+
+var mouseOut = function(){
+    mouseOverSlider = false;
+};

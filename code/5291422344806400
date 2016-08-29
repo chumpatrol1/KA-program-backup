@@ -1,0 +1,474 @@
+/***************************
+ *
+ * To Do:
+ * 
+ * Description
+ * Add more proteins
+ * Method for switching proteins
+ * Show charge of individual amino acids
+ * 
+ * 
+Amyloglucosidase 
+Glucose oxidase 
+Trypsin inhibitor 
+β-Lactoglobulin 
+Myoglobin horse 
+Lentil lectin 
+Ribonuclease A 
+Cytochrome C        pI 10.65
+Carboanhydrase      pI 6.0
+
+pI 3.5
+pI 4.2
+pI 4.5
+pI 5.15/5.3
+pI 6.9/7.35
+pI 7.75/8.0/8.3
+pI 9.45
+ * 
+***************************/
+
+var proteins = [
+    {
+        name: 'Ovalbumin',
+        description: 'Ovalbumin is the main component of egg white. It is thought to function as a store of amino acids for the egg.',
+        source: 'Chicken (Gallus gallus)',
+        sequence: 'MGSIGAASMEFCFDVFKELKVHHANENIFYCPIAIMSALAMVYLGAKDSTRTQINKVVRFDKLPGFGDSIEAQCGTSVNVHSSLRDILNQITKPNDVYSFSLASRLYAEERYPILPEYLQCVKELYRGGLEPINFQTAADQARELINSWVESQTNGIIRNVLQPSSVDSQTAMVLVNAIVFKGLWEKAFKDEDTQAMPFRVTEQESKPVQMMYQIGLFRVASMASEKMKILELPFASGTMSMLVLLPDEVSGLEQLESIINFEKLTEWTSSNVMEERKIKVYLPRMKMEEKYNLTSVLMAMGITDVFSSSANLSGISSAESLKISQAVHAAHAEINEAGREVVGSAEAGVDAASVSEEFRADHPFLFCIKHIATNAVLFFGRCVSP'
+    },
+    {
+        name: 'Cytochrome c',
+        description: 'Cytochrome c is a highly conserved protein involved in the electron transport chain.',
+        source: 'Human (Homo sapiens)',
+        sequence: 'MGDVEKGKKIFIMKCSQCHTVEKGGKHKTGPNLHGLFGRKTGQAPGYSYTAANKNKGIIWGEDTLMEYLENPKKYIPGTKMIFVGIKKKEERADLIAYLKKATNE'
+    }
+];
+
+// Mass of amino acids in Daltons
+var AA_MASS = {
+    'A':	71.0788,
+    'R':	156.1875,
+    'N':	114.1038,
+    'D':	115.0886,
+    'C':	103.1388,
+    'E':	129.1155,
+    'Q':	128.1307,
+    'G':	57.0519,
+    'H':	137.1411,
+    'I':	113.1594,
+    'L':	113.1594,
+    'K':	128.1741,
+    'M':	131.1926,
+    'F':	147.1766,
+    'P':	97.1167,
+    'S':	87.0782,
+    'T':	101.1051,
+    'W':	186.2132,
+    'Y':	163.176,
+    'V':	99.1326
+};
+
+// pKa of charged amino acids
+// value is the pKa of the amino acid and
+// charge is the charge of the amino acid when protonated
+// N-term and C-term of the terminii of the polypeptide
+var AA_PKA = {
+    'D': { name: 'Asparate', value: 3.9, charge: -1 },
+    'E': { name: 'Glutamate', value: 4.3, charge: -1 },
+    'H': { name: 'Histidine', value: 6.1, charge: 0 },
+    'C': { name: 'Cytosine', value: 8.3, charge: -1 },
+    'Y': { name: 'Tyrosine', value: 10.1, charge: -1 },
+    'K': { name: 'Lysine', value: 10.5, charge: 0 },
+    'R': { name: 'Arginine', value: 12, charge: 0 },
+    'N-term': { name: 'Amino terminus', value: 8, charge: 0 },
+    'C-term': { name: 'Acid terminus', value: 3.1, charge: -1 }
+};
+
+/***************************************************************
+ *  Display parameter
+****************************************************************/
+
+// Graph coordinates
+var gw = 280;   // Should be divisible by 14
+var gh = 80;
+var gx = 60;
+var gy = 100;
+
+/***************************************************************
+ *  Functions for calculating protein properties
+****************************************************************/
+
+// Calculate the charge of an amino acid at a given pH
+var getAnimoAcidChargeAtPH = function(aminoAcid, pH) {
+    var pka = AA_PKA[aminoAcid].value;
+    return AA_PKA[aminoAcid].charge + 1 / (1 + pow(10, (pH - pka)));
+};
+
+// Calculate the charge of a protein at a given pH
+var getProteinChargeAtPH = function(protein, pH) {
+    var charge = 0;
+    
+    if (!protein.aaCounts) {
+        charge = getAnimoAcidChargeAtPH('N-term', pH);
+        charge += getAnimoAcidChargeAtPH('C-term', pH);
+        
+        for (var aminoAcid in AA_PKA) {
+            var re = new RegExp(aminoAcid,"g");
+            var count = (protein.sequence.match(re)||[]).length;
+            charge += count * getAnimoAcidChargeAtPH(aminoAcid, pH);
+        }   
+    } else {
+        for (var aminoAcid in protein.aaCounts) {
+            var count = protein.aaCounts[aminoAcid];
+            charge += count * getAnimoAcidChargeAtPH(aminoAcid, pH);
+        }
+    }
+    
+    return charge;
+};
+
+// Calculate the mass of a protein in daltons
+var getProteinMass = function(protein) {
+    var mass = 0;
+    
+    for (var i = 0; i < protein.sequence.length; i++){
+        var aminoAcid = protein.sequence[i];
+        
+        if (AA_MASS[aminoAcid]) {
+            mass += AA_MASS[aminoAcid];
+        }
+    }
+    
+    return mass;
+};
+
+// Attach various properties to a given protein
+var getProteinProperties = function(protein) {
+    protein.mass = 0;
+    
+    // Count of charged amino acids plus the two terminii
+    protein.aaCounts = {
+        'N-term': 1,
+        'C-term': 1
+    };
+    
+    for (var i = 0; i < protein.sequence.length; i++) {
+        var aminoAcid = protein.sequence[i];
+        
+        if (AA_MASS[aminoAcid]) {
+            protein.mass += AA_MASS[aminoAcid];
+        }
+        if (AA_PKA[aminoAcid]) {
+            if (protein.aaCounts[aminoAcid]) {
+                protein.aaCounts[aminoAcid]++;
+            } else {
+                protein.aaCounts[aminoAcid] = 1;
+            }
+        }
+    }
+    
+    protein.charges = [];
+    for (var i = 0; i <= 140; i++){
+        protein.charges.push(getProteinChargeAtPH(protein, i / 10));
+    }
+    
+};
+
+// Format mass in daltons nicely
+var formatMass = function(mass) {
+    if (mass > 1000) {
+        return round(mass / 100) / 10 + " kDa";
+    } else {
+        return round(mass * 10) / 10 + " Da";
+    }
+};
+
+// Format charge with a plus sign when needed
+var formatCharge = function(charge) {
+    var c = round(charge * 10) / 10;
+    return c > 0 ? "+" + c : "" + c;
+};
+
+/***************************************************************
+ * GUI Slider to vary parameters
+****************************************************************/
+
+var Slider = function(x, y, width, min_v, max_v, current_v) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.held = false;
+    
+    this.ballR = 7;
+    this.ballD = this.ballR * 2;
+    
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        noStroke();
+        fill(180);
+        rect(this.x, this.y - 2, this.width, 4, 2);
+    
+        strokeWeight(1);
+        stroke(0, 0, 0, 120);
+        fill(180, 180, 250);
+        ellipse(this.bx, this.y, this.ballD, this.ballD);
+        noStroke();
+        fill(255, 255, 255, 150);
+        ellipse(this.bx - this.ballR * 0.3, this.y - this.ballR * 0.3, 5, 5);
+
+    };
+    
+    this.selected = function() {
+        this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + round((x - this.x) * this.scale);
+            return true;
+        }
+    };
+  
+    // This is used if you want to update the value in a way other
+    // than using the slider (but want the slider to update).
+    this.update = function(d) {
+        this.val = constrain(this.val + d, this.min, this.max);
+        this.bx = (this.val - this.min) / this.scale + this.x;
+    };
+};
+
+/***************************************************************
+ *  Create objects
+****************************************************************/
+
+var sliders = [new Slider(gx, gy + gh + 20, gw, 0, 140, 70)];
+var protein = proteins[0];
+getProteinProperties(protein);
+
+var charge = getProteinChargeAtPH(protein, sliders[0].val / 10);
+
+/***************************************************************
+ *  Drawing functions
+****************************************************************/
+
+var RED = color(255, 0, 0);
+var GREEN = color(0, 200, 0);
+var BLUE = color(0, 0, 255);
+
+// Return a colour from Red to Green to Blue
+var pHColour = function(pH) {
+    if (pH <= 0) {
+        return RED;
+    } else if (pH >= 14) {
+        return BLUE;
+    } else if (pH < 7) {
+        return lerpColor(RED, GREEN, pH / 7);
+    } else {
+        return lerpColor(GREEN, BLUE, pH / 7 - 1);
+    }
+};
+
+var drawProteinDetails = function() {
+    textSize(26);
+    textAlign(CENTER, BASELINE);
+    fill(20);
+    text(protein.name, width/2, 27);
+    
+    var border = 12;
+    textSize(13);
+    textAlign(LEFT, BASELINE);
+    fill(20);
+    
+    var s = "Predicted mass: " + formatMass(protein.mass);
+    s += "; Number of amino acids: " + protein.sequence.length;
+    text(s, border, 36, width - border * 2, 100);
+    text(protein.description, border, 52, width - border * 2, 100);
+};
+
+var drawGUI = function() {
+    // pH slider
+    textSize(14);
+    textAlign(CENTER, BASELINE);
+    fill(20);
+    
+    var slider = sliders[0];
+    //text("pH: " + slider.val / 10, slider.x + slider.width / 2, slider.y - 14) ;
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].draw();   
+    }
+};
+
+var drawChargedGroups = function() {
+    var ty = gy + gh + 70;
+    var tx = 30;
+    textSize(13);
+    textAlign(LEFT, BASELINE);
+    fill(20);
+    
+    var ph = sliders[0].val / 10;
+    
+    for (var AA in protein.aaCounts) {
+        var name = AA_PKA[AA].name;
+        var charge = AA_PKA[AA].charge;
+        var count = protein.aaCounts[AA];
+        var percent = round(1000 * getAnimoAcidChargeAtPH(AA, ph) - charge * 1000)/10;
+        
+        text(name + ": " + count, tx, ty);
+        text(percent + "%", tx + 120, ty);
+        text(charge, tx + 180, ty);
+        ty += 16;
+    }
+};
+
+// Return a nice division for a x
+var getScale = function(x) {
+    var d = 10;
+    var i = 0;
+    
+    while (d < x) {
+        d *= (i % 3 === 1) ? 2.5 : 2;
+        i++;
+    }
+    
+    return d / 10;
+};
+
+var drawGraph = function() {
+    var maxCharge = protein.charges[0];
+    var minCharge = protein.charges[protein.charges.length - 1];
+    var maxAbs = max(abs(maxCharge), abs(minCharge));
+    
+    // Calculate scale
+    var scaleX = gw / (protein.charges.length - 1);
+    var scaleY = getScale(maxCharge - minCharge);
+    maxCharge = scaleY * ceil(maxCharge / scaleY);
+    minCharge = scaleY * floor(minCharge / scaleY);
+    
+    var dy = gh / (maxCharge - minCharge);
+    
+    strokeWeight(1);
+    stroke(0);
+
+    // Vertical gridlines
+    textAlign(CENTER, TOP);
+    fill(10);
+    textSize(9);
+    
+    stroke(220, 230, 220);
+    for (var i = 0; i <= 140; i += 10) {
+        var x = gx + i * scaleX;
+        line(x, gy, x, gy + gh + 1);
+        text(i/10, x, gy + gh + 2);
+    }
+
+    // Horizontal gridlines
+    textAlign(RIGHT, CENTER);
+    
+    for (var i = minCharge; i <= maxCharge; i += scaleY) {
+        var y = gy + gh - (i - minCharge) * dy;
+        if (i === 0) {
+            stroke(100);
+        } else {
+            stroke(220, 230, 220);
+        }
+        
+        text(i, gx - 3, y);
+        line(gx - 1, y, gx + gw, y);
+    }
+    stroke(100);
+    line(gx, gy, gx, gy + gh + 1);
+    
+    // Plot line
+    var y = protein.charges[1] - maxCharge;
+    strokeWeight(2);
+    for (var i = 2; i < protein.charges.length; i++) {
+        var x = gx + (i - 1) * scaleX;
+        var y2 = protein.charges[i] - maxCharge;
+        
+        stroke(pHColour(i/10));
+        line(x, gy - y * dy, x + scaleX, gy - y2 * dy);
+        y = y2;
+    }
+    
+    // Draw overlay line
+    strokeWeight(1);
+    var phColor = pHColour(sliders[0].val / 10);
+    stroke(phColor);
+    var x = gx + (sliders[0].val) * scaleX;
+    line(x, gy, x, gy + gh);
+    
+    // TODO: ensure sliders[0].val gets correct charge
+    var currentCharge = protein.charges[sliders[0].val];
+    var y = gy - (currentCharge - maxCharge) * dy;
+    stroke(0);
+    line(gx, y, gx + gw, y);
+    
+    // Labels
+    textSize(13);
+    textAlign(CENTER, TOP);
+    //text("pH", gx + gw / 2, gy + gh + 12);
+    
+    textAlign(CENTER, BASELINE);
+    pushMatrix();
+    translate(gx - 22, gy + gh / 2);
+    rotate(270);
+    text("Predicted charge", 0, 0);
+    popMatrix();
+    
+    // Read values off graph
+    textAlign(LEFT, TOP);
+    var ty = sliders[0].y + 6;
+    var s = "At pH " + round(10 * sliders[0].val) / 100;
+    s += ", the charge is predicted to be ";
+    s += formatCharge(currentCharge) + ".";
+    text(s, gx, ty);
+};
+
+/***************************************************************
+ *  Main loop
+****************************************************************/
+
+draw = function() {
+    background(255);
+    drawProteinDetails();
+    drawGraph();
+    drawGUI();
+    drawChargedGroups();
+};
+
+/***************************************************************
+ *  Event handling
+****************************************************************/
+
+mousePressed = function() {
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].selected();
+    }
+};
+
+mouseReleased = function() {
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].held = false;
+    }
+};
+
+mouseOut = function() {
+    mouseReleased();
+};
+
+mouseDragged = function() {
+    for (var s = 0; s < sliders.length; s++) {
+        if (sliders[s].drag()) {
+            charge = getProteinChargeAtPH(protein, sliders[0].val / 10);
+        }
+    }
+};

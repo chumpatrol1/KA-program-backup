@@ -1,0 +1,300 @@
+/*******************************************************
+ *      Exercise 3
+ * Write the code for each of the deformer functions.
+*******************************************************/
+
+// You can ignore the model data in this exercise
+// Scroll down to the transformation functions below
+var modelData = {
+    shapes: [
+        {
+            name: "head",
+            radius: 80,
+            center: [200, 160]
+        },
+        {
+            name: "body",
+            radius: 120,
+            center: [200, 240]
+        }
+    ],
+    deformers: []
+};
+
+// In this challenge we'll fill in
+// the body of the functions below
+var translateXFunction = function(coordinate, value) {
+
+};
+
+var translateYFunction = function(coordinate, value) {
+
+};
+
+var scaleFunction = function(coordinate, value, origin) {
+    
+};
+
+var rotateFunction = function(coordinate, value, origin) {
+
+};
+
+/*******************************************************
+ *          Shape
+ * A set of points, which are connected by straight
+ * lines, and filled to draw part of a skeleton.
+*******************************************************/
+{
+var drawCircle = function() {
+    var r = dist(this.drawPoints[0].x, this.drawPoints[0].y,
+                 this.drawPoints[1].x, this.drawPoints[1].y);
+    ellipse(this.drawPoints[0].x, this.drawPoints[0].y, r, r);
+};
+
+var Shape = function(data, name) {
+    this.name = name;
+    this.nodeR = 5;
+    
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    }
+    this.originalPoints = data.vertices || [];
+    
+    this.nodeColor = color(120);
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    
+    if (data.drawShape) { this.drawShape = data.drawShape.bind(this); }
+    
+    this.dependentShapes = [];
+    this.reset();
+};
+
+// Set the position of drawPoints equal to originalPoints
+Shape.prototype.reset = function() {
+    this.drawPoints = [];
+    for (var i = 0; i < this.originalPoints.length; i++) {
+        var point = this.originalPoints[i];
+        this.drawPoints.push(new PVector(point[0], point[1]));
+    }
+    
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+
+Shape.prototype.draw = function() {
+    // Shadow
+    noStroke();
+    fill(0, 0, 0, 50);
+    pushMatrix();
+    translate(2, 3);
+    this.drawShape();
+    popMatrix();
+    
+    fill(this.fillColor);
+    strokeWeight(this.strokeWeight);
+    stroke(this.strokeColor);
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    // Draw a polygon by drawing a line from each point in drawPoints
+    beginShape();
+    for (var i = 0; i < this.drawPoints.length; i++) {
+        vertex(this.drawPoints[i].x, this.drawPoints[i].y);
+    }
+    endShape(CLOSE);
+};
+
+Shape.prototype.drawNode = function() {
+    if (this.origin) {
+        fill(this.nodeColor);
+        stroke(250);
+        strokeWeight(1);
+        ellipse(this.origin.x, this.origin.y, 10, 10);
+    }
+};
+
+Shape.prototype.transform = function(transform, value, origin) {
+    // Update the vertices of this shape
+    for (var i = 0; i < this.drawPoints.length; i++) {
+        transform(this.drawPoints[i], value, origin);
+    }
+    
+    for (var i = 0; i < this.dependentShapes.length; i++) {
+        var shape = this.dependentShapes[i];
+        transform(shape.origin, value, origin);
+        shape.transform(transform, value, origin);
+    }
+};
+}
+/*******************************************************
+ *          Deformer
+ * An avar that transforms a set of shapes with a given
+ * transformation. Deformer have an origin, which
+ * determines the origin of its transformation.
+*******************************************************/
+{
+var Deformer = function(transform, shape) {
+    this.transform = transform;
+    this.shape = shape;
+    this.value = 0;
+};
+
+// Update the position of dependent shapes with given value
+Deformer.prototype.update = function() {
+    this.shape.transform(this.transform, this.value, this.shape.origin);
+};
+}
+/*******************************************************
+ *          Model
+ * A character consisting of a set Shapes and a set of
+ * Deformers that transform those shapes.
+*******************************************************/
+{
+var Model = function(data) {
+    this.shapes = {};
+    this.deformers = [];
+    this.id = 0;
+    
+    if (data) {
+        this.loadData(data);
+    }
+};
+
+Model.prototype.draw = function() {
+    for (var el in this.shapes) {
+        this.shapes[el].draw();
+    }
+    
+    for (var el in this.shapes) {
+        this.shapes[el].drawNode();
+    }
+};
+
+Model.prototype.getShape = function(name) {
+    var shape = this.shapes[name];
+    if (shape) {
+        return shape;
+    } else {
+        println("ERROR: Invalid index: " + name);
+    }
+};
+
+Model.prototype.connectShapes = function(parent, child) {
+    parent = this.shapes[parent];
+    child = this.shapes[child];
+    if (parent && child && parent !== child) {
+        parent.dependentShapes.push(child);
+    }
+};
+
+Model.prototype.addDeformer = function(transform, shape) {
+    this.deformers.push(new Deformer(transform, shape));
+    
+    // Color node orange
+    shape.nodeColor = color(255, 165, 0);
+};
+
+Model.prototype.updateDeformer = function(deformer, value) {
+    this.deformers[deformer].value = value;
+    this.update();
+};
+
+Model.prototype.loadData = function(data) {
+    // Add shapes
+    if (data.shapes) {
+        for (var i = 0; i < data.shapes.length; i++) {
+            var shape = data.shapes[i];
+            
+            // Are we creating a circle
+            if (shape.radius && shape.center) {
+                var center = shape.center;
+                shape.vertices = [center, [center[0] + shape.radius, center[1]]];
+                shape.drawShape = drawCircle;
+            }
+            
+            this.addShape(shape);
+        }
+    }
+    
+    // Join shapes
+    if (data.connections) {
+        for (var i = 0; i < data.connections.length; i++) {
+            var shapes = data.connections[i].split('->');
+            this.connectShapes(shapes[0], shapes[1]);
+        }
+    }
+    
+    // Add deformers
+    if (data.deformers) {
+        for (var i = 0; i < data.deformers.length; i++) {
+            var d = data.deformers[i].split("->");
+            var shape = this.shapes[d[1]];
+            
+            if (shape) {
+                switch(d[0]) {
+                    case 'translateX':
+                        this.addDeformer(translateXFunction, shape);
+                        break;
+                    case 'translateY':
+                        this.addDeformer(translateYFunction, shape);
+                        break;
+                    case 'scale':
+                        this.addDeformer(scaleFunction, shape);
+                        break;
+                    case 'rotate':
+                        this.addDeformer(rotateFunction, shape);
+                        break;
+                    default:
+                        println("ERROR: no such shape, " + d[0]);
+                        break;
+                }
+            } else {
+                println("ERROR: no such shape, " + d[1]);
+            }
+        }
+    }
+};
+
+Model.prototype.addShape = function(shape) {
+    var shapeName = shape.name || "shape" + this.id++;
+    this.shapes[shapeName] = new Shape(shape, shapeName);
+};
+
+Model.prototype.update = function() {
+    // Move drawPoint to their original positions
+    for (var el in this.shapes) {
+        this.shapes[el].reset();
+    }
+    
+    // Update the position of shapes using deformers
+    for (var i = 0; i < this.deformers.length; i++) {
+        this.deformers[i].update();
+    }
+};
+}
+/*******************************************************
+ * Create Model
+*******************************************************/
+
+// Create our model object
+var model = new Model(modelData);
+
+/**************************************
+ * Main loop
+***************************************/
+
+draw = function() {
+    // Sky
+    background(82, 115, 173);
+    
+    // Tabletop
+    noStroke();
+    fill(255);
+    rect(-1, 280, width + 2, height - 278);
+    
+    model.draw();
+};

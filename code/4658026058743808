@@ -1,0 +1,56 @@
+// http://mathworld.wolfram.com/Circle-LineIntersection.html
+// Using parameterized line
+
+// Ray starting a [px, py]
+// Moves along vector [pdx, pdy]
+var px = 220;
+var py = 230;
+var angle = 215;
+var pdx = cos(angle);
+var pdy = sin(angle);
+
+var cx = 200;
+var cy = 200;
+var r = 80;
+var r2 = 120;
+
+noFill();
+strokeWeight(2);
+stroke(255, 0, 0);
+
+line(px, py, px + pdx * 12, py + pdy * 12);
+strokeWeight(6);
+point(px, py);
+
+strokeWeight(2);
+stroke(0, 0, 255);
+ellipse(cx, cy, r * 2, r * 2);
+ellipse(cx, cy, r2 * 2, r2 * 2);
+
+var dx = px - cx;
+var dy = py - cy;
+var dot = dx * (dy + pdy) - (dx + pdx) * dy;
+var determinant = r * r - dot * dot;
+
+if (determinant > 0) {
+    determinant = sqrt(determinant);
+    var x = cx + pdx * determinant + dot * pdy;
+    var y = cy + pdy * determinant - dot * pdx;
+    
+    strokeWeight(8);
+    point(x, y);
+}
+
+determinant = r2 * r2 - dot * dot;
+if (determinant > 0) {
+    determinant = sqrt(determinant);
+    var x = cx + pdx * determinant + dot * pdy;
+    var y = cy + pdy * determinant - dot * pdx;
+    
+    strokeWeight(8);
+    point(x, y);
+}
+
+fill(0);
+textAlign(LEFT, TOP);
+text(determinant, 10, 10);

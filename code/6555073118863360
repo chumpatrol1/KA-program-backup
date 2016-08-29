@@ -1,0 +1,636 @@
+// http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+
+// TODO: sliders to control amplitude
+// Auto scale
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var CONTROL_POINT_SIZE = 12;
+
+strokeJoin(ROUND);
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *  GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, name);
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    //showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    /*
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+    */
+};
+}
+/*******************************************************
+ * GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+/*******************************************************
+ *      DraggablePoint
+ * A freely draggable point with a position and colour.
+********************************************************/
+{
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    if (this.selected) {
+        fill(PINK);
+    } else {
+        fill(this.color);
+    }
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+};
+}
+/*******************************************************
+ *      Graph
+ * A collection of draggable points constrained to a box
+********************************************************/
+
+var Graph = function(x, y, w, h, n) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    var border = 0.1;
+    this.y1 = this.y + border * this.h;
+    this.y2 = this.y + (1 - border) * this.h;
+    
+    //this.getRandomPoints(n);
+    this.getNonRandomPoints([
+        0, 0, 0, 0, 0.25, -0.25,
+        -0.25, 0, 0, 0, 0, 0
+    ]);
+    
+    this.fallOff = 0.5;
+};
+
+Graph.prototype.getRandomPoints = function(n) {
+    var dx = this.w / n;
+    var x = this.x + dx / 2;
+    var points = [];
+    
+    for (var i = 0; i < n; i++) {
+        var value = (random() - 0.5) * 0.8;
+        var py = lerp(this.y + this.h, this.y, value);
+        var p = new DraggablePoint(x, py - this.h / 2);
+        p.value = value;
+        points.push(p);
+        x += dx;
+    }
+    
+    this.points = points;
+};
+
+Graph.prototype.getNonRandomPoints = function(arr) {
+    var dx = this.w / arr.length;
+    var x = this.x + dx / 2;
+    
+    var points = arr.map(function(value, i) {
+        var py = lerp(this.y + this.h, this.y, value + 0.5);
+        var p = new DraggablePoint(x, py);
+        p.value = value;
+        x += dx;
+        return p;
+    }, this);
+    
+    this.points = points;
+};
+
+Graph.prototype.draw = function() {
+    var y = this.y;
+    for (var i = 0; i < 4; i++) {
+        this.drawLineGraph(this.x, y, i, i);
+        if (i) {
+            this.drawCompoundGraph(this.x + 298, y, i + 1);
+        }
+        y += this.y + this.h;
+    }
+    
+    this.points.forEach(function(p) {
+        p.draw();
+    });
+};
+
+Graph.prototype.drawBox = function(x, y, title, _scale) {
+    _scale = _scale || 1;
+    noFill();
+    strokeWeight(1);
+    stroke(80);
+    rect(x, y, this.w, this.h, 2);
+    
+    var n = 4 * _scale;
+    var mid = n / 2 - 1;
+    var dy = this.h / n;
+    var y2 = y;
+    
+    for (var i = 0; i < n - 1; i++) {
+        y2 += dy;
+        stroke(i === mid ? 170 : 240);
+        line(x + 2, y2, x + this.w - 2, y2);
+    }
+    
+    if (title) {
+        fill(30);
+        textSize(13);
+        textAlign(LEFT, TOP);
+        text(title, x + 3, y + 2);
+    }
+};
+
+Graph.prototype.drawLineGraph = function(x, y, freq, amp) {
+    freq = pow(2, freq || 0);
+    amp = pow(this.fallOff, amp || 0);
+    var n = this.points.length;
+    var dx = this.w / n / freq;
+
+    var title = freq === 1 ? "" : "Frequency = " + freq + "; amplitude = " + round(amp * 10000) / 10000;
+    this.drawBox(x, y, title);
+    
+    x += dx / 2;
+    var t;
+    var p = this.points;
+    var y2 = y + this.h;
+    
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    beginShape();
+    for (var i = 0; i < freq; i++) {
+        for (var j = 0; j < n; j++) {
+            t = 0.5 + p[j].value * amp;
+            vertex(x, (1 - t) * y2 + t * y);
+            x += dx;
+        }
+    }
+    endShape();
+};
+
+Graph.prototype.drawCompoundGraph = function(x, y, octaves) {
+    octaves = octaves || 1;
+    var n = this.points.length;
+    var dx = this.w / n;
+
+    // Get points for compound graph
+    var p = this.points;
+    var cp = [];
+    var _min = 99;
+    var _max = -99;
+
+    for (var i = 0; i < this.w - dx; i++) {
+        var value = 0;
+        
+        for (var j = 0; j < octaves; j++) {
+            var fallOff = pow(this.fallOff, j);
+            var freq = 1 << j;
+            
+            // Which two points is i between
+            var px = (i / dx * freq) % n;
+            var index = px | 0;
+            
+            // How far between the two points are we
+            var t = px - index;
+            
+            //var t = (1 - cos(t * 180)) * 0.5;
+            
+            // Interpolate value
+            value += ((1 - t) * p[index].value + 
+                     t * p[(index + 1) % n].value) * fallOff;
+            _min = min(_min, value);
+            _max = max(_max, value);
+        }
+        cp.push(value);
+    }
+    
+    var _scale = max(ceil(_max * 4) / 2, ceil(-_min * 4) / 2);
+    _scale = max(1, _scale);
+
+    var title = "Sum of " + octaves + " octave";
+    if (octaves > 1) { title += "s"; }
+    this.drawBox(x, y, title, _scale);
+
+    x += dx / 2;
+    y += this.h / 2;
+    _scale = this.h / _scale;
+
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    beginShape();
+    for (var i = 0, len = cp.length; i < len; i++) {
+        vertex(i + x, y - cp[i] * _scale);
+    }
+    endShape();
+};
+
+Graph.prototype.mousePressed = function() {
+    for (var i = 0; i < this.points.length; i++) {
+        if (this.points[i].mouseOver()) {
+            this.selected = this.points[i];
+            break;
+        }
+    }
+};
+
+Graph.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+
+Graph.prototype.mouseDragged = function() {
+    if (this.selected) {
+        // Only move y coordinate and constrain in box
+        this.selected.move(0, mouseY - pmouseY);
+        this.selected.y = constrain(this.selected.y, this.y1, this.y2);
+        this.selected.value = norm(this.selected.y, this.y + this.h, this.y) - 0.5;
+    }
+};
+
+/*******************************************************
+ * Set-up page
+********************************************************/
+
+var graph = new Graph(4, 4, 294, 115, 12);
+var toolbar = new Toolbar(349, 10, 200);
+
+toolbar.add(Slider, {
+    name: "Fall-off",
+    now: 0.5,
+    max: 1,
+    decimalPlaces: 2,
+    ballR: 12,
+    trigger: function() {graph.fallOff = this.val; }
+});
+toolbar.add(Button, {
+    name: "Randomize Points",
+    trigger: function() {
+        graph.getRandomPoints(12);
+    }
+});
+
+/*******************************************************
+ * Main loop
+********************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    graph.draw();
+    toolbar.draw();
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    graph.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    graph.mouseDragged();
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    graph.mouseReleased();
+    toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    mouseReleased();
+};

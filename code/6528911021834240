@@ -1,0 +1,40 @@
+
+// 3 8-bit numbers (0 - 255)
+var a = 123;
+var b = 2;
+var c = 200;
+
+// Add numbers together into a 24 bit number
+var sum = c | b << 8 | a << 16;
+
+// Decompose
+var x = sum >> 16 & 255;
+var y = sum >> 8 & 255;
+var z = sum & 255;
+
+textAlign(CENTER, CENTER);
+fill(200, 0, 0);
+text(nf(a.toString(2), 8, -1), 125, 40);
+text(a, 125, 25);
+
+fill(0, 200, 0);
+text(nf(b.toString(2), 8, -1), 200, 40);
+text(b, 200, 25);
+
+fill(0, 0, 200);
+text(nf(c.toString(2), 8, -1), 275, 40);
+text(c, 275, 25);
+
+fill(0);
+text(sum.toString(2), 200, 90);
+text(sum, 200, 75);
+
+fill(200, 0, 0);
+text(x, 125, 125);
+
+fill(0, 200, 0);
+text(y, 200, 125);
+
+fill(0, 0, 200);
+text(z, 275, 125);
+

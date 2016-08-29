@@ -1,0 +1,96 @@
+var BLUE = color(64, 95, 237);
+
+// Return a 2D array of random numbers
+var getRandomNumbers = function(n, m, scale) {
+    var grid = [];
+    
+    for (var i = 0; i < n; i++) {
+        var row = [];
+        for (var j = 0; j < m; j++) {
+            row.push(floor(random() * scale));
+        }
+        grid.push(row);
+    }
+    
+    return grid;
+};
+
+var roundNum = function(n) {
+    return "" + round(n * 10) / 10;
+};
+
+var drawLattice = function(lattice, x, y, w, h) {
+    var n = lattice.length;
+    var m = lattice[0].length;
+    var dx = w / n;
+    var dy = h / m;
+    w -= dx;
+    h -= dy;
+
+    // Outline
+    strokeWeight(1);
+    stroke(50);
+    noFill();
+    rect(x, y, w, h);
+    
+    // Find points around the mouse
+    var ix = -2;
+    var iy = -2;
+    var px, py;
+    if (mouseX >= x && mouseX <= x + w &&
+        mouseY >= y && mouseX <= y + h) {
+            px = (n - 1) * norm(mouseX, x, x + w);
+            py = (m - 1) * norm(mouseY, y, y + h);
+            ix = px | 0;
+            iy = py | 0;
+            px -= ix;
+            py -= iy;
+    }
+    
+    textAlign(CENTER, CENTER);
+    textSize(11);
+    
+    var getNumber = (ix !== -2 && ix < n - 1 && iy < m - 1);
+    
+    // Draw lattice of numbers
+    var r, i, j;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < m; j++) {
+            if (getNumber && (i === ix || i === ix + 1) && (j === iy || j === iy + 1)) {
+                strokeWeight(3);
+                stroke(BLUE);
+                r = 24;
+            } else {
+                strokeWeight(1);
+                stroke(50);
+                r = 20;
+            }
+            fill(255);
+            ellipse(x + i * dx, y + j * dy, r, r);
+            fill(20);
+            text(lattice[i][j], x + i * dx, y + j * dy);
+        }
+    }
+    
+    // Draw midpoints
+    if (getNumber) {
+        fill(20);
+        var n1 = lerp(lattice[ix][iy], lattice[ix + 1][iy], px);
+        var n2 = lerp(lattice[ix][iy + 1], lattice[ix + 1][iy + 1], px);
+        var n3 = lerp(n1, n2, py);
+        text(roundNum(n1), x + (ix + 0.5) * dx, y + iy * dy);
+        text(roundNum(n2), x + (ix + 0.5) * dx, y + (iy + 1) * dy);
+        text(roundNum(n3), x + (ix + 0.5) * dx, y + (iy + 0.5) * dy);
+    }
+    
+};
+
+var lattice = getRandomNumbers(8, 8, 100);
+
+draw = function() {
+    background(255);
+    drawLattice(lattice, 20, 20, 400, 400);    
+};
+
+
+

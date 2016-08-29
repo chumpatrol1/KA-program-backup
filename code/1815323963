@@ -1,0 +1,93 @@
+/*********************************************************
+ * Visualisation of a pattern discovered by Flavour
+ * https://www.khanacademy.org/profile/Flavour/
+ * http://imgur.com/KI4FzIl
+ * 
+ * The diagonals of primes are reminiscent of the
+ * diagonals in an Ulam spiral.
+ * 
+ * The edges of the triangles represent
+ *   Top left: n*n (squares),
+ *   Top right: n*n + n - 1 (many primes),
+ *   Lower left: n*n + n = n(n + 1), so not prime n>1
+ *   Lower right: n*n - 1 = (n + 1)(n - 1), so not prime n>1
+*********************************************************/
+
+var zoom = 9; // Try changing this value. Must be > 0
+var writeNum = true;
+
+var BACKGROUND = color(202, 217, 222);
+var PRIMECOL = color(252, 64, 31);
+var SQUARECOL = color(38, 128, 224);
+
+textAlign(CENTER, CENTER);
+textSize(zoom * 0.75);
+noStroke();
+
+var primes = [];
+
+var isPrime = function(n, primes) {
+    for (var p = 0; p<primes.length; p++) {
+        if (n % primes[p] === 0) {
+            return false;
+        }
+    }
+    return true;
+};
+
+background(BACKGROUND);
+
+var x = 200;
+var y = 200;
+var row = 0;
+var col = 0;
+
+var i = 0;    
+var square = 1;
+
+while (true) {
+    i++;
+    var sx = x + (col*2 - abs(row)) * zoom;
+    var sy = y + (row - 0.5) * zoom;
+    
+    if (sy < 0) {
+        break;
+    }
+
+    fill(255, 255, 255);
+
+    if (i === square * square) {
+        fill(SQUARECOL);
+        square++;
+    } else if (isPrime(i, primes)) {
+        primes.push(i);
+        fill(PRIMECOL);
+    }
+
+    rect(sx - zoom/2, sy - zoom/2, zoom, zoom);
+    
+    if (writeNum) {
+        fill(0, 0, 0);
+        text(i, sx, sy);   
+    }
+    
+    col++;
+    if (col > abs(row)) {
+        col = 0;
+        if (row > 0) { row *= -1; }
+        else { row = 1 - row; }
+    }
+}
+
+textAlign(LEFT, CENTER);
+textSize(14);
+
+fill(SQUARECOL);
+rect(290, 175, 20, 20);
+fill(PRIMECOL);
+rect(290, 205, 20, 20);
+
+fill(0, 0, 0);
+text("Square", 315, 185);
+text("Prime", 315, 215);
+text("Numbers 1 to " + (i-1), 10, 200);

@@ -1,0 +1,638 @@
+/********************************************************
+ * Simple simulation of evolution
+ * 
+ * The aim of this simulation is to answer the question:
+ * 
+ * If mutations are random and on average have a detrimental
+ * effect, how can evolution result in fitter organisms?
+ * 
+ * The short answer is selection (natural or artifical),
+ * which although may have some degree of randomness, is,
+ * by definition, weighted in favour of fitter organisms.
+ * 
+ * In this simulation the fitness of organisms is represented
+ * by a single value. Organisms are selected based on where 
+ * they rank in terms of fitness in the population. How
+ * organisms are selected is determined by selectionFunction.
+ * 
+ * Selected organisms reproduce and their offspring are 
+ * mutated. The redder and organism, the more negative its
+ * mutations, the greener, the more positive. The rate of 
+ * mutation is determined by mutationFunction.
+ * 
+ * So long as there are some positive mutations and 
+ * sufficient selection pressure, the mean fitness will
+ * tend to increase.
+ * 
+ * The selection function and mutation function are
+ * shown in the parameter graphs tab.
+ *******************************************************/
+
+var POPULATION_SIZE = 25;
+var initial_fitness_range = [25, 30];
+
+// Array corresponds to the relative probability
+// of a mutation wiht a value between -10 and +10
+var mutationFunction = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,  //-ve
+                        40,                             // neutral
+                        2, 2, 1, 0, 0, 0, 0, 0, 0, 0];  // +ve
+
+// Display parameters
+var barColour1 = color(80, 224, 50, 200);
+var barColour2 = color(6, 55, 2, 240);
+var neutralColour = color(120, 120, 120);
+var positiveColour = color(0, 255, 0);
+var negativeColour = color(255, 0, 0);
+
+var graphX = 8;
+var xborder = 122;
+var yborder = 20;
+
+var generation = 0;
+var maxFitness = 25;
+
+var colourMutation = function(m) {
+    // Convert a mutation into a colour
+    if (m === 0) {
+        return neutralColour;
+    } else if (m < 0) {
+        return lerpColor(neutralColour, negativeColour, -m / 10);
+    } else {
+        return lerpColor(neutralColour, positiveColour, m / 10);
+    }
+};
+
+var Organism = function(fitness, mutation, parent) {
+    this.fitness = fitness;
+    this.parent = parent;
+    this.mutation = mutation;
+    this.offspring = 0;
+    this.colour = colourMutation(mutation);
+    
+    if (this.fitness > maxFitness) { maxFitness = this.fitness; }
+};
+
+var Button = function(name, x, y, func) {
+    textSize(14);
+    this.name = name;
+    this.width = textWidth(name) + 10;
+    this.x = x;
+    this.y = y;
+    this.func = func;
+    
+    this.mouseOver = function() {
+        if (mouseX >= this.x - this.width / 2 &&
+            mouseX <= this.x + this.width / 2 &&
+            mouseY >= this.y - 16 && mouseY <= this.y + 3) {
+                return true;
+        } else {
+            return false;
+        }
+    };
+    
+    this.draw = function() {
+        stroke(70, 70, 70);
+        strokeWeight(2);
+        
+        if (this.mouseOver()) {
+            fill(230, 230, 230);
+        } else {
+            fill(200, 200, 200);
+        }
+        rect(this.x - this.width/2, y - 16, this.width, 20, 3);
+        
+        textSize(14);
+        textAlign(CENTER, BASELINE);
+        fill(20, 20, 20);
+        text(this.name, this.x, this.y);
+    };
+    
+    this.click = function() {
+        if (this.mouseOver()) {
+            this.func();
+        }
+    };
+};
+
+var TabControls = function(x, y, tabs) {
+    this.x = x;
+    this.y = y;
+    this.tabs = tabs;
+    this.selected = 0;
+    
+    this.draw = function() {
+        // Background
+        noStroke();
+        fill(120, 120, 120);
+        rect(0, 0, 400, this.y);
+        
+        var x = this.x;
+        textSize(12);
+        fill(20, 20, 20);
+        textAlign(LEFT, BASELINE);
+        
+        for (var i=0; i<tabs.length; i++) {
+            var s = this.tabs[i];
+            
+            if (i === this.selected) {
+                fill(245, 245, 250);
+                rect(x, y-18, textWidth(s) + 8, 18);
+            } else {
+                fill(180, 180, 180);
+                rect(x, y-18, textWidth(s) + 8, 17);
+            }
+            
+            fill(20, 20, 20);
+            text(s, x+4, this.y-5);
+            x += textWidth(s) + 9;
+        }
+    };
+    
+    this.click = function() {
+        if (mouseY < this.y) {
+            textSize(12);
+            var x = this.x;
+            
+            for (var i=0; i<tabs.length; i++) {
+                var width = textWidth(this.tabs[i]) + 8;
+                if (mouseX >= x && mouseX <= x + width) {
+                    this.selected = i;
+                }
+                x += width;
+            }
+        }
+    };
+};
+
+var sumArray = function(arr) {
+    var sum = 0;
+    for (var i=0; i< arr.length; i++){
+        sum += arr[i];
+    }
+    return sum;
+};
+
+var inArray = function(item, arr) {
+    for (var i=0; i< arr.length; i++){
+        if (arr[i] === item) { return true; }
+    }
+    return false;
+};
+
+var meanFitness = function(arr) {
+    var sum = 0;
+    for (var i=0; i< arr.length; i++){
+        sum += arr[i].fitness;
+    }
+    return sum / arr.length;
+};
+
+var sortByParent = function(a, b) {
+    return a.parent - b.parent;
+};
+
+var sortByFitness = function(a, b) {
+    return b.fitness - a.fitness;
+};
+
+var initialPopulation = function(fitness_range) {
+// Create an array of organisms with a fitness in the given range
+    
+    var population = [];
+    var range = fitness_range[1] - fitness_range[0];
+    
+    for (var i=0; i<POPULATION_SIZE; i++) {
+        var fitness = floor(range * random()) + fitness_range[0];
+        var organism = new Organism(fitness, 0);
+        population.push(organism);
+    }
+    
+    population.sort(sortByFitness);
+    return population;
+};
+
+var createSelectionFunction = function() {
+    // Return an array that gives the probability of
+    // reproducing for every rank in the population.
+    
+    var selection = [];
+    var minPosition = 3;
+    var n = POPULATION_SIZE - minPosition;
+    var scaleP = n * (n + 1) / 2;
+
+    var probability;
+    for (var i=POPULATION_SIZE-1; i>=0; i--) {
+        if (i < minPosition) {
+            probability = 0;
+        } else {
+            probability = (i - minPosition + 1) / scaleP;
+        }
+        selection.push(probability);
+    }
+
+    return selection;
+};
+
+var selectPopulation = function(population, selectionFunction) {
+    // Return an array of indices for members of the population
+    // that have been selected based on their fitness    
+    var selection = [];
+    
+    for (var i=0; i<POPULATION_SIZE; i++) {
+        var p = random();
+        for (var j=POPULATION_SIZE-1; j>=0; j--) {
+            p -= selectionFunction[j];
+            if (p < 0) {
+                population[j].offspring++;
+                selection.push(j);
+                break;
+            }
+        }
+    }
+    return selection;
+};
+
+var createNewGeneration = function(population, selection) {
+    // Given a population and an array representing which
+    // are selected to reproduce, create the new generation.
+    
+    var sumMutation = sumArray(mutationFunction);
+    
+    var newGeneration = [];
+    for (var i=0; i<POPULATION_SIZE; i++) {
+        var mutation = random() * sumMutation;
+        
+        for (var j=0; j<mutationFunction.length; j++) {
+            mutation -= mutationFunction[j];
+            if (mutation < 0) {
+                mutation = j - 10;
+                break;
+            }
+        }
+
+        var newFitness = population[selection[i]].fitness + mutation;
+        var daughter = new Organism(newFitness, mutation, selection[i]);
+        newGeneration.push(daughter);
+    }
+    newGeneration.sort(sortByParent);
+    
+    return newGeneration;
+};
+
+/************************************************
+ * Create initial set up
+************************************************/
+
+var selectionFunction = createSelectionFunction();
+var population = initialPopulation(initial_fitness_range);
+var selection = selectPopulation(population, selectionFunction);
+var newGeneration = createNewGeneration(population, selection);
+var meanFitnesses = [meanFitness(population), meanFitness(newGeneration)];
+
+var nextGeneration = function() {
+    generation++;
+    population = newGeneration;
+    population.sort(sortByFitness);
+    selection = selectPopulation(population, selectionFunction);
+    newGeneration = createNewGeneration(population, selection);
+    meanFitnesses.push(meanFitness(newGeneration));
+};
+
+var next10Generations = function() {
+    for (var i=0; i<10; i++) { nextGeneration(); }
+};
+
+var buttons = [
+    new Button("Next Generation", 125, 380, nextGeneration),
+    new Button("Next 10 Generations", 275, 380, next10Generations)
+];
+
+var tabText = ["Current generation", "Time series", "Parameter graphs"];
+var tabs = new TabControls(8, 24, tabText);
+
+var drawBox = function(x, y, w, h, title) {
+    // Draw a box with a shadow at x, y with width, w and height, h
+    fill(250, 250, 250);
+    noStroke();
+    rect(x, y, w, h);
+    stroke(254,254,254);
+    strokeWeight(1);
+    line(x, y, x+w, y);
+    line(x+w, y, x+w, y+h);
+    stroke(235,235,235);
+    line(x, y+h, x+w, y+h);
+    line(x, y, x, y+h);
+    
+    // Title
+    if (title !== undefined) {
+        fill(0,0,0);
+        textAlign(LEFT, BASELINE);
+        textSize(13);
+        text(title, x+6, y+15);   
+    }
+};
+
+var drawGridlines = function(x, y, w, h, maxY) {
+    fill(20, 20, 20);
+    textAlign(RIGHT, CENTER);
+    textSize(10);
+    text(0, x-1, y);
+
+    stroke(220, 220, 220);
+    for (var g = 0.25; g <= 1; g += 0.25) {
+        var gy = y - g * h;
+        line(x, gy, x + w, gy);
+        text("" + maxY * g, x-1, gy);
+    }  
+};
+
+var drawFitnessGraph = function(x, y, w, h, population, gen) {
+    var title = "Fitness of\norganisms in\ngeneration " + gen;
+    drawBox(x, y, w, h, title);
+    
+    fill(20, 20, 25);
+    textSize(11);
+    var mean = "Mean: " + round(meanFitness(population)*10)/10;
+    text(mean, x+6, y + 70);
+
+    x += xborder;
+    w -= xborder + 8;
+    h -= yborder;
+    var y1 = y + yborder / 2;
+    var y2 = y1 + h;
+    
+    var barWidth = floor(w / POPULATION_SIZE);
+    var dx = (w - barWidth * POPULATION_SIZE) / 2;
+    
+    var maxY = ceil(maxFitness/20) * 20;
+    var scale = h / maxY;
+    
+    drawGridlines(x, y2, w, (y2 - y1), maxY);
+    
+    // Draw bars 
+    noStroke();
+    for (var i=0; i<POPULATION_SIZE; i++) {
+        var fitness = population[i].fitness;
+        var height = scale * fitness;
+        fill(population[i].colour);
+        rect(x + dx + i*barWidth, y2-height, barWidth-1, height);
+    }
+    
+    // Axis
+    stroke(20, 20, 20);
+    line(x, y2, x+w, y2);
+};
+
+var drawSelectedOrganisms = function(x, y, w, h, newGeneration) {
+    drawBox(x, y, w, h);
+    
+    textSize(13);
+    textAlign(LEFT, CENTER);
+    fill(20, 20, 20);
+    text("Reproduction", x + 8, y + h/2);
+    
+    w -= xborder + 8;
+    x += xborder;
+    var barWidth = floor(w / POPULATION_SIZE);
+    var dx = (w - barWidth * (POPULATION_SIZE - 1)) / 2;
+    
+    textSize(10);
+    textAlign(CENTER, BASELINE);
+    
+    var written = [];
+    var mutationSum = 0;
+    
+    for (var i=0; i<POPULATION_SIZE; i++) {
+        var parent = newGeneration[i].parent;
+        var x1 = x + dx + barWidth * parent;
+        var x2 = x + dx + barWidth * i;
+        
+        stroke(20, 20, 20);
+        strokeWeight(1);
+        line(x1, y+2, x1, y - 15);
+        
+        stroke(newGeneration[i].colour);
+        strokeWeight(2);
+        line(x1, y + 16, x2, y + h - 14);
+        
+        // Write number of offspring once per parent
+        if (!inArray(parent, written)) {
+            var num_offspring = population[parent].offspring;
+            text(num_offspring, x1, y + 12);   
+            written.push(parent);
+        }
+        
+        if (newGeneration[i].mutation !== 0) {
+            text(newGeneration[i].mutation, x2, y + h - 4);
+            mutationSum += newGeneration[i].mutation;
+        }
+    }
+    
+    mutationSum = round(10 * mutationSum / POPULATION_SIZE) / 10;
+    textSize(11);
+    textAlign(RIGHT, BASELINE);
+    text("Num of offspring", x-4, y + 12);
+    text("Mutations (mean:" + mutationSum + ")", x-4, y + h - 4);
+};
+
+var drawFitnessGraphs = function(gx, gy, gw, gh) {
+    drawFitnessGraph(gx, gy, gw, gh, population, generation);
+    gy += gh + 5;
+    
+    gh = 80;
+    drawSelectedOrganisms(gx, gy, gw, gh, newGeneration);
+    gy += gh + 5;
+    
+    gh = 110;
+    drawFitnessGraph(gx, gy, gw, gh, newGeneration, generation+1);
+    
+    for (var i=0; i<buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+var drawSelectionGraph = function(x, y, w, h) {
+    var title = "Probability of\norganism\nreproducing (%)";
+    drawBox(x, y, w, h, title);
+    
+    x += xborder;
+    w -= xborder + 8;
+    var y1 = y + yborder / 2;
+    var y2 = y + h - 28;
+    
+    var barWidth = floor(w / POPULATION_SIZE);
+    var dx = (w - barWidth * POPULATION_SIZE) / 2;
+    var maxY = 0.1;
+    var scale = (y2 - y1) / maxY;
+    
+    // Gridlines
+    drawGridlines(x, y2, w, (y2 - y1), maxY*100);
+    
+    // Draw bars 
+    noStroke();
+    textAlign(CENTER, BASELINE);
+    
+    for (var i=0; i<POPULATION_SIZE; i++) {
+        var height = scale * selectionFunction[i];
+        var x1 = x + dx + i*barWidth;
+        fill(neutralColour);
+        rect(x1, y2-height, barWidth-1, height);
+        if (i % 2 === 1) {
+            fill(20, 20, 20);
+            text(i+1, x1 + barWidth/2-1, y2 + 10);
+        }
+    }
+    
+    // Axis
+    stroke(20, 20, 20);
+    line(x, y2, x+w, y2);
+    
+    textSize(13);
+    fill(20, 20, 20);
+    text("Ranking in population fitness", x + w/2, y2 + 22);
+};
+
+var meanMutation = function() {
+    var mean = 0;
+    
+    for (var i=0; i<mutationFunction.length; i++){
+        mean += mutationFunction[i] * (i - 10);
+    }
+    return mean / sumArray(mutationFunction);
+};
+
+var drawMutationGraph = function(x, y, w, h) {
+    var title = "Probability of\nmutation (%)";
+    drawBox(x, y, w, h, title);
+    
+    textSize(11);
+    var mean = "Mean: " + round(meanMutation() * 10) / 10;
+    text(mean, x+6, y + 55);
+    
+    x += xborder;
+    w -= xborder + 8;
+    var y1 = y + yborder / 2;
+    var y2 = y + h - 28;
+    
+    var barWidth = floor(w / mutationFunction.length);
+    var dx = (w - barWidth * mutationFunction.length) / 2;
+    
+    var maxY = 40;
+    var scale = (y2 - y1) / maxY;
+    
+    // Gridlines
+    drawGridlines(x, y2, w, (y2 - y1), maxY);
+    
+    // Draw bars 
+    noStroke();
+    textAlign(CENTER, BASELINE);
+    
+    for (var i=0; i<mutationFunction.length; i++) {
+        var height = scale * mutationFunction[i];
+        var x1 = x + dx + i*barWidth;
+        var mutation = i - 10;
+        fill(colourMutation(mutation));
+        rect(x1, y2-height, barWidth-1, height);
+        fill(20, 20, 20);
+        text(mutation, x1 + barWidth/2-1, y2 + 10);
+    }
+    
+    // Axis
+    stroke(20, 20, 20);
+    line(x, y2, x+w, y2);
+    
+    textSize(13);
+    fill(20, 20, 20);
+    text("Mutation effect", x + w/2, y2 + 22);
+};
+
+var drawParameterGraphs = function(gx, gy, gw, gh) {    
+    drawSelectionGraph(gx, gy, gw, gh);
+    gy += gh + 20;
+    drawMutationGraph(gx, gy, gw, gh);
+};
+
+var drawFitnessOverTime = function(x, y, w, h) {
+    drawBox(x, y, w, h);
+
+    x += 36;
+    w -= 44;
+    h -= yborder;
+    var y1 = y + yborder / 2;
+    var y2 = y1 + h - 20;
+    
+    var maxX = ceil(meanFitnesses.length / 5) * 5 + 1;
+    var dx = round(maxX / 5);
+    var maxY = ceil(maxFitness / 20) * 20;
+    
+    var scaleX = w / (maxX - 1);
+    var scaleY = (y2 - y1) / maxY;
+    
+    drawGridlines(x, y2, w, (y2 - y1), maxY);
+    
+    stroke(90, 49, 224);
+    strokeWeight(2);
+    textAlign(CENTER, BASELINE);
+    
+    var px = x;
+    var py = y2 - scaleY * meanFitnesses[0];
+    for (var i=1; i<maxX; i++) {
+        var px2 = x + i * scaleX;
+        
+        if (i < meanFitnesses.length) {
+            var py2 = y2 - scaleY * meanFitnesses[i];
+            line(px, py, px2, py2);
+            py = py2;
+        }
+
+        if (i % dx === 0){
+            text(i, px2, y2 + 10);   
+        }
+        px = px2;
+    }
+    
+    // Axis
+    stroke(20, 20, 20);
+    line(x, y2, x+w, y2);
+    
+    textSize(13);
+    fill(20, 20, 20);
+    text("Generation", x + w/2, y2 + 24);
+    
+    translate(x-18, (y1 + y2)/2);
+    rotate(270);
+    text("Mean Fitness", 0, 0);
+    resetMatrix();
+};
+
+var drawTimeSeriesTab = function(gx, gy, gw, gh) {
+    drawFitnessOverTime(gx, gy, gw, gh);
+
+for (var i=0; i<buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+var draw = function() {
+    background(245, 245, 250);
+    tabs.draw();
+    
+    switch (tabs.selected) {
+        case 0:
+            drawFitnessGraphs(graphX, 36, 384, 110);
+            break;
+        case 1:
+            drawTimeSeriesTab(graphX, 50, 384, 280);
+            break;
+        case 2:
+            drawParameterGraphs(graphX, 40, 384, 160);
+            break;
+    }
+};
+
+var mouseClicked = function() {
+    for (var i=0; i<buttons.length; i++) {
+        buttons[i].click();
+    }
+    tabs.click();
+};

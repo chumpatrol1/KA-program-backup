@@ -1,0 +1,45 @@
+/*********************************************
+* 
+**********************************************/
+
+var makeImage = function(img) {
+    var pixels = createGraphics(img.width, img.height, P2D);
+    
+    if (pixels) {
+        pixels.background(0, 0, 0, 0);
+        //pixels.tint(255, 255, 255, 100); 
+        pixels.image(img, 0, 0);
+    }
+    return pixels;
+};
+
+var makeBlankPixels = function(w, h) {
+    var pixels = createGraphics(w, h, P2D);
+    
+    if (pixels) {
+        pixels.background(0, 0, 0, 0);
+        pixels.fill(255, 0, 0);
+        pixels.ellipse(20, 20, 20, 20);
+    }
+    return pixels;
+};
+
+var img = makeImage(getImage("avatars/piceratops-ultimate"));
+//var img = getImage("avatars/piceratops-ultimate");
+var bkg = getImage("space/background");
+var canv = makeImage(bkg);
+
+//image(bkg, 0, 0);
+//bkg.blend(img, 0, 0, img.width, img.width, 0, 40, 100, 100, ADD);
+
+image(bkg, 0, 0);
+if (img) {
+    img.blend(canv, 0, 0, canv.width, canv.height, -99, -99, canv.width, canv.height, EXCLUSION);
+}
+
+var counter = 0;
+draw = function() {
+    image(bkg, 0, 0);
+    image(img, 100, 100);
+};
+

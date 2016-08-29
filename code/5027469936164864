@@ -1,0 +1,584 @@
+/*******************************************************
+ *      Heist
+ * 
+ * AI plan
+ *  - Move towards alarm - DONE
+ *  - Move towards nearest exit
+ *  - Move towards areas not visited
+ *  - Move to furthest point with good view
+ * 
+ * TODO:
+ *  Guard prefer to move towards exit
+ *  Guards return to their starting tile if theif not found
+ *  Find revealed tiles for each tiles
+ * 
+ * Keys:
+ *  t: Show distance to where thief is thought to be
+ *  g: Show distance to nearest guard
+ *  e: Show distance to nearest exit
+********************************************************/
+
+var DIRECTIONS = ["left", "right", "above", "below"];
+var EXIT_IMG = getImage("cute/Star");
+
+var levels = [
+    ["   *  ",
+     "....! ",
+     ". . .*",
+     "..o.. ",
+     ". . . ",
+     "..... "]
+];
+
+var callFunctionForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+var marbleEffect = function(tileSize) {
+    // Based on http://lodev.org/cgtutor/randomnoise.html
+
+    var xPeriod = 12;
+    var yPeriod = 12;
+    var turbPower = 1600;
+    var noiseScale = 0.02;
+    noiseDetail(3, 0.6);
+    noStroke();
+    
+    var c2 = color(240);
+    var c1 = color(161, 153, 153);
+    
+    var x, y, z;
+    var bigSize = tileSize * 2;
+    
+    for (y = 0; y < bigSize; y++) {
+        for (x = 0; x < bigSize; x++) {
+            z = abs(sin(x * xPeriod + y * yPeriod + turbPower * noise(x * noiseScale, y * noiseScale)));
+            stroke(lerpColor(c1, c2, z));
+            point(x, y);
+        }
+    }
+    
+    bigSize -= tileSize;
+    var halfSize = tileSize / 2;
+    var tiles = [];
+    
+    for (x = 0; x < bigSize; x += halfSize) {
+        for (y = 0; y < bigSize; y += halfSize) {
+            tiles.push(get(x, y, tileSize, tileSize));
+        }
+    }
+    
+    return tiles;
+};
+
+/*******************************************************
+ *      Agent Object
+ * A living, moving being, either a guard for the thief.
+********************************************************/
+
+var Agent = function(tile, type) {
+    this.type = type;
+    this.tile = tile;
+};
+
+Agent.prototype.draw = function(x, y, s) {
+    fill(240, 10, 0);
+    ellipse(x + s / 2, y + s / 2, s * 0.55, s * 0.55);
+    fill(0);
+    var h = max(3, ceil(s * 0.07));
+    var h2 = max(1, floor(h / 2));
+    rect(x + s * 0.24, y + s * 0.40, s * 0.53, h);
+    strokeWeight(h2);
+    stroke(255);
+    var x1 = x + s * 0.4 - 2;
+    var x2 = x + s * 0.6 - 3;
+    var y1 = y + s * 0.40 + (h - h2) /2;
+    if (floor((frameCount % 120) / 60)) {
+        x1 += 3;
+        x2 += 3;
+    }
+    line(x1, y1, x1 + 1, y1);
+    line(x2, y1, x2 + 1, y1);
+};
+
+Agent.prototype.move = function(direction) {
+    var moveTo = this.tile[direction];
+    if (moveTo && !moveTo.agent) {
+        // Remove agent from old tile
+        this.tile.agent = false;
+        // Add to new tile
+        moveTo.agent = this;
+        this.tile = moveTo;
+    }
+};
+
+/*******************************************************
+ *      Guard Object
+ * A Guard is a type of agent
+********************************************************/
+
+var Guard = function(tile) {
+    this.tile = tile;
+    this.startTiling = tile;
+    this.type = 'guard';
+    this.mode = 'chase';
+};
+Guard.prototype = Object.create(Agent.prototype);
+
+Guard.prototype.draw = function(x, y, s) {
+    fill(50, 25, 200);
+    var x1 = x + s * 0.2;
+    var x2 = x + s * 0.8;
+    var y1 = y + s * 0.2;
+    var y2 = y + s * 0.8;
+    triangle(x + s * 0.5, y1, x1, y2, x2, y2);
+};
+
+// Calculate how much a guard wants to move to this tile
+// Lower numbers are better
+Guard.prototype.moveToThief = function(tile) {
+    return tile.distanceToThief + tile.distanceToExit * 0.1 + random();
+};
+
+// Calculate how much a guard wants to move to this tile
+// Lower numbers are better
+Guard.prototype.moveToExit = function(tile) {
+    return tile.distanceToExit + tile.distanceToExit * 0.1 + random();
+};
+
+Guard.prototype.findMoveDirection = function(board) {
+    var valueFunction = random;
+    
+    if (this.mode === 'chase') {
+        valueFunction = this.moveToThief;
+    } else if (this.mode === 'exit') {
+        valueFunction = this.moveToExit;
+    }
+    
+    var minValue = valueFunction(this.tile);
+    var direction = false;
+    
+    for (var i = DIRECTIONS.length; i--;) {
+        var newTile = this.tile[DIRECTIONS[i]];
+        if (newTile) {
+            if (newTile.agent) {
+                if (newTile.agent.type === 'thief') {
+                    board.capture = true;
+                    direction = DIRECTIONS[i];
+                    break;
+                } else {
+                    // Can't walk on other guards
+                    continue;
+                }
+            } else {
+                var tileValue = valueFunction(newTile);
+                if (tileValue < minValue) {
+                    direction = DIRECTIONS[i];
+                    minValue = tileValue;
+                }
+            }
+        }
+    }
+    
+    if (direction) {
+        this.move(direction);
+    }
+};
+
+/*******************************************************
+ *      Tile Object
+ * A marble tile which will link to another tile,
+ * up, down, left and/or right of it.
+ * It may contain an agent or an exit.
+********************************************************/
+
+// Create the tile shadow as an image
+var createShadow = function(s) {
+    var c = createGraphics(s, s, P2D);
+    var t = 3;
+    var r = s - t;
+    
+    c.noStroke();
+    c.fill(0, 0, 0, 40);
+    c.beginShape();
+    c.vertex(0, 0);
+    c.vertex(s, 0);
+    c.vertex(r, t);
+    c.vertex(t, t);
+    c.vertex(t, r);
+    c.vertex(0, s);
+    c.endShape(CLOSE);
+    
+    c.noStroke();
+    c.fill(255, 255, 255, 128);
+    c.beginShape();
+    c.vertex(s, s);
+    c.vertex(s, 0);
+    c.vertex(r, t);
+    c.vertex(r, r);
+    c.vertex(t, r);
+    c.vertex(0, s);
+    c.endShape(CLOSE);
+    
+    return c;
+};
+
+var Tile = function(x, y, size, img, exit) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.rotation = 90 * floor(random(0, 4));
+    this.img = img;
+    this.exit = exit;
+    this.agent = false;
+    this.neighbours = [];
+};
+
+Tile.prototype.draw = function(drawDistance) {
+    var x = this.x;
+    var y = this.y;
+    var s = this.size;
+    
+    noStroke();
+    pushMatrix();
+    translate(x + s / 2, y + s / 2);
+    rotate(floor(random(90)) * 90);
+    fill(200);
+    rect(-s / 2, -s / 2, s, s);
+    popMatrix();
+    
+    if (this.img) {
+        image(this.img, x, y);
+    }
+    
+    if (this.exit) {
+        image(EXIT_IMG, x, y - s * 0.35, s, s * 1.5);
+    }
+    
+    if (this.shadow) {
+        noStroke();
+        fill(0, 0, 0, 160);
+        rect(this.x, this.y, this.size, this.size);
+    }
+    
+    if (this.agent) {
+        this.agent.draw(x, y, s);
+    }
+    
+    if (drawDistance) {
+        fill(255);
+        textAlign(CENTER, CENTER);
+        text(this[drawDistance], x + s / 2, y + s / 2);
+    }
+    
+    if (this.selected) {
+        noStroke();
+        fill(255, 0, 0, 40);
+        rect(this.x, this.y, this.size, this.size);
+    }
+};
+
+Tile.prototype.lightTile = function(direction) {
+    this.shadow = false;
+    if (this[direction]) {
+        this[direction].lightTile(direction);
+    }
+};
+
+Tile.prototype.getNeighbours = function(direction) {
+    this.neighbours = [];
+    if (this[direction]) {
+        this[direction].lightTile(direction);
+    }
+};
+
+Tile.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX < this.x + this.size &&
+           mouseY >= this.y && mouseY < this.y + this.size;
+};
+
+Tile.prototype.mouseReleased = function() {
+    this.selected = this.mouseOver();
+    return this.selected;
+};
+
+/*******************************************************
+ *      Board Object
+ * The board is the collection of tiles and players.
+********************************************************/
+
+var Board = function(boardSize) {
+    var tileSize = min(width, height) / (boardSize + 2);
+    tileSize = 2 * floor(tileSize / 2);
+    this.tileShadow = createShadow(tileSize);
+
+    // Using a sparse map for a change
+    this.tiles = {};
+    this.exits = [];
+    this.setUpTiles(boardSize, tileSize);
+    
+    this.guards = [];
+    this.selectedTile = false;
+};
+
+Board.prototype.setUpTiles = function(boardSize, tileSize) {
+    var startX = (width - boardSize * tileSize) / 2;
+    var startY = (height - boardSize * tileSize) / 2;
+    var mid = floor(boardSize / 2);
+    
+    this.tiles = {};
+    for (var y = 0; y < boardSize; y++) {
+        for (var x = 0; x < boardSize; x++) {
+            var tileX = startX + x * tileSize;
+            var tileY = startY + y * tileSize;
+            var id = abs(mid - x) + ',' + abs(mid - y);
+
+            if ((y % 2 === 0) || (x % 2 === 0)) {
+                var tile = new Tile(tileX, tileY, tileSize, this.tileShadow);
+                this.tiles[x + ',' + y] = tile;
+                
+                // Find which tiles are next to one another
+                var tile2 = this.tiles[(x - 1) + ',' + y];
+                if (tile2) {
+                    tile.left = tile2;
+                    tile2.right = tile;
+                }
+                
+                tile2 = this.tiles[x + ',' + (y - 1)];
+                if (tile2) {
+                    tile.above = tile2;
+                    tile2.below = tile;
+                }
+            }
+        }
+    }
+
+    // Add exit
+    this.addExit(startX, startY, tileSize, 4, 1, 'right');
+    this.addExit(startX, startY, tileSize, 3, 0, 'above');
+    
+    this.findDistance(this.exits, 'distanceToExit');
+};
+
+Board.prototype.addExit = function(startX, startY, tileSize, x, y, dir) {
+    var direction = {
+        left: [-1, 0, 'right'],
+        right: [1, 0, 'left'],
+        above: [0, -1, 'below'],
+        below: [0, 1, 'above'],
+    };
+    
+    var d = direction[dir];
+    var x2 = x + d[0];
+    var y2 = y + d[1];
+    
+    var exit = new Tile(
+        startX + x2 * tileSize,
+        startY + y2 * tileSize,
+        tileSize, this.tileShadow, true
+    );
+
+    this.tiles[x2 + ',' + y2] = exit;
+    
+    var base = this.tiles[x + ',' + y];
+    base[dir] = exit;
+    exit[d[2]] = base;
+
+    this.exits.push(exit);
+};
+
+Board.prototype.addAgents = function(agents, type) {
+    for (var i = 0; i < agents.length; i++) {
+        var tile = this.tiles[agents[i].join(",")];
+        if (tile) {
+            if (type === 'guard') {
+                tile.agent = new Guard(tile);
+                this.guards.push(tile.agent);
+            } else if (type === 'thief') {
+                tile.agent = new Agent(tile, type);
+                this.thief = tile.agent;
+            }
+        }
+    }
+    
+    this.findDistanceToGuards();
+};
+
+Board.prototype.draw = function() {
+    background(0);
+    for (var tile in this.tiles) {
+        this.tiles[tile].draw(this.drawDistance);
+    }
+};
+
+Board.prototype.updateShadows = function() {
+    // Put everything in shadows
+    for (var tile in this.tiles) {
+        this.tiles[tile].shadow = true;
+    }
+    
+    // Show line of sight for guard
+    for (var i = this.guards.length; i--;) {
+        var guard = this.guards[i];
+        for (var j = DIRECTIONS.length; j--;) {
+            guard.tile.lightTile(DIRECTIONS[j]);
+        }
+    }
+    
+    if (!this.thief.tile.shadow) {
+        this.findDistanceToThief();
+    }
+};
+
+Board.prototype.findDistanceToThief = function() {
+    if (!this.thief) { return; }
+    this.findDistance([this.thief.tile], 'distanceToThief');
+};
+
+Board.prototype.findDistanceToGuards = function() {
+    var guardTiles = [];
+    for (var i = 0; i < this.guards.length; i++) {
+        guardTiles.push(this.guards[i].tile);
+    }
+    this.findDistance(guardTiles, 'distanceToGuard');
+};
+
+Board.prototype.findDistance = function(startingTiles, attr) {
+    if (!startingTiles.length) { return; }
+    
+    for (var tile in this.tiles) {
+        this.tiles[tile][attr] = false;
+    }
+    
+    var distance = 0;
+    var frontiers = [startingTiles.slice(), []];
+    var frontier = frontiers[0];
+    var newFrontier, tile, newTile;
+
+    while (frontier.length) {
+        newFrontier = frontiers[1 - distance % 2];
+
+        while (frontier.length) {
+            tile = frontier.shift();
+            tile[attr] = distance;
+            
+            for (var j = DIRECTIONS.length; j--;) {
+                newTile = tile[DIRECTIONS[j]];
+                if (newTile && newTile[attr] === false) {
+                    newFrontier.push(newTile);
+                }
+            }
+        }
+  
+        distance++;
+        frontier = newFrontier;
+    }
+   
+};
+
+Board.prototype.moveGuards = function() {
+    this.capture = false;
+    
+    for (var i = 0; i < this.guards.length; i++) {
+        this.guards[i].findMoveDirection(this);
+    }
+    
+    if (this.capture) {
+        println("Thief Caught!");
+    }
+    
+    this.updateShadows();
+    this.findDistanceToGuards();
+};
+
+Board.prototype.mouseReleased = function() {
+    /*
+    for (var tile in this.tiles) {
+        if (this.tiles[tile].mouseReleased()) {
+            this.selectedTile = this.tiles[tile];
+        }
+    }
+    */
+};
+
+// TODO: Make this a lot nicer
+Board.prototype.keyPressed = function() {
+    var directions = {
+        37: "left",
+        38: "above",
+        39: "right",
+        40: "below",
+    };
+    
+    // Move Thief
+    var direction = directions[keyCode];
+    if (direction) {
+        this.thief.move(direction);
+        
+        if (this.thief.tile.exit) {
+            println("Thief Escapes!");
+        }
+        
+        // Update distance if thief is visible
+        if (!this.thief.tile.shadow) {
+            this.findDistanceToThief();
+        }
+        this.moveGuards();
+        //this.moveGuards();
+    }
+    
+    /*
+    // Move selected agent
+    if (this.selectedTile && this.selectedTile.agent) {
+        var direction = directions[keyCode];
+        
+        if (direction) {
+            var newTile = this.selectedTile[direction];
+            if (newTile) {
+                this.moveAgent(this.selectedTile, newTile);
+            }
+        }
+    }
+    */
+    
+    if (key.toString() === 't') {
+        this.drawDistance = this.drawDistance === 'distanceToThief' ? false : 'distanceToThief';
+    } else if (key.toString() === 'e') {
+        this.drawDistance = this.drawDistance  === 'distanceToExit' ? false : 'distanceToExit';
+    } else if (key.toString() === 'g') {
+        //this.moveGuards();
+        this.drawDistance = this.drawDistance  === 'distanceToGuard' ? false : 'distanceToGuard';
+    }
+};
+
+/*******************************************************
+ *      Set-up
+********************************************************/
+
+var board = new Board(5);
+board.addAgents([[4, 0]], 'guard');
+board.addAgents([[2, 2]], 'thief');
+
+board.updateShadows();
+board.findDistanceToThief();
+
+//draw = function() {
+    board.draw();    
+//};
+
+
+/*******************************************************
+ *      Event handling
+********************************************************/
+
+mouseReleased = function() {
+    board.mouseReleased();
+    board.draw();
+};
+
+keyPressed = function() {
+    board.keyPressed();
+    board.draw();
+};

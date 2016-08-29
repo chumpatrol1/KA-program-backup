@@ -1,0 +1,125 @@
+// Implementing my own Perlin noise
+// From: https://en.wikipedia.org/wiki/Perlin_noise
+// http://flafla2.github.io/2014/08/09/perlinnoise.html
+
+var getRandomGradient = function(size) {
+    var gradients = [];
+    
+    for (var i = 0; i < size; i++) {
+        var row = [];
+        for (var j = 0; j < size; j++) {
+            var angle = random(0, 360);
+            row.push([cos(angle), sin(angle)]);
+        }
+        gradients.push(row);
+    }
+    
+    return gradients;
+};
+
+var gradients = getRandomGradient(20);
+
+var drawGradients = function(gradients, startX, startY, size, drawF) {
+    strokeWeight(1);
+    stroke(40);
+    noFill();
+    
+    var dim = gradients.length;
+    
+    for (var i = 0; i < dim; i++) {
+        var boxY = startY + i * size;
+        
+        for (var j = 0; j < dim; j++) {
+            var boxX = startX + j * size;
+            drawF(boxX, boxY, gradients[i][j], size);
+        }
+    }
+};
+
+// Function for drawing vectors in a box
+var drawVector = function(x, y, grad, s) {
+    rect(x, y, s, s);
+    var s2 = s >> 1;
+    x += s2;
+    y += s2;
+    line(x, y, x + grad[0] * s2, y + grad[1] * s2);
+};
+
+var dotGridGradient = function(ix, iy, x, y) {
+    // Compute the distance vector
+    var dx = x - ix;
+    var dy = y - iy;
+ 
+    // Compute the dot-product
+    return dx * gradients[iy][ix][0] + dy * gradients[iy][ix][1];
+ };
+
+// 6t^5 - 15t^4 + 10t^3
+var fade = function(t) {
+    return t * t * t * (t * (t * 6 - 15) + 10);         
+};
+
+// Compute Perlin noise at coordinates x, y
+var perlin = function (x, y) {
+    // Determine grid cell coordinates
+    var n = gradients.length;
+    var x0 = floor(x);
+    var x1 = (x0 + 1) % n;
+    var y0 = floor(y);
+    var y1 = (y0 + 1) % n;
+    
+    // Determine interpolation weights
+    var sx = fade(x - x0);
+    var sy = fade(y - y0);
+    
+    // Interpolate between grid point gradients
+    var n0, n1, ix0, ix1, value;
+    n0 = dotGridGradient(x0, y0, x, y);
+    n1 = dotGridGradient(x1, y0, x, y);
+    ix0 = lerp(n0, n1, sx);
+    n0 = dotGridGradient(x0, y1, x, y);
+    n1 = dotGridGradient(x1, y1, x, y);
+    
+    ix1 = lerp(n0, n1, sx);
+    value = lerp(ix0, ix1, sy);
+    return value;
+ };
+ 
+var drawPerlin = function(x, y, grad, s) {
+    var p = map(perlin(x, y), -1, 1, 0, 1);
+    noStroke();
+    fill(p * 255);
+    rect(x, y, s, s);
+};
+
+background(255);
+//drawGradients(gradients, 5, 5, 19, drawVector);
+
+noStroke();
+var fallOff = 0.6;
+var f2 = fallOff * fallOff;
+var f3 = f2 * fallOff;
+
+for (var i = 0; i < 80; i++) {
+    var x = 5 + i * 2;
+    for (var j = 0; j < 48; j++) {
+        var p1 = (1 + perlin(i / 20, j / 20)) * 128;
+        var p2 = (1 + perlin(i / 10, j / 10)) * 128;
+        var p3 = (1 + perlin(i / 5, j / 5)) * 128;
+        fill(p1);
+        rect(x, 2 + j * 2, 2, 2);
+        fill(p2);
+        rect(x, 102 + j * 2, 2, 2);
+        fill(p3);
+        rect(x, 202 + j * 2, 2, 2);
+        
+        fill(p1 * fallOff + p2 * f2 + p3 * f3);
+        rect(x, 302 + j * 2, 2, 2);
+    }
+}
+
+//drawGradients(gradients, 205, 5, 19, drawPerlin);
+
+draw = function() {
+    noLoop();
+};

@@ -1,0 +1,11 @@
+strokeWeight(5);
+var color_red = 0;
+var color_GB = 0;
+for (var step = 0; step <=40; step++) {
+    if (color_red < 255) { color_red += 20; }
+    else { color_red = 0; }
+    color_GB += 6.375;
+    stroke(color_red, color_GB, color_GB);
+    line(0, step*10, 400, step*10);
+    line(step*10, 0, step*10, 400);
+}

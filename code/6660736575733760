@@ -1,0 +1,1211 @@
+/*******************************************************
+ * Test whether user can drop deformers on the model.
+ * 
+ * TODO:
+ *   Limit number of deformers that can be added and
+ *   remove scroll ?
+*******************************************************/
+
+// Standard colours and variables
+{
+var BACKGROUND = color(250, 250, 250);
+var BACKGROUND1 = color(82, 115, 173);
+var BACKGROUND2 = color(33, 75, 110);
+var NULLCOL = color(0, 0, 0, 0);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var GUI_GREY = color(180, 180, 180);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var MESSAGEBLUE = color(20, 60, 160);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+}
+
+var luxoData = {
+    shapes: {
+  base: {
+      origin: [360, 820],
+      vertices: [[232, 820], [488, 820], [480, 790], [376, 790], [376, 760], [344, 760], [344, 790], [240, 790]]
+    },
+  arm1: {
+      origin: [360, 776],
+      vertices: [[360, 794], [380, 774], [220, 614], [200, 634]]
+    },
+  arm2: {
+      origin: [220, 634],
+      vertices: [[200, 634], [220, 654], [380, 494], [360, 474]]
+    },
+  head: {
+      origin: [354, 508],
+      vertices: [[400, 514], [360, 474], [320, 514], [360, 554], [400, 674], [520, 554]]
+    },
+    },
+    connections: ['base->arm1', 'arm1->arm2', 'arm2->head']
+};
+
+var Floor = getImage("pixar/floorplanes");
+
+// Given two arrays of points return the mean squared difference between
+// corresponding points, e.g. s1[i] and s2[i]
+var compareShapes = function(s1, s2) {
+    var d = 0;
+    var n = s1.length;
+    var dx, dy;
+    
+    for (var i = 0; i < n; i++) {
+        d += sq(s1[i].x - s2[i].x) + sq(s1[i].y - s2[i].y);
+    }
+    
+    return d / n;
+};
+
+var callFunctionForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+/*******************************************************
+ *          Deformers
+ * Deformers map a button name to a deformer object.
+ * The deformer object has a name, a min and max value,
+ * which are used for the slider, and a transform.
+ * The transform takes a coordinate, origin and value
+ * and mutates the coordinate.
+*******************************************************/
+var deformers = {
+    S: {
+        name: "Scale",
+        min: 0.2,
+        max: 2,
+        value: 1,
+        transform: function(coordinates, value, origin) {
+            coordinates.x = (coordinates.x - origin.x) * value + origin.x;
+            coordinates.y = (coordinates.y - origin.y) * value + origin.y;
+        }
+    },/*
+    R: {
+        name: "Rotate",
+        min: -180,
+        max: 180,
+        transform: function(coordinates, value, origin) {
+            var cosAngle = cos(value);
+            var sinAngle = sin(value);
+            var x = coordinates.x - origin.x;
+            var y = coordinates.y - origin.y;
+            
+            coordinates.x = origin.x + x * cosAngle - y * sinAngle;
+            coordinates.y = origin.y + x * sinAngle + y * cosAngle;
+        }
+    },
+    Tx: {
+        name: "TranslateX",
+        min: -200,
+        max: 200,
+        transform: function(coordinates, value) {
+            coordinates.x += value;
+        }
+    }*/
+};
+/*******************************************************
+ * A generic GUI component, which functions as a button
+ * but can be inherited by other components.
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.name = name;
+    this.updateFunction = updateFunction;
+    
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = color(210, 210, 210, 250);
+    
+    this.showing = true;
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && this.showing && !this.deactivated && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction();
+    }
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.mouseOver() || this.selected) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *  Special Buttons
+********************************************************/
+{
+var FilledButtonDraw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+GUI_Component.prototype.makeFilled = function(col) {
+    this.draw = FilledButtonDraw.bind(this);
+    this.defaultCol = color(0, 0, 0, 1);
+    this.highlightCol = col;
+};
+
+var CircleButton = function(x, y, r, clickFunction, drawIcon) {
+    GUI_Component.call(this, x, y, r * 2, r * 2, "", clickFunction);
+    this.r = r;
+    this.drawIcon = drawIcon;
+};
+CircleButton.prototype = Object.create(GUI_Component.prototype);
+
+CircleButton.prototype.draw = function() {
+    this.fade();
+    
+    fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+    
+    stroke(lerpColor(GUI_GREY, this.highlightCol, this.transition / 10));
+    strokeWeight(2);
+    ellipse(this.x, this.y, this.w, this.w);
+    
+    if (this.drawIcon) {
+        var c = lerpColor(color(100, 100, 100), color(255, 255, 255), this.transition / 10);
+        this.drawIcon(this.x, this.y, this.r, c);   
+    }
+};
+
+CircleButton.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+}
+/*******************************************************
+ * GUI Slider to vary parameters
+********************************************************/
+{
+var Slider = function(x, y, w, minValue, maxValue, nowValue, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, 4, name, updateFunction);
+    
+    this.x2 = x + w;
+    this.ballR = 10;
+    this.ballD = this.ballR * 2;
+    
+    this.min = minValue || 0;
+    this.max = maxValue === undefined ? 1 : maxValue;
+    this.val = nowValue === undefined ? this.min : nowValue;
+    this.setValue(this.val);
+    
+    this.held = false;
+    this.decimalPlaces = 0;
+    if (this.max - this.min < 8) {
+        this.decimalPlaces = 1;
+    }
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    this.fade();
+    fill(lerpColor(BACKGROUND, GUI_GREY, this.transition / 10));
+    stroke(GUI_GREY);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.val);
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *          DraggableDeformer
+ * An unattached deformer which can be dragged to a 
+ * node on a shape to attach a deformer to it.
+********************************************************/
+{
+var DraggableDeformer = function(x, y, name) {
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.originX = x;
+    this.originY = y;
+    this.r = 14;
+    this.animation = 0;
+};
+
+DraggableDeformer.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 7) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(250, 250, 250);
+    fill(ORANGE);
+    
+    var r = this.r * 2 + 5 * sin(this.animation * 90 / 4);
+    ellipse(this.x, this.y, r, r);
+    
+    fill(0);
+    textFont(serifFont, 20);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y);
+};
+
+DraggableDeformer.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+};
+
+DraggableDeformer.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+}
+/*******************************************************
+ *          Deformer Toolbar
+ * A place for DraggableDeformers to sit.
+********************************************************/
+{
+var DeformerToolbar = function(x, y, model) {
+    this.x = x;
+    this.y = y;
+    this.model = model;
+    this.deformers = [];
+    this.selected = false;
+};
+
+DeformerToolbar.prototype.draw = function() {
+    if (this.selected) {
+        var x = this.selected.originX;
+        var y = this.selected.originY;
+        var d = this.selected.r * 2;
+        stroke(200);
+        strokeWeight(1);
+        fill(120);
+        ellipse(x, y, d, d);
+        
+        fill(80);
+        textFont(serifFont, 20);
+        textAlign(CENTER, CENTER);
+        text(this.selected.name, x, y);
+    }
+    
+    callFunctionForEach(this.deformers, 'draw');
+};
+
+DeformerToolbar.prototype.addDeformer = function(name) {
+    var deformer = new DraggableDeformer(this.x, this.y, name);
+    this.deformers.push(deformer);
+    this.x += deformer.r * 2 + 5;
+};
+
+DeformerToolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.deformers.length; i++) {
+        if (this.deformers[i].mouseOver()) {
+            this.selected = this.deformers[i];
+            break;
+        }
+    }
+};
+
+DeformerToolbar.prototype.mouseReleased = function() {
+    if (this.selected) {
+        this.model.dropDeformer(this.selected);
+        this.selected.x = this.selected.originX;
+        this.selected.y = this.selected.originY;
+        this.selected = false;
+    }
+};
+
+DeformerToolbar.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    }
+};
+}
+/*******************************************************
+ *          Deformer Control
+ * Control panel to control a deformer.
+ * A slider determines the deformer's value.
+ * A close button removes it from a node and a
+ * handle to allow reordering.
+********************************************************/
+{
+// Icon draw function
+var drawCloseIcon = function(x, y, r, col) {
+    var d = floor(r / 2);
+    strokeWeight(2);
+    stroke(col);
+    line(x - d, y - d, x + d, y + d);
+    line(x - d, y + d, x + d, y - d);
+};
+
+var drawResetIcon = function(x, y, r, col) {
+    textAlign(CENTER, CENTER);
+    textSize(r * 1.5);
+    fill(col);
+    text("↻", x, y);
+};
+    
+var DeformerControl = function(model, y, name, deformer, shape, index) {
+    this.model = model;
+    this.w = 150;
+    this.h = 46;
+    this.x = width - this.w - 8;
+    this.y = y;
+    
+    this.name = name;
+    this.index = index;
+    this.shape = shape;
+    this.transform = deformer.transform;
+    this.defaultValue = deformer.value || 0;
+    this.value = this.defaultValue;
+    this.selected = false;
+    
+    this.elements = [
+        new Slider(
+            this.x + 32, this.y + 32, this.w - 66,
+            deformer.min, deformer.max, this.value,
+            "", this.update.bind(this)
+        ),
+        new CircleButton(
+            this.x + this.w - 12, this.y + 13, 8,
+            this.remove.bind(this), drawCloseIcon
+        ),
+        new CircleButton(
+            this.x + this.w - 12, this.y + 33, 8,
+            this.reset.bind(this), drawResetIcon
+        )
+    ];
+    
+    this.elements[1].highlightCol = color(200, 0, 0);
+    this.elements[2].highlightCol = color(0, 100, 160);
+};
+
+DeformerControl.prototype.draw = function() {
+    // Background
+    if (this.shape.mouseOverOrigin()) {
+        strokeWeight(3);
+        stroke(PINK);
+    } else {
+        strokeWeight(1);
+        stroke(GUI_GREY);
+    }
+
+    fill(BACKGROUND);
+    rect(this.x, this.y, this.w, this.h, 8);
+    
+    // Label
+    fill(TEXTCOL);
+    textAlign(CENTER, TOP);
+    textFont(sansFont, 13);
+    var name = this.index + ". " + this.name;
+    text(name, this.x + 18, this.y + 3, this.w - 36, 20);
+    
+    // Grip effect
+    strokeWeight(1);
+    stroke(200);
+    line(this.x + 17, this.y + 1, this.x + 17, this.y + this.h - 1);
+    
+    for (var i = 4; i < 13; i += 4) {
+        stroke(220);
+        line(this.x + i, this.y + 6,
+             this.x + i, this.y + this.h - 6);
+        stroke(200);
+        line(this.x + i + 1, this.y + 6,
+             this.x + i + 1, this.y + this.h - 6);
+    }
+    
+    callFunctionForEach(this.elements, 'draw');
+};
+
+DeformerControl.prototype.update = function(value) {
+    this.value = value;
+    this.model.update();
+};
+
+DeformerControl.prototype.updateDeformer = function() {
+    this.shape.transform(this.transform, this.value, this.shape.origin);
+};
+
+DeformerControl.prototype.updatePosition = function(y) {
+    var dy = y - this.y;
+    this.y = y;
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].y += dy;
+    }
+};
+
+DeformerControl.prototype.remove = function() {
+    this.shape.removeDeformer(this);
+    this.model.removeDeformer(this);
+};
+
+DeformerControl.prototype.reset = function() {
+    this.elements[0].setValue(this.defaultValue);
+};
+
+DeformerControl.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+DeformerControl.prototype.mouseOverMoveTab = function() {
+    return mouseX >= this.x && mouseX <= this.x + 20 &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+DeformerControl.prototype.mousePressed = function() {
+    if (!this.mouseOver()) { return; }
+    
+    for (var i = 0; i < this.elements.length; i++) {
+        if (this.elements[i].mousePressed()) {
+            this.selected = this.elements[i];
+        }
+    }
+    
+    // Are we going to drag this
+    return this.mouseOverMoveTab();
+};
+
+DeformerControl.prototype.mouseReleased = function() {
+    callFunctionForEach(this.elements, 'mouseReleased');
+    
+    if (this.selected) {
+        this.selected.selected = false;
+        this.selected = false;
+    }
+};
+
+DeformerControl.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.mouseDragged();
+    }
+};
+}
+/*******************************************************
+ *          Shape
+ * A set of points, which are connected by straight
+ * lines, and filled. Points are drawn relative to
+ * an origin, which is a node where deformers can be
+ * added.
+********************************************************/
+{
+var Shape = function(data, name) {
+    this.name = name;
+    this.nodeR = 5;
+    
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    }
+    this.originalCoords = data.vertices || [];
+    
+    this.fillColor = data.fill || color(225, 230, 235);
+    this.strokeColor = data.stroke || color(200, 200, 200);
+    
+    if (data.drawShape) {
+        this.drawShape = data.drawShape.bind(this);
+    }
+    
+    // Deformers that control this shape
+    this.deformers = [];
+    
+    // Shapes controlled by this one
+    this.dependentShapes = [];
+    
+    this.resetCoords();
+};
+
+// Convert arrays of two coordinates, [x, y], into PVectors
+// With values relative to the origin
+Shape.prototype.resetCoords = function() {
+    this.finalCoords = this.originalCoords.map(function(p) {
+        return new PVector(p[0], p[1]);
+    });
+    
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+
+Shape.prototype.transform = function(transform, value, origin) {
+    for (var i = 0; i < this.finalCoords.length; i++) {
+        transform(this.finalCoords[i], value, origin);
+    }
+    
+    this.dependentShapes.forEach(function(shape) {
+        transform(shape.origin, value, origin);
+        shape.transform(transform, value, origin);
+    });
+};
+
+Shape.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0, 50);
+    pushMatrix();
+    translate(2, 3);
+    this.drawShape(true);
+    popMatrix();
+    
+    if (this.fillColor) {
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(1);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    beginShape();
+    this.finalCoords.forEach(function(p) {
+        vertex(p.x, p.y);
+    });
+    endShape(CLOSE);
+};
+
+Shape.prototype.drawNode = function() {
+    var d = this.nodeR * 2;
+    
+    if (this.deformers.length) {
+        d += 4;
+        var isPink = this.mouseOverOrigin();
+        if (!isPink) {
+            for (var i = 0; i < this.deformers.length; i++) {
+                if (this.deformers[i].mouseOver()) {
+                    isPink = true;
+                    break;
+                }
+            }
+        }
+        fill(isPink ? PINK : ORANGE);
+    } else {
+        fill(120);
+    }
+    
+    strokeWeight(1);
+    stroke(250, 250, 250);
+    ellipse(this.origin.x, this.origin.y, d, d);
+    
+    textAlign(LEFT, BASELINE);
+    textFont(serifFont, 16);
+    fill(0);
+    
+    var deformers = [];
+    for (var i = 0; i < this.deformers.length; i++) {
+        deformers.push(this.deformers[i].index);
+    }
+    
+    deformers.sort(function(a, b) { return a - b; });
+    
+    text(deformers.join(", "), this.origin.x + this.nodeR + 2, this.origin.y);
+};
+
+Shape.prototype.addDependentShape = function(shape) {
+    this.dependentShapes.push(shape);
+};
+
+Shape.prototype.removeDeformer = function(deformer) {
+    var index = this.deformers.indexOf(deformer);
+    this.deformers.splice(index, 1);
+};
+
+Shape.prototype.mouseOverOrigin = function() {
+    return dist(mouseX, mouseY, this.origin.x, this.origin.y) <= this.nodeR;
+};
+}
+/*******************************************************
+ *          Model
+ * A character consisting of a set shapes.
+ * It also stores the deformers when they are added.
+*******************************************************/
+{
+var Model = function(data) {
+    this.shapes = {};
+    this.deformers = [];
+    
+    // Position for avar controls
+    this.y = 10;
+    this.dy = 50;
+    
+    // Scroll bar ball
+    this.scrollX = width - 20;
+    this.scrollY = 20;
+    this.scrollH = 320;
+    this.scrollR = 10;
+    this.scrollPosition = 0;
+    this.setScrollAmount();
+    
+    this.selectedDeformer = false;
+    
+    if (data) {
+        this.loadData(data);
+    }
+};
+
+Model.prototype.draw = function() {
+    for (var shape in this.shapes) {
+        this.shapes[shape].draw();
+    }
+    
+    this.drawTarget();
+    
+    for (var shape in this.shapes) {
+        this.shapes[shape].drawNode();
+    }
+    
+    this.drawControls();
+};
+
+Model.prototype.drawControls = function() {
+    for (var i = 0; i < this.deformers.length; i++) {
+        var deformer = this.deformers[i];
+        
+        if (deformer === this.selectedDeformer) {
+            cursor(MOVE);
+        } else {
+            deformer.draw();
+            if (deformer.mouseOverMoveTab()) {
+                cursor(MOVE);
+            } else if (deformer.elements[0].mouseOver() ||
+                       deformer.elements[1].mouseOver()) {
+                cursor(HAND);
+            }
+        }
+    }
+    
+    if (this.selectedDeformer) {
+        var x = this.selectedDeformer.x;
+        var y = this.selectedDeformer.y;
+        
+        pushMatrix();
+            translate(x, y + this.selectedDeformer.dragY);
+            rotate(5);
+            // Shadow
+            noStroke();
+            fill(0, 0, 0, 50);
+            rect(3, 3, this.selectedDeformer.w, this.selectedDeformer.h, 8);
+            
+            // Moving deformer
+            translate(-x, -y);
+            this.selectedDeformer.draw();
+        popMatrix();
+    }
+    
+    // Draw scrollbar
+    if (this.maxScroll) {
+        fill(BACKGROUND);
+        stroke(GUI_GREY);
+        strokeWeight(4);
+        
+        line(this.scrollX, 10, this.scrollX, this.scrollH + 10);
+        ellipse(this.scrollX, this.scrollY, this.scrollR * 2, this.scrollR * 2);
+    }
+};
+
+Model.prototype.drawTarget = function() {
+    var PINK_A = color(255, 0, 175, 160);
+    var GREEN_A = color(28, 173, 123, 160);
+
+    /*
+    noStroke();
+    fill(this.result ? GREEN_A : PINK_A);
+    */
+    
+    noFill();
+    strokeWeight(3);
+    stroke(this.result ? GREEN_A : PINK_A);
+    
+    for (var shape in this.targetShapes) {
+        var points = this.targetShapes[shape];
+        beginShape();
+        for (var i = 0; i < points.length; i++) {
+            vertex(points[i].x, points[i].y);
+        }
+    endShape(CLOSE);
+    }
+    
+};
+
+Model.prototype.addShape = function(data, name) {
+    this.shapes[name] = new Shape(data, name);
+};
+
+Model.prototype.loadData = function(data) {
+    // Add shapes
+    for (var name in data.shapes) {
+        this.addShape(data.shapes[name], name);
+    }
+    
+    // Join shapes
+    if (data.connections) {
+        data.connections.forEach(function(connection) {
+            var shapes = connection.split(/\s*->\s*/);
+            for (var j = 0; j < shapes.length - 1; j++) {
+                var parent = this.getShape(shapes[j]);
+                var child = this.getShape(shapes[j + 1]);
+                if (parent && child && parent !== child) {
+                    parent.dependentShapes.push(child);
+                }
+            }
+        }, this);
+    }
+};
+
+Model.prototype.calculateTargetShape = function(deformerValues) {
+    // Set deformer values
+    for (var i = 0; i < deformerValues.length; i++) {
+        var d = deformerValues[i];
+        this.addDeformer(deformers[d[0]], d[1]);
+        this.deformers[i].value = d[2];
+    }
+    
+    // Update shapes
+    this.update();
+    
+    // Save shape coordinates
+    this.targetShapes = {};
+    for (var shape in this.shapes) {
+        this.targetShapes[shape] = this.shapes[shape].finalCoords.slice(0);
+    }
+    
+    // Remove deformers
+    for (var i = this.deformers.length - 1; i >= 0; i--) {
+        this.deformers[i].remove();
+    }
+    
+    // Reset shapes
+    for (var shape in this.shapes) {
+        this.shapes[shape].resetCoords();
+    }
+};
+
+Model.prototype.testTarget = function() {
+    if (!this.targetShapes) { return; }
+    
+    this.result = true;
+    
+    for (var shape in this.shapes) {
+        var d = compareShapes(this.shapes[shape].finalCoords, this.targetShapes[shape]);
+        if (d > 25) {
+            this.result = false;
+            break;
+        }
+    }
+};
+
+Model.prototype.setScrollAmount = function() {
+    // Length of content that is scrollable
+    this.maxScroll = max(0, this.y + this.dy * this.deformers.length - this.scrollH);
+    this.scrollScale = this.maxScroll / this.scrollH;
+};
+
+Model.prototype.getShape = function(name) {
+    var shape = this.shapes[name];
+    if (shape) {
+        return shape;
+    } else {
+        println("ERROR: Invalid index: " + name);
+    }
+};
+
+Model.prototype.connectShapes = function(parent, child) {
+    parent = this.getShape(parent);
+    child = this.getShape(child);
+    if (parent && child) {
+        if (parent === child) {
+            println("ERROR: cannot make node dependent on itself");
+        } else {
+            parent.addDependentShape(child);
+        }
+    }
+};
+
+// Check whether dropped deformer hits node.
+// If it does, add it.
+Model.prototype.dropDeformer = function(node) {
+    for (var el in this.shapes) {
+        var shape = this.shapes[el];
+        
+        // Check whether deformer overlaps with node
+        if (dist(node.x, node.y, shape.origin.x, shape.origin.y) <= node.r + shape.nodeR) {
+            // Add deformer
+            var deformer = deformers[node.name];
+            this.addDeformer(deformer, el);
+            break;
+        }
+    }
+};
+
+Model.prototype.addDeformer = function(deformerData, shapeName) {
+    var shape = this.getShape(shapeName);
+    if (!shape) { return; }
+    
+    var name = deformerData.name + " " + shapeName;
+    var n = this.deformers.length;
+    var y = this.y + this.dy * n;
+    var deformer = new DeformerControl(this, y, name, deformerData, shape, n + 1);
+    
+    this.deformers.push(deformer);
+    shape.deformers.push(deformer);
+};
+
+Model.prototype.removeDeformer = function(deformer) {
+    var index = this.deformers.indexOf(deformer);
+    if (index !== -1) {
+        this.deformers.splice(index, 1);
+        this.setScrollAmount();
+        this.reorderDeformers(0);
+        this.testTarget();
+    }
+};
+
+// Drag and drop deformers to move them
+Model.prototype.rearrangeDeformers = function() {
+    var t = this.selectedDeformer;
+    if (!t || this.deformers.length < 2) { return; }
+    
+    var index = this.deformers.indexOf(t);
+    
+    if (index < this.deformers.length - 1 && t.dragY > t.h / 2) {
+        // Move down
+        this.deformers[index] = this.deformers[index + 1];
+        this.deformers[index + 1] = t;
+        t.dragY -= this.deformers[index].h;
+        this.reorderDeformers(index);
+    } else if (index > 0 && -t.dragY > t.h / 2) {
+        // Move up
+        this.deformers[index] = this.deformers[index - 1];
+        this.deformers[index - 1] = t;
+        t.dragY += this.deformers[index].h;
+        this.reorderDeformers(index - 1);
+    }
+};
+
+// Change the y positions of deformer controls to match
+// their order, starting with a given control
+Model.prototype.reorderDeformers = function(start) {
+    for (var i = start; i < this.deformers.length; i++) {
+        this.deformers[i].updatePosition(this.y + i * this.dy - this.scrollPosition);
+        this.deformers[i].index = i + 1;
+    }
+    this.update();
+};
+ 
+Model.prototype.update = function() {
+    // Reset all coords equal to original positions
+    for (var shape in this.shapes) {
+        this.shapes[shape].resetCoords();
+    }
+    
+    // Go through deformers in order, updating each shape
+    for (var i = 0; i < this.deformers.length; i++) {
+        this.deformers[i].updateDeformer();
+    }
+    
+    this.testTarget();
+};
+
+Model.prototype.mousePressed = function() {
+    if (this.maxScroll && dist(mouseX, mouseY, this.scrollX, this.scrollY) <= this.scrollR) {
+        this.selectedScroll = true;
+        return;
+    }
+    
+    for (var i = 0; i < this.deformers.length; i++) {
+        if (this.deformers[i].mousePressed()) {
+            this.selectedDeformer = this.deformers[i];
+            this.selectedDeformer.dragX = 0;
+            this.selectedDeformer.dragY = 0;
+        }
+    }
+};
+
+Model.prototype.mouseReleased = function() {
+    if (this.selectedDeformer) {
+        this.selectedDeformer = false;
+    } else {
+        callFunctionForEach(this.deformers, 'mouseReleased');
+    }
+    this.selectedScroll = false;
+};
+
+Model.prototype.mouseDragged = function() {
+    if (this.selectedDeformer) {
+        this.selectedDeformer.dragY += mouseY - pmouseY;
+        this.rearrangeDeformers();
+    } else if (this.selectedScroll) {
+        var d = this.scrollScale * (mouseY - pmouseY);
+        this.scrollPosition = constrain(this.scrollPosition + d, 0, this.maxScroll);
+        this.scrollY = map(this.scrollPosition, 0, this.maxScroll, 20, this.scrollH);
+        this.reorderDeformers(0);
+    } else {
+        callFunctionForEach(this.deformers, 'mouseDragged');
+    }
+};
+}
+/*******************************************************
+ * Create display objects
+*******************************************************/
+
+var translateToPoint = function(data, x, y) {
+    var base = data.shapes.base.origin;
+    var dx = round(base[0] - x);
+    var dy = round(base[1] - y);
+    
+    for (var shapeName in data.shapes) {
+        var shape = data.shapes[shapeName];
+        
+        var origin = shape.origin;
+        if (origin) {
+            shape.origin = [origin[0] - dx, origin[1] - dy];
+        }
+        
+        var points = shape.vertices || [];
+        for (var i = 0; i < points.length; i++) {
+            points[i] = [points[i][0] - dx, points[i][1] - dy];
+        }
+    }
+    
+    return data;
+};
+
+var luxoData = translateToPoint(luxoData, (width - 100) / 2, height - 70);
+var luxo = new Model(luxoData);
+
+var targetDeformers = [
+    ['S', 'base', 1.4],
+    ['S', 'arm1', 0.8],
+    ['S', 'head', 1.3]
+];
+
+var targetDeformers = [
+    ['S', 'base', 0.8],
+    ['S', 'arm1', 0.8],
+    ['S', 'head', 1.3]
+];
+
+luxo.calculateTargetShape(targetDeformers);
+
+/**************************************
+ * Create interface
+***************************************/
+// Create toolbar of draggable deformers
+var deformerToolbar = new DeformerToolbar(22, 22, luxo);
+for (var deformer in deformers) {
+    deformerToolbar.addDeformer(deformer);
+}
+/**************************************
+ *  Extra draw functions
+***************************************/
+
+var drawBackground = function() {
+    var h = Floor.height;
+    var y = (height - h);
+
+    background(BACKGROUND);
+    strokeWeight(2);
+    for (var i = 0; i <= y; i += 2) {
+        stroke(lerpColor(BACKGROUND2, BACKGROUND1, i / y));
+        line(0, i, width, i);
+    }
+    
+    // Floor boards
+    pushMatrix();
+    scale(1, 0.5);
+    for (var x = 0; x < width; x += Floor.width - 1) {
+        image(Floor, x, y * 2);
+        image(Floor, x - 40, y * 2 + h);
+    }
+    popMatrix();
+};
+
+var drawMessage = function(message, x, y) {
+    if (!message) { return; }
+    
+    textFont(sansFont, 15);
+    textLeading(16);
+    
+    var nLines = message.split("\n").length;
+    var w = textWidth(message) + 20;
+    var h = nLines * 22 + 3;
+    
+    strokeWeight(3);
+    stroke(MESSAGEBLUE);
+    fill(TOOLBAR);
+    fill(255);
+    rect(x - w / 2, y, w, h, 20);
+    
+    textAlign(CENTER, CENTER);
+    fill(20);
+    text(message, x, y + h / 2);
+};
+
+var drawMessages = function() {
+    var message = "";
+    
+    if (luxo.deformers.length === 0) {
+        message = "Add Scale deformers to the model and match the outline.";
+    } else if (luxo.result) {
+        message = "Congratulations! You can now\nmove on to the next video.";
+    }
+    
+    drawMessage(message, width / 2, 10);
+};
+
+/**************************************
+ *  Main loop
+***************************************/
+
+var items = [luxo, deformerToolbar];
+
+draw = function() {
+    cursor();
+    drawBackground();
+    drawMessages();
+    callFunctionForEach(items, 'draw');
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    callFunctionForEach(items, 'mousePressed');
+};
+
+mouseDragged = function() {
+    callFunctionForEach(items, 'mouseDragged');
+};
+
+mouseReleased = function() {
+    callFunctionForEach(items, 'mouseReleased');
+};
+
+mouseOut = function() {
+    mouseReleased();
+};

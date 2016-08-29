@@ -1,0 +1,909 @@
+/*********************************************************
+ * Building a Voronoi diagram using Fortune's algorithm.
+ * 
+ * Click to advance through the algorithm.
+**********************************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var PINK = color(255, 0, 175);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var COLOURS = [
+    color(196, 196, 200),
+    color(76, 184, 222),
+    color(55, 90, 152),
+    color(132, 20, 218),
+];
+
+textSize(12);
+textAlign(CENTER, BASELINE);
+var POINT_SIZE = 6;
+
+var sites = [
+[312, 285],
+[148, 156],
+[270, 48],
+[358, 147],
+[15, 264],
+[42, 28],
+[200, 366],
+[59, 381],
+];
+
+//var sites = [[100, 100],[300, 100],[200, 200]];
+
+// Square
+//var sites = [[100, 100],[300, 100],[100, 300],[300, 300]];
+
+/*********************************************************
+ *      Math functions
+*********************************************************/
+// Given two parabolas, return the point where they intersect
+// Assuming they intersect at one or no points.
+var findParabolaIntersection = function(p1, p2) {
+    if (!p1.showing || !p2.showing) { return; }
+    
+    var a = p1.A - p2.A;
+    
+    // TO-ADD
+    // Two sites have the same y-value, so same A value
+    if (!a) { return (p1.x + p2.x) / 2; }
+    
+    var b = p1.B - p2.B;
+    var c = p1.C - p2.C;
+    var discriminant = b * b - 4 * a * c;
+    
+    if (discriminant >= 0) {
+        a *= 2;
+        var x1 = (-b + sqrt(discriminant)) / a;
+        var x2 = (-b - sqrt(discriminant)) / a;
+        return p1.y > p2.y ? max(x1, x2) : min(x1, x2);
+    }
+};
+
+/*********************************************************
+ *       Site Object
+ * Represents an initial point on the diagram.
+ * Has methods to draw a parabola using the site
+ * as a focus and the sweepline as a directrix.
+*********************************************************/
+{
+var Site = function(focus, id, cell) {
+    this.id = id;
+    // Add random values to avoid perfect alignment of sites
+    // TODO: fix so that perfect alignment of sites works.
+    this.x = focus[0] + random() / 10;
+    this.y = focus[1] + random() / 10;
+    this.cell = cell;
+    this.x2 = this.x * this.x;
+};
+
+// Get the parameters of the parabola with the current directrix
+Site.prototype.getParabolaCoefficients = function(directrixY) {
+    // Vertical distance between focus and directrix
+    var d = this.y - directrixY;
+    
+    this.showing = d < 0;
+    
+    this.y1 = directrixY + 0.5 * d;
+    
+    // Coeffiecients for equation in standard form
+    if (this.showing) {
+        this.A = 0.5 / d;
+        this.B = -2 * this.A * this.x;
+        this.C = this.A * this.x2 + this.y1;
+    }
+};
+
+Site.prototype.draw = function() {
+    point(this.x, this.y);
+    text(this.id, this.x, this.y - 5);
+};
+
+Site.prototype.drawParabola = function(start, stop) {
+    if (!this.showing) { return; }
+    
+    //println(this.id);
+    //println(start + " " + stop);
+    start = max(0, start || 0);
+    stop = min(stop || width, width);
+    
+    var dx = 4;
+    var px, py;
+    
+    // Parabola
+    beginShape();
+    for (var x = start; x < stop; x += dx) {
+        px = x - this.x;
+        py  = this.A * px * px + this.y1;
+        vertex(x, py);
+    }
+    px = stop - this.x;
+    py  = this.A * px * px + this.y1;
+    vertex(stop, py);
+    endShape();
+};
+}
+/*********************************************************
+ *          Cell object
+ * A cell in a Voronoi diagram
+*********************************************************/
+{
+var Cell = function() {
+    this.vertices = [];
+};
+
+Cell.prototype.addRight = function(p) {
+	this.vertices.push(p);
+	this.last = p;
+	if (this.vertices.length === 1) {
+	    this.first = p;
+	}
+};
+
+Cell.prototype.addLeft = function(p) {
+	this.vertices.unshift(p);
+	this.first = p;
+	if (this.vertices.length === 1) {
+	    this.last = p;
+	}
+};
+
+Cell.prototype.draw = function(col) {
+    fill(col + (50 << 24));
+    stroke(col);
+    strokeWeight(2);
+    
+    beginShape();
+    this.vertices.forEach(function(p) {
+        vertex(p.x, p.y);
+    });
+    endShape();
+    
+    stroke(GREEN);
+    strokeWeight(6);
+    this.vertices.forEach(function(p) {
+        point(p.x, p.y);
+    });
+};
+}
+/*********************************************************
+ *          Node object
+ * Represents a node in the binary tree
+ * Internal nodes represents breakpoint between
+ * two arcs in the beachline (left and right).
+ * Leaf nodes point to a parabola site and
+ * represent an arc in the beachline.
+*********************************************************/
+{
+var Node = function() {
+	if (arguments.length === 1) {
+	    // Make an arc
+	    this.site = arguments[0];
+	} else {
+	    // Make a breakpoint with the parameters as children
+	    this.setChild('left', arguments[0]);
+	    this.setChild('right', arguments[1]);
+	}
+};
+/*
+Object.defineProperty(Node, 'left', {
+    set: function(p) {
+        this.left = p;
+        p.parent = this;
+    }
+});
+
+Object.defineProperty(Node, 'right', {
+    set: function(p) {
+        this.right = p;
+        p.parent = this;
+    }
+});
+*/
+
+// Find the arc to the left of this breakpoint
+// (Maybe save this value?)
+
+Node.prototype.setChild = function(dir, child) {
+    this[dir] = child;
+    child.parent = this;
+};
+
+Node.prototype.getLeftArc = function() {
+    var node = this.left;
+	while (!node.site) {
+	    node = node.right;
+	}
+	return node;
+};
+
+Node.prototype.getRightArc = function() {
+    var node = this.right;
+	while (!node.site) {
+	    node = node.left;
+	}
+	return node;
+};
+
+Node.prototype.getFirstArc = function() {
+    var node = this.left;
+    if (!node) { return this; }
+    
+	while (!node.site) {
+	    node = node.left;
+	}
+	return node;
+};
+
+Node.prototype.getParent = function(dir) {
+    var parent = this.parent;
+	var parentLast = this;
+	
+	while (parent[dir] === parentLast) { 
+		if (!parent.parent) { return; }
+		parentLast = parent;
+		parent = parent.parent; 
+	}
+	
+	return parent;
+};
+
+// If node is a breakpoint, calculate where it intersects
+Node.prototype.calculateIntersections = function() {
+    if (!this.site) {
+        var leftArc = this.getLeftArc();
+        var rightArc = this.getRightArc();
+        var x = findParabolaIntersection(leftArc.site, rightArc.site);
+        
+        if (x) {
+            leftArc.stop = x;
+            rightArc.start = x;
+            this.x = x;
+        }
+        
+        // Recurse
+        this.left.calculateIntersections();
+        this.right.calculateIntersections();
+    }
+};
+
+// If node is an arc, draw it
+Node.prototype.draw = function() {
+    if (this.site) {
+        if (this.circleEvent) {
+            stroke(200, 0, 0);
+        } else {
+            stroke(GREEN);
+        }
+        this.site.drawParabola(this.start, this.stop);
+        //text(this.left + " " + this.right, (this.left + this.right) / 2, 20);
+        //text(this.site.id, (max(0, this.left) + min(400, this.right)) / 2, 20);
+    } else {
+        /*
+        if (this.edge) {
+            stroke(PINK);
+            this.edge.start.x = this.x;
+            this.edge.draw();
+        }
+        */
+        this.left.draw();
+        this.right.draw();
+    }
+};
+
+Node.prototype.drawArc = function() {
+    if (this.site) {
+        if (this.circleEvent) {
+            stroke(200, 0, 0);
+        } else {
+            stroke(GREEN);
+        }
+        this.site.drawParabola(this.start, this.stop);
+        //text(this.left + " " + this.right, (this.left + this.right) / 2, 20);
+        //text(this.site.id, (max(0, this.left) + min(400, this.right)) / 2, 20);
+    }
+};
+
+Node.prototype.toString = function() {
+    return this.site ? this.site.id : "(" + this.left + ", "  + this.right + ")";
+    //return (this.site ? this.site.id : "") + "(" + this.left + ", "  + this.right + ")";
+};
+
+Node.prototype.writeTree = function(indent) {
+    var s = indent + this.getSites();
+
+    if (this.parent) {
+        //s += "  p"  + this.parent.getSites();
+    }
+    s += " x = " + this.x;
+    
+    println(s);
+    
+    if (!this.site) {
+        indent += " ";
+        this.left.writeTree(indent);
+        this.right.writeTree(indent);
+    }
+    
+};
+
+Node.prototype.getSites = function() {
+    return this.site ? this.site.id : "(" + this.getLeftArc() + ", "  + this.getRightArc() + ")";
+};
+
+Node.prototype.getY = function(x) {
+    var site = this.site;
+    return site.A * x * x + site.B * x + site.C;
+};
+
+Node.prototype.finishEdge = function() {
+    if (this.edge) {
+        var x = this.edge.dx < 0 ?
+            max(width, this.edge.start.x + 10) :
+            min(0, this.edge.start.x - 10);
+            
+        this.edge.end = { x: x, y: this.edge.getY(x) };
+    }
+	if (!this.left.site) { this.left.finishEdge(); }
+	if (!this.right.site) { this.right.finishEdge(); }
+};
+}
+/*********************************************************
+ *          Edge object
+ * Represents an edge in Voronoi diagram
+ * Edges are created whenever a breakpoint is created
+ * They can be ended when a breakpoint is removed.
+*********************************************************/
+{
+var Edge = function(start, siteLeft, siteRight) {
+    this.start = start;
+    this.siteLeft = siteLeft;
+    this.siteRight = siteRight;
+    
+    // Direction vector
+    this.dx = this.siteLeft.y - this.siteRight.y;
+    this.dy = this.siteRight.x - this.siteLeft.x;
+    
+    // Constant term in line equation
+    // y - y1 = (dy / dx)(x - x1) rearranged to
+    //  dx(y) = dy(y) - dy(x1) + dx(y1)
+    this.c = start.x * this.dy - start.y * this.dx;
+    
+    // TODO: fix for dy = 0
+    this.grad = this.dy / this.dx;
+};
+
+Edge.prototype.draw = function() {
+    if (this.end) {
+        strokeWeight(3);
+        line(this.start.x, this.start.y, this.end.x, this.end.y);
+    } else {
+        strokeWeight(3);
+        point(this.start.x, this.start.y);
+        //line(this.start.x, this.start.y, this.tempEnd.x, this.tempEnd.y);
+        //fill(0);
+        //text(this.siteLeft.id + " " + this.siteRight.id, this.start.x, this.start.y);
+        //text(this.siteLeft.id + " " + this.siteRight.id, this.tempEnd.x, this.tempEnd.y);
+    }
+};
+
+Edge.prototype.getY = function(x) {
+    return this.start.y + this.grad * (x - this.start.x);
+};
+}
+/*********************************************************
+ *          Voronoi object
+ * Constructs the cells for a Voronoi diagram.
+*********************************************************/
+
+var Voronoi = function(sites) {
+    this.root = null;
+	this.events = [];
+	this.cells = [];
+	this.edges = [];
+	this.vertices = [];
+
+	
+	if (sites.length > 1) {
+	    this.initialise(sites);
+	}
+};
+
+Voronoi.prototype.initialise = function(sites) {
+    this.sites = [];
+    
+    // Add each site to the event queue
+    // Add a cell for each site
+    for (var i = 0; i < sites.length; i++) {
+        var cell = new Cell();
+        this.cells.push(cell);
+        
+        // Convert array of coordinates into a site object
+        var site = new Site(sites[i], i, cell);
+        this.sites.push(site);
+        
+		this.events.push({
+		    site: site,
+		    newArc: true
+		});
+	}
+	
+	this.events.sort(function(a, b) {
+	    return a.site.y - b.site.y;
+	});
+};
+
+Voronoi.prototype.draw = function() {
+    /*
+    for (var i = 0; i < this.cells.length; i++) {
+        this.cells[i].draw(COLOURS[i % 4]);
+    }
+    */
+    
+    // Draw sitesCOLORS 4COCOLORS
+    fill(0);
+    stroke(BLUE);
+    strokeWeight(POINT_SIZE);
+    for (var i = 0; i < this.sites.length; i++) {
+        this.sites[i].draw();
+    }
+    
+    // Draw circle events
+    if (!this.ended) {
+        fill(0, 0, 0, 10);
+        stroke(100);
+        strokeWeight(1);
+        //println(this.events.length);
+        for (var i = 0; i < this.events.length; i++) {
+            var e = this.events[i];
+            var r = e.radius;
+            if (r) {
+                // Circle
+                ellipse(e.site.x, e.site.y - r, r * 2, r * 2);
+                // Center
+                ellipse(e.site.x, e.site.y - r, 2, 2);
+                // Event site
+                ellipse(e.site.x, e.site.y, 2, 2);
+            }
+        }
+        
+        strokeWeight(1);
+        stroke(GREEN + (100 << 24));
+        noFill();
+        for (var i = 0; i < this.sites.length; i++) {
+            this.sites[i].drawParabola();
+        }
+        
+        // Draw beachline
+        if (this.root) {
+            strokeWeight(3);
+            //this.root.draw();
+            var first = this.root.getFirstArc();
+    
+            do {
+                first.drawArc();
+                first = first.right;
+            } while (first);
+        }
+        
+        // Sweep line / directrix
+        stroke(BLUE);
+        strokeWeight(2);
+        line(0, this.sweepline, width, this.sweepline);
+    }
+    
+    // Draw edges
+    stroke(PINK);
+    strokeWeight(4);
+    for (var i = 0; i < this.edges.length; i++) {
+        this.edges[i].draw();
+    }
+    
+    // Draw vertices
+    strokeWeight(6);
+    for (var i = 0; i < this.vertices.length; i++) {
+        //point(this.vertices[i].x, this.vertices[i].y);
+    }
+};
+
+Voronoi.prototype.writeArcs = function() {
+    if (this.root) {
+        var s = "";
+        var first = this.root.getFirstArc();
+        do {
+            if (first.site) {
+                s += first.site.id + " ";
+            } else {
+                s += "? ";
+            }
+            first = first.right;
+        } while (first);
+        println(s);
+    } else {
+        println("No arcs");
+    }
+};
+
+Voronoi.prototype.compute = function() {
+	while (this.events.length) {
+		this.processNextEvent();
+	}
+};
+
+// Process one event in the queue
+Voronoi.prototype.processNextEvent = function() {
+    var event = this.events.shift();
+    
+    if (event) {
+        this.updateSweepLine(event.site.y);
+        
+        // Process event
+        if (event.newArc) {
+            this.insertArc(event.site);
+        } else {
+            this.removeArc(event);
+        }
+        
+        // println(this.root);
+        
+        //println("tree");
+        //this.root.writeTree("");
+        //println("end");
+        
+       // this.writeArcs();
+    } else if (!this.ended) {
+        this.root.finishEdge();
+        for (var i = 0; i < this.edges.length; i++) {
+		    if (this.edges[i].neighbour) {
+		        this.edges[i].start = this.edges[i].neighbour.end;
+		    }
+        }
+        this.ended = true;
+    }
+};
+
+Voronoi.prototype.updateSweepLine = function(y) {
+    if (this.events.length && y > this.events[0].site.y) {
+        this.processNextEvent();
+        return;
+    }
+    
+    this.sweepline = y;
+    
+    // Update parabolas with new sweep line position
+    for (var i = 0; i < this.sites.length; i++) {
+        this.sites[i].getParabolaCoefficients(this.sweepline);
+    }
+    
+    // Loop through breakpoints, updating them and arc start and stop.
+    if (this.root) {
+        this.root.calculateIntersections();
+    }
+};
+
+// Add a new arc with its focus at the given site
+Voronoi.prototype.insertArc = function(site) {
+    // Create a new arc based on this site
+    // TODO: set start and stop values
+    var newArc = new Node(site);
+    
+    // No need to do anything further with the first parabola
+    if (!this.root) {
+        this.root = newArc;
+        newArc.start = 0;
+        newArc.stop = width;
+        return;
+    }
+    
+    // Special case where first two sites have the same y value
+    // TO-ADD
+    if (this.root.site && site.y - this.root.site.y < 0.01) {
+        var rootSite = this.root.site;
+        var n1 = new Node(rootSite);
+        var n2 = new Node(site);
+        
+		this.root.setChild('left', n1);
+		this.root.setChild('right', n2);
+		
+		var s = {
+		    x: (site.x + rootSite.x) / 2,
+		    y: 0
+		};
+		
+		n1.start = rootSite.start;
+		n1.stop = s.x;
+        n2.start = s.x;
+        n2.stop = rootSite.stop;
+        n1.right = n2;
+        n2.left = n1;
+		
+		if (site.x < rootSite.x) {
+		    this.root.edge = new Edge(s, rootSite, site);
+		} else {
+		    this.root.edge = new Edge(s, site, rootSite);
+		}
+		this.edges.push(this.root.edge);
+		this.root.site = false;
+		return;
+	}
+    
+    // New Parabola starts as a degenerate parabola
+    newArc.start = site.x;
+    newArc.stop = site.x;
+    
+    // Find leaf representing the arc above the new parabola
+    var existingArc = this.getArcAbovePointX(site.x);
+    
+    // Split existing arc into two pieces
+    var arc1 = new Node(existingArc.site);
+    var arc2 = new Node(existingArc.site);
+    
+    // Create new breakpoint
+    var breakpoint = new Node(newArc, arc2);
+    
+    // Set breakpoint values
+    arc1.start = existingArc.start;
+    arc1.stop = site.x;
+    arc2.start = site.x;
+    arc2.stop = existingArc.stop;
+    
+    // Update arc neighbours
+    arc1.left = existingArc.left;
+    arc1.right = newArc;
+    arc2.left = newArc;
+    arc2.right = existingArc.right;
+    newArc.left = arc1;
+    newArc.right = arc2;
+    
+    if (existingArc.left) { existingArc.left.right = arc1; }
+    if (existingArc.right) { existingArc.right.left = arc2; }
+    
+    // Set arc breakpoints
+    /*
+    arc1.leftBreakPoint = existingArc.left;
+    arc1.rightBreakPoint = existingArc;
+    arc2.leftBreakPoint = breakpoint;
+    arc2.rightBreakPoint = existingArc.right;
+    newArc.leftBreakPoint = existingArc;
+    newArc.rightBreakPoint = breakpoint;
+    */
+    
+    /*
+    println("Arc 1: " + arc1.site.id);
+    println((arc1.left ? arc1.left.site.id : "-") + " " + arc1.right.site.id);
+    
+    println("New arc: " + newArc.site.id);
+    println(newArc.left.site.id  + " " + newArc.right.site.id);
+    
+    println("Arc 2: " + arc2.site.id);
+    println(arc2.left.site.id  + " " + (arc2.right ? arc2.right.site.id : "-"));
+    */
+    
+    // Convert existing arc node to a breakpoint
+    existingArc.setChild('left', arc1);
+    existingArc.setChild('right', breakpoint);
+    
+    this.removeCircleEvent(existingArc);
+	
+	// Add a new edge
+	var p = { x: site.x, y: existingArc.getY(site.x) };
+    var leftEdge = new Edge(p, existingArc.site, site);
+	var rightEdge = new Edge(p, site, existingArc.site);
+	
+	leftEdge.neighbour = rightEdge;
+	this.edges.push(leftEdge);
+	existingArc.edge = rightEdge;
+	breakpoint.edge = leftEdge;
+	
+	existingArc.site = false;
+	
+	// Check for new circle events
+    this.checkForCircleEvent(arc1);
+	this.checkForCircleEvent(arc2);
+};
+
+// Search binary tree for parabola covering given x-position
+Voronoi.prototype.getArcAbovePointX = function(x) {
+	var node = this.root;
+	var testX = 0;
+	
+	// While we are not at a leaf in the tree (representing an arc).
+	while (!node.site) {
+	    /*
+		testX = findParabolaIntersection(
+		    node.getLeftArc().site,
+		    node.getRightArc().site
+		);
+		*/
+		node = node.x > x ? node.left : node.right;
+	}
+	
+	//println("hit arc " + node.site.id + " at " + x + " (" + node.x + ")");
+	
+	return node;
+};
+
+Voronoi.prototype.removeArc = function(event) {
+    var arc = event.arc;
+	var leftArc = arc.left;
+	var rightArc = arc.right;
+
+    println("Remove arc " + leftArc + " " + arc + " " + rightArc);
+
+	// Get point where the arc disappears
+	var x = event.site.x;
+	var p = { x: x, y: arc.getY(x) };
+	this.vertices.push(p);
+	
+	// Add an end point to the two breakpoints that have joined
+    var leftBreak = arc.getParent('left');
+    var rightBreak = arc.getParent('right');
+    leftBreak.edge.end = p;
+	rightBreak.edge.end = p;
+    
+    this.removeCircleEvent(leftArc);
+	this.removeCircleEvent(rightArc);
+	
+	// Find the higher breakpoint
+	var higher;
+	var parent = arc;
+	while (parent !== this.root){
+		parent = parent.parent;
+		if (parent === leftBreak) { higher = leftBreak; }
+		if (parent === rightBreak) { higher = rightBreak; }
+	}
+	
+	higher.edge = new Edge(p, rightArc.site, leftArc.site);
+	this.edges.push(higher.edge);
+	
+	// Get cell associated with this event's arc's site
+    var cell = arc.site.cell;
+	if (leftArc.site.cell.last === cell.first) {
+	    cell.addLeft(p);
+	} else {
+	    cell.addRight(p);
+	}
+	
+	leftArc.site.cell.addRight(p);
+	rightArc.site.cell.addLeft(p);
+
+    // Remove leaf addRight tree and reorder
+    var parent = arc.parent;
+    var gparent = parent.parent;
+    var d1, d2;
+    
+	if (parent.left === arc) {
+	    d2 = 'right';
+	    d1 = (gparent.left === parent) ? 'left' : 'right';
+	} else {
+	    d2 = 'left';
+	    d1 = (gparent.left === parent) ? 'left' : 'right';
+	}
+	
+	// Set new parents
+	gparent.setChild(d1, parent[d2]);
+	
+	// Join arcs
+	leftArc.right = rightArc;
+	rightArc.left = leftArc;
+	
+	this.checkForCircleEvent(leftArc);
+	this.checkForCircleEvent(rightArc);
+	
+	//println(this.root);
+};
+
+Voronoi.prototype.checkForCircleEvent = function(b) {
+    var leftBreak = b.getParent('left');
+    var rightBreak = b.getParent('right');
+    
+    if (!leftBreak || !rightBreak) { return; }
+    
+	var a = leftBreak.getLeftArc();
+	var c = rightBreak.getRightArc();
+	
+	if (!a || !c || a.site === c.site) { return; }
+	
+	//println(a + " " + b + " " + c);
+	
+	// Check whether edges of breakpoints intersect
+	var e1 = leftBreak.edge;
+	var e2 = rightBreak.edge;
+	var den = e1.dx * e2.dy - e1.dy * e2.dx;
+	
+	// Lines are parallel
+	if (!den) { return; }
+	
+	// Center circle at intersection point
+	var ix = (e2.c * e1.dx - e1.c * e2.dx) / den;
+	var iy = (e2.c * e1.dy - e1.c * e2.dy) / den;
+	
+	println(ix + ", " + iy);
+/*
+	println((ix - e1.start.x) * e1.dx);
+	println((ix - e2.start.x) * e2.dx);
+	println((iy - e1.start.y) * e1.dy);
+	println((iy - e2.start.y) * e2.dy);
+*/
+	
+	// Test whether edge is in the wrong direction
+	if ((ix - e1.start.x) * e1.dx > 0 || (iy - e1.start.y) * e1.dy > 0 ||
+	    (ix - e2.start.x) * e2.dx > 0 || (iy - e2.start.y) * e2.dy > 0) {
+		return;
+	}
+
+	var radius = dist(ix, iy, a.site.x, a.site.y);
+	
+	//println(radius);
+	//println(ix + " " + iy);
+	
+	// Convert center to lower edge
+	iy += radius;
+	
+	// Ignore circle if the sweep line has passed
+	if (iy < this.sweepline) { return; }
+	
+	// Create new event
+	var event = {
+	    site: { x: ix, y: iy },
+	    radius: radius,
+	    arc: b
+	};
+	
+	b.circleEvent = event;
+	this.events.push(event);
+	this.events.sort(function(a, b) {
+	    return a.site.y - b.site.y;
+	});
+	
+	//println("Add circle event: " + a + " " + b + " " + c);
+};
+
+// Remove a circle event associated with the given arc
+Voronoi.prototype.removeCircleEvent = function(arc) {
+    //println("Remove circle event " + arc);
+    if (arc.circleEvent) {
+        //println("Removed");
+	    var index = this.events.indexOf(arc.circleEvent);
+        if (index > -1) { this.events.splice(index, 1); }
+        arc.circleEvent = null;
+	}
+};
+
+/*********************************************************
+ *      Create object
+*********************************************************/
+
+var voronoi = new Voronoi(sites);
+
+/*********************************************************
+ *      Main Loop
+*********************************************************/
+
+var draw = function() {
+    background(BACKGROUND);
+    voronoi.draw();
+};
+
+/*********************************************************
+ *      Event handling
+*********************************************************/
+{
+var keyReleased = function() {
+    if (keyCode === DOWN) {
+        voronoi.updateSweepLine(voronoi.sweepline + 2);
+    }
+};
+
+var mousePressed = function() {
+};
+
+var mouseReleased = function() {
+    voronoi.processNextEvent();
+};
+
+var mouseDragged = function() {
+};
+}

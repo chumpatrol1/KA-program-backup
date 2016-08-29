@@ -1,0 +1,448 @@
+/*************************************************
+ * Agents move around a 2D world, collecting and
+ * eating sugar.
+ * 
+ * For more information see:
+ * http://www.petercollingridge.co.uk/blog/sugarscape-revisited
+*************************************************/
+
+// Colours
+var sugarColours = [
+    color(250, 250, 250),
+    color(225, 255, 180),
+    color(180, 230, 140),
+    color(100, 200, 80),
+    color(20, 130, 40)
+];
+
+var agentColour = color(220, 40, 20);
+var gapSize = 0;    // Make this is > 0, to see the grid
+
+var DIRECTIONS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+var running = false; 
+
+// Use for shuffling arrays
+var shuffle = function(arr) {
+    var counter = arr.length, temp, i;
+
+    while (counter--) {
+        i = (random() * counter) | 0;
+        temp = arr[counter];
+        arr[counter] = arr[i];
+        arr[i] = temp;
+    }
+
+    return arr;
+};
+
+/******************************************************
+ *      Simulation objects
+*******************************************************/
+
+// A person living in the world, looking for sugar to eat
+var Agent = function(world, x, y, properties) {
+    this.x = x;
+    this.y = y;
+    this.sugar = 10;
+    this.metabolicRate = floor(random(1, 4));
+    this.vision = floor(random(1, 6));
+    this.sector = world.sectors[this.y][this.x];
+    
+    var maxW = world.width - 1;
+    var maxH = world.height - 1;
+    
+    // Move the agent to sector (x, y)
+    // This assumes the sector is empty and overwrite anyone
+    // there already
+    this.moveTo = function(x, y) {
+        this.sector.occupant = false;
+        this.x = x;
+        this.y = y;
+        this.sector = world.sectors[this.y][this.x];
+        this.sector.occupant = this;
+    };
+    
+    // Eat sugar equal to metabolic rate and 
+    // collect all the sugar in the current sector
+    this.eat = function() {
+        this.sugar -= this.metabolicRate;
+        this.sugar += this.sector.sugar;
+        this.sector.sugar = 0;
+    };
+    
+    // Look NSEW and find an empty position with the same or more
+    // food
+    this.look = function() {
+        var maxSugar = this.sector.sugar;
+        var directions = shuffle(DIRECTIONS);
+        var moveTo = false;
+        
+        // Look at max distance and move in
+        for (var dist = this.vision; dist > 0; dist--) {
+            for (var d = 0; d < directions.length; d++) {
+                var direction = directions[d];
+                var lookX = this.x + direction[0] * dist;
+                var lookY = this.y + direction[1] * dist;
+
+                // Wrap around world
+                if (lookX < 0) { lookX += maxW; }
+                if (lookX > maxW) { lookX -= maxW; }
+                if (lookY < 0) { lookY += maxH; }
+                if (lookY > maxH) { lookY -= maxH; }
+
+                var targetSector = world.sectors[lookY][lookX];
+                
+                // There is agent in this sector already
+                if (targetSector.occupant) {
+                    continue;
+                }
+                
+                // Test to see if there is more or equal sugar
+                // Looking from furthest to nearest, so if equal
+                // amount, should be nearer or as near
+                
+                if (targetSector.sugar > maxSugar) {
+                    maxSugar = targetSector.sugar;
+                    moveTo = [lookX, lookY];
+                }
+            }
+        }
+        
+        if (moveTo) {
+            this.moveTo(moveTo[0], moveTo[1]);
+        }
+    };
+    
+    this.growOld = function() {
+        this.age++;
+        if (this.age > this.maxAge) {
+            // Add to deadAgents
+        }
+    };
+};
+
+// A grid position in the world containing sugar
+var Sector = function() {
+    this.sugarMax = 0;
+    this.sugar = 0;
+    this.occupant = false;
+    
+    this.regenerate = function(amount) {
+        this.sugar = min(this.sugarMax, this.sugar + amount);
+    };
+};
+
+// A 2D grid of Sectors
+var World = function(width, height) {
+    this.time = 0;
+    this.width = width;
+    this.height = height;
+    
+    // Number of ticks between growing back (1 = no delay)
+    this.growbackInterval = 1;
+    this.regenerateAmount = 1;
+    
+    this.agents = [];
+    this.deadAgents = [];
+    
+    this.sectors = [];
+    for (var y = 0; y < this.height; y++) {
+        var row = [];
+        for (var x = 0; x < this.width; x++) {
+            row.push(new Sector());
+        }
+        this.sectors.push(row);
+    }
+    
+    this.update = function() {
+        this.time++;
+        
+        // Only update squares where there are agents
+        this.sectorsToUpate = [];
+        
+        if (this.time % this.growbackInterval === 0) {
+            for (var x = 0; x < this.width; x++) {
+                for (var y = 0; y < this.height; y++) {
+                    this.sectors[y][x].regenerate(this.regenerateAmount);
+                }
+            }
+        }
+        
+        for (var a = 0; a < this.agents.length; a++) {
+            this.agents[a].look();
+            this.agents[a].eat();
+            
+            // Check whether agent starves
+            if (this.agents[a].sugar <= 0) {
+                this.deadAgents.push(a);
+            }
+        }
+
+         
+        if (this.deadAgents.length > 0) {
+            this.removeDeadAgents();   
+        }
+    };
+    
+    this.removeDeadAgents = function() {
+        this.deadAgents.sort(function(a, b) { return b - a; });
+        for (var a = 0; a < this.deadAgents.length; a++) {
+            var agent = this.agents[this.deadAgents[a]];
+            this.sectors[agent.x][agent.y].occupant = false;
+            this.agents.splice(a, 1);
+       }
+       this.deadAgents = [];
+    };
+    
+    // Add a circle of nutrients (sugarMax) with a peak at 
+    // (gx, gy) and decline with a gradient
+    this.addNutrients = function(gx, gy, peak, grad) {
+        var curve = curve || 4;
+        var c = 100;
+        
+        for (var x = 0; x < this.width; x++) {
+            for (var y = 0; y < this.height; y++) {
+                var d = pow(dist(x, y, gx, gy), 2.1);
+                var sugar = round(peak * c / (grad * d + c));
+                this.sectors[y][x].sugarMax = max(this.sectors[y][x].sugarMax, sugar);
+            }
+        }       
+    };
+    
+    // Set the amount of sugar in all sectors to its maximum.
+    this.maximiseSugar = function() {
+        for (var x = 0; x < this.width; x++) {
+            for (var y = 0; y < this.height; y++) {
+                this.sectors[y][x].sugar = this.sectors[y][x].sugarMax;
+            }
+        }
+    };
+    
+    // Add n agents to random empty positions within a given range
+    this.addRandomAgents = function(n, range) {
+        var minX, maxX, minY, maxY;
+        if (range) {
+            minX = range[0];
+            maxX = minX + range[2];
+            minY = range[1];
+            maxY = minY + range[3];
+        } else {
+            minX = 0;
+            maxX = 0;
+            minY = this.width;
+            maxY = this.height;
+        }
+        
+        for (var i = 0; i < n; i++) {
+            // Find random empty position
+            while (true) {
+                var x = floor(random(minX, maxX));
+                var y = floor(random(minY, maxY));
+                
+                if (!this.sectors[y][x].occupant) {
+                    var agent = new Agent(this, x, y);
+                    this.agents.push(agent);
+                    this.sectors[y][x].occupant = agent;
+                    break;   
+                }
+            }
+        }
+        
+    };
+};
+
+/******************************************************
+ *      Set up simulation
+*******************************************************/
+
+var world = new World(66, 62);
+world.addNutrients(18, 44, 4, 0.55);
+world.addNutrients(45, 20, 4, 0.35);
+world.maximiseSugar();
+world.addRandomAgents(30, [10, 34, 20, 20]);
+
+/******************************************************
+ *      Display functions
+*******************************************************/
+
+// Draw a box showing data for a sector
+var drawMouseOverData = function(self, gridSize) {
+    var size = 90;
+    var x2 = self.x + gridSize * world.width - size - 5;
+    var y2 = self.y + gridSize * world.height - size - 5;
+    
+    var gridX = floor((mouseX - self.x) / gridSize);
+    var gridY = floor((mouseY - self.y) / gridSize);
+    
+    if (gridX > world.width - 1) {
+        gridX = world.width - 1;
+    }
+    if (gridY > world.height - 1) {
+        gridY = world.height - 1;
+    }
+    //println(gridX + " " + gridY);
+    var sector = world.sectors[gridY][gridX];
+
+    noFill();
+    stroke(0);
+    strokeWeight(1);
+    rect(self.x + gridX * gridSize, self.y + gridY * gridSize,
+         gridSize - gapSize - 1, gridSize - gapSize - 1);
+
+    // Shadow
+    fill(0, 0, 0, 100);
+    rect(x2 + 3, y2 + 3, size, size);
+    
+    // Box with sector colour
+    stroke(20);
+    fill(sugarColours[sector.sugar]);
+    rect(x2, y2, size, size);
+    
+    // Agent
+    if (sector.occupant) {
+        fill(agentColour);
+        noStroke();
+        var r = size / 2;
+        ellipse(x2 + r/2 + 10, y2 + size - r/2 - 10, r, r);
+    }
+    
+    // Text
+    fill(0, 0, 0);
+    textSize(11);
+    textAlign(LEFT, CENTER);
+    text("Sector: (" + gridX + ", " + gridY + ")", x2 + 4, y2 + 10);
+    text("Sugar: " + sector.sugar, x2 + 4, y2 + 22);
+    
+    if (sector.occupant) {
+        var agent = sector.occupant;
+        text("Sugar: " + agent.sugar, x2 + 4, y2 + 40);
+        text("Metabolism: " + agent.metabolicRate, x2 + 4, y2 + 52);
+        text("Vision: " + agent.vision, x2 + 4, y2 + 64);
+    }
+};
+
+// Draw the sugarscape world (2D grid of sugar intensities)
+var drawWorld = function(self) {
+    var gridSize = floor(min(self.width / world.width,
+                            self.height / world.height));
+
+    // Recentre
+    var x = self.x + (self.w - gridSize * world.width) / 2;
+    var y = self.y + (self.h - gridSize * world.height) / 2;
+    
+    noStroke();
+    
+    // Draw grid
+    for (var i = 0; i < world.width; i++) {
+        for (var j = 0; j < world.height; j++) {
+            var s = world.sectors[j][i].sugar;
+            fill(sugarColours[s]);
+            rect(self.x + i * gridSize, self.y + j * gridSize,
+                 gridSize - gapSize, gridSize - gapSize);
+        }
+    }
+    
+    // Draw agents
+    fill(agentColour);
+    for (var a in world.agents) {
+        var agent = world.agents[a];
+        var agentX = self.x + (agent.x + 0.5) * gridSize - gapSize/2;
+        var agentY = self.y + (agent.y + 0.5) * gridSize - gapSize/2;
+        ellipse(agentX, agentY, gridSize-1, gridSize-1);
+    }
+    
+    // If mouse over and paused show a small window with the 
+    if (self.mouseMovedOver && !running) {
+        drawMouseOverData(self, gridSize);
+    }
+};
+
+
+// Heading bar with basic information
+var drawTopBar = function(self) {
+    noStroke();
+    fill(255);
+    rect(self.x + 1, self.y + 1, self.width - 2, self.height - 2);
+    
+    var ty = self.y + self.height / 2;
+    fill(0);
+    textSize(12);
+    textAlign(LEFT, CENTER);
+    text("Time: " + world.time, self.x + 6, ty);
+    text("Agents: " + world.agents.length, self.x + 82, ty);
+};
+
+/******************************************************
+ *      GUI objects
+*******************************************************/
+
+var Window = function(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.width = w;
+    this.height = h;
+    this.mouseMovedOver = false;
+    var self = this;
+
+    this.draw = function() {
+        this.display(self);
+    };
+    
+    // Overide these functions
+    this.display = function(self) { };
+    
+    this.mouseOver = function() {
+        return mouseX >= x && mouseX <= x + w &&
+               mouseY >= y && mouseY <= y + h;
+    };
+};
+
+var GUI = function() {
+    this.backgroundColour = color(255, 255, 255);
+    this.elements = [];
+    
+    this.draw = function() {
+        background(this.backgroundColour);
+        
+        for (var el in this.elements) {
+            this.elements[el].draw();
+        }
+    };
+    
+    this.mouseMove = function() {
+        for (var el in this.elements) {
+            var element = this.elements[el];
+            element.mouseMovedOver = element.mouseOver();
+        }
+    };
+};
+
+/******************************************************
+ *      Set up display and run
+*******************************************************/
+var screen = new GUI();
+screen.backgroundColour = color(0, 0, 0);
+
+var sugarscapeScreen = new Window(0, 22, 400, 380);
+sugarscapeScreen.display = drawWorld;
+
+var topBar = new Window(0, 0, 400, 20);
+topBar.display = drawTopBar;
+
+screen.elements.push(sugarscapeScreen);
+screen.elements.push(topBar);
+
+var draw = function() {
+    screen.draw();
+    if (running) {
+        world.update();   
+    }
+};
+
+var keyPressed = function() {
+    if (keyCode === 32) { running = !running; }
+};
+
+var mouseMoved = function() {
+    screen.mouseMove();
+};

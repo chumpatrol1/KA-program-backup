@@ -1,0 +1,19 @@
+var r = 100;
+var cx = width / 2;
+var cy = height / 2;
+
+
+noFill();
+stroke(200, 0, 0);
+strokeWeight(3);
+
+var draw = function() {
+    background(255);
+    ellipse(cx, cy, r, r);
+    
+    for (var theta = 0; theta < 360; theta += 60) {
+        var x = cx + r * cos(theta);
+        var y = cy + r * sin(theta);
+        ellipse(x, y, r, r);
+    }
+};

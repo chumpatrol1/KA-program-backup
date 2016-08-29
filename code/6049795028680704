@@ -1,0 +1,610 @@
+/*********************************************************
+ * Build a Voronoi diagram using Fortune's algorithm.
+**********************************************************/
+
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+
+var serifFont = createFont("Times", 15);
+var sites = [[40, 50], [160, 140]];
+
+/*********************************************************
+ *       Site Object
+ * Represents an initial point on the diagram.
+ * Has methods to draw a parabola using the site
+ * as a focus and the sweepline as a directrix.
+*********************************************************/
+{
+var sortVertices = function(a, b) { return a.angle - b.angle; };
+    
+var Site = function(focus) {
+    this.x = focus[0];
+    this.x2 = this.x * this.x;
+    this.y = focus[1];
+    
+    // Array of vertices that define the cell
+    this.cell = [];
+ 
+    // Colour of the cell associated with this site
+    /*
+    this.colour = color(
+        80 + random(100),
+        120 + random(100),
+        150 + random(100)
+    );
+    */
+    
+    this.colour = color(
+        100 + random(40),
+        130 + random(40),
+        50 + random(40)
+    );
+    
+};
+
+Site.prototype.orderCellVertices = function() {
+    var vertices = this.cell;
+    this.numVertices = vertices.length;
+    var vertex;
+    
+    this.minX = vertices[0].x;
+    this.maxX = vertices[0].x;
+    this.minY = vertices[0].y;
+    this.maxY = vertices[0].y;
+    
+    for (var i = 0; i < this.numVertices; i++) {
+        vertex = vertices[i];
+        vertex.angle = atan2(vertex.y - this.y, vertex.x - this.x);
+        
+        if (vertex.x > this.maxX) {
+            this.maxX = vertex.x;
+        } else if (vertex.x < this.minX) {
+            this.minX = vertex.x;
+        }
+        if (vertex.y > this.maxY) {
+            this.maxY = vertex.y;
+        } else if (vertex.y < this.minY) {
+            this.minY = vertex.y;
+        }
+    }
+    
+    vertices.sort(sortVertices);
+};
+
+Site.prototype.mouseOver = function() {
+    // Bounding box test
+    if (mouseX <= this.minX || mouseX >= this.maxX ||
+        mouseY <= this.minY || mouseY >= this.maxY) {
+        return false;
+    }
+    
+    var p2, cross, sign;
+    var p1 = this.cell[0];
+    
+    for (var i = this.cell.length; i--; ) {
+        p2 = this.cell[i];
+        cross = Math.sign((p2.x - p1.x) * (mouseY - p1.y) - (p2.y - p1.y) * (mouseX - p1.x));
+        if (!sign) {
+            sign = cross;
+        } else if (cross !== sign) {
+            return false;
+        }
+        p1 = p2;
+    }
+
+    return true;
+};
+
+Site.prototype.draw = function(selected, n) {
+    //stroke(this.colour);
+    stroke(0);
+    fill(selected ? RED : this.colour);
+    strokeWeight(2);
+    
+    beginShape();
+    for (var i = 0; i < this.numVertices; i++) {
+        vertex(this.cell[i].x, this.cell[i].y);
+    }
+    endShape();
+    
+    /*
+    Draw vertices
+    stroke(GREEN);
+    strokeWeight(6);
+    this.forEach(function(p) {
+        point(p.x, p.y);
+    });
+    */
+    
+    // Draw sites
+    strokeWeight(5);
+    stroke(0);
+    //point(this.x, this.y);
+    fill(0);
+    text(n, this.x, this.y);
+};
+}
+/*********************************************************
+ *          Node object
+ * Represents a node in the binary tree
+ * Internal nodes represents breakpoint between
+ * two arcs in the beachline (left and right).
+ * Leaf nodes point to a parabola site and
+ * represent an arc in the beachline.
+*********************************************************/
+{
+var Node = function() {
+	if (arguments.length === 1) {
+	    // Make an arc
+	    this.site = arguments[0];
+	} else {
+	    // Make a breakpoint with the parameters as children
+	    this.setChild('left', arguments[0]);
+	    this.setChild('right', arguments[1]);
+	}
+};
+
+Node.prototype.setChild = function(dir, child) {
+    this[dir] = child;
+    child.parent = this;
+};
+
+// Find the arc to the left of this breakpoint
+Node.prototype.getLeftArc = function() {
+    var node = this.left;
+	while (!node.site) {
+	    node = node.right;
+	}
+	return node;
+};
+
+Node.prototype.getRightArc = function() {
+    var node = this.right;
+	while (!node.site) {
+	    node = node.left;
+	}
+	return node;
+};
+
+Node.prototype.getParent = function(dir) {
+    var parent = this.parent;
+	var parentLast = this;
+	
+	while (parent[dir] === parentLast) { 
+		if (!parent.parent) { return; }
+		parentLast = parent;
+		parent = parent.parent; 
+	}
+	
+	return parent;
+};
+
+Node.prototype.getY = function(x, y) {
+    var d = this.site.y - y;
+    var a = 0.5 / d;
+    return a * x * x - 2 * a * this.site.x * x + a * this.site.x2 + y + 0.5 * d;
+};
+
+Node.prototype.finishEdge = function() {
+    var edge = this.edge;
+    if (edge) {
+        var x = edge.dx < 0 ?
+            max(width, edge.start.x + 10) :
+            min(0, edge.start.x - 10);
+        
+        var p = { x: x, y: edge.getY(x) };
+        edge.end = p;
+        
+        // Add vertex to cell
+        edge.siteLeft.cell.push(p);
+        edge.siteRight.cell.push(p);
+    }
+    
+	if (!this.left.site) { this.left.finishEdge(); }
+	if (!this.right.site) { this.right.finishEdge(); }
+};
+}
+/*********************************************************
+ *          Edge object
+ * Represents an edge in Voronoi diagram
+ * Edges are created whenever a breakpoint is created
+ * They can be ended when a breakpoint is removed.
+*********************************************************/
+{
+var Edge = function(start, siteLeft, siteRight) {
+    this.start = start;
+    this.siteLeft = siteLeft;
+    this.siteRight = siteRight;
+    
+    // Direction vector
+    this.dx = this.siteLeft.y - this.siteRight.y;
+    this.dy = this.siteRight.x - this.siteLeft.x;
+
+    // Constant term in line equation
+    // y - y1 = (dy / dx)(x - x1) rearranged to
+    //  dx(y) = dy(y) - dy(x1) + dx(y1)
+    this.c = start.x * this.dy - start.y * this.dx;
+    
+    // TODO: fix for dy = 0
+    this.grad = this.dy / this.dx;
+};
+
+Edge.prototype.getY = function(x) {
+    return this.start.y + this.grad * (x - this.start.x);
+};
+}
+/*********************************************************
+ *          Voronoi object
+ * Constructs the cells for a Voronoi diagram.
+*********************************************************/
+{
+var sortSites = function(a, b) {
+    return b[1] - a[1];
+};
+
+var sortEvents = function(a, b) {
+    return b.site.y - a.site.y;
+};
+
+var Voronoi = function(sites) {
+    this.events = [];
+	this.edges = [];
+    this.sites = [];
+    
+    sites.sort(sortSites);
+    
+    // Add each site to the event queue
+    // Add a cell for each site
+    var site;
+    for (var i = 0; i < sites.length; i++) {
+        // Convert array of coordinates into a site object
+        site = new Site(sites[i]);
+        this.sites.push(site);
+        
+		this.events.push({
+		    site: site,
+		    newArc: true
+		});
+	}
+};
+
+Voronoi.prototype.draw = function() {
+    // Draw sites
+    for (var i = 0; i < this.sites.length; i++) {
+        this.sites[i].draw(this.sites[i] === this.selectedSite, i);
+    }
+};
+
+Voronoi.prototype.compute = function() {
+	while (this.events.length) {
+	    var event = this.events.pop();
+        this.sweepline = event.site.y;
+        
+        // Process event
+        if (event.newArc) {
+            this.insertArc(event.site);
+        } else {
+            this.removeArc(event);
+        }
+	}
+	
+	this.root.finishEdge();
+    for (var i = 0; i < this.edges.length; i++) {
+	    if (this.edges[i].neighbour) {
+	        this.edges[i].start = this.edges[i].neighbour.end;
+	    }
+    }
+    
+    // Sort cell vertices
+    for (var i = 0; i < this.sites.length; i++) {
+        this.sites[i].orderCellVertices();
+    }
+};
+
+// Add a new arc with its focus at the given site
+Voronoi.prototype.insertArc = function(site) {
+    // Create a new arc based on this site
+    var newArc = new Node(site);
+    
+    // No need to do anything further with the first parabola
+    if (!this.root) {
+        this.root = newArc;
+        return;
+    }
+    
+    // Find leaf representing the arc above the new parabola
+    var existingArc = this.getArcAbovePointX(site.x);
+    
+    // Split existing arc into two pieces
+    var arc1 = new Node(existingArc.site);
+    var arc2 = new Node(existingArc.site);
+    var breakpoint = new Node(newArc, arc2);
+
+    // Convert existing arc node to a breakpoint
+    existingArc.setChild('left', arc1);
+    existingArc.setChild('right', breakpoint);
+    
+    this.removeCircleEvent(existingArc);
+	
+	// Add a new edge
+	var p = { x: site.x, y: existingArc.getY(site.x, this.sweepline) };
+    var leftEdge = new Edge(p, existingArc.site, site);
+	var rightEdge = new Edge(p, site, existingArc.site);
+	
+	leftEdge.neighbour = rightEdge;
+	this.edges.push(leftEdge);
+	existingArc.edge = rightEdge;
+	breakpoint.edge = leftEdge;
+	
+	existingArc.site = false;
+	
+	// Check for new circle events
+    this.checkForCircleEvent(arc1);
+	this.checkForCircleEvent(arc2);
+};
+
+// Search binary tree for parabola covering given x-position
+Voronoi.prototype.getArcAbovePointX = function(x) {
+	var node = this.root;
+	var p1, p2, d1, d2, a1, a2, a, b, c, discriminant, testX, x1, x2;
+	
+	// While we are not at a leaf in the tree (representing an arc).
+	while (!node.site) {
+	    p1 = node.getLeftArc().site;
+        p2 = node.getRightArc().site;
+    
+        // Coeffiecients for parabola equation in standard form
+        d1 = p1.y - this.sweepline;
+        d2 = p2.y - this.sweepline;
+        
+        a1 = 0.5 / d1;
+        a2 = 0.5 / d2;
+        
+        a = a1 - a2;
+        b = 2 * (a2 * p2.x - a1 * p1.x);
+        c = a1 * p1.x2 - a2 * p2.x2 + 0.5 * (d1 - d2);
+    
+        discriminant = b * b - 4 * a * c;
+        a *= 2;
+        x1 = (-b + sqrt(discriminant)) / a;
+        x2 = (-b - sqrt(discriminant)) / a;
+        testX = p1.y > p2.y ? max(x1, x2) : min(x1, x2);
+		node = testX > x ? node.left : node.right;
+	}
+	
+	return node;
+};
+
+Voronoi.prototype.removeArc = function(event) {
+    var arc = event.arc;
+    var leftBreak = arc.getParent('left');
+    var rightBreak = arc.getParent('right');
+	var leftArc = leftBreak.getLeftArc();
+	var rightArc = rightBreak.getRightArc();
+
+	// Get point where the arc disappears
+	var x = event.site.x;
+	var p = { x: x, y: arc.getY(x, this.sweepline) };
+	
+	// Add a vertex to each of the cells
+    arc.site.cell.push(p);
+    leftArc.site.cell.push(p);
+	rightArc.site.cell.push(p);
+	
+	// Add an end point to the two breakpoints that have joined
+
+    leftBreak.edge.end = p;
+	rightBreak.edge.end = p;
+    
+    this.removeCircleEvent(leftArc);
+	this.removeCircleEvent(rightArc);
+	
+	// Find the higher breakpoint
+	var higher;
+	var parent = arc;
+	while (parent !== this.root){
+		parent = parent.parent;
+		if (parent === leftBreak) { higher = leftBreak; }
+		if (parent === rightBreak) { higher = rightBreak; }
+	}
+	
+	higher.edge = new Edge(p, rightArc.site, leftArc.site);
+	this.edges.push(higher.edge);
+
+    // Remove leaf from tree and reorder
+    var parent = arc.parent;
+    var gparent = parent.parent;
+    var d1, d2;
+    
+	if (parent.left === arc) {
+	    d2 = 'right';
+	    d1 = gparent.left === parent ? 'left' : 'right';
+	} else {
+	    d2 = 'left';
+	    d1 = gparent.left === parent ? 'left' : 'right';
+	}
+	
+	// Set new parents
+	gparent.setChild(d1, parent[d2]);
+	
+	this.checkForCircleEvent(leftArc);
+	this.checkForCircleEvent(rightArc);
+};
+
+Voronoi.prototype.checkForCircleEvent = function(b) {
+    var leftBreak = b.getParent('left');
+    var rightBreak = b.getParent('right');
+    
+    if (!leftBreak || !rightBreak) { return; }
+    
+	var a = leftBreak.getLeftArc();
+	var c = rightBreak.getRightArc();
+	
+	if (!a || !c || a.site === c.site) { return; }
+	
+	//println(a + " " + b + " " + c);
+	
+	// Check whether edges of breakpoints intersect
+	var e1 = leftBreak.edge;
+	var e2 = rightBreak.edge;
+	var den = e1.dx * e2.dy - e1.dy * e2.dx;
+	
+	// Lines are parallel
+	if (!den) { return; }
+	
+	// Center circle at intersection point
+	var ix = (e2.c * e1.dx - e1.c * e2.dx) / den;
+	var iy = (e2.c * e1.dy - e1.c * e2.dy) / den;
+	
+	// Test whether edge is in the wrong direction
+	if ((ix - e1.start.x) * e1.dx > 0 || (iy - e1.start.y) * e1.dy > 0 ||
+	    (ix - e2.start.x) * e2.dx > 0 || (iy - e2.start.y) * e2.dy > 0) {
+		return;
+	}
+
+	var radius = dist(ix, iy, a.site.x, a.site.y);
+	
+	//println(radius);
+	//println(ix + " " + iy);
+	
+	// Convert center to lower edge
+	iy += radius;
+	
+	// Ignore circle if the sweep line has passed
+	if (iy <= this.sweepline) { return; }
+	
+	// Create new event
+	var event = {
+	    site: { x: ix, y: iy },
+	    radius: radius,
+	    arc: b
+	};
+	
+	b.circleEvent = event;
+	this.events.push(event);
+	this.events.sort(sortEvents);
+};
+
+// Remove a circle event associated with the given arc
+Voronoi.prototype.removeCircleEvent = function(arc) {
+    //println("Remove circle event " + arc);
+    if (arc.circleEvent) {
+        //println("Removed");
+	    var index = this.events.indexOf(arc.circleEvent);
+        if (index > -1) { this.events.splice(index, 1); }
+        arc.circleEvent = null;
+	}
+};
+
+Voronoi.prototype.mouseOver = function() {
+    for (var i = this.sites.length; i--;) {
+        if (mouseY < this.sites[i].maxY && this.sites[i].mouseOver()) {
+            this.selectedSite = this.sites[i];
+            break;
+        }
+    }
+};
+}
+/*********************************************************
+ *      Create object
+*********************************************************/
+
+var voronoi = new Voronoi(sites);
+var ms = millis();
+voronoi.compute();
+//println(millis() - ms);
+
+var mode = 'voronoi';
+//var mode = 'circle';
+//var mode = 'connecting';
+//var mode = 'other';
+
+textFont(serifFont, 20);
+
+draw = function() {
+    background(BACKGROUND);
+    
+    stroke(GREEN);
+    strokeWeight(2);
+    line(sites[0][0], sites[0][1], sites[1][0], sites[1][1]);
+    
+    // Midpoint
+    var mx = (sites[0][0] + sites[1][0]) * 0.5;
+    var my = (sites[0][1] + sites[1][1]) * 0.5;
+    
+    // Another point
+    var px = mx + (sites[0][1] - sites[1][1]) * 0.5;
+    var py = my - (sites[0][0] - sites[1][0]) * 0.5;
+    
+    line(sites[0][0], sites[0][1], px, py);
+    line(sites[1][0], sites[1][1], px, py);
+    
+    // Draw edges
+    strokeWeight(2);
+    stroke(PINK);
+    noFill();
+    
+    if (mode === 'voronoi') {
+        for (var i = 0; i < voronoi.edges.length; i++) {
+            line(voronoi.edges[i].start.x, voronoi.edges[i].start.y,
+                 voronoi.edges[i].end.x, voronoi.edges[i].end.y);
+        }
+    } else if (mode === 'circle') {
+        for (var i = 0; i < voronoi.sites.length; i++) {
+            ellipse(voronoi.sites[i].x, voronoi.sites[i].y, 75, 75);
+        }
+    } else if (mode === 'connecting') {
+        for (var i = 0; i < voronoi.sites.length - 1; i++) {
+            var site1 = voronoi.sites[i];
+            for (var j = 1; j < voronoi.sites.length; j++) {
+                var site2 = voronoi.sites[j];
+                var dx = (site2.x - site1.x) * 2;
+                var dy = (site2.y - site1.y) * 2;
+                line(site1.x - dx, site1.y - dy, site2.x + dx, site2.y + dy);
+            }
+        }
+    } else if (mode === 'other') {
+        var p1 = voronoi.sites[0];
+        var p2 = voronoi.sites[1];
+        var dx = p2.x - p1.x;
+        var dy = p2.y - p1.y;
+        var mx = (p1.x + p2.x) / 2;
+        var my = (p1.y + p2.y) / 2;
+        var angle = atan2(dy, dx);
+        for (var i = 0.5; i < 4; i++) {
+            line(mx, my, mx + 400 * cos(angle + i * 90), my + 400 * sin(angle + i * 90));
+        }
+    }
+    
+    // Draw sites
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(BLUE);
+    
+    for (var i = 0; i < voronoi.sites.length; i++) {
+        ellipse(voronoi.sites[i].x, voronoi.sites[i].y, 9, 9);
+    }
+
+    fill(GREEN);
+    ellipse(mx, my, 9, 9);
+    ellipse(px, py, 9, 9);
+    
+    fill(0);
+    text("A", sites[1][0] - 20, sites[1][1] + 7);
+    text("B", sites[0][0] + 7, sites[0][1] + 7);
+    text("M", mx - 29, my + 9);
+    text("P", px + 7, py + 9);
+    
+    // Frame
+    noFill();
+    strokeWeight(1);
+    stroke(0);
+    rect(0, 0, 200, 180);
+};
+

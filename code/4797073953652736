@@ -1,0 +1,624 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var GREEN_ALPHA = color(28, 173, 123, 128);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+
+var pointR = 10;
+var skinR = 6;
+var CONTROL_POINT_SIZE = 12;
+var MAX_RESOLUTION = 200;
+var RESOLUTION = 40;
+
+var toolbarWidth = 120;
+var toolbarHeight = 180;
+
+var showing = {
+    'Joints': true,
+    'Skeleton': true,
+    'Skin points': true,
+    Curve: true,
+    Fill: true
+};
+
+var sliders = [];
+
+/***************************************************************
+ * GUI Slider to vary parameters
+****************************************************************/
+
+var Slider = function(x, y, width, min_v, max_v, current_v) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.held = false;
+    
+    this.ballR = 8;
+    this.ballD = this.ballR * 2;
+    
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        noStroke();
+        fill(180);
+        rect(this.x-8, this.y - this.h/2, this.width + 16, this.h, 8);
+    
+        strokeWeight(1);
+        stroke(0, 0, 0, 120);
+        fill(180, 180, 250);
+        ellipse(this.bx, this.y, this.ballD, this.ballD);
+        noStroke();
+        fill(255, 255, 255, 150);
+        ellipse(this.bx - this.ballR * 0.3, this.y - this.ballR * 0.3, 5, 5);
+
+    };
+    
+    this.selected = function() {
+        this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + round((x - this.x) * this.scale);
+            return true;
+        }
+    };
+  
+    // This is used if you want to update the value in a way other
+    // than using the slider (but want the slider to update).
+    this.update = function(d) {
+        this.val = constrain(this.val + d, this.min, this.max);
+        this.bx = (this.val - this.min) / this.scale + this.x;
+    };
+};
+
+/********************************************************
+ *  GUI Button
+*********************************************************/
+
+var Button = function(x, y, w, h, name, clickFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultCol = color(220, 220, 220, 250);
+    this.highlightCol = color(250, 50, 50, 250);
+    this.showing = true;
+    this.box = this.h - 6;
+    this.clickFunction = clickFunction;
+};
+
+Button.prototype.mouseover = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+Button.prototype.click = function() {
+    if (this.clickFunction) {
+        this.clickFunction();
+    }
+};
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    if (this.mouseover() || this.selected) {
+        fill(this.defaultCol);
+    } else {
+        noFill();
+    }
+    strokeWeight(1);
+    stroke(200);
+    rect(this.x, this.y - 1, this.w, this.h + 3, 8);
+    
+    fill(10);
+    textSize(15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, name);
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.click = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    noStroke();
+    if (this.mouseover() || this.selected) {
+        fill(this.defaultCol);
+    } else {
+        noFill();
+    }
+    rect(this.x, this.y, this.w, this.h + 1, 5);
+    
+    fill(10);
+    textSize(13);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.x + 4, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.x + 4, this.y + 3, this.x + this.box + 4, this.y + 3 + this.box);
+        line(this.x + this.box + 5, this.y + 3, this.x + 5, this.y + 3 + this.box);
+    }
+};
+
+/*********************************************************
+ * SkinPoint
+ * A non-draggable point with a position and colour.
+*********************************************************/
+
+var SkinPoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || GREEN;
+    this.r = 5;
+};
+
+SkinPoint.prototype.draw = function() {
+    fill(this.color);
+    ellipse(this.x, this.y, this.r, this.r);
+};
+
+/*********************************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+*********************************************************/
+
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.dragging = false;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseover()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    //if (this.selected) {
+    //    fill(PINK);
+    //} else {
+        fill(this.color);
+    //}
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+/*********************************************************
+ *      Joint
+ * A draggable point whose movement affects the movement
+ * of other points.
+*********************************************************/
+
+var Joint = function(x, y, thickness) {
+    DraggablePoint.call(this, x, y);
+    this.thickness = thickness || 30;
+    
+    this.connectedTo = [];
+};
+
+Joint.prototype = Object.create(DraggablePoint.prototype);
+
+// Draw joint and skin points
+Joint.prototype.drawSkin = function() {
+    var skinPoints;
+    var d = this.thickness;
+    
+    if (this.connectTo.length === 0) {
+        skinPoints = [[0, -d], [d, 0], [0, d], [-d, 0]];
+    } else if (this.connectTo.length === 1) {
+        var that = this.connectedTo[0];
+        var angle = atan2(this.y - that.y, this.x - that.x);
+        skinPoints = [
+            [d * cos(angle), d * sin(angle)],
+            [-d * sin(angle), d * cos(angle)],
+            [d * sin(angle), -d * cos(angle)]
+        ];
+    }
+    
+    
+    strokeWeight(1);
+    for (var i = 0; i < skinPoints.length; i++) {
+        var p = skinPoints[i];
+        
+        stroke(GREY);
+        line(this.x, this.y, this.x + p[0], this.y + p[1]);
+        
+        fill(GREEN);
+        noStroke();
+        ellipse(this.x + p[0], this.y + p[1], skinR, skinR);
+    }
+};
+
+// Connect this joint to that joint
+Joint.prototype.connectTo = function(that) {
+    this.connectedTo.push(that);
+    that.connectedTo.push(this);
+};
+
+// Move this joint and the connected ones that haven't yet moved
+Joint.prototype.move = function(dx, dy) {
+    if (this.moved) { return; }
+    
+    if (dx === undefined) {
+        dx = mouseX - pmouseX;
+        dy = mouseY - pmouseY;
+    }
+    
+    this.x += dx;
+    this.y += dy;
+    this.moved = true;
+    
+    for (var i = 0; i < this.connectedTo.length; i++) {
+        this.connectedTo[i].move(dx, dy);
+    }
+    this.moved = false;
+};
+
+/*********************************************************
+ *      Pivot Joint
+ * A draggable point whose movement affects the movement
+ * of other points.
+*********************************************************/
+
+var PivotJoint = function(x, y, pivot, thickness) {
+    Joint.call(this, x, y, thickness);
+    this.pivot = pivot;
+    this.length = dist(x, y, pivot.x, pivot.y);
+};
+
+PivotJoint.prototype = Object.create(Joint.prototype);
+
+// Move this joint and the connected ones that haven't yet moved
+PivotJoint.prototype.move = function(dx, dy) {
+    if (this.moved) { return; }
+    
+    if (dx === undefined) {
+        var angle = atan2(mouseY - this.pivot.y, mouseX - this.pivot.x);
+        dx = this.pivot.x + this.length * cos(angle) - this.x;
+        dy = this.pivot.y + this.length * sin(angle) - this.y;
+    }
+    
+    this.x += dx;
+    this.y += dy;
+    this.moved = true;
+    
+    for (var i = 0; i < this.connectedTo.length; i++) {
+        if (this.connectedTo[i] !== this.pivot) {
+            this.connectedTo[i].move(dx, dy);   
+        }
+    }
+    this.moved = false;
+};
+
+
+/*********************************************************
+ *  Project mouseX, mouseY onto a line from p1 to p2
+ *  Used to figure out where new points can be added
+*********************************************************/
+
+var projectMouseOntoLine = function(p1, p2) {
+    // Project (mouseX, mouseY) onto line
+    var lx = p1.x - p2.x;
+    var ly = p1.y - p2.y;
+    var mx = mouseX - p2.x;
+    var my = mouseY - p2.y;
+    
+    var w = (mx * lx + my * ly ) / (lx * lx + ly * ly);
+    if (w > 0 && w < 1) {
+        var x = p1.x * w + p2.x * (1 - w);
+        var y = p1.y * w + p2.y * (1 - w);
+        return [x, y];
+    }
+    return false;
+};
+
+/*********************************************************
+ *      JointedShape
+ * A set of control arms with skin points around it
+ * A curve is drawn between the points
+*********************************************************/
+
+var JointedShape = function(x, y) {
+    
+    // First joint is free floating
+    this.joints = [new Joint(x, y)];
+    
+    this.skinPoints = [];
+    
+    this.selectedPoint = false;
+    this.draggingPoint = false;
+    this.addPointCoord = false;
+    this.resolution = 0;
+    
+    
+    // Add a joint at position (x, y),
+    // joined to joint with index n
+    this.addJoint = function(x, y, n, type) {
+        var joint;
+        if (type === 'pivot') {
+            joint = new PivotJoint(x, y, this.joints[n]);
+        } else {
+            joint = new Joint(x, y);
+        }
+        joint.connectTo(this.joints[n]);
+        this.joints.push(joint);
+    };
+    
+    this.draw = function() {
+        // Points on the surface of the skin
+        if (showing['Skin points']) {
+            this.drawSkinPoints();
+        }
+        
+        // Lines between joints
+        if (showing.Skeleton) {
+            this.drawSkeleton();
+        }
+        
+        // Draggable points
+        if (showing.Joints) {
+            this.drawJoints();
+        }
+    };
+    
+    this.drawSkeleton = function() {
+        stroke(BLUE);
+        strokeWeight(2);
+        
+        var n = this.joints.length;
+        for (var i = 0; i < n; i++) {
+            var p1 = this.joints[i];
+            for (var j = 0; j < p1.connectedTo.length; j++) {
+                var p2 = p1.connectedTo[j];
+                line(p1.x, p1.y, p2.x, p2.y);
+            }
+        }
+    };
+    
+    this.drawJoints = function() {
+        for (var i = 0; i < this.joints.length; i++) {
+            this.joints[i].draw();
+        }
+    };
+    
+    this.drawCurve = function() {
+        stroke(GREEN);
+        strokeWeight(4);
+        noFill();
+
+        if (showing.Fill) {
+            fill(GREEN_ALPHA);
+        } else {
+            noFill();
+        }
+        
+        beginShape();
+        for (var i = 0; i < this.curvePoints.length; i++) {
+            var p = this.curvePoints[i];
+            vertex(p[0], p[1]);
+        }
+        vertex(this.curvePoints[0][0], this.curvePoints[0][1]);
+        endShape();
+    };
+    
+    this.drawSkinPoints = function() {
+        for (var i = 0; i < this.joints.length; i++) {
+            this.joints[i].drawSkin();
+        }
+    };
+    
+    // Select a point for editing
+    this.mouseReleased = function() {
+        if (this.draggingPoint) {
+            this.draggingPoint.dragging = false;
+            this.draggingPoint = false;
+        }
+        
+        for (var i = 0; i < this.joints.length; i++) {
+            if (this.joints[i].mouseover()) {
+                this.selectedPoint = i;
+                this.joints[i].selected = true;
+            } else {
+                this.joints[i].selected = false;
+            }
+        }
+        
+    };
+    
+    // Select a point for dragging
+    this.mousePressed = function() {
+        for (var i = 0; i < this.joints.length; i++) {
+            if (this.joints[i].mouseover()) {
+                this.draggingPoint = this.joints[i];
+            }
+        }
+    };
+    
+    // Move a dragged point
+    this.mouseDrag = function() {
+        if (this.draggingPoint !== false) {
+            this.draggingPoint.move();
+        }
+        this.updateCurvePoints();
+    };
+    
+    // Check for mouseover a line
+    this.mouseMove = function() {
+        if (this.draggingPoint) { return; }
+        
+        this.addPointCoord = false;
+        var n = this.joints.length;
+
+        for (var i = 0; i < n; i++) {
+            var p1 = this.joints[i];
+            if (dist(mouseX, mouseY, p1.x, p1.y) <= CONTROL_POINT_SIZE) {
+                return;
+            }
+        }
+
+        for (var i = 0; i < n; i++) {
+            var p1 = this.joints[i];
+            var p2 = this.joints[(i + 1) % n];
+            var d = projectMouseOntoLine(p1, p2);
+            
+            if (d) {
+                var x = d[0];
+                var y = d[1];
+                if (dist(mouseX, mouseY, x, y) < 5) {
+                    this.addPointCoord = [x, y, i];
+                    break;
+                }
+            }
+        }
+    };
+};
+
+
+/********************************************************
+ * Creation of objects
+*********************************************************/
+
+var skeleton = new JointedShape(100, 300);
+skeleton.addJoint(180, 250, 0, 'pivot');
+skeleton.addJoint(300, 250, 1);
+
+var createButtons = function() {
+    var buttons = [];
+    var x = 12;
+    var y = 55;
+    var w = 102;
+    var h = 15;
+    
+    for (var opt in showing) {
+        buttons.push(new CheckBox(x, y, w, h, opt));
+        y += 20;
+    }
+    
+    return buttons;
+};
+
+var buttons = createButtons();
+sliders = [new Slider(23, 34, 80, 0, 5, 0)];
+
+/********************************************************
+ *  Draw functions
+*********************************************************/
+
+var drawGUI = function() {
+    noStroke();
+    fill(240, 240, 240, 200);
+    rect(4, 4, toolbarWidth, toolbarHeight, 8);
+    
+    textAlign(CENTER, CENTER);
+    fill(10);
+    var s = sliders[0];
+    text("Subdivisions: " + s.val,  s.x + s.width / 2, s.y - 18);
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].draw();
+    }
+    
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+/********************************************************
+ *  Main loop
+*********************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    skeleton.draw();
+    drawGUI();
+};
+
+/********************************************************
+ *  Event handling
+*********************************************************/
+
+mousePressed = function() {
+    skeleton.mousePressed();
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].selected();
+    }
+};
+
+mouseReleased = function() {
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].held = false;
+    }
+    
+    // Clicking a button won't affect the curve
+    var buttonClicked = false;
+    for (var b = 0; b < buttons.length; b++) {
+        if (buttons[b].mouseover()) {
+            buttons[b].click();
+            buttonClicked = true;
+        }
+    }
+    
+    if (!buttonClicked) {
+        skeleton.mouseReleased();   
+    }
+};
+
+mouseMoved = function() {
+    skeleton.mouseMove();
+};
+
+mouseDragged = function() {
+    skeleton.mouseDrag();
+    skeleton.mouseMove();
+    
+    for (var s = 0; s < sliders.length; s++) {
+        if (sliders[s].drag()) {
+            skeleton.resolution = sliders[0].val;
+            skeleton.updateCurvePoints();
+        }
+    }
+};

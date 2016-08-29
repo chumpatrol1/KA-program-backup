@@ -1,0 +1,39 @@
+
+// Center coordinates
+var cx = 160;
+var cy = 160;
+
+// Number of points
+var N = 17;
+
+// How many pixels in 1 unit
+var _scale = 50;
+
+// Starting angle
+var angle = 0;
+
+// Find points for exterior
+var points = [];
+for (var n = 1; n <= N; n++) {
+    // Radius of spiral for this point
+    var r = sqrt(n);
+    
+    // Find point on spiral
+    var x = cx + r * _scale * cos(angle);
+    var y = cy - r * _scale * sin(angle);
+    points.push([x, y]);
+    
+    // Add angle of triangle at the center
+    angle += atan(1 / r);
+}
+
+// Draw spiral
+strokeWeight(1);
+stroke(10, 10, 40);
+noFill();
+
+for (var i = 0; i < points.length - 1; i++) {
+    var p1 = points[i];
+    var p2 = points[i + 1];
+    triangle(cx, cy, p1[0], p1[1], p2[0], p2[1]);
+}

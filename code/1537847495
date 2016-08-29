@@ -1,0 +1,137 @@
+/********************************************************
+ * Click and drag the bar magnet over the iron filings.
+ * Use the left and right arrow keys to change the 
+ * angle of the magnet.
+ * 
+ * TO DO:
+ * Filings attracted to magnet
+ * More distant filings less influence by magnet
+ * Add multiple magnets
+*********************************************************/
+
+// Calculate the angle of the magnet field at position x, y
+var calculateField = function(x, y, magnet) {
+    var dx = x - magnet.x1;
+    var dy = y - magnet.y1;
+    var theta1 = atan2(dy, dx) + 90;
+    var f1 = magnet.strength / sqrt(dx*dx + dy*dy);
+
+    dx = x - magnet.x2;
+    dy = y - magnet.y2;
+    var theta2 = atan2(dy, dx) - 90;
+    var f2 = magnet.strength / sqrt(dx*dx + dy*dy);
+    
+    var mx = f1 * cos(theta1) + f2 * cos(theta2);
+    var my = f1 * sin(theta1) + f2 * sin(theta2);
+    return atan2(my, mx);
+};
+
+var Magnet = function() {
+    this.x = 170;
+    this.y = 230;
+    this.width = 40;
+    this.height = 100;
+    this.angle = 0;
+    this.strength = 100;
+    
+    this.draw = function() {
+        var w = this.width/2;
+        var h = this.height/2;
+        
+        translate(this.x, this.y);
+        rotate(this.angle);
+        
+        noStroke();
+        fill(0, 0, 0, 100);
+        rect(3-w, 3-h, this.width, this.height);
+        
+        strokeWeight(1);
+        stroke(0, 0, 0);
+        fill(200, 20, 20);
+        rect(-w, -h, this.width, h);
+        fill(20, 20, 200);
+        rect(-w, 0, this.width, h);
+        
+        textSize(22);
+        textAlign(CENTER, CENTER);
+        fill(255, 255, 255);
+        text("N", 0, -this.height/4);
+        text("S", 0, this.height/4);
+        
+        resetMatrix();
+    };
+    
+    this.drawField = function(resolution) {        
+        // Boundary for magnet
+        var mx1 = this.x - this.width/2;
+        var mx2 = this.x + this.width/2;
+        var my1 = this.y - this.height/2;
+        var my2 = this.y + this.height/2;
+        var x2, y2, angle;
+        
+        for (var theta=-180; theta < 180; theta += 10) {
+            var x1 = this.x1 - resolution * sin(theta);
+            var y1 = this.y1 - resolution * cos(theta);
+            line(this.x1, this.y1, x1, y1);
+            
+            var c = 0;
+            while (c < 200) {
+                angle = calculateField(x1, y1, this);
+                x2 = x1 + resolution * sin(angle);
+                y2 = y1 - resolution * cos(angle);
+                
+                line(x1, y1, x2, y2);
+                x1 = x2;
+                y1 = y2;
+                
+                //if (x1 > mx1 && x1 < mx2 && y1 > my1 && y2 < my2) {
+                //    break;
+                //}
+                c++;
+            }
+        }
+    };
+    
+    this.updatePolePositions = function() {
+        var s = (this.height / 2) * sin(this.angle);
+        var c = (this.height / 2) * cos(this.angle);
+
+        this.x1 = this.x + s;
+        this.x2 = this.x - s;
+        this.y1 = this.y - c;
+        this.y2 = this.y + c;
+    };
+    
+    this.rotate = function(angle) {
+        this.angle += angle;
+        this.updatePolePositions();
+    };
+    
+    // Set up x1, y1, x2, y2
+    this.updatePolePositions();
+};
+
+var barMagnet = new Magnet();
+
+var draw = function() {
+    var x, y;
+    background(230, 240, 240);
+    stroke(0, 180, 10);
+    barMagnet.drawField(5);
+    barMagnet.draw();
+};
+
+var mouseDragged = function() {
+    barMagnet.x = mouseX;
+    barMagnet.y = mouseY;
+    barMagnet.updatePolePositions();
+};
+
+var keyPressed = function() {
+    // Rotate magnet
+    if (keyCode === 37) {
+        barMagnet.rotate(-5);
+    } else if (keyCode === 39) {
+        barMagnet.rotate(5);
+    }
+};

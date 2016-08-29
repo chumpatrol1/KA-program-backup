@@ -1,0 +1,959 @@
+/**************************************
+ * Click and drag the ball to move it
+ * Click and drag the end of the green
+ * vector to change the initial velocity
+ * of the ball
+ * Click add force to add a force vector
+ * 
+ * TODO:
+ *  Change axis scaling when different
+ * options plotted
+ *  Show units on graph
+***************************************/
+
+// Maximum value on x-axis
+// If 0, then x axis scales with time
+var xAxis = 120;
+
+var initialVelocity = [80, -64];
+
+// Draw ball using image or plain circle
+var useLuxo = false;
+
+var BALL_RADIUS = 40;
+
+// Where the graph is drawn
+// (Also determines its size)
+var graphX = 450;
+var graphWidth = width - graphX;
+
+// How fast the animation updates
+var DELTA_T = 0.02;
+
+var ORANGE = color(255, 165, 0);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var PINK = color(255, 0, 175);
+var BLACK = color(0, 0, 0);
+var BACKGROUND = (250);
+imageMode(CENTER);
+strokeCap(ROUND);
+
+var running = false;
+
+var showing = {
+    "Ball": true,
+    "Velocity": true,
+    "Net force": true,
+    "Forces": true,
+    "Gridlines": true
+};
+
+var callForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+{
+var sansFont = createFont("sans", 15);
+/**************************************
+ * Generic GUI component from which
+ * other elements inherit
+ * It is basically a button
+***************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/**************************************
+ *      GUI Button
+***************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = color(255, 255, 255, 240);
+    this.highlightCol = params.highlightCol || color(180, 180, 190, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(20);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, { name: name });
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+    this.defaultCol = color(220, 220, 230, 230);
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 5);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/**************************************
+ *      GUI Slider
+***************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/**************************************
+ *      Dropdown Menu
+***************************************/
+{
+var Dropdown = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    
+    this.options = params.options || [];
+    this.selectedOption = params.selectedOption || 0;
+    this.dy = 20;
+    this.boxW = 85;
+    this.boxH = this.dy * (this.options.length + 1);
+    this.x2 = this.x + this.w - this.boxW;
+    
+    this.showDropdown = false;
+};
+Dropdown.prototype = Object.create(Button.prototype);
+
+Dropdown.prototype.draw = function() {
+    this.fade();
+
+    fill(10);
+    textFont(sansFont, 13);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + 4, this.y + this.h / 2);
+    var y = this.y + this.h / 2;
+
+    textAlign(RIGHT, CENTER);
+    var x = this.x2 + this.boxW - 4;
+    
+    if (this.showDropdown) {
+        // Show all options
+        strokeWeight(1);
+        fill(250);
+        rect(this.x2, this.y, this.boxW, this.boxH, 5);
+        
+        // Highlight selected
+        if (this.mouseOver()) {
+            if (this.transition) {
+                noStroke();
+                fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+                var index = this.getOption();
+                rect(this.x2 + 1, this.y + index * this.dy + 1, this.boxW - 1, this.dy - 1, 5);
+            }
+        }
+        
+        fill(10);
+        text(this.options[this.selectedOption], x, y);
+        for (var i = 0; i < this.options.length; i++) {
+            y += this.dy;
+            text(this.options[i], x, y);
+        }
+        
+    } else {
+        // Selection box
+        if (this.transition) {
+            fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        } else {
+            fill(250);
+        }
+        strokeWeight(1);
+        stroke(200);
+        rect(this.x2, this.y, this.boxW, this.h, 5);
+        
+        fill(10);
+        text(this.options[this.selectedOption], x, y);
+    }
+};
+
+Dropdown.prototype.getOption = function() {
+    return min(floor((mouseY - this.y) / this.dy), this.options.length);
+};
+
+Dropdown.prototype.mouseOver = function() {
+    return (mouseX >= this.x2 && mouseX <= this.x2 + this.boxW &&
+            mouseY >= this.y && mouseY <= this.y + (this.showDropdown ? this.boxH : this.h));
+};
+
+Dropdown.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        if (this.showDropdown) {
+            var selected = this.getOption();
+            if (selected) {
+                this.selectedOption = selected - 1;
+                this.trigger(this.options[this.selectedOption]);
+            }
+            this.showDropdown = false;
+        } else {
+            this.showDropdown = true;
+        }
+    } else {
+        this.showDropdown = false;
+    }
+    this.selected = false;
+};
+}
+/**************************************
+ *      Toolbar
+ * Container for buttons and sliders.
+***************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    noStroke();
+    fill(220, 220, 230, 230);
+    rect(this.x, this.y, this.w, this.h, 8);
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].draw();
+    }
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mousePressed();
+    }
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseReleased();
+    }
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseDragged();
+    }
+};
+}
+}   // GUI
+/**************************************
+ *  Vectors are arrows with a base and
+ * an end.
+ * The end can be selected to move it
+***************************************/
+{
+var Vector = function(base, x, y, col) {
+    this.base = base;
+    this.x = x;
+    this.y = y;
+    this.color = col || PINK;
+    this.fade = lerpColor(this.color, BACKGROUND, 0.5);
+    this.getAngle();
+};
+
+Vector.prototype.draw = function() {
+    if (abs(this.x) < 0.1 && abs(this.y) < 0.1) { return; }
+    
+    var x = this.base.x;
+    var y = this.base.y;
+    var x2 = x + this.x;
+    var y2 = y + this.y;
+    
+    var col = this.mouseOver() ? this.color : this.fade;
+    
+    strokeWeight(3);
+    stroke(col);
+    line(x, y, x2, y2);
+    
+    noStroke();
+    fill(col);
+    pushMatrix();
+    translate(x2, y2);
+    rotate(this.angle);
+    triangle(5, 0, -12, -8, -12, 8);
+    popMatrix();
+};
+
+Vector.prototype.getAngle = function() {
+    this.angle = atan2(this.y, this.x);
+    this.length = mag(this.x, this.y);
+};
+
+Vector.prototype.mouseOver = function() {
+    var L = this.length - 4;
+    var x = this.base.x + cos(this.angle) * L;
+    var y = this.base.y + sin(this.angle) * L;
+    return dist(mouseX, mouseY, x, y) < 11;
+};
+
+Vector.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+    this.getAngle();
+};
+}
+/************************************
+ *  Ball moves based on its vectors.
+*************************************/
+{
+var Ball = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.color = BLUE;
+    this.fade = lerpColor(this.color, BACKGROUND, 0.5);
+    
+    this.img = getImage("pixar/luxoball");
+    this.w = BALL_RADIUS;
+    this.h = this.w * this.img.height / this.img.width;
+    this.d = this.w * 0.94;
+    
+    this.velocity = new Vector(this, initialVelocity[0], initialVelocity[1], GREEN);
+    this.forces = [];
+    this.netForce = new Vector(this, 0, 0, BLACK);
+    this.vectors = [this.velocity];
+    
+    // Data for logging
+    this.data = {
+        'X position': [],
+        'Y position': [],
+        'Speed': [],
+        'Acceleration': [],
+    };
+};
+
+Ball.prototype.draw = function() {
+    if (showing.Forces) {
+        callForEach(this.forces, 'draw');
+    }
+    
+    if (showing['Net force'] && this.forces.length > 1) {
+        this.netForce.draw();
+    }
+    
+    if (showing.Velocity) {
+        this.velocity.draw();
+    }
+    
+    if (showing.Ball) {
+        this.drawBall();
+    }
+};
+
+Ball.prototype.drawBall = function() {
+    // Shadow
+    noStroke();
+    fill(0, 0, 0, 120);
+    ellipse(this.x + 1, this.y + 1, this.d, this.d);
+    
+    // Ball
+    if (useLuxo) {
+        image(this.img, this.x, this.y, this.w, this.h);
+    } else {
+        fill(this.mouseOver() ? this.color : this.fade);
+        ellipse(this.x, this.y, this.d, this.d);
+    }
+};
+
+Ball.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+};
+
+Ball.prototype.update = function() {
+    if (this.selected === this) {
+        return;
+    }
+    
+    // Update velocity
+    this.velocity.x += this.netForce.x * DELTA_T;
+    this.velocity.y += this.netForce.y * DELTA_T;
+    this.velocity.getAngle();
+    
+    // Update position
+    this.x += this.velocity.x * DELTA_T;
+    this.y += this.velocity.y * DELTA_T;
+    
+    this.data['X position'].push(this.x);
+    this.data['Y position'].push(this.y);
+    this.data.Speed.push(mag(this.velocity.x, this.velocity.y));
+    this.data.Acceleration.push(mag(this.netForce.x, this.netForce.y));
+};
+
+Ball.prototype.calculateNetForce = function() {
+    this.netForce.x = 0;
+    this.netForce.y = 0;
+    for (var i = 0; i < this.forces.length; i++) {
+        var v = this.forces[i];
+        this.netForce.x += v.x;
+        this.netForce.y += v.y;
+    }
+    this.netForce.getAngle();
+    this.resetData();
+};
+
+Ball.prototype.addForce = function() {
+    var angle;
+    if (this.vectors.length === 1) {
+        // No existing forces so add vector
+        angle = 90;
+    } else if (this.vectors.length === 2) {
+        // One exisiting force, so point in opposite direction
+        angle = this.vectors[1].angle + 180;
+    } else {
+        // Find a vector pointing in a different direction from the other forces
+        var sortByAngle = function(a, b) {
+            return a.angle - b.angle;
+        };
+        
+        // Sort vectors by angle
+        var vectors = this.forces.sort(sortByAngle);
+        
+        // Find biggest difference between angle
+        var n = vectors.length;
+        var v1 = vectors[n - 1];
+        var maxAngle = 0;
+        
+        for (var i = 0; i < n; i++) {
+            var v2 = vectors[i];
+            var dAngle = v2.angle - v1.angle;
+            if (dAngle > 180) {
+                dAngle -= 360;
+            } else if (dAngle < -180) {
+                dAngle += 360;
+            }
+            dAngle = abs(dAngle);
+            //println(v1.angle + " " + v2.angle + " " + dAngle);
+            if (dAngle > maxAngle) {
+                maxAngle = dAngle;
+                angle = v1.angle + dAngle * 0.5;
+            }
+            v1 = v2;
+        }
+    }
+    
+    var force = new Vector(
+        this, 60 * cos(angle), 60 * sin(angle)
+    );
+    this.forces.push(force);
+    this.vectors.push(force);
+    this.calculateNetForce();
+};
+
+Ball.prototype.removeForce = function() {
+    if (this.forces.length) {
+        this.vectors.pop();
+        this.forces.pop();
+        this.calculateNetForce();
+    }
+};
+
+Ball.prototype.addSpecificForce = function(dx, dy) {
+    var force = new Vector(this, dx, dy);
+    this.forces.push(force);
+    this.vectors.push(force);
+    this.calculateNetForce();
+};
+
+Ball.prototype.resetData = function() {
+    for (var d in this.data) {
+        this.data[d] = [];
+    }
+};
+
+Ball.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) < this.w * 0.5;
+};
+
+Ball.prototype.mousePressed = function() {
+    for (var i = this.vectors.length; i--;) {
+        if (this.vectors[i].mouseOver()) {
+            this.selected = this.vectors[i];
+            return;
+        }
+    }
+    if (this.mouseOver()) {
+        this.selected = this;
+    }
+};
+
+Ball.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.move(mouseX - pmouseX, mouseY - pmouseY);
+        this.calculateNetForce();
+    }
+};
+
+Ball.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+}
+/************************************
+ *      Set-up
+*************************************/
+
+var ball = new Ball(250, height * 0.3, 20);
+
+/************************************
+ *      Create GUI
+*************************************/
+
+var toolbar = new Toolbar(5, 5, 125);
+toolbar.add(Button, {
+    name: 'Play',
+    trigger: function() {
+        if (!running) {
+            running = true;
+            this.name = 'Pause';
+        } else {
+            running = false;
+            this.name = 'Play';
+        }
+    }
+});
+toolbar.add(Button, {
+    name: 'Step',
+    trigger: function() {
+        ball.update();
+        running = false;
+        toolbar.components[0].name = 'Play';
+        
+    }
+});
+toolbar.add(Button, {
+    name: 'Add force',
+    trigger: ball.addForce.bind(ball)
+});
+toolbar.add(Button, {
+    name: 'Remove force',
+    trigger: ball.removeForce.bind(ball)
+});
+toolbar.add(Button, {
+    name: 'Reset position',
+    trigger: function() {
+        ball.x = 200;
+        ball.y = height / 2;
+        ball.resetData();
+    }
+});
+toolbar.add(Button, {
+    name: 'Reset velocity',
+    trigger: function() {
+        ball.velocity.x = initialVelocity[0];
+        ball.velocity.y = initialVelocity[1];
+        ball.velocity.getAngle();
+        ball.resetData();
+    }
+});
+toolbar.addOptions(showing);
+
+var plottingDropDown = new Dropdown(
+    graphX + 10, 8, 140, 20, {
+        name: "Plotting:",
+        options: ["X position", "Y position", "Speed", "Acceleration"]
+});
+
+
+var elements = [ball, toolbar, plottingDropDown];
+
+/**************************************
+ *      Plotting function
+***************************************/
+
+var scales = {
+    "X position": [0, graphX],
+    "Y position": [height, 0],
+    "Speed": [0, 200],
+    "Acceleration": [0, 200]
+};
+
+var drawGraph = function(x, w) {
+    strokeWeight(1);
+    stroke(10);
+    fill(BACKGROUND);
+    rect(x, -1, w, height + 1);
+    
+    var border = 45;
+    var size = w - border - 16;
+    var x0 = x + border;
+    var y0 = (height + size) * 0.5;
+    
+    // Plot positions over time
+    var whatToPlot = plottingDropDown.options[plottingDropDown.selectedOption];
+    
+    var data = ball.data[whatToPlot];
+    var n = xAxis || data.length;
+    var dx = min(10, size / max(1, n));
+    var scale1 = scales[whatToPlot][0];
+    var scale2 = scales[whatToPlot][1];
+
+    // X axis break
+    var multiple = 12;
+
+    // Draw gridlines
+    if (showing.Gridlines) {
+        strokeWeight(1);
+        stroke(220);
+        
+        x = x0;
+        for (var i = 0; i <= n; i += multiple) {
+            line(x, y0, x, y0 - size);
+            x += dx * multiple;
+        }
+        
+        for (var i = 0; i <= 1; i += 0.1) {
+            var y = y0 - size * i;
+            line(x0, y, x0 + size, y);
+        }
+        
+    }
+
+    // Plot line
+    if (n > 1) {
+        var d, y, x = x0 + 1;
+        
+        strokeWeight(2);
+        stroke(BLUE);
+        noFill();
+        
+        beginShape();
+        for (var i = 0; i < n; i++) {
+            var d = data[i];
+            y = map(d, scale1, scale2, y0, y0 - size);
+            
+            if (y > y0) { break; }
+            
+            vertex(x, y);
+            x += dx;
+        }
+        endShape();
+    }
+    
+    // Axes
+    strokeWeight(1);
+    stroke(30);
+    line(x0, y0, x0 + size, y0);
+    line(x0, y0, x0, y0 - size);
+    
+    // X-axis tick marks
+    x = x0;
+    
+    fill(20);
+    textFont(sansFont, 10);
+    textAlign(CENTER, TOP);
+    
+    for (var i = 0; i <= n; i += multiple) {
+        line(x, y0, x, y0 + 3);
+        text(round(i/12) / 2 + "", x, y0 + 4);
+        x += dx * multiple;
+    }
+    
+    textFont(sansFont, 16);
+    text("Time (s)", x0 + size * 0.52, y0 + 16);
+    
+    // Y-axis label
+    pushMatrix();
+    translate(x0, y0);
+    rotate(90);
+    
+    // Flip scales for y-position
+    if (scale1 > scale2) {
+        var t = scale1;
+        scale1 = scale2;
+        scale2 = t;
+    }
+    
+    textFont(sansFont, 10);
+    for (var i = 0; i <= 1; i += 0.1) {
+        x = 1 - size * i;
+        line(x, 0, x, 3);
+        text(round(lerp(scale1, scale2, i)), x, 4);
+        x += dx * multiple;
+    }
+    
+    // Axis label
+    textFont(sansFont, 16);
+    text(whatToPlot, -size * 0.5, 18);
+    popMatrix();
+};
+
+/************************************
+ *      Main loop
+*************************************/
+
+//ball.addSpecificForce(-42.4, -42.4);
+//ball.addSpecificForce(-42.4, 42.4);
+//ball.addSpecificForce(60, 0);
+ball.addSpecificForce(0, 50);
+
+draw = function() {
+    background(BACKGROUND);
+    cursor('default');
+    
+    ball.draw();
+    toolbar.draw();
+    drawGraph(graphX, graphWidth);
+    plottingDropDown.draw();
+    
+    noFill();
+    stroke(0);
+    //rect(160, 50, 180, 180);
+    
+    if (running) { ball.update(); }
+};
+
+/************************************
+ *      Event handling
+*************************************/
+{
+mousePressed = function() {
+    callForEach(elements, 'mousePressed');
+};
+
+mouseDragged = function() {
+    callForEach(elements, 'mouseDragged');
+};
+
+mouseReleased = function() {
+    callForEach(elements, 'mouseReleased');
+};
+
+mouseOut = mouseReleased;
+}

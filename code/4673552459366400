@@ -1,0 +1,46 @@
+println("Example 1");
+
+var count = 0;
+
+var showCount = function() {
+    var count = 2;
+    println(count);
+};
+
+showCount();
+println(count);
+
+
+println("Example 2");
+var getCounter = function() {
+    var count = 0;
+    
+    return function() {
+        count++;
+        println(count);
+    };
+};
+
+var counter = getCounter();
+
+counter();
+counter();
+counter();
+//println(count);   // Throws and error
+
+println("Example 3");
+
+var getRoundToFunction = function(decimalPlaces) {
+    var n = pow(10, decimalPlaces);
+    return function(x) {
+        return round(x * n) / n;
+    };
+};
+
+var roundTo1DP = getRoundToFunction(1);
+var roundTo3DP = getRoundToFunction(3);
+
+println(roundTo1DP(PI));
+println(roundTo3DP(PI));
+
+

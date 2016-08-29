@@ -1,0 +1,396 @@
+/*********************************************
+* A shiny red sphere and a matte green one.
+* 
+* Click and drag the white circle to
+* move the light.
+**********************************************/
+
+var BACKGROUND = color(0, 0, 0);
+var RED = color(255, 40, 40);
+var BLUE = color(64, 95, 237);
+var GREEN = color(0, 200, 0);
+var WHITE = color(255, 255, 255);
+var LIGHT = color(255, 255, 200);
+var ORANGE = color(255, 165, 0);
+var TENNIS = color(200, 230, 0);
+
+var CONTROL_POINT_SIZE = 15;
+
+var selected = false;
+var lightIntensity = 30;
+var ambientIntensity = lightIntensity / 100;
+
+/*********************************************
+ *      Linear algebra
+**********************************************/
+// Assume everything has 3 dimensions
+var dotProduct = function(v1, v2){
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+};
+
+var vectorLength = function(v) {
+    return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+};
+
+var normalise = function(v) {
+    var d = vectorLength(v);
+    return { x: v.x / d, y: v.y / d, z: v.z / d };
+};
+
+var subtract = function(v1, v2){
+    return {
+        x: v1.x - v2.x,
+        y: v1.y - v2.y,
+        z: v1.z - v2.z
+    };
+};
+
+var printVector = function(v) {
+    println(v.x + " " + v.y + " " + v.z);
+};
+
+var Slider = function(x, y, width, min_v, max_v, current_v, name) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.held = false;
+    this.name = name;
+    
+    this.ballR = 8;
+    this.ballD = this.ballR * 2;
+    
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+    this.showing = true;
+
+    this.draw = function() {
+        if (this.showing) {
+            noStroke();
+            fill(180);
+            rect(this.x-8, this.y - this.h/2, this.width + 16, this.h, 8);
+        
+            strokeWeight(1);
+            stroke(0, 0, 0, 120);
+            fill(180, 180, 250);
+            ellipse(this.bx, this.y, this.ballD, this.ballD);
+            noStroke();
+            fill(255, 255, 255, 150);
+            ellipse(this.bx - this.ballR * 0.3, this.y - this.ballR * 0.3, 5, 5);   
+        }
+    };
+    
+    this.selected = function() {
+        if (this.showing) {
+            this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;    
+        }
+    };
+    
+    this.drag = function() {
+        if (this.showing && this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + round((x - this.x) * this.scale);
+            return true;
+        }
+    };
+  
+    // This is used if you want to update the value in a way other
+    // than using the slider (but want the slider to update).
+    this.update = function(d) {
+        this.val = constrain(this.val + d, this.min, this.max);
+        this.bx = (this.val - this.min) / this.scale + this.x;
+    };
+};
+
+/*********************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+**********************************************/
+
+var DraggablePoint = function(x, y, color, name) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.name = name;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (selected === this || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+    
+    if (this.name) {
+        textAlign(CENTER, BASELINE);
+        text(this.name, this.x, this.y - r / 2 - 5);
+    }
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+/*********************************************
+ *      Sphere object
+**********************************************/
+
+var Sphere = function(x, y, z, r, col, shine, diffuse, specular) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    this.r = r;
+    this.d = r * 2;
+    this.r2 = this.r * this.r;
+    this.rm = this.r - 1;
+    this.rm2 = this.rm * this.rm;
+    
+    this.color = col || GREEN;
+    
+    this.shininess = shine;
+    this.diffuseFactor = diffuse;
+    this.specularFactor = specular;
+    
+    this.setVectors();
+};
+
+Sphere.prototype.setVectors = function() {
+    this.positions = [];
+    this.normals = [];
+    this.aliasing = [];
+    
+    for (var x = -this.r; x <= this.r; x++) {
+        var posRow = [];
+        var normRow = [];
+        var aliasRow = [];
+        var x2 = x * x;
+        
+        for (var y = -this.r; y <= this.r; y++) {
+            var y2 = y * y;
+
+            if (x2 + y2 <= this.r2) {
+                var z2 = this.r2 - x2 - y2;
+                var z = sqrt(z2);
+                var d = sqrt(x2 + y2 + z2);
+                posRow.push({
+                    x: this.x + x,
+                    y: this.y + y,
+                    z: this.z + z
+                });
+                normRow.push({
+                    x: x / d,
+                    y: y / d,
+                    z: z / d
+                });
+                if (x2 + y2 > this.rm2) {
+                    var alias = 1 - sqrt(x2 + y2) + this.rm;
+                    aliasRow.push(alias);
+                } else {
+                    aliasRow.push(1);
+                }
+            } else {
+                posRow.push(false);
+                normRow.push(false);
+                aliasRow.push(false);
+            }
+        }
+        
+        this.positions.push(posRow);
+        this.normals.push(normRow);
+        this.aliasing.push(aliasRow);
+    }
+};
+
+// Given a normalised light vectorcalculate
+// the colour of each pixel on the sphere
+Sphere.prototype.calculatePixelColours = function(light) {
+    // Camera is slightly higher than dead on
+    var eye = { x: width / 2, y: height / 2 - 80, z: 500 };
+    
+    this.colors = [];
+    
+    for (var x = 0; x <= this.d; x++) {
+        var row = [];
+        
+        for (var y = 0; y <= this.d; y++) {
+            var normal = this.normals[x][y];
+            var col = false;
+            
+            if (normal) {
+                var intensity = ambientIntensity;
+                var position = this.positions[x][y];
+                var ray = subtract(light, position);
+                var rayNorm = normalise(ray);
+                
+                var diffuseInt = dotProduct(normal, rayNorm);
+                
+                if (diffuseInt > 0) {
+                    var fallOff = lightIntensity * 4 / (vectorLength(ray) + 60);
+                    intensity += diffuseInt * fallOff * this.diffuseFactor;
+                    
+                    // Reflection
+                    var d = 2 * diffuseInt; 
+                    var reflection = {
+                        x: d * normal.x - rayNorm.x,
+                        y: d * normal.y - rayNorm.y,
+                        z: d * normal.z - rayNorm.z
+                    };
+                    
+                    var eyeNorm = normalise(subtract(eye, position));
+                    
+                    var specularInt = dotProduct(reflection, eyeNorm);
+                    if (specularInt > 0) {
+                        intensity += this.specularFactor * fallOff * pow(specularInt, this.shininess);
+                    }
+                    
+                    if (intensity < 1) {
+                        col = lerpColor(BACKGROUND, this.color, intensity * this.aliasing[x][y]);
+                    } else {
+                        col = lerpColor(this.color, light.color, min(1, intensity - 1));
+                        col = lerpColor(BACKGROUND, col, this.aliasing[x][y]);
+                    }
+                }
+            }
+            row.push(col);
+        }
+        
+        this.colors.push(row);
+    }
+};
+
+Sphere.prototype.draw = function() {
+    noStroke();
+    fill(lerpColor(BACKGROUND, this.color, ambientIntensity));
+    ellipse(this.x, this.y, this.d, this.d);
+    
+    strokeWeight(1);
+    
+    for (var x = 0; x <= this.d; x++) {
+        for (var y = 0; y <= this.d; y++) {
+            var col = this.colors[x][y];
+
+            if (col) {
+                stroke(col);
+                point(this.x + x - this.r, this.y + y - this.r);
+            }
+        }
+    }
+};
+
+/*********************************************
+ *      Create objects
+**********************************************/
+
+var r = 44;
+var objects = [
+    new Sphere(width / 2 - 100, 300, 0, r, RED, 20, 0.75, 0.85),
+    new Sphere(width / 2 + 100, 300, 0, r, TENNIS, 1, 0.95, 0.05)
+];
+
+var light = new DraggablePoint(width / 2, 200, LIGHT);
+light.z = 70;
+
+for (var i = 0; i < objects.length; i++) {
+    objects[i].calculatePixelColours(light);   
+}
+
+var selectables = [light];
+var sliders = [
+    new Slider(16, 28, 100, 0, 50, 15),
+    new Slider(16, 66, 100, 10, 50, 30)
+];
+
+/*********************************************
+ *      Main loop
+**********************************************/
+
+var updateLight = function() {
+    ambientIntensity = sliders[0].val / 100;
+    lightIntensity = sliders[1].val;
+    BACKGROUND = lerpColor(color(0, 0, 0), WHITE, 0.05 + ambientIntensity * 1.2);
+    
+    for (var i = 0; i < objects.length; i++) {
+        objects[i].calculatePixelColours(light);
+    }
+};
+updateLight();
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    for (var i = 0; i < objects.length; i++) {
+        objects[i].draw();
+    }
+    light.draw();
+    
+    textSize(15);
+    textAlign(CENTER, BASELINE);
+    var labels = ['Ambient light', 'Spotlight'];
+    for (var i = 0; i < objects.length; i++) {
+        fill(255);
+        text(labels[i], sliders[i].x + sliders[i].width / 2, sliders[i].y - 12);
+        sliders[i].draw();
+    }
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseOver()) {
+            selected = selectables[i];
+        }
+    }
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].selected();
+    }
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move();
+        for (var i = 0; i < objects.length; i++) {
+            objects[i].calculatePixelColours(light);
+        }
+    }
+    
+    for (var i = 0; i < sliders.length; i++) {
+        if (sliders[i].drag()) {
+            updateLight();
+        }
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].held = false;
+    }
+};
+
+mouseOut = function() {
+    mouseReleased();
+};

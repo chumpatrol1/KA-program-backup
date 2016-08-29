@@ -1,0 +1,191 @@
+/**************************************
+ * Create a scene containing multiple
+ * elements that can be clicked and 
+ * dragged about.
+***************************************/
+
+/**************************************
+ *      MoveableElement
+ * An element that can be moved.
+ * Default shape is a circle, which
+ * requires an r parameter
+***************************************/
+
+var MoveableElement = function(x, y, params) {
+    this.x = x;
+    this.y = y;
+    
+    for (var param in params) {
+        this[param] = params[param];
+    }
+};
+
+MoveableElement.prototype.draw = function() {
+    fill(this.fill);
+    stroke(this.stroke);
+    strokeWeight(2);
+    
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);
+};
+
+MoveableElement.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+};
+
+MoveableElement.prototype.mouseOver = function() {
+    return dist(this.x, this.y, mouseX, mouseY) <= this.r;
+};
+
+// A moveable polygon
+var MoveablePoly = function(x, y, vertices, params) {
+    MoveableElement.call(this, x, y, params);
+    
+    // Make vertices relative to (x, y)
+    this.vertices = [];
+    for (var i = vertices.length; i--;) {
+        this.vertices.push([vertices[i][0] - x, vertices[i][1] - y]);
+    }
+
+};
+MoveablePoly.prototype = Object.create(MoveableElement.prototype);
+
+MoveablePoly.prototype.draw = function() {
+    strokeWeight(2);
+    fill(this.fill);
+    stroke(this.stroke);
+    
+    beginShape();
+    for (var i = this.vertices.length; i--;) {
+        vertex(this.x + this.vertices[i][0], this.y + this.vertices[i][1]);
+    }
+    endShape(CLOSE);
+};
+
+MoveablePoly.prototype.mouseOver = function() {
+    var c = false;
+    var n = this.vertices.length;
+    var i, p2, p1 = this.vertices[n - 1];
+    
+    for (i = 0; i < n; i++) {
+        p2 = this.vertices[i];
+
+        if (((p1[1] > mouseY) !== (p2[1] > mouseY)) &&
+            (mouseX < (p2[0] - p1[0]) * (mouseY - p1[1]) / (p2[1] - p1[1]) + p1[0])) {
+           c = !c;
+        }
+        
+        p1 = p2;
+    }
+    return c;
+};
+
+// A moveable rectangle
+var MoveableRect = function(x, y, w, h, params) {
+    MoveableElement.call(this, x, y, params);
+    this.w = w;
+    this.h = h;
+};
+MoveableRect.prototype = Object.create(MoveableElement.prototype);
+
+MoveableRect.prototype.draw = function() {
+    strokeWeight(2);
+    fill(this.fill);
+    stroke(this.stroke);
+    rect(this.x, this.y, this.w, this.h);
+};
+
+MoveableRect.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+/**************************************
+ *      Scene object
+ * Handles the drawing and interaction
+ * of a set of moveable objects.
+***************************************/
+
+var Scene = function() {
+    this.elements = [];
+};
+
+Scene.prototype.draw = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].draw();
+        if (this.elements[i].mouseOver()) {
+            cursor(HAND);
+        }
+    }
+    
+    if (this.selected) { cursor(MOVE); }
+};
+
+Scene.prototype.mousePressed = function() {
+    for (var i = this.elements.length; i--;) {
+        if (this.elements[i].mouseOver()) {
+            this.selected = this.elements[i];
+            break;
+        }
+    }
+};
+
+Scene.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    }
+};
+
+Scene.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+
+/**************************************
+ *      Setting up
+***************************************/
+
+var scene = new Scene();
+var blockColours = { fill: color(160), stroke: color(80) };
+var poly1 = [[190, 40], [240, 50], [250, 120], [190, 140], [160, 90]];
+var poly2 = [[70, 130], [60, 140], [100, 180], [170, 140], [160, 130], [100, 160]];
+
+scene.elements.push(new MoveablePoly(20, 20, poly1, blockColours));
+scene.elements.push(new MoveablePoly(20, 20, poly2, blockColours));
+scene.elements.push(new MoveableRect(20, 20, 80, 20, blockColours));
+scene.elements.push(new MoveableRect(20, 50, 20, 80, blockColours));
+
+// Player
+scene.elements.push(new MoveableElement(100, 100, {
+    r: 12,
+    fill: color(60, 90, 240),
+    stroke: color(250)
+}));
+
+/**************************************
+ *      Main loop
+***************************************/
+
+draw = function() {
+    background(255);
+    cursor('default');
+    scene.draw();
+};
+
+/**************************************
+ *      Event handling
+***************************************/
+{
+mousePressed = function() {
+    scene.mousePressed();
+};
+
+mouseDragged = function() {
+    scene.mouseDragged();
+};
+
+mouseReleased = function() {
+    scene.mouseReleased();
+};
+
+mouseOut = mouseReleased;
+}

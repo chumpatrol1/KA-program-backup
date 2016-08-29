@@ -1,0 +1,354 @@
+/****************************************
+ * For use in testing the interactive exercise
+*****************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(60, 60, 70);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var serifFont = createFont("Times", 16);
+var sansFont = createFont("Sans", 14);
+
+var CONTROL_POINT_SIZE = 12;
+
+var toolbarWidth = 330;
+var gridSize = 20;
+var snapSize = 10;
+var weight = 0.5;
+
+var point1, point2, point3;
+var selected = false;
+
+var border = snapSize * 4;
+var border2 = 50;
+
+/*********************************************************************
+ *      Graph parameters
+*********************************************************************/
+// Graph origin
+var originX = width / 2;
+var originY = height / 2;
+
+// Pixels between ticks
+var tickSize = 18;
+
+// Value represented by a tick
+var xTickValue = 1;
+var yTickValue = 1;
+
+var pixelToGridPointX = function(x) { return (x - originX) / tickSize; };
+var pixelToGridPointY = function(y) { return (originY - y) / tickSize; };
+var gridPointToPixelX = function(x) { return x * tickSize + originX; };
+var gridPointToPixelY = function(y) { return originY - y * tickSize; };
+
+var snapX = function(x) {
+    return gridPointToPixelX(round(2 * pixelToGridPointX(x)) / 2);
+};
+
+var snapY = function(y) {
+    return gridPointToPixelY(round(2 * pixelToGridPointY(y)) / 2);
+};
+
+// Target midpoint coordinates in pixels
+//var targetX = -10 + floor(random(36)) / 2;
+//var targetY = -10 + floor(random(32)) / 2;
+var targetX = parseFloat(Program.settings().targetX);
+var targetY = parseFloat(Program.settings().targetY);
+//println(targetX + " " + targetY); 
+/*********************************************************************
+ *      Draggable point
+*********************************************************************/
+
+var draggablePoint = function(x, y, color, name) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.animation = 0;
+    this.name = name || "";
+};
+
+draggablePoint.prototype.update = function() {
+    // empty for overwriting
+};
+
+draggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2 + 2;
+};
+
+draggablePoint.prototype.move = function() {
+    var oldX = this.x;
+    var oldY = this.y;
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+    
+    // Check points aren't too close
+    if (dist (point1.x, point1.y, point2.x, point2.y) < 20) {
+        this.x = oldX;
+        this.y = oldY;
+    }
+};
+
+draggablePoint.prototype.draw = function() {
+    if (selected === this || (!selected && this.mouseover())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    
+    ellipse(snapX(this.x), snapY(this.y), r, r);
+};
+
+var constrainedPoint = function(p1, p2, weight, color, name) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.w = weight;
+
+    this.name = name;    
+    this.color = color;
+    this.animation = 0;
+    this.update();
+};
+constrainedPoint.prototype = Object.create(draggablePoint.prototype);
+
+constrainedPoint.prototype.draw = function() {
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = CONTROL_POINT_SIZE;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+constrainedPoint.prototype.update = function() {
+    this.x = lerp(snapX(this.p1.x), snapX(this.p2.x), this.w);
+    this.y = lerp(snapY(this.p1.y), snapY(this.p2.y), this.w);
+};
+
+constrainedPoint.prototype.move = function() {
+    // Movement not allowed in this version
+    /*
+    if (point1.x === point2.x && point1.y === point2.y) {
+        return;
+    }
+    
+    // Project (mouseX, mouseY) onto line
+    var lx = point1.x - point2.x;
+    var ly = point1.y - point2.y;
+    var mx = mouseX - point2.x;
+    var my = mouseY - point2.y;
+    
+    var w = (mx * lx + my * ly ) / (lx * lx + ly * ly);
+    this.w = constrain(round(w * 20) / 20, 0, 1);
+    */
+};
+
+point1 = new draggablePoint(80, 300, PINK, "A");
+point2 = new draggablePoint(width - 80, 150, GREEN, "B");
+//point3 = new constrainedPoint(point1, point2, weight, ORANGE, "Q");
+var selectables = [point1, point2];
+
+/****************************************
+ *      Display functions
+****************************************/
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    var minX = originX % tickSize;
+    for (var x = minX; x < width; x += tickSize) {
+        line(x, 0, x, height);
+    }
+    
+    var minY = originY % tickSize;
+    for (var y = minY; y < height; y += tickSize) {
+        line(0, y, width, y);
+    }
+    
+    // Axes
+    stroke(GREY);
+    line(originX, 0, originX, height);
+    line(0, originY, width, originY);
+    
+    // Labels
+    fill(GREY);
+    textSize(12);
+    
+    var minX = originX - tickSize * 2 * floor(0.5 * originX / tickSize);
+    var maxX = originX + tickSize * 2 * floor(0.5 * (width - originX) / tickSize);
+    var scaleX = xTickValue/ tickSize * 1000;
+
+    textAlign(CENTER, TOP);
+    for (var x = minX; x <= maxX; x += 2 * tickSize) {
+        if (x !== originX) {
+            line(x, originY - 2, x, originY + 2);
+            text("" + round((x - originX) * scaleX) / 1000, x, originY + 5);
+        }
+    }
+    
+    var minY = originY - tickSize * 2 * floor(0.5 * originY / tickSize);
+    var maxY = originY + tickSize * 2 * floor(0.5 * (height - originY) / tickSize);
+    var scaleY = yTickValue/ tickSize * 1000;
+    
+    textAlign(RIGHT, CENTER);
+    for (var y = minY; y <= maxY; y += 2 * tickSize) {
+        if (y !== originY) {
+            line(originX - 2, y, originX + 2, y);
+            text("" + round((originY - y) * scaleY) / 1000,  originX - 5, y);
+        }
+    }
+};
+
+var drawLine = function() {
+    var p1x = snapX(point1.x);
+    var p1y = snapY(point1.y);
+    var p2x = snapX(point2.x);
+    var p2y = snapY(point2.y);
+    
+    var angle = atan2(p1y - p2y, p1x - p2x);
+
+    var angle2;
+    if (angle >= 90 || (angle < 0 && angle >= -90)) {
+        angle2 = angle - 90;
+    } else {
+        angle2 = angle + 90;
+    }
+
+    var sAngle = sin(angle2);
+    var cAngle = cos(angle2);
+    
+    stroke(BLUE);
+    strokeWeight(2);
+    line(p1x, p1y, p2x, p2y);
+    
+    strokeWeight(1);
+    var d = abs(cAngle) + (1 - abs(cAngle));
+    var dx = d * cAngle;
+    var dy = d * sAngle;
+    
+    textAlign(CENTER, BASELINE);
+    textFont(serifFont);
+    textSize(16);
+    
+    for (var i = 0; i < selectables.length; i++) {
+        var x = snapX(selectables[i].x);
+        var y = snapY(selectables[i].y);
+        
+        fill(selectables[i].color);
+        
+        var d = abs(cAngle) * 15 + (1 - abs(cAngle)) * 14;
+        x += d * cAngle;
+        y += d * sAngle;
+        
+        //ellipse(x, y, 4, 4);
+        text(selectables[i].name, x, y + CONTROL_POINT_SIZE / 2 + 1);
+    }
+    
+};
+
+var colorText = function(txtArr, x, y) {
+    for (var i = 0; i < txtArr.length; i++) {
+        fill(txtArr[i][1]);
+        var txt = txtArr[i][0];
+        text(txt, x, y);
+        x += textWidth(txt);
+    }
+};
+
+var drawQuestion = function() {
+    var x = (width - toolbarWidth) / 2;
+    var y  = height * 0.02;
+    noStroke();
+    fill(TOOLBAR);
+    rect(x, y, toolbarWidth, 44, 8);
+    
+    fill(20);
+    textAlign(LEFT, TOP);
+    textFont(sansFont, 16);
+    
+    colorText([
+        ["Move points ", TEXTCOL],
+        ["A", PINK],
+        [" and ", TEXTCOL],
+        ["B", GREEN],
+        [" such that the midpoint", TEXTCOL]],
+        x + 8, y + 2
+    );
+    
+    colorText([
+       // ["Q", ORANGE],
+        ["is at (" + targetX + ", " + targetY + ").", TEXTCOL]],
+        x + 6, y + 19
+    );
+};
+
+/****************************************
+ *      End State
+****************************************/
+
+var endState = function() {
+    var x = round(2 * pixelToGridPointX((point1.x + point2.x) / 2)) / 2;
+    var y = round(2 * pixelToGridPointY((point1.y + point2.y) / 2)) / 2;
+    
+    return  x === targetX && y === targetY;
+};
+
+/****************************************
+ *      Main loop
+****************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    drawGrid();
+    drawLine();
+    
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].update();
+        selectables[i].draw();
+    }
+    
+    fill(0);
+    textAlign(LEFT, TOP);
+    text(targetX + ", " + targetY, 10, 10);
+    
+    Program.runTest(function() {
+        return true;
+    });
+};
+
+/****************************************
+ *      Event handling
+****************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseover()) {
+            selected = selectables[i];
+        }
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move();
+    }
+};

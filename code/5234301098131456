@@ -1,0 +1,332 @@
+/******************************************************
+ * 
+*******************************************************/
+
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var NULLCOL = color(0, 0, 0, 0);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var MESSAGEBLUE = color(20, 60, 160);
+var TICKGREEN = color(0, 200, 0);
+var CS_GREEN = color(67, 122, 57);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var CONTROL_POINT_SIZE = 12;
+
+var showing = {};
+angleMode = "degrees";
+
+/**************************************
+ *  Helper functions
+***************************************/
+
+var forEach = function(arr, func) {
+    arr.forEach(function(el) {
+        el[func]();
+    });
+};
+
+/**************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+***************************************/
+{
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.dependents = [];
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    if (this.selected) {
+        fill(PINK);
+    } else {
+        fill(this.color);
+    }
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+    this.dependents.forEach(function(p) {
+        p.move(dx, dy);
+    });
+};
+}
+/**********************************************
+ *      SceneObject object
+ * A piece of scenery or actor in a scene.
+ * Can be moved about using a draggable point.
+***********************************************/
+
+var SceneObject = function(x, y, img, _scale, _color) {
+    this.point = new DraggablePoint(x, y);
+    this.img = img;
+    _scale = _scale || 1;
+    this.color = _color || GREEN;
+    this.width = img.width * _scale;
+    this.height = img.height * _scale;
+    this.dy = this.width / 2;
+    
+    this.move = this.point.move.bind(this.point);
+    this.mouseOver = this.point.mouseOver.bind(this.point);
+};
+
+SceneObject.prototype.draw = function() {
+    fill(this.color);
+    noStroke();
+    rect(this.point.x - 12, this.point.y - this.dy,
+         8, this.dy * 2, 4);
+    this.point.draw();
+};
+
+/**************************************
+ *      Scene object
+ *  Wraps the other objects
+***************************************/
+{
+var Scene = function() {
+    this.selected = false;
+    
+    this.camera = new DraggablePoint(25, 350);
+    this.lens = new DraggablePoint(120, 350);
+    this.camera.dependents.push(this.lens);
+    
+    this.sceneObjects = [
+        new SceneObject(450, 280, getImage("cute/TreeTall"), 0.5),
+        new SceneObject(550, 350, getImage("cute/TreeTall"), 0.5),
+        new SceneObject(220, 380, getImage("cute/TreeTall"), 0.5),
+        new SceneObject(300, 350, getImage("pixar/buzz"), 0.16, BLUE),
+    ];
+    
+    this.points = [this.camera, this.lens].concat(this.sceneObjects);
+    
+    // Camera properties
+    this.cameraLength = 25;
+    this.cameraHeight = 60;
+    this.lensLength = 40;
+    this.lensHeight = 24;
+    this.findLensAngle();
+    
+    // Film image properties
+    this.imageWidth = 320;
+    this.imageHeight = 240;
+    this.img = createGraphics(this.imageWidth, this.imageHeight, JAVA2D);
+    this.img.rectMode(CENTER);
+    this.img.imageMode(CENTER);
+    
+    this.captureImage();
+};
+
+Scene.prototype.draw = function() {
+    // Camera body
+    var x1 = this.camera.x;
+    var x2 = x1 + this.cameraLength;
+    var x3 = x2 + this.lensLength;
+    var y = this.camera.y;
+    var dy1 = this.lensHeight / 2;
+    var dy2 = this.cameraHeight / 2;
+    
+    strokeWeight(2);
+    stroke(80);
+    fill(220);
+    beginShape();
+    vertex(x3, y - dy1);
+    vertex(x2, y - dy1);
+    vertex(x2, y - dy2);
+    vertex(x1, y - dy2);
+    vertex(x1, y + dy2);
+    vertex(x2, y + dy2);
+    vertex(x2, y + dy1);
+    vertex(x3, y + dy1);
+    endShape();
+    
+    // Lens
+    line(this.lensX1, y - this.lensY1,
+         this.lensX2, y - this.lensY2);
+    line(this.lensX1, y + this.lensY1,
+         this.lensX2, y + this.lensY2);
+    
+    // Field of view
+    var lensDX = 1000 * this.cosAngle;
+    var lensDY = 1000 * this.sinAngle;
+    fill(100, 225, 255, 50);
+    noStroke();
+    quad(this.lensX1, y - this.lensY1,
+         this.lensX1, y + this.lensY1,
+         this.lensX1 + lensDX, y - this.lensY1 + lensDY,
+         this.lensX1 + lensDX, y - this.lensY1 - lensDY);
+    
+    forEach(this.points, 'draw');
+    
+    fill(10);
+    textAlign(LEFT, BASELINE);
+    text("Angle: " + (2 * this.lensAngle).toFixed(1), x1, y - dy2 - 6);
+    
+    if (this.img) {
+        var x = 1;
+        var y = 1;
+        strokeWeight(2);
+        stroke(2);
+        noFill();
+        rect(x, y, this.imageWidth, this.imageHeight);
+        image(this.img, x, y);
+    }
+};
+
+Scene.prototype.findLensAngle = function() {
+    var cameraX = this.camera.x + this.cameraLength + this.lensLength;
+    this.lensX1 = this.lens.x - this.lensLength;
+    var dx = cameraX - this.lensX1;
+    var dy = 3;
+    
+    this.lensAngle = atan2(dy, dx);
+    this.cosAngle = cos(this.lensAngle);
+    this.sinAngle = sin(this.lensAngle);
+    
+    var lensDX = this.lensLength * this.cosAngle;
+    var lensDY = this.lensLength * this.sinAngle;
+    this.lensX2 = this.lensX1 + lensDX;
+    this.lensY1 = this.lensHeight / 2 - dy;
+    this.lensY2 = this.lensY1 + lensDY;
+};
+
+// Generate an image as seen through the camera
+Scene.prototype.captureImage = function() {
+    this.findLensAngle();
+    
+    var img = this.img;
+    var midX = this.imageWidth / 2;
+    var midY = this.imageHeight / 2;
+    
+    img.background(100, 160, 240);
+    img.noStroke();
+    img.fill(90, 190, 70);
+    img.rect(midX, this.imageHeight, this.imageWidth, this.imageHeight);
+    
+    var tanAngle = tan(this.lensAngle);
+    var cameraX = this.camera.x + this.cameraLength + this.lensLength;
+    
+    this.sceneObjects.sort(function(a, b) {
+        return b.point.x - a.point.x;
+    });
+    
+    img.noStroke();
+    img.fill(0,0,0,100);
+    
+    this.sceneObjects.forEach(function(obj) {
+        var dx = obj.point.x - cameraX;
+        if (dx > 0) {
+            // Find width at this point
+            var dy = obj.point.y - this.camera.y;
+            var w = this.lensHeight + 2 * dx * tanAngle;
+            var imgWidth = this.imageWidth * obj.width / w;
+            var imgHeight = imgWidth * obj.height / obj.width;
+            
+            var x = map(dy, -w / 2, w / 2, 0, this.imageWidth);
+            //var y = lerp(this.imageSize, mid, dx / (dx + 100));
+            
+            //img.rect(x, midY, imgWidth, imgHeight);
+            img.image(obj.img, x, midY, imgWidth, imgHeight);
+            
+            
+        }
+    }, this);
+};
+
+Scene.prototype.mousePressed = function() {
+    for (var i = 0; i < this.points.length; i++) {
+        if (this.points[i].mouseOver()) {
+            this.selected = this.points[i];
+            break;
+        }
+    }
+};
+
+Scene.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+
+Scene.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.move(mouseX - pmouseX, mouseY - pmouseY);
+        if (this.selected === this.lens) {
+            var x = this.camera.x + this.lensLength;
+            this.lens.x = constrain(this.lens.x, x + 3, x + this.lensLength + this.cameraLength - 3);
+            this.lens.y = this.camera.y;
+        }
+        this.captureImage();
+    }
+};
+}
+/**************************************
+ * Creation of objects
+***************************************/
+
+var scene = new Scene();
+
+var toolbar; //= new Toolbar(width * 0.01, width * 0.01, toolbarWidth);
+
+
+/**************************************
+ *  Main loop
+***************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    scene.draw();
+    //toolbar.draw();
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    scene.mousePressed();
+    //toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    scene.mouseDragged();
+    //toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    scene.mouseReleased();
+   // toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    //toolbar.mouseReleased();
+};

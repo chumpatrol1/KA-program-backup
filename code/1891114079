@@ -1,0 +1,174 @@
+/*****************************************************
+ * Exploring the so-called Superformula
+ * http://en.wikipedia.org/wiki/Superformula
+******************************************************/
+
+var param_names = ["a", "b", "m", "n1", "n2", "n3"];
+var params = { a: 1, b: 1, m: 7, n1: 3, n2: 4, n3: 7 };
+
+var getSuperFunction = function(sliders) {
+    var a = sliders.a.val;
+    var b = sliders.b.val;
+    var m = sliders.m.val;
+    var n1 = sliders.n1.val;
+    var n2 = sliders.n2.val;
+    var n3 = sliders.n3.val;
+    return function (theta) {
+        return pow(pow(abs(cos(m * theta / 4) / a), n2) + pow(abs(sin(m * theta / 4) / b), n3), -1/n1);
+    };
+};
+
+// Given a function return an array of resolution radii
+//  with a maximum value of size
+var getRadii = function(f, size, resolution) {
+    var radii = [];
+    var s = 360 / resolution;
+    var max_r = 0;
+    
+    for (var i=0; i<=resolution; i++) {
+        var r = f(i * s);
+        radii.push(r);
+        if (r > max_r) { max_r = r; }
+    }
+    
+    var r = size / max_r;
+    for (var i=0; i<=resolution; i++) {
+        radii[i] *= r;
+    }
+    
+    return radii;
+};
+
+var drawFormula = function(radii, x, y) {    
+    var x1 = x + radii[0];
+    var y1 = y;
+    var x2, y2;
+    var s = 360 / radii.length;
+    
+    for (var i=1; i<radii.length; i++) {
+        x2 = x + radii[i] * cos(i*s);
+        y2 = y + radii[i] * sin(i*s);
+        line(x1, y1, x2, y2);
+        x1 = x2;
+        y1 = y2;
+    }
+    //line(x1, y1, x + radii[0], y);
+};
+
+var Slider = function(x, y, width, min_v, max_v, current_v) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        noStroke();
+        fill(200);
+        rect(this.x, this.y-1, this.width+2, 3, 4);
+        
+        strokeWeight(1);
+        stroke(60);
+        line(this.x + 1, this.y-1, x + this.width, this.y);
+    
+        fill(180);
+        stroke(50);
+        rect(this.bx, this.y-8, 10, 16, 3);
+        
+        for (var i=0; i<3; i++) {
+            var y = this.y + i*3 - 3;
+            stroke(50);
+            line(this.bx + 3, y, this.bx + 7, y); 
+            stroke(200);
+            line(this.bx + 3, y+1, this.bx + 7, y+1); 
+        }
+    };
+    
+    this.selected = function() {
+        this.held = mouseX > this.bx - 1 && mouseX < this.bx + 11 && 
+                    mouseY > this.y - 9 && mouseY < this.y + 9;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + (x - this.x) * this.scale;
+            return true;
+        }
+    };
+};
+
+var createSliders = function(params) {
+    var sliders = { };
+    
+    for (var i=0; i<3; i++) {
+        for (var j=0; j<2; j++) {
+            var x = 82 + j * 196;
+            var y = 21 + 32*i;
+            var letter = param_names[j*3 + i];
+            var v = params[letter];
+            sliders[letter] = new Slider(x, y, 100, 1, 20, v);
+        }
+    }
+    
+    return sliders;
+};
+
+var sliders = createSliders(params);
+var f = getSuperFunction(sliders);
+var radii = getRadii(f, 125, 300);
+
+var drawParameters = function() {
+    textSize(15);
+    textAlign(LEFT, CENTER);
+    
+    for (var i=0; i<3; i++) {
+        for (var j=0; j<2; j++) {
+            noStroke();
+            fill(240);
+            rect(5+j*196, 5 + 32*i, 194, 30);
+            
+            fill(20);
+            var letter = param_names[j*3 + i];
+            var txt = letter +": "+ round(10*sliders[letter].val)/10;
+            text(txt, 12+j*196, 21 + 32*i);
+            sliders[letter].draw();
+        }
+    }
+};
+
+var draw = function() {
+    background(255);
+    
+    stroke(44, 138, 44);
+    strokeWeight(2);
+    drawFormula(radii, 200, 255);
+    drawParameters();
+};
+
+var mousePressed = function() {
+    for (var s in sliders) {
+        sliders[s].selected();
+    }
+};
+
+var mouseReleased = function() {
+    for (var s in sliders) {
+        sliders[s].held = false;
+    }
+};
+
+var mouseDragged = function() {
+    for (var s in sliders) {
+        if (sliders[s].drag()) {
+            f = getSuperFunction(sliders);
+            radii = getRadii(f, 125, 300);
+        }
+    }
+};

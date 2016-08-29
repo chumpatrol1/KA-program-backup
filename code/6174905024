@@ -1,0 +1,653 @@
+
+var ORANGE = color(255, 165, 0);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var BACKGROUND = (0);
+
+var outline = 20;
+
+var selected = false;
+var showing = {
+    Points: true,
+    Skeleton: true,
+    Rects: false,
+    Outline: true,
+    Fill: true,
+};
+
+var callForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+// GUI
+{
+var sansFont = createFont("sans", 15);
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *      GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = color(255, 255, 255, 240);
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(20);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, { name: name });
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/*******************************************************
+ *      GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    noStroke();
+    fill(255, 255, 255, 240);
+    rect(this.x, this.y, this.w, this.h, 8);
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].draw();
+    }
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mousePressed();
+    }
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseReleased();
+    }
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseDragged();
+    }
+};
+}
+}
+
+/*************************************************
+ *      DraggablePoint
+ *  A point that can be dragged
+**************************************************/
+{
+var DraggablePoint = function(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r || 8;
+    this.color = ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x = mouseX + dx;
+    this.y = mouseY + dy;
+};
+
+DraggablePoint.prototype.findAngles = function() {
+    
+};
+}
+/*************************************************
+ *      Set-up
+**************************************************/
+
+var points = [
+    new DraggablePoint(250, 100),     // Head
+    new DraggablePoint(250, 140),    // Torso top
+    new DraggablePoint(250, 220),    // Torso bottom
+    new DraggablePoint(170, 180),    // Left arm
+    new DraggablePoint(330, 180),    // Right arm
+    new DraggablePoint(200, 350),    // Left leg
+    new DraggablePoint(300, 350),    // Right leg
+];
+
+var joints = [[0, 1], [1, 2], [1, 3], [1, 4], [2, 5], [2, 6], /*[5, 6] */];
+
+var toolbar = new Toolbar(5, 5, 120);
+toolbar.add(Slider, {
+    name: 'Outline',
+    max: 100,
+    now: 20,
+    trigger: function() {
+        outline = this.val;
+    }
+});
+toolbar.addOptions(showing);
+
+/*************************************************
+ *      Main calculation
+**************************************************/
+
+// Return an array of points around a given pint
+var drawCurveAroundPoint = function(p, r, start, stop) {
+    var curve = [];
+    var x = p.x;
+    var y = p.y;
+    
+    if (stop < start) { stop += 360; }
+    
+    // We want angle every 5 degrees or less
+    var dAngle = stop - start;
+    var nAngles = ceil(dAngle / 5);
+    dAngle /= nAngles;
+    
+    for (var angle = start; angle < stop; angle += dAngle) {
+        var dx = r * cos(angle);
+        var dy = r * sin(angle);
+        curve.push([x + dx, y + dy]);
+    }
+    return curve;
+};
+
+// Get the points around nextPoint, coming from currentPoint
+var getPoints = function(currentPoint, nextPoint, curve, r) {
+    var joints = nextPoint.joints;
+    var n = joints.length;
+    nextPoint.visited++;
+    
+    // Add end point curve and go back the way we came
+    if (n === 1) {
+        var startAngle = joints[0][0] + 90;
+        var endAngle = joints[0][0] - 90;
+        var morePoints = drawCurveAroundPoint(nextPoint, r, startAngle, endAngle);
+        Array.prototype.push.apply(curve, morePoints);
+        return currentPoint;
+    }
+    
+    // Find the joint that connects the two points
+    for (var j = 0; j < n; j++) {
+        if (joints[j][1] === currentPoint) { break; }
+    }
+    //println(currentPoint.id + " to " + nextPoint.id);
+    
+    var startJoint = joints[j];
+    var endJoint = joints[(j + 1) % n];
+    var startAngle = startJoint[0];
+    var endAngle = endJoint[0];
+    
+    // Find signed difference between angles
+    var sourceA = startAngle > 180 ? startAngle - 360 : startAngle;
+    var targetA = endAngle > 180 ? endAngle - 360 : endAngle;
+    
+    var d = targetA - sourceA;
+    if (d > 180) { d -= 360; }
+    if (d < -180) { d += 360; }
+    
+    if (d > 0) {
+        // Create point halfway between angle
+        d *= 0.5;
+        var angle = startAngle + d;
+        var h = r / sin(d);
+        curve.push([nextPoint.x + h * cos(angle), nextPoint.y + h * sin(angle)]);
+    } else {
+        startAngle += 90;
+        endAngle -= 90;
+        if (startAngle >= 360) { startAngle -= 360; }
+        if (endAngle < 0) { endAngle += 360; }
+        
+        var morePoints = drawCurveAroundPoint(nextPoint, r, startAngle, endAngle);
+        Array.prototype.push.apply(curve, morePoints);
+    }
+    
+    return endJoint[1];
+};
+
+var sortByAngle = function(a, b) { return a[0] - b[0]; };
+
+var drawConnections = function(r) {
+    // Clear current joints
+    for (var i = points.length; i--;) {
+        points[i].joints = [];
+    }
+    
+    // Thickness of joints
+    
+    noStroke();
+    fill(0, 255, 0, 100);
+    
+    // Add joints to points, containing angle of joint and which point is joined
+    for (var i = 0; i < joints.length; i++) {
+        var p1 = points[joints[i][0]];
+        var p2 = points[joints[i][1]];
+        var angle = atan2(p2.y - p1.y, p2.x - p1.x);
+        
+        // Add joint angle and connecting point
+        p1.joints.push([(angle + 360) % 360, p2]);
+        p2.joints.push([(angle + 540) % 360, p1]);
+        
+        var dx = r * cos(angle + 90);
+        var dy = r * sin(angle + 90);
+        
+        // Draw boxes covering joints
+        if (showing.Rects) {
+            quad(p1.x + dx, p1.y + dy, p2.x + dx, p2.y + dy,
+                 p2.x - dx, p2.y - dy, p1.x - dx, p1.y - dy);
+        }
+    }
+
+    // Sort each joint based on its angle
+    for (var i = points.length; i--;) {
+        points[i].joints.sort(sortByAngle);
+        points[i].visited = 0;
+    }
+    
+    for (var i = 0; i < points.length; i++) {
+        var p1 = points[i];
+        if (p1.visited) { continue; }
+        
+        var n = p1.joints.length;
+        var curve = [];
+        
+        if (n === 0) {
+            curve = drawCurveAroundPoint(p1, r, 0, 360);
+        } else {
+            // Find region between joints where we can draw a curve
+            var startJoint, nextJoint;
+            
+            for (var j = 0; j < n; j++) {
+                startJoint = p1.joints[j];
+                nextJoint = p1.joints[(j + 1) % n];
+                if (startJoint[0] + 90 < nextJoint[0] - 90) { break; }
+            }
+            
+            var startAngle = startJoint[0] + 90;
+            var endAngle = nextJoint[0] - 90;
+            curve = drawCurveAroundPoint(p1, r, startAngle, endAngle);
+            p1.visited++;
+            
+            var startPoint = p1;
+            var nextPoint = nextJoint[1];
+            
+            while (nextPoint.visited < nextPoint.joints.length) {
+                var p = getPoints(startPoint, nextPoint, curve, r);
+                startPoint = nextPoint;
+                nextPoint = p;
+            }
+        }
+        
+        // Draw curves
+        if (showing.Fill || showing.Outline) {
+            if (showing.Fill) {
+                fill(BLUE);
+            } else {
+                noFill();
+            }
+            
+            if (showing.Outline) {
+                strokeWeight(3);
+                stroke(255);
+            } else {
+                noStroke();
+            }
+            
+            beginShape();
+            for (var j = curve.length; j--;) {
+                vertex(curve[j][0], curve[j][1]);
+            }
+            endShape(CLOSE);
+        }
+        
+    }
+    
+};
+
+/*************************************************
+ *      Main loop
+**************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+
+    drawConnections(outline);
+    
+    // Connect points (skeleton)
+    if (showing.Skeleton) {
+        strokeWeight(5);
+        stroke(255);
+        for (var i = 0; i < joints.length; i++) {
+            var p1 = points[joints[i][0]];
+            var p2 = points[joints[i][1]];
+            line(p1.x, p1.y, p2.x, p2.y);
+        }
+    }
+    
+    if (showing.Points) {
+        callForEach(points, 'draw');
+    }
+    
+    toolbar.draw();
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+{
+
+keyPressed = function() {};
+    
+mousePressed = function() {
+    for (var i = points.length; i--;) {
+        if (points[i].mouseOver()) {
+            selected = points[i];
+            return;
+        }
+    }
+    toolbar.mousePressed();
+};
+
+mouseReleased = function() {
+    selected = false;
+    toolbar.mouseReleased();
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    } else {
+        toolbar.mouseDragged();
+    }
+};
+
+mouseOut = mouseReleased;
+}

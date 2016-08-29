@@ -1,0 +1,124 @@
+
+// Graph
+var graphX = 20;
+var graphY = 35;
+var graphW = width - graphX * 2;
+var graphH = 360;
+var originX = graphX + graphW/2;
+var originY = graphY + graphH/2;
+var graphD = graphW / 20;   // Gridline gap
+var GRAPH_COLOUR = color(240, 240, 255);
+
+// Data points
+var points = [];
+var pointSize = 8;
+var POINT_COLOUR = color(100, 80, 240, 180);
+
+// Stats
+var meanX = 0;
+var meanY = 0;
+var varianceX = 0;
+var varianceY = 0;
+
+// Regression Line
+var regressionM = false;
+var regressionB = false;
+
+var calculateRegressionLine = function(meanXY, varianceX) {
+    if (points.length > 2) {
+        regressionM = (meanXY - meanX * meanY) / varianceX;
+        regressionB = meanY - regressionM * meanX; 
+    } else if (points.length === 2) {
+        regressionM = (meanXY - meanX * meanY) / varianceX;
+        regressionB = meanY - regressionM * meanX;
+    }
+};
+
+var calculateStats = function() {
+    var n = points.length;
+    var meanX2 = 0;     // Mean of x squared
+    var meanY2 = 0;     // Mean of y squared
+    var meanXY = 0;     // Mean of x times y
+    meanX = 0;
+    meanY = 0;
+    
+    for (var p in points) {
+        var x = points[p][0];
+        var y = points[p][1];
+        meanX += x;
+        meanY += y;
+        meanX2 += x * x;
+        meanY2 += y * y;
+        meanXY += x * y;
+    }
+    
+    meanX /= n;
+    meanY /= n;
+    meanX2 /= n;
+    meanY2 /= n;
+    meanXY /= n;
+    
+    varianceX = meanX2 - meanX * meanX;
+    varianceY = meanY2 - meanY * meanY;
+    
+    calculateRegressionLine(meanXY, varianceX);
+};
+
+var draw = function() {
+     background(GRAPH_COLOUR);
+     
+     //Gridlines
+     stroke(220);
+     strokeWeight(1);
+     for (var i = 1; i < 20; i++) {
+         var x = graphX + i * graphD;
+         var y = graphY + i * graphD;
+         line(x, graphY, x, graphY + graphH);
+         line(graphX, y, graphX + graphW, y);
+     }
+     
+     // Axes
+     stroke(0);
+     line(originX, graphY, originX, graphY + graphH);
+     line(graphX, originY, graphX + graphW, originY);
+          
+    // Points
+    noStroke();
+    fill(POINT_COLOUR);
+    for (var i in points) {
+        var x = originX + points[i][0] * graphD;
+        var y = originY - points[i][1] * graphD;
+        ellipse(x, y, pointSize, pointSize);
+    }
+    
+    // Regression Line
+    if (regressionM) {
+        stroke(200, 0, 0, 160);
+        strokeWeight(2);
+        var x0 = originX;
+        var y0 = originY - regressionB * graphD;
+        var x1 = x0 + 200;
+        var y1 = y0 - 200 * regressionM;
+        var x2 = x0 - 200;
+        var y2 = y0 + 200 * regressionM;
+        line(x1, y1, x2, y2);
+    }
+    
+    // Stats
+    fill(20);
+    textSize(12);
+    text("Mean of x: " + round(meanX * 1000)/1000, 5, 13);
+    text("Mean of y: " + round(meanY * 1000)/1000, 5, 28);
+    text("Variance of x: " + round(varianceX * 1000)/1000, 120, 13);
+    text("Variance of y: " + round(varianceY * 1000)/1000, 120, 28);
+};
+
+var mouseClicked = function() {
+    if (mouseX > graphX && mouseX < graphX + graphW &&
+        mouseY > graphY && mouseY < graphY + graphH) {
+            var x =  (mouseX - originX) / graphD;
+            var y = -(mouseY - originY) / graphD;
+            points.push([x, y]);
+            calculateStats();
+    }
+};

@@ -1,0 +1,196 @@
+/******************************************************
+ *      Exercise 1
+ * Create a set of variables to define a shape for a
+ * model (the body of a snowman).
+******************************************************/
+
+// Write your code here
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/******************************************************
+ *          Shape
+ * A set of points, which are connected by straight
+ * lines, and filled to draw part of a skeleton.
+******************************************************/
+var drawCircle = function() {
+    var r = dist(this.drawPoints[0].x, this.drawPoints[0].y,
+                 this.drawPoints[1].x, this.drawPoints[1].y);
+    ellipse(this.drawPoints[0].x, this.drawPoints[0].y, r, r);
+};
+
+var Shape = function(data, name) {
+    this.name = name;
+    this.nodeR = 5;
+    
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    }
+    this.originalPoints = data.vertices || [];
+    
+    this.nodeColor = color(120);
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    
+    if (data.drawShape) { this.drawShape = data.drawShape.bind(this); }
+    
+    this.dependentShapes = [];
+    this.reset();
+};
+
+// Set the position of drawPoints equal to originalPoints
+Shape.prototype.reset = function() {
+    this.drawPoints = [];
+    for (var i = 0; i < this.originalPoints.length; i++) {
+        var point = this.originalPoints[i];
+        this.drawPoints.push(new PVector(point[0], point[1]));
+    }
+    
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+
+Shape.prototype.draw = function() {
+    if (this.fillColor || this.drawShape) {
+        // Shadow
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(2, 3);
+        this.drawShape(true);
+        popMatrix();
+        
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(this.strokeWeight);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    // Draw a polygon by drawing a line from each point in drawPoints
+    beginShape();
+    for (var i = 0; i < this.drawPoints.length; i++) {
+        vertex(this.drawPoints[i].x, this.drawPoints[i].y);
+    }
+    endShape(CLOSE);
+};
+
+Shape.prototype.drawNode = function() {
+    if (this.origin) {
+        fill(this.nodeColor);
+        stroke(250);
+        strokeWeight(1);
+        ellipse(this.origin.x, this.origin.y, 10, 10);
+    }
+};
+/*******************************************************
+ *          Model
+ * A character consisting of a set Shapes and a set of
+ * Deformers that transform those shapes.
+*******************************************************/
+{
+var Model = function(shapes) {
+    this.shapes = {};
+    this.id = 0;
+    
+    if (shapes) {
+        this.addShapes(shapes);
+    }
+};
+
+Model.prototype.draw = function() {
+    for (var el in this.shapes) {
+        this.shapes[el].draw();
+    }
+    
+    for (var el in this.shapes) {
+        this.shapes[el].drawNode();
+    }
+};
+
+Model.prototype.getShape = function(name) {
+    var shape = this.shapes[name];
+    if (shape) {
+        return shape;
+    } else {
+        println("ERROR: Invalid index: " + name);
+    }
+};
+
+Model.prototype.connectShapes = function(parent, child) {
+    parent = this.shapes[parent];
+    child = this.shapes[child];
+    if (parent && child && parent !== child) {
+        parent.dependentShapes.push(child);
+    }
+};
+
+Model.prototype.addShapes = function(shapes) {
+    for (var i = 0; i < shapes.length; i++) {
+        var shape = shapes[i];
+        
+        if (!shape) { continue; }
+        
+        // Are we creating a circle
+        if (shape.radius && shape.center) {
+            var center = shape.center;
+            shape.vertices = [center, [center[0] + shape.radius, center[1]]];
+            shape.drawShape = drawCircle;
+        }
+        
+        this.addShape(shape);
+    }
+};
+
+Model.prototype.addShape = function(shape) {
+    var shapeName = shape.name || "shape" + this.id++;
+    this.shapes[shapeName] = new Shape(shape, shapeName);
+};
+}
+/*******************************************************
+ * Create Model
+*******************************************************/
+
+var bodyShape;
+
+// Create our model object
+var model = new Model([bodyShape]);
+
+/**************************************
+ * Main loop
+***************************************/
+
+draw = function() {
+    // Sky
+    background(82, 115, 173);
+    
+    // Tabletop
+    noStroke();
+    fill(255);
+    rect(-1, 280, width + 2, height - 278);
+    
+    model.draw();
+};

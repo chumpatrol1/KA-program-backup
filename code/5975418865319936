@@ -1,0 +1,151 @@
+var BLUE = color(180, 120, 40);
+strokeJoin(ROUND);
+
+var getRandomPoints = function(n) {
+    var points = [];
+    for (var i = 0; i < n; i++) {
+        points.push(0.25 + random() * 0.5);
+    }
+    return points;
+};
+
+var drawGraph = function(x, y, w, h, title) {
+    noFill();
+    strokeWeight(1);
+    stroke(80);
+    rect(x, y, w, h, 2);
+    /*
+    if (title) {
+        fill(30);
+        textSize(13);
+        textAlign(LEFT, TOP);
+        text(title, x+3, y+2);
+    }
+    
+    var dy = h / 4;
+    
+    stroke(235);
+    for (var i = 0; i < 3; i++) {
+        y += dy;
+        line(x + 2, y, x + w - 2, y);
+    }
+    */
+};
+
+var drawLines = function(points, x, y, w, h, freq, amp) {
+    freq = freq || 1;
+    amp = amp || 1;
+    var n = points.length;
+    var dx = w / n / freq;
+    var dy = h / amp;
+    
+    var title = "Frequency = " + freq + "; amplitude = 1";
+    if (amp > 1) { title += "/" + amp; }
+    drawGraph(x, y, w, h, title);
+    
+    stroke(235);
+    for (var i = 1; i < freq; i++) {
+        var lx = lerp(x, x + w, i / freq);
+        line(lx, y + 3, lx, y + h - 2);
+    }
+    
+    x += dx / 2;
+    y += h / 2;
+    
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    beginShape();
+    for (var i = 0; i < freq; i++) {
+        for (var j = 0; j < n; j++) {
+            var py = y - (points[j] - 0.5) * dy;
+            vertex(x, py);
+            x += dx;
+        }
+    }
+    endShape();
+};
+
+var drawRandomLines = function(x, y, w, h) {
+    drawGraph(x, y, w, h);
+    
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    beginShape();
+    
+    for (var i = 1; i < w - 1; i++) {
+        vertex(i + x, lerp(y, y + h, 0.2 + random() * 0.6));
+    }
+    endShape();
+};
+
+var drawPoints = function(points, x, y, w, h) {
+    var n = points.length;
+    var dx = w / n;
+    
+    fill(BLUE);
+    noStroke();
+    points.forEach(function(p, i) {
+        var px = x + (i + 0.5) * dx;
+        var py = map(p, 0, 1, y + h, y);
+        ellipse(px, py, 8, 8);
+    });
+};
+
+var drawFractalNoise = function(points, x, y, w, h, octaves) {
+    octaves = octaves || 1;
+    var n = points.length;
+    var dx = w / n;
+    
+    var title = "Sum of " + octaves + " octave";
+    if (octaves > 1) { title += "s"; }
+    drawGraph(x, y, w, h, title);
+    
+    x += dx / 2;
+    y += h / 2;
+    
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    beginShape();
+    for (var i = 0; i < w - dx; i++) {
+        var value = 0;
+        
+        for (var j = 0; j < octaves; j++) {
+            var q = pow(2, j);
+            
+            // Which two points is i between
+            var px = (n * i / w * q) % n;
+            var index = floor(px);
+            
+            // How far between the two points are wwe
+            var m = px - index;
+            
+            // Interpolate value
+            value += (lerp(points[index], points[(index + 1) % n], m) - 0.5) / q;
+        }
+        
+        vertex(i + x, y - value * h);
+    }
+    endShape();
+};
+
+var drawSumGraphs = function(points, x, y, w, h, n) {
+    for (var i = 1; i < n; i++) {
+        drawFractalNoise(points, x, y + i * (h + y), w, h, i + 1);
+    }
+};
+
+var points = getRandomPoints(12);
+drawLines(points, 4, 4, 294, 115);
+//drawPoints(points, 4, 4, 294, 115);
+drawLines(points, 4, 123, 294, 115, 2, 2);
+drawLines(points, 4, 242, 294, 115, 4, 4);
+drawLines(points, 4, 361, 294, 115, 8, 8);
+drawRandomLines(302, 4, 294, 115);
+
+drawSumGraphs(points, 302, 4, 294, 115, 4);

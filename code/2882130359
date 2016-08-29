@@ -1,0 +1,1482 @@
+/*********************************************************
+ * Build a Voronoi diagram using Fortune's algorithm.
+ * 
+ * TODO:
+ *  Improve delete site function
+ *  Add sites
+ *  Reset button
+**********************************************************/
+
+var SITE_COLOR = color(20, 60, 40);
+var GREEN = color(28, 173, 123);
+
+var sansFont = createFont("sans", 15);
+
+// Brightness for all colours
+var BRIGHTNESS = 0.6;
+var SWATCHSIZE = 128;
+
+var POINT_SIZE = 8;
+var MAX_DENSITY = 100;
+var WIDTH2 = width / 2;
+var HEIGHT2 = height / 2;
+var WIDTH3 = WIDTH2 + 120;
+var HEIGHT3 = HEIGHT2 + 120;
+
+var voronoi;
+
+var showing = {
+    //Points: true,
+    //Edges: true
+};
+
+/*******************************************************
+ *  Create swatch
+ * HSB to RGB from
+ * http://stackoverflow.com/questions/17242144/javascript-convert-hsb-hsv-color-to-rgb-accurately
+********************************************************/
+
+var swatch;
+var createSwatch = function(n) {
+    loadPixels();
+    var px = this.imageData.data;
+    
+    var ni = 1 / n;
+    var x, y, h, s, r, g, b, i, f, p, q, t;
+    var index;
+    
+    //var s = 0.5;    // Saturation
+    var v = BRIGHTNESS;    // Brightness
+    
+    for (x = 0; x < n; x++) {
+        h = ni * x;     // Hue along x-axis
+        for (y = 0; y < n; y++) {
+            s = ni * y; // Saturation along y-axis
+            //v = ni * y; // Brightness along y-axis
+            i = floor(h * 6);
+            f = h * 6 - i;
+            p = v * (1 - s);
+            q = v * (1 - f * s);
+            t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            index = x + (y * width) << 2;
+            px[index++] = r * 0xFF | 0;
+            px[index++] = g * 0xFF | 0;
+            px[index++] = b * 0xFF | 0;
+        }
+    }
+    updatePixels();
+    return get(0, 0, n, n);
+};
+
+// GUI functions
+{
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *      GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = color(230, 230, 230, 200);
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(20);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, {name: name});
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+
+var RadioButton = function(x, y, w, h, name, trigger) {
+    Button.call(this, x, y, w, h, {name: name, trigger: trigger});
+    this.r = this.h - 6;
+    this.cx = this.x + this.r / 2 + 5;
+    this.cy = this.y + this.h / 2;
+    this.marked = false;
+};
+RadioButton.prototype = Object.create(Button.prototype);
+
+RadioButton.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(10);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.cx + this.r /2 + 4, this.cy + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    ellipse(this.cx, this.cy, this.r, this.r);
+    
+    if (this.marked) {
+        fill(10);
+        ellipse(this.cx, this.cy, this.r / 2, this.r / 2);
+    }
+};
+
+// Button to set a colour
+var SwatchButton = function(x, y, w, h, name, colour) {
+    Button.call(this, x, y, w, h, {
+        name: name,
+        trigger: function() {
+            this.showSwatch = !this.showSwatch;
+        }
+    });
+    this.color = colour;
+    this.defaultCol = color(250);
+    
+    this.showSwatch = false;
+    this.sx = this.x + this.w + 16;
+    this.sy = this.y - 4;
+    this.sx2 = this.sx + SWATCHSIZE;
+    this.sy2 = this.sy + SWATCHSIZE;
+};
+SwatchButton.prototype = Object.create(Button.prototype);
+
+SwatchButton.prototype.draw = function() {
+    this.fade();
+    
+    fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+    noStroke();
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 8);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    var txt = this.name;
+    text(txt, this.x + this.w / 2 - 10, this.y + this.h / 2 + 1);
+    
+    strokeWeight(1);
+    stroke(20);
+    fill(this.color);
+    rect(this.x + this.w - 22, this.y + 2, 16, 16);
+    
+    // TODO: make a swatch object
+    if (this.showSwatch) {
+        noStroke();
+        fill(0,0,0,50);
+        rect(this.sx, this.sy, SWATCHSIZE + 4, SWATCHSIZE + 30);
+        fill(0);
+        rect(this.sx - 2, this.sy - 2, SWATCHSIZE + 4, SWATCHSIZE + 30);
+        image(swatch, this.sx, this.sy);
+        
+        if (this.mouseOverSwatch()) {
+            fill(this.setColor());
+            rect(this.sx, this.sy2 + 2, SWATCHSIZE, 24);
+        } else {
+            fill(255);
+            text("Pick a color", this.sx + SWATCHSIZE / 2, this.sy2 + 13);
+        }
+    }
+};
+
+SwatchButton.prototype.setColor = function() {
+    colorMode(HSB);
+    var c = color(map(mouseX, this.sx, this.sx2, 0, 255),
+                  map(mouseY, this.sy, this.sy2, 0, 255),
+                  BRIGHTNESS * 255);
+    colorMode(RGB);
+    return c;
+};
+
+SwatchButton.prototype.mouseOverSwatch = function() {
+    return mouseX >= this.sx && mouseX <= this.sx2 &&
+           mouseY >= this.sy && mouseY <= this.sy2;
+};
+
+SwatchButton.prototype.mouseReleased = function() {
+    if (this.selected && this.mouseOver()) {
+        this.trigger();
+    } else if (this.showSwatch) {
+        if (this.mouseOverSwatch()) {
+            this.color = this.setColor();
+            voronoi.setColor();
+        } else {
+            this.showSwatch = false;
+        }
+    }
+    this.selected = false;
+};
+}
+/*******************************************************
+ *      GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ * GUI Label
+********************************************************/
+var Label = function(x, y, w, h, name) {
+    this.x = x + w / 2;
+    this.x1 = x + 8;
+    this.x2 = x + w - 8;
+    this.y = y + h + 1;
+    this.y2 = y + h / 2 + 3;
+    this.name = name;
+};
+
+Label.prototype.draw = function() {
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y2);
+    
+    strokeWeight(1);
+    stroke(20);
+    line(this.x1, this.y, this.x2, this.y);
+};
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w, heading) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+    this.labels = [];
+    
+    if (heading) {
+        this.labels.push(new Label(this.x, this.y + this.h - 6, this.w, 20, heading));
+        this.h += 26;
+    }
+    
+    this.subMenu = false;
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].draw();
+    }
+    
+    for (var i = 0; i < this.labels.length; i++) {
+        this.labels[i].draw();
+    }
+
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addLabel = function(name) {
+    var h = 20;
+    this.labels.push(new Label(this.x, this.y + this.h, this.w, h, name));
+    this.h += h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.addRadioButtons = function(options, trigger, defaultOption) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var radioButtons = [];
+    
+    var triggerFunction = function() {
+        if (!this.marked) {
+            this.marked = true;
+            
+            // Deselected other buttons
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i] !== this) {
+                    radioButtons[i].marked = false;
+                }
+            }
+        }
+        if (trigger) { trigger(this.name); }
+    };
+    
+    for (var i = 0; i < options.length; i++) {
+        var button = new RadioButton(x, y, w, 22, options[i], triggerFunction);
+        radioButtons.push(button);
+        y += 27;
+        this.h += 27;
+    }
+    
+    radioButtons[defaultOption || 0].trigger();
+    
+    this.components = this.components.concat(radioButtons);
+    this.h += 2;
+};
+
+Toolbar.prototype.addSwatch = function(name, colour) {
+    var h = 20;
+    var button = new SwatchButton(this.x + 5, this.y + this.h, this.w - 10, h, name, colour);
+    this.components.push(button);
+    this.h += h + 8;
+    return button;
+};
+
+Toolbar.prototype.addSubMenu = function(menu) {
+    if (this.subMenu === menu) {
+        // If menu already open, then close it
+        this.removeSubMenu();
+    } else {
+        this.removeSubMenu();
+        this.subMenu = menu;
+        this.components.push(menu);
+    }
+};
+
+Toolbar.prototype.removeSubMenu = function() {
+    if (this.subMenu) {
+        var index = this.components.indexOf(this.subMenu);
+        if (index > -1) {
+            this.components.splice(index, 1);
+        }
+        this.subMenu = false;
+    }
+};
+
+Toolbar.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+}; 
+
+Toolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mousePressed();
+    }
+    if (this.subMenu && !(this.subMenu.mouseOver() || this.mouseOver())) {
+        this.removeSubMenu();
+    }
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseReleased();
+    }
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseDragged();
+    }
+};
+}
+}
+/*********************************************************
+ *       Site Object
+ * Represents an initial point on the diagram.
+*********************************************************/
+var sortVertices = function(a, b) { return a.angle - b.angle; };
+
+var Site = function(x, y) {
+    // Add random values to avoid perfect alignment of sites
+    // TODO: fix so that perfect alignment of sites works.
+    this.x = x + random() / 5;
+    this.y = y + random() / 5;
+    this.x2 = this.x * this.x;
+    
+    // Array of vertices that define the cell
+    this.cell = [];
+    this.vertices = [];
+};
+
+Site.prototype.orderCellVertices = function() {
+    var vertices = this.cell;
+    var vertex, dx, dy, d;
+    this.minX = vertices[0].x;
+    this.maxX = vertices[0].x;
+    this.minY = vertices[0].y;
+    this.maxY = vertices[0].y;
+    
+    for (var i = vertices.length; i--;) {
+        vertex = vertices[i];
+        dx = vertex.x - this.x;
+        dy = vertex.y - this.y;
+        //d = sqrt(dx* dx + dy * dy);
+        vertices[i] = {
+            dx: dx,
+            dy: dy,
+            angle: atan2(dy, dx),
+            x: vertex.x,
+            y: vertex.y
+        };
+        
+        if (vertex.x > this.maxX) {
+            this.maxX = vertex.x;
+        } else if (vertex.x < this.minX) {
+            this.minX = vertex.x;
+        }
+        if (vertex.y > this.maxY) {
+            this.maxY = vertex.y;
+        } else if (vertex.y < this.minY) {
+            this.minY = vertex.y;
+        }
+    }
+    
+    if (this.maxX < -WIDTH2 || this.minX > WIDTH2 ||
+        this.maxY < -HEIGHT2 || this.minY > HEIGHT2) {
+        this.removed = true;
+    } else {
+        vertices.sort(sortVertices);
+    }
+    
+};
+
+Site.prototype.calculateArea = function() {
+    var vertices = this.cell;
+    this.area = 0;
+    var p1 = vertices[vertices.length - 1];
+    var p2;
+    for (var i = 0; i < vertices.length; i++) {
+        p2 = vertices[i];
+        this.area += p1.x * p2.y - p2.x * p1.y;
+        p1 = p2;
+    }
+    // Should divide by 2 for the "true" area, but I only care about relative areas
+};
+
+Site.prototype.mouseOver = function(mX, mY) {
+    // Bounding box test
+    if (mX <= this.minX || mX >= this.maxX ||
+        mY <= this.minY || mY >= this.maxY) {
+        return false;
+    }
+    
+    var p2, cross, sign;
+    var p1 = this.cell[0];
+    
+    for (var i = this.cell.length; i--; ) {
+        p2 = this.cell[i];
+        cross = Math.sign((p2.x - p1.x) * (mY - p1.y) - (p2.y - p1.y) * (mX - p1.x));
+        if (!sign) {
+            sign = cross;
+        } else if (cross !== sign) {
+            return false;
+        }
+        p1 = p2;
+    }
+
+    return true;
+};
+/*******************************************************
+ *      Distribution functions
+********************************************************/
+var distributions = {
+    Poisson : function() {
+        // http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
+        // https://www.jasondavies.com/poisson-disc/
+        
+        // How many points we try before rejecting a point
+        var k = 30;
+        
+        var minDist = sqrt(width * height / MAX_DENSITY) * 0.8;
+        var minDist2 = minDist * minDist;
+        
+        var x, y, i, j, p, d;
+        // Final array of points that we'll return
+        var points = [];
+        
+        // Points that we use to find neighbours
+        var activePoints = [[0, 0]];
+        
+        var activeIndex, currentPoint, pointAdded, angle, collision;
+    
+        while (activePoints.length) {
+            // Pick a random active point
+            activeIndex = floor(random() * activePoints.length);
+            currentPoint = activePoints[activeIndex];
+            pointAdded = false;
+            
+            for (i = 0; i < k; i++) {
+                angle = random() * 360;
+                d = minDist + random() * minDist;
+                x = currentPoint[0] + cos(angle) * d;
+                y = currentPoint[1] + sin(angle) * d;
+                
+                if (abs(x) > WIDTH3 || abs(y) > HEIGHT3) {
+                    continue;
+                }
+                
+                // Check distance from each other point is > minDist
+                // TODO make this more efficient using the sampleGrid
+                collision = false;
+                for (j = points.length; j--;) {
+                    p = points[j];
+                    if ((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y) < minDist2) {
+                        collision = true;
+                        break;
+                    }
+                }
+                
+                if (!collision) {
+                    points.push(new Site(x, y));
+                    activePoints.push([x, y]);
+                    pointAdded = true;
+                    break;
+                }
+            }
+            
+            // Failed to add point so remove it from the active list
+            if (!pointAdded) {
+                activePoints.splice(activeIndex, 1);
+            }
+        }
+        
+        return points;
+    }
+};
+/*********************************************************
+ *          Node object
+ * Represents a node in the binary tree
+ * Internal nodes represents breakpoint between
+ * two arcs in the beachline (left and right).
+ * Leaf nodes point to a parabola site and
+ * represent an arc in the beachline.
+*********************************************************/
+{
+var Node = function() {
+	if (arguments.length === 1) {
+	    // Make an arc
+	    this.site = arguments[0];
+	} else {
+	    // Make a breakpoint with the parameters as children
+	    this.setChild('left', arguments[0]);
+	    this.setChild('right', arguments[1]);
+	}
+};
+
+Node.prototype.setChild = function(dir, child) {
+    this[dir] = child;
+    child.parent = this;
+};
+
+// Find the arc to the left of this breakpoint
+Node.prototype.getLeftArc = function() {
+    var node = this.left;
+	while (!node.site) {
+	    node = node.right;
+	}
+	return node;
+};
+
+Node.prototype.getRightArc = function() {
+    var node = this.right;
+	while (!node.site) {
+	    node = node.left;
+	}
+	return node;
+};
+
+Node.prototype.getParent = function(dir) {
+    var parent = this.parent;
+	var parentLast = this;
+	
+	while (parent[dir] === parentLast) { 
+		if (!parent.parent) { return; }
+		parentLast = parent;
+		parent = parent.parent; 
+	}
+	
+	return parent;
+};
+
+Node.prototype.getY = function(x, y) {
+    var d = this.site.y - y;
+    var a = 0.5 / d;
+    return a * x * x - 2 * a * this.site.x * x + a * this.site.x2 + y + 0.5 * d;
+};
+
+Node.prototype.finishEdge = function() {
+    var edge = this.edge;
+    if (edge) {
+        var x = edge.dx < 0 ?
+            max(width, edge.start.x + 10) :
+            min(0, edge.start.x - 10);
+        
+        var p = { x: x, y: edge.getY(x) };
+        edge.end = p;
+        
+        // Add vertex to cell
+        edge.siteLeft.cell.push(p);
+        edge.siteRight.cell.push(p);
+    }
+    
+	if (!this.left.site) { this.left.finishEdge(); }
+	if (!this.right.site) { this.right.finishEdge(); }
+};
+}
+/*********************************************************
+ *          Edge object
+ * Represents an edge in Voronoi diagram
+ * Edges are created whenever a breakpoint is created
+ * They can be ended when a breakpoint is removed.
+*********************************************************/
+{
+var Edge = function(start, siteLeft, siteRight) {
+    this.start = start;
+    this.siteLeft = siteLeft;
+    this.siteRight = siteRight;
+    
+    // Direction vector
+    this.dx = this.siteLeft.y - this.siteRight.y;
+    this.dy = this.siteRight.x - this.siteLeft.x;
+    
+    // Constant term in line equation
+    // y - y1 = (dy / dx)(x - x1) rearranged to
+    //  dx(y) = dy(y) - dy(x1) + dx(y1)
+    this.c = start.x * this.dy - start.y * this.dx;
+    
+    // TODO: fix for dy = 0
+    this.grad = this.dy / this.dx;
+};
+
+Edge.prototype.getY = function(x) {
+    return this.start.y + this.grad * (x - this.start.x);
+};
+}
+/*********************************************************
+ *          Voronoi object
+ * Constructs the cells for a Voronoi diagram.
+*********************************************************/
+{
+var sortSites = function(a, b) {
+    return b.y1 - a.y1;
+};
+
+var sortEvents = function(a, b) {
+    return b.site.y - a.site.y;
+};
+
+var Voronoi = function(sites) {
+    this.density = 40;
+    this.edgeWidth = 1;
+    this.sites = sites;
+    this.visibleSites = [];
+    this.compute();
+};
+
+Voronoi.prototype.compute = function() {
+    this.root = null;
+    this.events = [];
+	this.edges = [];
+    
+    // Add each site to the event queue
+    // Add a cell for each site
+    for (var i = this.sites.length; i--;) {
+		this.events.push({
+		    site: this.sites[i],
+		    newArc: true
+		});
+	}
+	
+	this.events.sort(sortEvents);
+
+	while (this.events.length) {
+	    var event = this.events.pop();
+        this.sweepline = event.site.y;
+        
+        // Process event
+        if (event.newArc) {
+            this.insertArc(event.site);
+        } else {
+            this.removeArc(event);
+        }
+	}
+	
+	this.root.finishEdge();
+    for (var i = 0; i < this.edges.length; i++) {
+	    if (this.edges[i].neighbour) {
+	        this.edges[i].start = this.edges[i].neighbour.end;
+	    }
+    }
+    
+    // Sort cell vertices
+    var minArea = 400 * 400;
+    var maxArea = 0;
+    var site;
+    
+    for (var i = this.sites.length; i--;) {
+        site = this.sites[i];
+        site.orderCellVertices();
+        if (!site.removed) {
+            site.calculateArea();
+            if (site.area > maxArea) {
+                maxArea = site.area;
+            } else if (site.area < minArea) {
+                minArea = site.area;
+            }
+        }
+    }
+    
+    var areaNorm = 1 / (maxArea - minArea);
+    // Normalise areas
+    for (var i = this.sites.length; i--;) {
+        this.sites[i].areaFactor = (this.sites[i].area - minArea) * areaNorm;
+    }
+};
+
+// For each site, check whether it is visible.
+// If so, add to an array of coordinates
+Voronoi.prototype.getVisibleSites = function() {
+    var scale = sqrt(MAX_DENSITY / this.density);
+    this.visibleSites = [];
+    
+    var w2 = WIDTH2 / scale;
+    var h2 = HEIGHT2 / scale;
+    var d = (1 - this.edgeWidth * 0.01) * scale;
+    var x, y, site, newSite, vertex;
+    
+    for (var i = this.sites.length; i--;) {
+        site = this.sites[i];
+        if (site.removed) { continue; }
+        
+        x = site.x;
+        y = site.y;
+        if ((site.minX < w2 && site.maxX > -w2) &&
+            (site.minY < h2 && site.maxY > -h2)) {
+            site.x1 = WIDTH2 + x * scale;
+            site.y1 = HEIGHT2 + y * scale;
+            site.edges = [];
+            site.vertices = [];
+        
+            for (var j = site.cell.length; j--;) {
+                vertex = site.cell[j];
+                x = WIDTH2 + vertex.x * scale;
+                y = HEIGHT2 + vertex.y * scale;
+                
+                site.edges.push([x, y]);
+                
+                site.vertices.push([
+                    x - vertex.dx * d,
+                    y - vertex.dy * d
+                ]);
+            }
+            this.visibleSites.push(site);
+           
+        }
+    }
+
+    this.visibleSites.sort(sortSites);
+    this.scale = scale;
+};
+
+Voronoi.prototype.draw = function() {
+    var i, j, site;
+    
+    background(this.skinColor);
+    
+    if (showing.Edges) {
+        noFill();
+        strokeWeight(1);
+        stroke(20, 60, 40);
+        
+        for (i = this.visibleSites.length; i--;) {
+            site = this.visibleSites[i];
+            beginShape();
+            for (j = site.edges.length; j--;) {
+                vertex(site.edges[j][0], site.edges[j][1]);
+            }
+            endShape(CLOSE);
+        }
+    }
+
+    for (i = this.visibleSites.length; i--;) {
+        site = this.visibleSites[i];
+
+        stroke(site.color);
+        fill(site.color);
+        strokeWeight(2);
+        beginShape();
+        for (j = site.vertices.length; j--;) {
+            vertex(site.vertices[j][0], site.vertices[j][1]);
+        }
+        endShape(CLOSE);
+
+        if (showing.Points) {
+            strokeWeight(5);
+            stroke(20, 60, 40);
+            point(site.x1, site.y1);
+            //fill(0);
+            //text(round(site.areaFactor * 100), site.x1, site.y1 - 10);
+        }
+    }
+    
+    this.mouseOver();
+    if (this.selectedSite) {
+        noFill();
+        stroke(255, 0, 0);
+        strokeWeight(3);
+        beginShape();
+        for (j = this.selectedSite.vertices.length; j--;) {
+            vertex(this.selectedSite.vertices[j][0],
+                   this.selectedSite.vertices[j][1]);
+        }
+        endShape(CLOSE);
+        strokeWeight(6);
+        point(this.selectedSite.x1, this.selectedSite.y1);
+    }
+};
+
+Voronoi.prototype.setColor = function() {
+    var col1 = this.color1.color;
+    var col2 = this.color2.color;
+    this.skinColor = lerpColor(this.color3.color, color(0), 0.25);
+    
+    for (var i = this.sites.length; i--;) {
+        this.sites[i].color = lerpColor(col1, col2, this.sites[i].areaFactor);
+    }
+};
+
+// Add a new arc with its focus at the given site
+Voronoi.prototype.insertArc = function(site) {
+    // Create a new arc based on this site
+    var newArc = new Node(site);
+
+    // No need to do anything further with the first parabola
+    if (!this.root) {
+        this.root = newArc;
+        return;
+    }
+    
+    // Find leaf representing the arc above the new parabola
+    var existingArc = this.getArcAbovePointX(site.x);
+    
+    // Split existing arc into two pieces
+    var arc1 = new Node(existingArc.site);
+    var arc2 = new Node(existingArc.site);
+    var breakpoint = new Node(newArc, arc2);
+
+    // Convert existing arc node to a breakpoint
+    existingArc.setChild('left', arc1);
+    existingArc.setChild('right', breakpoint);
+    
+    this.removeCircleEvent(existingArc);
+	
+	// Add a new edge
+	var p = { x: site.x, y: existingArc.getY(site.x, this.sweepline) };
+    var leftEdge = new Edge(p, existingArc.site, site);
+	var rightEdge = new Edge(p, site, existingArc.site);
+	
+	leftEdge.neighbour = rightEdge;
+	this.edges.push(leftEdge);
+	existingArc.edge = rightEdge;
+	breakpoint.edge = leftEdge;
+	
+	existingArc.site = false;
+	
+	// Check for new circle events
+    this.checkForCircleEvent(arc1);
+	this.checkForCircleEvent(arc2);
+};
+
+// Search binary tree for parabola covering given x-position
+Voronoi.prototype.getArcAbovePointX = function(x) {
+	var node = this.root;
+	var p1, p2, d1, d2, a1, a2, a, b, c, discriminant, testX, x1, x2;
+	
+	// While we are not at a leaf in the tree (representing an arc).
+	while (!node.site) {
+	    p1 = node.getLeftArc().site;
+        p2 = node.getRightArc().site;
+    
+        // Coeffiecients for parabola equation in standard form
+        d1 = p1.y - this.sweepline;
+        d2 = p2.y - this.sweepline;
+        
+        a1 = 0.5 / d1;
+        a2 = 0.5 / d2;
+        
+        a = a1 - a2;
+        b = 2 * (a2 * p2.x - a1 * p1.x);
+        c = a1 * p1.x2 - a2 * p2.x2 + 0.5 * (d1 - d2);
+    
+        discriminant = b * b - 4 * a * c;
+        a *= 2;
+        x1 = (-b + sqrt(discriminant)) / a;
+        x2 = (-b - sqrt(discriminant)) / a;
+        testX = p1.y > p2.y ? max(x1, x2) : min(x1, x2);
+		node = testX > x ? node.left : node.right;
+	}
+	
+	return node;
+};
+
+Voronoi.prototype.removeArc = function(event) {
+    var arc = event.arc;
+    var leftBreak = arc.getParent('left');
+    var rightBreak = arc.getParent('right');
+	var leftArc = leftBreak.getLeftArc();
+	var rightArc = rightBreak.getRightArc();
+
+	// Get point where the arc disappears
+	var x = event.site.x;
+	var p = { x: x, y: arc.getY(x, this.sweepline) };
+	
+	// Add a vertex to each of the cells
+    arc.site.cell.push(p);
+    leftArc.site.cell.push(p);
+	rightArc.site.cell.push(p);
+	
+	// Add an end point to the two breakpoints that have joined
+    leftBreak.edge.end = p;
+	rightBreak.edge.end = p;
+    
+    this.removeCircleEvent(leftArc);
+	this.removeCircleEvent(rightArc);
+	
+	// Find the higher breakpoint
+	var higher;
+	var parent = arc;
+	while (parent !== this.root){
+		parent = parent.parent;
+		if (parent === leftBreak) { higher = leftBreak; }
+		if (parent === rightBreak) { higher = rightBreak; }
+	}
+	
+	higher.edge = new Edge(p, rightArc.site, leftArc.site);
+	this.edges.push(higher.edge);
+
+    // Remove leaf from tree and reorder
+    var parent = arc.parent;
+    var gparent = parent.parent;
+    var d1, d2;
+    
+	if (parent.left === arc) {
+	    d2 = 'right';
+	    d1 = gparent.left === parent ? 'left' : 'right';
+	} else {
+	    d2 = 'left';
+	    d1 = gparent.left === parent ? 'left' : 'right';
+	}
+	
+	// Set new parents
+	gparent.setChild(d1, parent[d2]);
+	
+	this.checkForCircleEvent(leftArc);
+	this.checkForCircleEvent(rightArc);
+};
+
+Voronoi.prototype.checkForCircleEvent = function(b) {
+    var leftBreak = b.getParent('left');
+    var rightBreak = b.getParent('right');
+    
+    if (!leftBreak || !rightBreak) { return; }
+    
+	var a = leftBreak.getLeftArc();
+	var c = rightBreak.getRightArc();
+	
+	if (!a || !c || a.site === c.site) { return; }
+	
+	//println(a + " " + b + " " + c);
+	
+	// Check whether edges of breakpoints intersect
+	var e1 = leftBreak.edge;
+	var e2 = rightBreak.edge;
+	var den = e1.dx * e2.dy - e1.dy * e2.dx;
+	
+	// Lines are parallel
+	if (!den) { return; }
+	
+	// Center circle at intersection point
+	var ix = (e2.c * e1.dx - e1.c * e2.dx) / den;
+	var iy = (e2.c * e1.dy - e1.c * e2.dy) / den;
+	
+	// Test whether edge is in the wrong direction
+	if ((ix - e1.start.x) * e1.dx > 0 || (iy - e1.start.y) * e1.dy > 0 ||
+	    (ix - e2.start.x) * e2.dx > 0 || (iy - e2.start.y) * e2.dy > 0) {
+		return;
+	}
+
+	var radius = dist(ix, iy, a.site.x, a.site.y);
+	
+	//println(radius);
+	//println(ix + " " + iy);
+	
+	// Convert center to lower edge
+	iy += radius;
+	
+	// Ignore circle if the sweep line has passed
+	if (iy <= this.sweepline) { return; }
+	
+	// Create new event
+	var event = {
+	    site: { x: ix, y: iy },
+	    radius: radius,
+	    arc: b
+	};
+	
+	b.circleEvent = event;
+	this.events.push(event);
+	this.events.sort(sortEvents);
+};
+
+Voronoi.prototype.removeCircleEvent = function(arc) {
+    //println("Remove circle event " + arc);
+    if (arc.circleEvent) {
+        //println("Removed");
+	    var index = this.events.indexOf(arc.circleEvent);
+        if (index > -1) { this.events.splice(index, 1); }
+        arc.circleEvent = null;
+	}
+};
+
+Voronoi.prototype.mouseOver = function() {
+    if (this.mx !== mouseX || this.my !== mouseY) {
+        this.mx = mouseX;
+        this.my = mouseY;
+        var mX = (mouseX - WIDTH2) / this.scale;
+        var mY = (mouseY - HEIGHT2) / this.scale;
+        
+        for (var i = this.sites.length; i--;) {
+            if (mY < this.sites[i].maxY && this.sites[i].mouseOver(mX, mY)) {
+                this.selectedSite = this.sites[i];
+                break;
+            }
+        }
+    }
+};
+
+Voronoi.prototype.deleteSite = function() {
+    if (this.selectedSite) {
+        this.sites.splice(this.sites.indexOf(this.selectedSite), 1);
+        
+        // Clear site data
+        for (var i = this.sites.length; i--;) {
+            this.sites[i].cell = [];
+            this.sites[i].vertices = [];
+        }
+        
+        this.compute();
+        this.getVisibleSites();
+        this.setColor();
+        this.selectedSite = false;
+    }
+};
+
+}
+/*********************************************************
+ *      Create diagram
+********************************************************/
+
+//var voronoi = new Voronoi(distributions.Hexagonal());
+voronoi = new Voronoi(distributions.Poisson());
+voronoi.getVisibleSites();
+
+/*******************************************************
+ *      Create interface
+********************************************************/
+
+var toolbar = new Toolbar(5, 5, 130);
+
+toolbar.add(Slider, {
+    name: 'Cell density',
+    min: 5,
+    now: 40,
+    max: MAX_DENSITY,
+    trigger: function() {
+        if (voronoi.density !== this.val) {
+            voronoi.density = this.val;
+            voronoi.getVisibleSites();
+        }
+   }
+});
+toolbar.add(Slider, {
+    name: 'Scale size',
+    min: 50,
+    now: 90,
+    max: 100,
+    trigger: function() {
+        if (voronoi.edgeWidth !== this.val) {
+            voronoi.edgeWidth = this.val;
+            voronoi.getVisibleSites();
+        }
+    }
+});
+
+voronoi.color1 = toolbar.addSwatch('Scale color 1', color(210, 190, 90));
+voronoi.color2 = toolbar.addSwatch('Scale color 2', color(80, 120, 140));
+voronoi.color3 = toolbar.addSwatch('Skin color', color(150, 120, 60));
+
+voronoi.setColor();
+
+/*
+// Colour controls
+toolbar.add(Slider, {
+    name: 'Scale hue 1',
+    min: 0,
+    now: 100,
+    max: 255,
+    trigger: function() {
+        if (voronoi.scaleHue1 !== this.val) {
+            voronoi.scaleHue1 = this.val;
+            voronoi.setColor();
+        }
+    }
+});
+toolbar.add(Slider, {
+    name: 'Scale Saturation 1',
+    min: 0,
+    now: 160,
+    max: 255,
+    trigger: function() {
+        if (voronoi.scaleSaturation1 !== this.val) {
+            voronoi.scaleSaturation1 = this.val;
+            voronoi.setColor();
+        }
+    }
+});
+toolbar.add(Slider, {
+    name: 'Scale brightness 1',
+    min: 0,
+    now: 150,
+    max: 255,
+    trigger: function() {
+        if (voronoi.scaleBrightness1 !== this.val) {
+            voronoi.scaleBrightness1 = this.val;
+            voronoi.setColor();
+        }
+    }
+});
+toolbar.add(Slider, {
+    name: 'Scale hue 2',
+    min: 0,
+    now: 120,
+    max: 255,
+    trigger: function() {
+        if (voronoi.scaleHue2 !== this.val) {
+            voronoi.scaleHue2 = this.val;
+            voronoi.setColor();
+        }
+    }
+});
+toolbar.add(Slider, {
+    name: 'Scale Saturation 2',
+    min: 0,
+    now: 60,
+    max: 255,
+    trigger: function() {
+        if (voronoi.scaleSaturation2 !== this.val) {
+            voronoi.scaleSaturation2 = this.val;
+            voronoi.setColor();
+        }
+    }
+});
+toolbar.add(Slider, {
+    name: 'Scale brightness 2',
+    min: 0,
+    now: 40,
+    max: 255,
+    trigger: function() {
+        if (voronoi.scaleBrightness2 !== this.val) {
+            voronoi.scaleBrightness2 = this.val;
+            voronoi.setColor();
+        }
+    }
+});*/
+
+//toolbar.addLabel("Show / Hide");
+toolbar.addOptions(showing);
+
+/**************************************
+ *  Main loop
+***************************************/
+
+var draw = function() {
+    if (!swatch) { swatch = createSwatch(SWATCHSIZE); }
+    voronoi.draw();
+    toolbar.draw();
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+{
+keyPressed = function() {
+    voronoi.deleteSite();
+};
+    
+mousePressed = function() {
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    toolbar.mouseReleased();
+};
+}

@@ -1,0 +1,796 @@
+/****************************************************
+ * Building a snake bot
+ *  - Click and drag the segments to build a snake bot.
+ *  - How many different snake bot can be made?
+ * 
+ *  - When you have all the permutations,
+ *     a new segment is added.
+ *  - How much harder is each successive level?
+*****************************************************/ 
+
+var BACKGROUND = color(250, 250, 250);
+var BACKGROUND = color(230, 240, 255);
+var RED = color(200, 0, 0);
+var GREY = color(160, 160, 160);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var PURPLE = color(157, 56, 189);
+var TOOLBAR = color(245, 245, 245);
+var TEXTCOL = color(20, 20, 20);
+
+var ANIMATION_SPEED = 3;
+
+var COLORS = [BLUE, PINK, GREEN, ORANGE, PURPLE, RED];
+var SEGMENT_WIDTH = 60;
+var SEGMENT_HEIGHT = 28;
+var nSegments = 1;
+var bordomThreshold = 3;
+
+var state = 'play';
+var selected = false;
+var toolbarHeight = 50;
+var questionHeight = 20;
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 14);
+
+var segments = [];
+var completedWorms = [];
+var wormCounter = {};
+
+// Spaces for segments
+var wormSegments = [];
+var toolSegments = [];
+var segmentAreas = [];
+
+var permutations = [];
+var permutationsShown = 0;
+
+// Move given item to the front of an array
+// used to ensure that heads are drawn in front of bodies
+var moveToFront = function(arr, item) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i] === item) {
+            arr.splice(i, 1);
+            break;
+        }
+    }
+    arr.push(item);
+};
+
+var factorial = function(n) {
+    var f = 1;
+    for (var i = 1; i <= n; i++) {
+        f *= i;
+    }
+    return f;
+};
+
+var drawSegment = function(x, y, w, h, fillColor, highlight) {
+    var x1 = x - w / 2;
+    var x2 = x + w / 2;
+    var y1 = y - h / 2;
+    var y2 = y + h / 2;
+    
+    fill(fillColor);
+    if (highlight) {
+        strokeWeight(3);
+        stroke(160);
+    } else {
+        strokeWeight(2);
+        stroke(100);
+    }
+    
+    beginShape();
+    curveVertex(x1, y + 2);
+    curveVertex(x1, y - 8);
+    curveVertex(x1 + 15, y1);
+    curveVertex(x2 - 15, y1);
+    curveVertex(x2, y - 8);
+    curveVertex(x2, y + 2);
+    curveVertex(x2 - 12 , y2 - 2);
+    curveVertex(x , y2);
+    curveVertex(x1 + 12, y2 - 2);
+    curveVertex(x1, y + 2);
+    curveVertex(x1, y - 8);
+    curveVertex(x1 + 15, y1);
+    endShape();
+    
+    fill(40);
+    stroke(200);
+    strokeWeight(2);
+    ellipse(x1 + 5, y - 3, 5, 5);
+    ellipse(x2 - 5, y - 3, 5, 5);
+    
+    noFill();
+    strokeWeight(3);
+    stroke(150);
+    var n = 6;
+    for (var i = 0; i < n; i++) {
+        var x3 = x1 + i * (w - 10) / (n + 2);
+        //line(x3 + 5, y, x3 + 12, y2 - 2);
+        arc(x3 + 20, y + 5, 16, 16, 125, 175);
+    }
+};
+
+var drawHead = function(x, y) {
+    var w = SEGMENT_WIDTH;
+    var h = SEGMENT_HEIGHT;
+    x -= w - 10;
+    
+    var x1 = x - w / 2;
+    var x2 = x + w / 2;
+    var y1 = y - h / 2;
+    var y2 = y + h / 2;
+    
+    fill(200);
+    stroke(100);
+    strokeWeight(2);
+    
+    beginShape();
+    curveVertex(x2 - 1, y1 - 5);
+    curveVertex(x2 - 2, y + 3);
+    curveVertex(x2 - 10 , y2 - 2);
+    curveVertex(x, y2);
+    curveVertex(x1 + 4, y2 - 3);
+    curveVertex(x1 + 3, y);
+    curveVertex(x2 - 2, y + 3);
+    curveVertex(x2 - 12 , y2 - 2);
+    endShape();
+    
+    beginShape();
+    curveVertex(x, y2 - 1);
+    curveVertex(x2 - 2, y + 3);
+    curveVertex(x2 - 1, y1 - 5);
+    curveVertex(x1 + 1, y1 + 5);
+    curveVertex(x1 - 5, y - 2);
+    curveVertex(x1 + 10, y + 4);
+    curveVertex(x2 - 2, y + 3);
+    curveVertex(x2 - 1, y1 - 5);
+    endShape();
+    
+    line(x1, y - 4, x1 + 3, y - 2);
+    
+    strokeWeight(1);
+    fill(200, 0 ,0);
+    
+    beginShape();
+    curveVertex(x2 - 7, y1 + 5);
+    curveVertex(x2 - 7, y1 + 5);
+    curveVertex(x2 - 17, y1 + 5);
+    curveVertex(x2 - 7, y1);
+    curveVertex(x2 - 7, y1 + 5);
+    endShape(CLOSE);
+    
+};
+
+var drawTail = function(x, y) {
+    var w = SEGMENT_WIDTH;
+    var h = SEGMENT_HEIGHT;
+    x += w - 10;
+    
+    var x1 = x - w / 2;
+    var x2 = x + w / 2;
+    var y1 = y - h / 2;
+    var y2 = y + h / 2;
+    
+    fill(200);
+    stroke(100);
+    strokeWeight(2);
+    
+    beginShape();
+    curveVertex(x, y + 2);
+    curveVertex(x1, y - 8);
+    curveVertex(x1 + 15, y1 + 5);
+    curveVertex(x + 5, y);
+    curveVertex(x + 20, y + 2);
+    curveVertex(x2 + 5, y - 5);
+    curveVertex(x2 + 5, y);
+    curveVertex(x2 - 12 , y2 - 2);
+    curveVertex(x , y2);
+    curveVertex(x1 + 15, y2 - 4);
+    curveVertex(x1, y + 2);
+    curveVertex(x1, y - 8);
+    curveVertex(x1 + 15, y1 + 5);
+    endShape();
+};
+
+/***************************************************
+ *      Generic part object
+ * Deals with drawing mouseOver events
+***************************************************/ 
+{
+var Segment = function(x, y, n) {
+    this.x = x;
+    this.y = y;
+    this.n = n;
+    this.colour = COLORS[n];
+    this.highlight = this.colour - 100 * (1 << 16 + 1 << 8 + 1);
+    this.width = SEGMENT_WIDTH;
+    this.height = SEGMENT_HEIGHT;
+    
+    this.targetX = false;
+    this.targetY = false;
+};
+
+Segment.prototype.draw = function() {
+    drawSegment(this.x, this.y, this.width, this.height, this.colour, this.mouseOver());
+};
+
+Segment.prototype.mouseOver = function() {
+    return mouseX >= this.x - this.width / 2 && mouseX <= this.x + this.width / 2 &&
+           mouseY >= this.y - this.height / 2 && mouseY <= this.y + this.height / 2;
+};
+
+Segment.prototype.overlap = function(that) {
+    return this.x + this.width / 4 >= that.x - that.width / 4 &&
+           this.x - this.width / 4 <= that.x + that.width / 4 &&
+           this.y + this.height / 2 >= that.y - that.height / 2 &&
+           this.y - this.height / 2 <= that.y + that.height / 2;
+};
+
+Segment.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+};
+
+Segment.prototype.addToArea = function(area) {
+    this.area = area;
+    area.segment = this;
+    this.targetX = area.x;
+    this.targetY = area.y;
+};
+
+Segment.prototype.removeFromArea = function() {
+    this.area.segment = false;
+    this.area = false;
+    this.targetX = false;
+    this.targetY = false;
+};
+
+Segment.prototype.snapTo = function(area) {
+    if (area.segment) {
+        // Move to empty area in the worm
+        var n = area.n;
+        for (var i = 1; i <= nSegments; i++) {
+            var n2 = (n + i) % nSegments;
+            if (!wormSegments[n2].segment) {
+                area.segment.addToArea(wormSegments[n2]);
+                moveToFront(segments, area.segment);
+                break;
+            }
+        }
+    }
+    this.addToArea(area);
+};
+
+Segment.prototype.update = function() {
+    for (var i = 0; i < ANIMATION_SPEED; i++) {
+        if (this.targetX !== false) {
+            if (round(this.x) > this.targetX) {
+                this.x--;
+            } else if (round(this.x) < this.targetX) {
+                this.x++;
+            } else {
+                this.targetX = false;
+                break;
+            }
+        }
+    }
+    
+    for (var i = 0; i < ANIMATION_SPEED; i++) {
+        if (this.targetY !== false) {
+            if (this.y > this.targetY) {
+                this.y--;
+            } else if (this.y < this.targetY) {
+                this.y++;
+            } else {
+                this.targetY = false;
+                break;
+            }
+        }
+    }
+};
+}
+/***************************************************
+ *      An area where a segment can be placed
+***************************************************/ 
+
+var SegmentArea = function(x, y, n) {
+    this.x = round(x);
+    this.y = round(y);
+    this.n = n;
+    this.width = SEGMENT_WIDTH;
+    this.height = SEGMENT_HEIGHT;
+    this.segment = false;
+};
+
+SegmentArea.prototype.draw = function() {
+    var x1 = this.x - this.width / 2;
+    var x2 = this.x + this.width / 2;
+    var y1 = this.y - this.height / 2;
+    var y2 = this.y + this.height / 2;
+    
+    stroke(100);
+    strokeWeight(2);
+    fill(BACKGROUND);
+    
+    beginShape();
+    curveVertex(x1, this.y + 2);
+    curveVertex(x1, this.y - 8);
+    curveVertex(x1 + 15, y1);
+    curveVertex(x2 - 15, y1);
+    curveVertex(x2, this.y - 8);
+    curveVertex(x2, this.y + 2);
+    curveVertex(x2 - 12 , y2 - 2);
+    curveVertex(this.x , y2);
+    curveVertex(x1 + 12, y2 - 2);
+    curveVertex(x1, this.y + 2);
+    curveVertex(x1, this.y - 8);
+    curveVertex(x1 + 15, y1);
+    endShape();
+};
+
+/***************************************************
+ *      Completed Worm
+***************************************************/
+
+var CompletedWorm = function(x, y, n, segments) {
+    this.x = x;
+    this.y = y;
+    this.n = n;
+    this.width = SEGMENT_WIDTH;
+    this.height = SEGMENT_HEIGHT;
+    
+    this.colours = [];
+    for (var i = 0; i < segments.length; i++) {
+        this.colours.push(COLORS[segments[i]]);
+    }
+};
+
+CompletedWorm.prototype.draw = function() {
+    var tx = this.x + (this.colours.length - 0.5) * (this.width - 10);
+    if (this.height > 24) {
+        drawTail(tx, this.y);
+    } else {
+        fill(200);
+        stroke(100);
+        strokeWeight(2);
+        rect(tx + this.width / 2, this.y - this.height / 2, this.width, this.height - 1, this.height * 0.6);
+    }
+    
+    for (var i = this.colours.length - 1; i >= 0; i--) {
+        var x = this.x + (this.width  - 10) * i;
+        fill(this.colours[i]);
+        noStroke();
+        if (this.height < 24) {
+            rect(x, this.y - this.height / 2, this.width, this.height, this.height * 0.4);
+        } else {
+            drawSegment(x + this.width / 2, this.y, this.width, this.height, this.colours[i]);
+        }
+    }
+    
+    if (this.height > 24) {
+        drawHead(this.x + this.width / 2, this.y);
+    } else {
+        fill(200);
+        stroke(100);
+        strokeWeight(2);
+        rect(this.x - this.width + 10, this.y - this.height / 2, this.width, this.height - 1, this.height * 0.6);
+        line(this.x - this.width + 10, this.y, this.x + 10, this.y);
+    }
+    
+    // How far to space numbers
+    var d = floor(1 + completedWorms.length / 16);
+    if (this.n % d === d - 1) {
+        fill(TEXTCOL);
+        textAlign(RIGHT, CENTER);
+        textSize(11);
+        text(this.n + 1, this.x - 4 - this.width, this.y);
+    }
+};
+
+CompletedWorm.prototype.update = function() {
+    // Calculate y-position of each completed worm
+    var maxY = wormSegments[0].y - wormSegments[0].height - questionHeight;
+    var targetH = floor(maxY / (completedWorms.length + 2));
+    var d = questionHeight + round((maxY - completedWorms.length * targetH) / 2 - 1);
+    var targetY = d + (this.n + 1) * targetH;
+    
+    if (targetH > 3) {
+        targetH--;
+    }
+    
+    this.height = constrain(targetH, 2, SEGMENT_HEIGHT);
+    
+    for (var i = 0; i < ANIMATION_SPEED; i++) {
+        if (targetY !== false) {
+            if (this.y > targetY) {
+                this.y--;
+            } else if (this.y < targetY) {
+                this.y++;
+            } else {
+                targetY = false;
+                break;
+            }
+        }
+    }
+};
+
+/********************************************************
+ *  GUI Button
+*********************************************************/
+
+var Button = function(x, y, w, h, name, clickFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultCol = color(220, 220, 220, 250);
+    this.highlightCol = color(67, 122, 57, 250);
+    this.showing = true;
+    this.box = this.h - 6;
+    this.clickFunction = clickFunction;
+};
+
+Button.prototype.mouseOver = function() {
+    var mx = mouseX;
+    var my = mouseY;
+    return (mx >= this.x && mx <= this.x + this.w && my >= this.y && my <= this.y + this.h);
+};
+
+Button.prototype.click = function() {
+    if (this.clickFunction) {
+        this.clickFunction();
+    }
+};
+
+Button.prototype.draw = function(x, y) {
+    this.x = x || this.x;
+    this.y = y || this.y;
+    
+    if (this.mouseOver()) {
+        fill(67, 122, 57);
+        noStroke();
+    } else {
+        noFill();
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 16);
+    
+    if (this.mouseOver()) {
+        fill(255);
+    } else {
+        fill(20);
+    }
+    
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    textFont(sansFont);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+/***************************************************
+ *      Set up level
+***************************************************/ 
+
+var generateParts = function(n) {
+    var y = height - 0.5 * toolbarHeight;
+    var dx = SEGMENT_WIDTH + round((width - n * SEGMENT_WIDTH) / nSegments);
+    
+    for (var i = 0; i < n; i++) {
+        segments.push(new Segment(dx * (i + 0.5), y, i));
+        toolSegments.push(new SegmentArea(dx * (i + 0.5), y));
+    }
+};
+
+var findPermutations = function() {
+    permutations = [];
+    var usedSegments = [];
+    
+    var permute = function(items) {
+        for (var i = 0; i < items.length; i++) {
+            var item = items.splice(i, 1)[0];
+            usedSegments.push(item);
+            if (items.length === 0) {
+                permutations.push(usedSegments.slice());
+            }
+            permute(items);
+            items.splice(i, 0, item);
+            usedSegments.pop();
+        }
+    };
+    
+    permute([0, 1, 2, 3, 4, 5].slice(0, nSegments));
+};
+
+var returnSegmentsToToolbar = function() {
+    // Move segments to toolbar
+
+    for (var i = 0; i < segments.length; i++) {
+        var segment = segments[i];
+        var area = toolSegments[segment.n];
+        segment.x = area.x;
+        segment.y = area.y;
+        segment.addToArea(area);
+    }
+    
+    
+    // Remove segments from worm area
+    for (var i = 0; i < wormSegments.length; i++) {
+        wormSegments[i].segment = false;
+    }
+};
+
+// Create a screen with n segments
+var setup = function(n) {
+    selected = false;
+    state = 'play';
+
+    segments = [];
+    completedWorms = [];
+    wormCounter = {};
+    
+    wormSegments = [];
+    toolSegments = [];
+    
+    var y = height - 0.5 * toolbarHeight;
+    var dx = 100;
+    var x = (width - dx * (n - 1)) / 2;
+    
+    // Create toolbar areas containing segments
+    for (var i = 0; i < n; i++) {
+        segments.push(new Segment(x + dx * i, y, i));
+        toolSegments.push(new SegmentArea(x + dx * i, y));
+    }
+    
+    // Create areas for segments on the screen
+    var dx = (SEGMENT_WIDTH - 10) / 2 + (width - n * (SEGMENT_WIDTH - 10)) / 2;
+    
+    for (var i = 0; i < n; i++) {
+        wormSegments.push(new SegmentArea(dx + i * (SEGMENT_WIDTH - 10), 300, i));
+    }
+    
+    segmentAreas = wormSegments.concat(toolSegments);
+    
+    findPermutations();
+    permutationsShown = 0;
+};
+
+/***************************************************
+ *      End level
+****************************************************/ 
+
+var endLevel = function() {
+    state = 'end';
+};
+
+var nextLevel = function() {
+    nSegments++;
+    setup(nSegments);
+};
+
+var showAll = function() {
+    state = 'auto';
+};
+
+var nextLevelButton = new Button(0, 0, 50, 20, "Next", nextLevel);
+var showAllButton = new Button((width - 160) / 2, height - toolbarHeight - 30, 172, 20, "Combinação automática", showAll);
+
+/***************************************************
+ *      Completed worms
+****************************************************/ 
+
+var addCompletedWorm = function(segmentArray) {
+    // Check whether this worm already exists
+    var id = segmentArray.join(",");
+    if (wormCounter[id] === undefined) {
+        // Add new worm
+        var x = wormSegments[0].x - SEGMENT_WIDTH / 2;
+        var y = wormSegments[0].y;
+        var n = completedWorms.length;
+        completedWorms.push(new CompletedWorm(x, y, n, segmentArray));
+        wormCounter[id] = n;
+        
+        // Move worm down to make more space
+        /*
+        for (var i = 0; i < wormSegments.length; i++) {
+            wormSegments[i].y++;
+            wormSegments[i].segment.targetY = wormSegments[i].y;
+        }
+        */
+        
+        if (completedWorms.length === factorial(nSegments)) {
+            endLevel();
+        }
+        returnSegmentsToToolbar();
+    }
+};
+
+var testForCompletedWorm = function() {
+    var segments = [];
+    for (var i = 0; i < wormSegments.length; i++) {
+        if (!wormSegments[i].segment) {
+            // There's an empty segment so worm is not completed
+            return;
+        } else {
+            segments.push(wormSegments[i].segment.n);
+        }
+    }
+    addCompletedWorm(segments);
+};
+
+var getNextPermutation = function() {
+    if (permutationsShown < factorial(nSegments)) {
+        var permutation = permutations[permutationsShown]; 
+        addCompletedWorm(permutation);
+        
+        for (var i = 0; i < segments.length; i++) {
+            segments[permutation[i]].x = wormSegments[i].x;
+            segments[permutation[i]].y = wormSegments[i].y;
+        }
+        
+        permutationsShown++;
+    }
+};
+
+/***************************************************
+ *      Draw functions
+***************************************************/ 
+
+var drawToolbar = function(y) {
+    strokeWeight(1);
+    stroke(200);
+    fill(TOOLBAR);
+    rect(-1, y, width + 1, toolbarHeight);
+    
+    stroke(120);
+    line(0, y + 1, width, y + 1);
+    
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    fill(TEXTCOL);
+};
+
+var drawEndScreen = function() {
+    strokeWeight(3);
+    stroke(20, 60, 160);
+    fill(250, 250, 250);
+    
+    var w = 350;
+    var h = nSegments === 5 ? 90 :  75;
+    var x = (width - w) / 2;
+    var y = height - toolbarHeight - h - (85 - h) / 2;
+    
+    rect(x, y, w, h, 10);
+    
+    fill(TEXTCOL);
+    textSize(16);
+    textAlign(CENTER, TOP);
+    
+    var txt = factorial(nSegments) + " cobras-robô diferentes podem ser feitas usando-se " + nSegments + " segmentos diferentes.";
+    if (nSegments === 1) {
+        txt = "Uma cobra-robô pode ser feita usando-se 1 segmento.";
+    }
+    text(txt, x + 5, y + 6, w - 10, h);
+    
+    if (nSegments < 5) {
+        var buttonName = "E com " + (nSegments + 1) + " segmentos?";
+        nextLevelButton.name = buttonName;
+        nextLevelButton.w = textWidth(buttonName) + 10;
+        nextLevelButton.draw((width - nextLevelButton.w) / 2, y + h - 28);   
+    } else {
+        text("São muitas cobras!\nVocê já pode seguir para a  próxima atividade", x + 10, y + 50, w - 20, h);
+    }
+};
+
+/********************************************************
+ *      Start interactive
+*********************************************************/
+
+setup(nSegments);
+
+/********************************************************
+ *      Main loop
+*********************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    drawToolbar(height - toolbarHeight);
+    
+    fill(20);
+    textSize(16);
+    textAlign(LEFT, TOP);
+    var txt = "Quantas cobras-robô podem ser criadas usando " + nSegments;
+    txt += (nSegments > 1 ? " segmentos diferentes?": " segmento?");
+    text(txt, width * 0.02, height * 0.012);
+    
+    for (var i = 0; i < completedWorms.length; i++) {
+        completedWorms[i].update();
+        completedWorms[i].draw();
+    }
+    
+    drawTail(segmentAreas[segmentAreas.length / 2 - 1].x, segmentAreas[segmentAreas.length / 2 - 1].y);
+    for (var i = segmentAreas.length - 1; i >= 0 ; i--) {
+        segmentAreas[i].draw();
+    }
+    
+    for (var i = 0; i < segments.length; i++) {
+        segments[i].update();
+        segments[i].draw();
+    }
+    
+    drawHead(segmentAreas[0].x, segmentAreas[0].y);
+    
+    if (nSegments > bordomThreshold) {
+        if (state === 'auto') {
+            if (frameCount % ceil(26 - nSegments * 4) === 0) {
+                getNextPermutation();   
+            }
+        } else if (state === 'play') {
+            showAllButton.draw();
+        }
+    }
+    
+    if (state === 'end') {
+        drawEndScreen();
+    }
+};
+
+/********************************************************
+ *      Event handling
+*********************************************************/
+
+mousePressed = function() {
+    if (state === 'play') {
+        // Select from segments, starting with the uppermost one
+        for (var i = segments.length - 1; i >= 0 ; i--) {
+            if (segments[i].mouseOver()) {
+                selected = segments[i];
+                moveToFront(segments, selected);
+                if (selected.area) {
+                    selected.removeFromArea();
+                }
+                break;
+            }
+        }   
+    }
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    }
+};
+
+mouseReleased = function() {
+    if (selected) {
+        // Test for overlap
+        for (var i = 0; i < segmentAreas.length; i++) {
+            var area = segmentAreas[i];
+            if (selected.overlap(area)) {
+                selected.snapTo(area);
+                testForCompletedWorm();
+                break;
+            }
+        }
+        selected = false;   
+    }
+    
+    if (state === 'end' && nSegments < 5 && nextLevelButton.mouseOver()) {
+        nextLevelButton.click();
+    } else if (nSegments > bordomThreshold  && showAllButton.mouseOver()) {
+        showAllButton.click();
+    }
+};
+
+keyPressed = function() {
+    if (keyCode === 65) {
+        getNextPermutation();
+    }
+};

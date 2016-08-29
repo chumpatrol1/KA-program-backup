@@ -1,0 +1,2246 @@
+/*************************************
+ * Game without nice looking tiles
+ * 
+ * TODO:
+ *  Fixes
+ *      Fix NiceNum initialisation index
+ *      Ensure actions are drawn over all tiles
+ *      Mouseover text for Help and About
+ * 
+ *  Improvements
+ *      Improve look of research menu
+ *      Constrain dragging to visible region
+ *      Slide movement on double click
+ *      Show animation on pressing to complete an action
+ *      Avoid text flicking in and out of an action
+ *      Mouseover actions active when word moused-over
+ *      Fade between tooltips
+ *      Fade windows in and out
+ *      Colour resources in costs based on affordability
+ *      Test mouseover once at start of draw phase
+ *      Add icons to buttons
+ *     
+ *  Refactoring
+ *      Make cost object (?)
+ *      Store tiles in grid in a 1D array
+ * 
+ *  Features
+ *    * Random events
+ *    * Add nice tiles
+ *      Pausing
+ *      Hunting
+ *      Build settlement
+ *      Achievements list
+ *      Icons
+ *      Tutorial tooltips
+ *      Save game
+ *    ! Farming
+ *    ! Trading
+ *    ! Combat
+ * https://www.khanacademy.org/computer-programming/pocket-village/3713204919
+**************************************/
+
+// Display properties
+var TILE_SIZE = 100;
+var ACTION_SIZE = 11;
+
+var BLACK = color(0);
+var WHITE = color(255);
+var WARN_COLOR = color(255, 0, 0, 200);
+var INACTIVE_COLOR = color(80, 80, 80, 200);
+var TICK = String.fromCharCode(0x2714);
+
+var sansFont = createFont("Trebuchet MS", 13);
+
+var callForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+// Stores the position of the mouse in world coordinates
+var mouse = {
+    dx: 0,
+    dy: 0,
+    get x() { return mouseX - this.dx; },
+    get y() { return mouseY - this.dy; }
+};
+
+// Overall control of what's drawn and what can interact
+var system = {
+    time: millis(),     // For controlling events
+    elements: [],
+    
+    draw: function() {
+        callForEach(system.elements, 'draw');
+    },
+    
+    update: function() {
+        this.time = millis();
+        cursor('default');
+    },
+    
+    addElement: function(element, takeControl) {
+        this.elements.push(element);
+        if (takeControl) {
+            this.elementInControl = element;
+        }
+    },
+    
+    removeElement: function(element) {
+        var index = this.elements.indexOf(element);
+        if (index !== -1) {
+            if (this.elementInControl === element) {
+                this.elementInControl = false;
+            }
+            this.elements.splice(index, 1);
+        }
+    },
+    
+    mousePressed: function() {
+        this.mouseDown = this.time;
+        
+        if (this.elementInControl) {
+            this.elementInControl.mousePressed();
+        } else {
+            for (var i = this.elements.length; i--;) {
+                if (this.elements[i].mousePressed()) {
+                    break;
+                }
+            }
+        }
+    },
+    
+    mouseReleased: function() {
+        this.doubleClick = false;
+        if (this.time - this.mouseDown < 200) {
+            this.doubleClick = this.time - this.clickTime < 320;
+            this.clickTime = this.time;
+        }
+        
+        callForEach(this.elements, 'mouseReleased');
+    }
+};
+
+var player;
+
+/***********************************************
+ *  Define number in a series such that each
+ * number is ~25% greater than the last, but 
+ * each number is a "nice" number (multiple
+ * of 4 or 5 or both). It will have at most
+ * three non-zero digits.
+************************************************/
+{
+var NiceNum = function(n) {
+    var logN = log(n) / Math.LN2;
+    var f = floor(logN);
+    // TODO: fix this for new system
+    this.index = 3 * (f - 4) + floor(3.5 * (logN - f));
+    this.setValue();
+};
+
+NiceNum.prototype.setValue = function() {
+    var f = floor(this.index / 12);
+    var index = this.index - f * 10;
+    var m = floor((index) / 3);
+    
+    this.value = [16, 20, 25][index % 3] * (1 << m) * pow(10, f);
+};
+
+NiceNum.prototype.add = function(n) {
+    this.index += (n || 1);
+    this.setValue();
+};
+
+NiceNum.prototype.toString = function() {
+    return this.value;
+};
+var n = new NiceNum(100);
+var p = 4;
+for (var i = 0; i <= 10; i++) {
+    println(n.index + " " + n);
+    n.add();
+    //p += 2;
+}
+}
+/*************************************
+ *  Formating functions
+**************************************/
+{
+var getTimeString = function(t, long) {
+    var s = ceil(t / 1000);
+    var m = floor(s / 60);
+    s -= m * 60;
+
+    if (long) {
+        var str = (m ? m + " min": "");
+        return str + (s ? (str ? " " : "") + s + "s": "");
+    } else {
+        return m + ":" + nf(s, 2, -1);
+    }
+};
+
+var getCostString = function(cost, noMinus, sep) {
+    var s = "";
+    sep = sep || "\n";
+    for (var resource in cost) {
+        if (s) { s += sep; }
+        if (!noMinus) { s += "-"; }
+        s += cost[resource] + " " + resource;
+    }
+    return s;
+};
+
+var addCosts = function(cost1, cost2) {
+    var newCost = {};
+    for (var resource in cost1) {
+        // Assuming its a NiceNum
+        newCost[resource] = cost1[resource].value;
+        if (cost2[resource]) {
+            newCost[resource] += cost2[resource].value;
+        }
+    }
+    
+    for (var resource in cost2) {
+        if (!cost1[resource]) {
+            newCost[resource] = cost2[resource].value;
+        }
+    }
+    
+    return newCost;
+};
+
+// Return "n word(s)" with correct plural assuming s-pluralisation
+var plural = function(n, word, plural) {
+    word = word || "meeple";
+    if (n !== 1) {
+        word = plural || word + 's';
+    }
+    return n + " " + word;
+};
+}
+/*************************************
+ *  Game data
+**************************************/
+
+// Define the actions a player can take and their cost and yields.
+// The name property allows action names to be changed by research
+var actions = {
+    // Special action (no meeples assigned)
+    'Make meeple': {
+        name: 'Make meeple',
+        duration: new NiceNum(16000),
+        cost: {
+            food: new NiceNum(200),
+            wood: new NiceNum(25)
+        },
+        amount: 1,
+        resource: 'meeple',
+    },
+    // Special action (variable time and cost)
+    'Explore': {
+        name: 'Explore',
+        duration: 60000,
+        variableTime: 240000,
+        baseCost: new NiceNum(400),
+        getCost: function(meeples) {
+            return { food: meeples * this.baseCost.value };
+        }
+    },
+    // Special action (variable time)
+    'Research': {
+        name: 'Research',
+        duration: new NiceNum(20000),
+        variableTime: 24000,
+        baseCost: { food: new NiceNum(250) }
+    },
+    'Berries': {
+        type: 'Gathering',
+        name: 'Berries',
+        resource: 'food',
+        desc: 'Gather berries for food.',
+        duration: new NiceNum(12800),
+        amount: new NiceNum(400),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (45 + meeples);
+        },
+        events: [
+            
+        ]
+    },
+    'Fruit': {
+        type: 'Gathering',
+        name: 'Fruit',
+        resource: 'food',
+        desc: 'Gather fruit for food.',
+        duration: new NiceNum(12800),
+        amount: new NiceNum(500),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (40 + meeples);
+        },
+        events: [
+            
+        ]
+    },
+    'Shellfish': {
+        type: 'Gathering',
+        name: 'Shellfish',
+        resource: 'food',
+        desc: 'Gather shellfish for food.',
+        duration: new NiceNum(4000),
+        amount: new NiceNum(500),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (100 + meeples);
+        },
+    },
+    'Rabbits': {
+        type: 'Hunting',
+        name: 'Rabbits',
+        resource: 'food',
+        desc: 'Hunt rabbits for food.',
+        hidden: true,
+        duration: new NiceNum(20000),
+        amount: new NiceNum(2000),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (100 + meeples);
+        },
+    },
+    'Deer': {
+        type: 'Hunting',
+        name: 'Deer',
+        resource: 'food',
+        desc: 'Hunt deer for food.',
+        hidden: true,
+        duration: new NiceNum(25000),
+        amount: new NiceNum(3000),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (120 + meeples);
+        },
+    },
+    'Boar': {
+        type: 'Hunting',
+        name: 'Boar',
+        resource: 'food',
+        desc: 'Hunt boar for food.',
+        hidden: true,
+        duration: new NiceNum(32000),
+        amount: new NiceNum(4000),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (160 + meeples);
+        },
+    },
+    'Twigs & Sticks': {
+        type: 'Gathering',
+        name: 'Twigs',
+        resource: 'wood',
+        desc: 'Gather twigs for wood.',
+        duration: new NiceNum(10000),
+        amount: new NiceNum(100),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (50 + meeples);
+        },
+    },
+    'Twigs - Logs': {
+        type: 'Gathering',
+        name: 'Twigs',
+        resource: 'wood',
+        desc: 'Gather twigs for wood.',
+        duration: new NiceNum(10000),
+        amount: new NiceNum(100),
+        getAmount: function(meeples) {
+            return meeples * this.amount.value / (50 + meeples);
+        },
+    }
+};
+
+// Random events associated with actions
+// Events are stores as a chance out of 100, a description and a result function
+var events = {
+    Berries: [
+{
+    chance: 10,
+    desc: "A particularly bountiful berry bush was found.",
+    result: "Gain " + this.amount + " food.",
+    action: function() { player.food += this.amount; }
+}, {
+    chance: 4,
+    desc: "A new berry has been discovered.",
+    result: "Gathering berries now produces more food.",
+    action: function() { this.amount.add(); },
+}, {
+    chance: 1,
+    desc: "A meeple was poisoned trying a new berry.",
+    result: "You've lost a meeple.",
+    action: function() { player.addMeeple(-1); }
+}
+    ],
+    Fruit: [
+{
+    chance: 10,
+    desc: "A particularly bountiful fruit tree was found.",
+    result: "Gain " + this.amount + " food.",
+    action: function() { player.food += this.amount; }
+}, {
+    chance: 4,
+    desc: "A new fruit tree has been discovered.",
+    result: "Gathering berries now produces more food.",
+    action: function() { this.amount.add(); },
+}, {
+    chance: 1,
+    desc: "A meeple fell out of a tree reaching for a fruit.",
+    result: "You've lost a meeple.",
+    action: function() { player.addMeeple(-1); }
+}
+    ]
+};
+
+/*********************************************************
+ *  Research - new technologies to discover
+**********************************************************/
+
+var research = {
+    'Stone tools': {
+        desc: "Bash stones together until you get a sharp edge that can be used to cut thick sticks from bushes.",
+        result: "Gathering sticks takes 25% longer, but yeilds twice as much wood.",
+        weapon: 1,
+        cost: { wood: new NiceNum(25) },
+        update: function() {
+            for (var actionName in actions) {
+                var action = actions[actionName];
+                if (action.name === 'Twigs') {
+                    action.name = "Sticks";
+                    action.duration.add();
+                    action.amount.add(3);
+                }
+            }
+        },
+        allows: ['Basketry', 'Club']
+    },
+    'Fire': {
+        desc: "Learn how to control fire, so meeples can keep warm and cook food.",
+        result: "Increase the maximum population.",
+        cost: { wood: new NiceNum(100) },
+        update: function() {
+            player.maxMeeples.add();
+        },
+        allows: ['Pigments']
+    },
+    'Basketry': {
+        desc: "Weave sticks together to make baskets to hold food.",
+        result: "Gather food takes 25% longer, but yeilds twice as much.",
+        prerequisites: ['Stone tools'],
+        cost: { wood: new NiceNum(100) },
+        update: function() {
+            // Gathering any food type takes longer,
+            // but yields increase
+            for (var actionName in actions) {
+                var action = actions[actionName];
+                if (action.type === 'gather' &&
+                    action.resource === 'food') {
+                        action.duration.add();
+                        action.amount.add(3);
+                }
+            }
+        },
+        allows: ['Pottery']
+    },
+    'Pottery': {
+        desc: "Mould clay and harden with fire to produce containers that preserve food for longer.",
+        result: "All food sources provide 25% more food.",
+        prerequisites: ['Stone tools'],
+        cost: { wood: new NiceNum(100) },
+        update: function() {
+            // Gathering any food type takes longer,
+            // but yields increase
+            for (var actionName in actions) {
+                var action = actions[actionName];
+                if (action.resource === 'food') {
+                        action.amount.add(1);
+                }
+            }
+        },
+        allows: ['Herbalism']
+    },
+    'Club': {
+        desc: "Fashion sticks into a basic weapon, which can be used for hunting small game.",
+        result: "Increase defense and enable hunting rabbits.",
+        prerequisites: ['Stone tools'],
+        weapon: 2,
+        cost: { wood: new NiceNum(100) },
+        update: function(grid) {
+            grid.revealAction('Rabbits');
+        },
+        allows: ['Wooden spear', 'Stone axe']
+    },
+    'Pigments': {
+        desc: "Mix berry juices with ochres to create pigments. Then develop tribal colors to improve social cohesion.",
+        result: "Increase the maximum population.",
+        prerequisites: ['Fire'],
+        cost: { food: new NiceNum(50) },
+        update: function() {
+             player.maxMeeples.add();
+        },
+        allows: ['Symbolism']
+    },
+    'Stone axe': {
+        desc: "Fixing a sharpened stone to the end of a wooden shaft, creates a basic tool for branches from trees.",
+        result: "Gathering branches from trees takes 25% longer, but yeilds twice as much wood.",
+        prerequisites: ['Club'],
+        cost: { wood: new NiceNum(64)  },
+        update: function() {
+            var action = actions['Twigs - Logs'];
+            action.name = "Branches";
+            action.duration.add();
+            action.amount.add(3);
+        },
+        allows: []
+    },
+    'Wooden spear': {
+        desc: "Sharpen sticks to a point to create a basic projectile weapon, allowing you to hunt larger, faster animals.",
+        result: "Increase defense and allow fishing and hunting deer.",
+        prerequisites: ['Club'],
+        weapon: 3,
+        cost: { wood: new NiceNum(150)  },
+        update: function(grid) {
+            grid.revealAction('Deer');
+            grid.revealAction('Fish');
+        },
+        allows: ['Stone-tipped spear']
+    },
+    'Stone-tipped spear': {
+        desc: "Attach a stone blade to the end of a spear, allowing you to hunt more dangerous prey.",
+        result: "Increase defense and allow hunting boar.",
+        prerequisites: ['Wooden spear'],
+        weapon: 4,
+        cost: { wood: new NiceNum(200)  },
+        update: function(grid) {
+            grid.revealAction('Boar');
+        },
+        allows: ['Stone-tipped spear']
+    },
+    'Symbolism': {
+        desc: "Use paints to represent objects and so allow information to be stored outside of the meeple brain.",
+        result: "Research cost half the amount of food and takes 20% less time.",
+        prerequisites: ['Pigments'],
+        cost: { food: new NiceNum(400) },
+        update: function() {
+            research.baseCost.add(-3);
+            research.duration.add(-1);
+        },
+        allows: ['Counting', 'Herbalism']
+    },
+    'Counting': {
+        desc: "Understand how to represent numbers abstractly.",
+        result: "Research cost half the amount of food and takes 20% less time.",
+        prerequisites: ['Symbolism'],
+        cost: { food: new NiceNum(1000) },
+        update: function() {
+             research.baseCost.add(-3);
+             research.duration.add(-1);
+        },
+        allows: []
+    },
+    'Herbalism': {
+        desc: "Learn which herbs can cure sickness and ease ailments.",
+        result: "Making meeples cost 20% food and takes 20% less time.",
+        prerequisites: ['Pottery', 'Symbolism'],
+        update: function() {
+            actions['Make meeple'].cost.food.add(-1);
+            actions['Make meeple'].duration.add(-1);
+        },
+        allows: []
+    }
+};
+
+/*********************************************************
+ *  Map data
+ * Layout of the tiles on the map and tile type properties.
+ * The height map is used for contour shading.
+**********************************************************/
+{
+// Map tile ID to its display properties
+var tileTypes = {
+    S: {
+        name: 'Scrubland',
+        color1: color(125, 95, 45),
+        color2: color(95, 100, 90),
+        noiseY: 0.2,
+        actions: ['Berries', 'Twigs & Sticks']
+    },
+    G: {
+        name: 'Grassland',
+        color1: color(60, 150, 70),
+        color2: color(106, 176, 92),
+        noiseY: 0.2,
+        actions: ['Berries', 'Deer']
+    },
+    F: {
+        name: 'Forest',
+        color1: color(40, 120, 60),
+        color2: color(100, 170, 90),
+        noiseX: 0.07,
+        noiseY: 0.07,
+        actions: ['Twigs - Logs', 'Fruit', 'Rabbits']
+    },
+    B: {
+        name: 'Beach',
+        color1: color(180, 150, 90),
+        color2: color(195, 175, 145),
+        noiseX: 0.12,
+        noiseY: 0.3,
+        actions: ['Shellfish']
+    },
+    W: {
+        name: 'Water',
+        color1: color(40, 80, 185)
+    }
+};
+
+// 2D array of the types for each tile
+var terrainMap = [
+    'BBBBB',
+    'BSSFF',
+    'BGGGF',
+    //'BGFFF',
+];
+
+// 2D array of heights for tile centers
+var heightMap = [
+    [ 50, 0, 150, 200],
+    [0, 150, 180, 250],
+    [120, 200, 240, 300],
+];
+}
+/*********************************************************
+ *      A player controlling a civilisation.
+ * Players have meeples who are the workers. Meeples are
+ * idle until assigned work. They become idle again when
+ * their work ends.
+ * Players also have resources which can be spent on
+ * actions, such as making new meeples, exploring and 
+ * research.
+**********************************************************/
+player = {
+    meeples: 15,
+    idle: 15,
+    maxMeeples: new NiceNum(16),
+    
+    weapon: 'bare hands',
+    weaponStrength: 0,
+    
+    food: 500,
+    wood: 100,
+    territories: 0,
+    
+    researchOptions: ['Stone tools', 'Fire'],
+    researched: [],
+    
+    addMeeple: function(n) {
+        n = n || 1;
+        this.meeples += 1;
+        this.idle += 1;
+
+        // Update the cost of meeples
+        if (this.meeples > 13) {
+            var meepleCost = actions['Make meeple'].cost;
+            // TODO: add to cost object
+            for (var resource in meepleCost) {
+                var amount = meepleCost[resource];
+                if (amount.value) {
+                    amount.add(n);
+                }
+            }
+        }
+    },
+    
+    canAfford: function(cost) {
+        for (var resource in cost) {
+            var amount = cost[resource];
+            if (amount.value) { amount = amount.value; }
+            if (amount > this[resource]) {
+                return false;
+            }
+        }
+        return true;
+    },
+    
+    pay: function(cost) {
+        for (var resource in cost) {
+            var amount = cost[resource];
+            if (amount.value) { amount = amount.value; }
+            this[resource] -= amount;
+        }
+    },
+    
+    payIfCanAfford: function(cost) {
+        if (this.canAfford(cost)) {
+            this.pay(cost);
+            return true;
+        }
+    },
+    
+    gain: function(resources) {
+        for (var resource in resources) {
+            var amount = resources[resource];
+            if (amount.value) { amount = amount.value; }
+            this[resource] += amount;
+        }
+    },
+    
+    completeResearch: function(project, grid) {
+        var projectData = research[project];
+        
+        // Update the game based on what was researched
+        if (projectData.weapon &&
+            projectData.weapon > this.weaponStrength) {
+            this.weapon = project;
+            this.weaponStrength = this.weapon;
+        }
+
+        if (projectData.update) {
+            projectData.update(grid);
+        }
+        
+        // Update cost
+        var cost = actions.Research.baseCost;
+        for (var resource in cost) {
+            cost[resource].add();
+        }
+        
+        // Remove from existing project and add to researched
+        var index = this.researchOptions.indexOf(project);
+        
+        if (index > -1) {
+            this.researchOptions.splice(index, 1);
+        }
+        
+        this.researched.push(project);
+
+        // Get new options
+        var allows = research[project].allows || [];
+        
+        for (var i = 0; i < allows.length; i++) {
+            var newProject = allows[i];
+            
+            // Check this isn't already allowed and isn't already researched (shouldn't happen under normal circumstances.)
+            if (this.researched.indexOf(newProject) > -1 ||
+                this.researchOptions.indexOf(newProject) > -1) {
+                continue;
+            }
+            
+            var reqs;
+            try {
+                reqs = research[newProject].prerequisites || [];
+            } catch(e) {
+                throw("No such project: " + newProject);
+            }
+            
+            // Check all the prerequisites have been researched
+            var allowed = true;
+            for (var j = 0; j < reqs.length; j++) {
+                if (this.researched.indexOf(reqs[j]) === -1) {
+                    allowed = false;
+                    break;
+                }
+            }
+            
+            if (allowed) {
+                this.researchOptions.push(newProject);
+            }
+        }
+    }
+};
+/*********************************************************
+ *  An action a player can take, shown as a circular
+ * button. Dragging a button assigns meeples to an action.
+ * The number of meeples assigned is proprotional to the 
+ * button's area. The specifics of actions are determined
+ * by the objects within the actions object.
+ * 
+ * The default action is gathering. Gathering takes a 
+ * fixed amount of time. The more meeples assigned, the
+ * more resources gathered (with decreasing efficiency).
+**********************************************************/
+{
+var Action = function(x, y, name) {
+    this.x = x;
+    this.y = y;
+    this.r = ACTION_SIZE;
+    this.r2 = this.r * this.r;
+    this.d = ACTION_SIZE * 2;
+    this.name = name;
+    this.baseColor = color(50, 100, 255);
+    this.color = this.baseColor + (220 << 24);
+    
+    this.birthTime = system.time;
+    
+    this.isSelected = false;
+    this.mode = 'birth';
+    this.percentComplete = 0;
+    this.meeples = 0;
+    
+    this.data = actions[this.name];
+    
+    // Copy action data
+    // TODO: remove this.
+    for (var key in this.data) {
+        this[key] = this.data[key];
+    }
+    
+    // The time for an action that depends on the number of meeples assigned to it
+    // This is 0 for gathering tasks which take a constant amount of time.
+    this.variableTime = this.variableTime || 0;
+};
+
+Action.prototype.draw = function() {
+    if (this.mode === 'inactive') {
+        var txt = this.data.name;
+        
+        if (this.mouseOver()) {
+            cursor(HAND);
+            var blocked = this.isBlocked();
+            if (blocked) {
+                txt = blocked;
+                fill(WARN_COLOR);
+                cursor("not-allowed");
+            } else {
+                txt = this.getMouseOverLabel();
+                fill(this.color);
+            }
+        } else {
+            noFill();
+        }
+        
+        this.drawButton();
+        this.drawLabel(txt);
+    } else if (this.mode === 'birth') {
+        this.drawBirth();
+    } else {
+        this.drawCountdown();
+    }
+};
+
+Action.prototype.drawBirth = function() {
+    var age = system.time - this.birthTime;
+    if (age < 400) {
+        // Animate circle collapsing on newly created actions
+        this.drawHighlight(1 - age / 400, WHITE);
+    } else {
+        this.mode = 'inactive';
+    }
+};
+
+Action.prototype.drawButton = function(d) {
+    strokeWeight(2);
+    stroke(255);
+    d = d || this.d;
+    ellipse(this.x, this.y, d, d);
+};
+
+Action.prototype.drawLabel = function(outer, inner) {
+    fill(255);
+    if (inner) {
+        textFont(sansFont, 11);
+        textAlign(CENTER, CENTER);
+        text(inner, this.x, this.y);
+    }
+    if (outer) {
+        textFont(sansFont, 13);
+        textAlign(LEFT, CENTER);
+        text(outer, this.x + this.r + 5, this.y);
+    }
+};
+
+Action.prototype.drawSelected = function() {
+    cursor(MOVE);
+    
+    // If no meeples yet assigned
+    if (!this.meeples) {
+        if (player.idle) {
+            fill(INACTIVE_COLOR);
+            this.drawButton();
+            this.drawLabel("Drag to\nassign meeples");
+        } else {
+            fill(WARN_COLOR);
+            this.drawButton();
+            this.drawLabel("No idle\nmeeples");
+            cursor("not-allowed");
+        }
+        return;
+    }
+    
+    if (this.cost && !player.canAfford(this.cost)) {
+        fill(WARN_COLOR);
+    } else {
+        fill(this.color);
+    }
+    
+    var d = this.assignR * 2;
+    this.drawButton(d);
+    this.drawSelectedCost(d);
+};
+
+Action.prototype.drawSelectedCost = function(d) {
+    // Number of meeples assigned to this task
+    var num = plural(this.meeples);
+    
+    // How assigning this number of meeples affects the result
+    var txt;
+    if (this.getAmount) {
+        // Gathering task
+        txt = "+" + round(this.getAmount(this.meeples)) + " " + this.resource;
+    } else if (this.variableTime) {
+        // Exploration
+        txt = this.meeples ? "Time: " + this.getTimeRemaining() : "";
+    }
+    
+    textFont(sansFont, 11);
+    var allTxt = [num, txt];
+    var maxWidth = max(textWidth(txt), textWidth(num));
+    
+    if (this.getCost) {
+        var cost = getCostString(this.getCost(this.meeples)); 
+        allTxt.push(cost);
+        maxWidth = max(maxWidth, textWidth(cost));
+    }
+    
+    // Write result of action inside circle or to the left
+    // TODO: Keep track of this so it doesn't flicker when we're on the border
+    var xAlign;
+    var x = this.x;
+    var dy = 14;
+    var y = this.y - dy * (allTxt.length - 1) * 0.5;
+    
+    if (maxWidth + 12 < d) {
+        xAlign = CENTER;
+    } else {
+        x += this.assignR + 4;
+        xAlign = LEFT;
+    }
+    
+    fill(255);
+    textAlign(xAlign, CENTER);
+    allTxt.forEach(function(el) {
+        text(el, x, y);
+        y += dy;
+    });
+};
+
+Action.prototype.drawCountdown = function() {
+    if (this.mode === 'active') {
+        // Find time until action is finished
+        var dt = this.endTime - system.time;
+        
+        if (dt <= 0) {
+            this.timeComplete();
+            return;
+        }
+    
+        this.percentComplete = (system.time - this.startTime) / this.getDuration();
+    
+        // Show circle contracting on actions as they finish
+        if (dt < 500) {
+            this.drawHighlight(dt / 500, this.baseColor);
+        }
+    
+        if (this.mouseOver() &&
+            // Don't show cancel if dragging something else
+           (this.isSelected || !mouseIsPressed) &&
+            this.percentComplete < 0.5) {
+            this.drawCancel();
+            cursor(HAND);
+            return;
+        }
+        
+        // Draw slowly filling circle
+        strokeWeight(2);
+        stroke(20, 20, 10);
+        fill(20, 20, 10);
+        ellipse(this.x, this.y, this.d + 2, this.d + 2);
+        
+        fill(this.color);
+        stroke(this.color);
+        arc(this.x, this.y, this.d + 3, this.d + 3, -90, 360 * this.percentComplete - 90);
+    } else {
+        // Completed mode
+        this.percentComplete = 1;
+        stroke(255);
+        strokeWeight(2);
+        fill(this.color);
+        ellipse(this.x, this.y, this.d, this.d);
+    }
+    
+    if (this.mode === 'completed' && this.mouseOver()) {
+        this.drawLabel("Click to\ncomplete", TICK);
+    } else {
+        this.drawLabel(this.name, this.meeples);
+    }
+};
+
+// Draw a ring around the action to highlight it
+// This would normally contract or expand
+Action.prototype.drawHighlight = function(p, col) {
+    noFill();
+    strokeWeight(3);
+    stroke(col + (255 * (1 - p) << 24));
+    var r = this.r + p * 300;
+    ellipse(this.x, this.y, r, r);
+};
+
+Action.prototype.drawCancel = function() {
+    strokeWeight(2);
+    stroke(255);
+    fill(80, 80, 80, 200);
+    ellipse(this.x, this.y, this.d, this.d);
+    var d = this.r * 0.4;
+    line(this.x - d, this.y - d, this.x + d, this.y + d);
+    line(this.x - d, this.y + d, this.x + d, this.y - d);
+    
+    fill(255);
+    textFont(sansFont, 13);
+    textAlign(LEFT, CENTER);
+    text("Cancel", this.x + this.r + 5, this.y);
+};
+
+Action.prototype.getDuration = function() {
+    return this.duration + this.variableTime / (this.meeples || 1);
+};
+
+// What information is displayed when you mouseover the action
+Action.prototype.getMouseOverLabel = function() {
+    return "up to +" + round(this.getAmount(1)) + " " + this.resource + "\nper meeple";
+};
+
+// Not required but might be fun sometime
+Action.prototype.getCurrentAmount = function(p) {
+    if (this.getAmount) {
+        // Gathering task
+        return round(p * this.getAmount(this.meeples)) + " " + this.resource;
+    } else {
+        this.getTimeRemaining(1 - p);
+    }
+    
+};
+
+Action.prototype.isBlocked = function() {
+    if (!player.idle) {
+        return "No idle\nmeeples";
+    } else if (this.getCost && !player.canAfford(this.getCost(1))) {
+        return this.getMouseOverLabel();
+    }
+};
+
+Action.prototype.startAction = function() {
+    if (this.meeples || this.meeplesNotRequired) {
+        if (this.cost) {
+            // Pay the cost if player can afford it
+            if (!player.payIfCanAfford(this.cost)) { return; }
+        }
+        this.startTime = system.time;
+        this.endTime = this.startTime + this.getDuration();
+        this.mode = 'active';
+        player.idle -= this.meeples;
+        this.percentComplete = 0;
+    }
+};
+
+// When time is up, switch to completed mode
+Action.prototype.timeComplete = function() {
+    this.mode = 'completed';
+};
+
+// Result of an action completing successfully
+Action.prototype.resolveAction = function() {
+    player[this.resource] += round(this.getAmount(this.meeples));
+};
+
+// What happen when action is completed or cancelled
+Action.prototype.endAction = function() {
+    player.idle += this.meeples;
+    this.meeples = 0;
+    this.mode = 'inactive';
+};
+
+Action.prototype.getTimeRemaining = function() {
+    var p = 1 - this.percentComplete;
+    return getTimeString(p * this.getDuration(), true);
+};
+
+Action.prototype.getActiveVerb = function() {
+    return (this.type + " " + this.name).toLowerCase();
+};
+
+Action.prototype.tooltipInfo = function() {
+    var s;
+    switch (this.mode) {
+        case 'inactive':
+            return this.mouseOverInactive();
+        case 'active':
+            return this.mouseOverActive();
+        case 'completed':
+            s = "Click to release " + plural(this.meeples);
+            if (this.getAmount) {
+                s += " and " + round(this.getAmount(this.meeples)) + " " + this.resource;
+            }
+            s += ".";
+    }
+    return s;
+};
+
+Action.prototype.mouseOverInactive = function() {
+    var s = this.type + " " + this.name.toLowerCase();
+    s += " for " + this.resource;
+    
+    s += " takes " + (this.variableTime ? "up to " : "");
+    s += getTimeString(this.duration, true) + ". ";
+    
+    if (this.meeples) {
+        s += plural(this.meeples) + " will gather ";
+    } else {
+        s += "Each meeple gathers up to ";
+    }
+    
+    var n = round(this.getAmount(this.meeples || 1));
+    s += n + " " + this.resource;
+    
+    if (this.meeples) {
+        s += " (" + round(100000 * n / this.duration) / 100 + " " + this.resource + "/s)";
+    }
+    
+    return s + ".";
+};
+
+Action.prototype.mouseOverActive = function() {
+    var s = "";
+    
+    if (this.meeples) {
+        s += plural(this.meeples) + " " + this.getActiveVerb();
+        if (this.getAmount) {
+            s += " (" + round(this.getAmount(this.meeples)) + " " + this.resource + ")";
+        }
+        s += ". ";
+    }
+    s += "Time remaining: " + this.getTimeRemaining() + " out of " + getTimeString(this.getDuration(), true) + ".";
+    return s;
+};
+
+Action.prototype.mouseOver = function() {
+    return (mouse.x - this.x) * (mouse.x - this.x) + 
+           (mouse.y - this.y) * (mouse.y - this.y) <= this.r2;
+};
+
+Action.prototype.mousePressed = function() {
+    this.isSelected = true;
+    this.assignR = this.r;
+};
+
+Action.prototype.mouseDragged = function() {
+    if (this.mode !== 'inactive') { return; }
+    
+    if (player.idle) {
+        // Drag to increase radius of action circle
+        this.assignR = constrain(
+            dist(mouse.x, mouse.y, this.x, this.y),
+            this.r, TILE_SIZE
+        );
+        
+        // How many meeples we're assigning to work depends on the area
+        var p = (this.assignR - this.r) / (TILE_SIZE - this.r);
+        this.meeples = ceil(player.idle * p * p);
+        if (this.getCost) {
+            this.cost = this.getCost(this.meeples);
+        }
+    } else {
+        // No one available so radius is fixed
+        this.assignR = this.r;
+        this.meeples = 0;
+    }
+};
+
+Action.prototype.mouseReleased = function() {
+    if (this.isSelected) {
+        switch (this.mode) {
+            case 'active':
+                // Cancel action if less than halfway complete
+                if (this.mouseOver() && this.percentComplete < 0.5) {
+                    if (this.cost) { player.gain(this.cost); }
+                    this.endAction();
+                }
+                break;
+            case 'inactive':
+                this.startAction();
+                break;
+            case 'completed':
+                if (this.mouseOver()) {
+                    this.resolveAction();
+                    this.endAction();
+                }
+                break;
+                
+        }
+        this.isSelected = false;
+    }
+};
+
+/*********************************************************
+ *      Special action for exploring
+ * Exploring takes an amount of time that depends on the
+ * number of meeples assigned (more meeples, less time).
+ * Each meeple assigned increases the cost of the action.
+ * Explore actions are associated with a specific tile.
+**********************************************************/
+var ExploreAction = function(x, y, tile) {
+    Action.call(this, x, y, "Explore");
+    this.tile = tile;
+};
+ExploreAction.prototype = Object.create(Action.prototype);
+
+ExploreAction.prototype.resolveAction = function() {
+    this.tile.explore();
+};
+
+ExploreAction.prototype.getMouseOverLabel = function() {
+    return getCostString(this.getCost(1)) + "\nper meeple";
+};
+
+ExploreAction.prototype.getActiveVerb = function() {
+    return "exploring this " + this.tile.type.name.toLowerCase();
+};
+
+ExploreAction.prototype.mouseOverInactive = function() {
+    var s = "Explore this " + this.tile.type.name.toLowerCase() + ". ";
+    
+    if (this.meeples) {
+        s += plural(this.meeples) + " will take " + getTimeString(this.getDuration(), true);
+        s += " and cost " + getCostString(this.getCost(this.meeples), true) + ".";
+    } else {
+        s += "Takes up to " + getTimeString(this.getDuration(), true) + ".";
+        s += " Each meeple assigned needs " + getCostString(this.getCost(1), true) + " and reduces the time taken.";
+    }
+    
+    return s;
+};
+
+/*********************************************************
+ *      Special action for research
+ * Research takes an amount of time that depends on the
+ * number of meeples assigned (more meeples, less time).
+ * The cost of the action depends on how many items have
+ * already been researched plus costs associated with a
+ * specific technology.
+**********************************************************/
+
+var ResearchAction = function(x, y, grid) {
+    Action.call(this, x, y, "Research");
+    this.project = player.researchOptions[0];
+    this.cost = this.getCost();
+    this.grid = grid;
+};
+ResearchAction.prototype = Object.create(Action.prototype);
+
+ResearchAction.prototype.getCost = function() {
+    var cost = this.baseCost;
+    if (research[this.project].cost) {
+        cost = addCosts(this.baseCost, research[this.project].cost);
+    }
+    return cost;
+};
+
+// What information is displayed when you mouseover the action
+ResearchAction.prototype.getMouseOverLabel = function() {
+    return getCostString(this.cost);
+};
+
+ResearchAction.prototype.resolveAction = function() {
+    player.completeResearch(this.project, this.grid);
+    this.project = player.researchOptions[0];
+    this.cost = this.getCost();
+};
+
+ResearchAction.prototype.drawSelected = function() {
+    // Fade background for modal overlay
+    popMatrix();
+    noStroke();
+    fill(0, 0, 0, 200);
+    rect(0, 0, width, height);
+    pushMatrix();
+    translate(mouse.dx, mouse.dy);
+    
+    cursor(MOVE);
+    
+    // If no meeples yet assigned
+    if (!this.meeples) {
+        if (player.idle) {
+            fill(INACTIVE_COLOR);
+            this.drawButton();
+            this.drawLabel("Drag and rotate");
+        } else {
+            fill(WARN_COLOR);
+            this.drawButton();
+            this.drawLabel("No idle\nmeeples");
+            cursor("not-allowed");
+        }
+        return;
+    }
+    
+    if (!this.project) {
+        fill(WARN_COLOR);
+        this.drawButton();
+        this.drawLabel("Nothing left\nto research");
+        cursor("not-allowed");
+        return;
+    }
+    
+    if (this.cost && !player.canAfford(this.cost)) {
+        fill(WARN_COLOR);
+    } else {
+        fill(this.color);
+    }
+    
+    var d = this.assignR * 2;
+    this.drawButton(d);
+    this.drawSelectedCost(d);
+};
+
+ResearchAction.prototype.drawSelectedCost = function(d) {
+    // Write current project at the top
+    var r2 = max(45, this.assignR + 10);
+    var x = this.x;
+    var y = this.y;
+    
+    fill(255);
+    textAlign(CENTER, BASELINE);
+    textSize(20);
+    text(this.project, x, y - r2 - 60);
+    
+    var projectData = research[this.project];
+    var w = 360;
+    textSize(13);
+    text(getCostString(this.getCost(), true, ' + '), this.x, this.y - r2 - 45);
+    text(projectData.desc, x - w * 0.5, y - r2 - 38, w, 200);
+
+    textSize(11);
+    text(projectData.result, x, y - r2 + 1);
+    
+    // Write research options
+    var numOptions = player.researchOptions.length;
+    if (numOptions > 0) {
+        var sectorAngle = 360 / numOptions;
+        var halfAngle = sectorAngle * 0.5;
+        var r = this.assignR - 1;
+        
+        // Add sector showing selected option
+        var direction = (this.direction + halfAngle) % 360;
+        var projectNum = floor(numOptions * direction / 360);
+        this.project = player.researchOptions[projectNum];
+        
+        // Start and end of sector
+        var startAngle = 270 - halfAngle;
+        var endAngle = 270 + halfAngle;
+        
+        stroke(255);
+        noFill();
+        line(x, y, x + r * cos(startAngle), y + r * sin(startAngle));
+        line(x, y, x + r * cos(endAngle), y + r * sin(endAngle));
+        
+        fill(255);
+        textAlign(CENTER, BASELINE);
+        textSize(13);
+        
+        for (var i = 0; i < numOptions; i++) {
+            if (i !== projectNum) {
+                var angle = this.direction - i * sectorAngle;
+                var angle2 = atan(textWidth(player.researchOptions[i]) / (2 * r2));
+
+                if (angle > halfAngle && angle - angle2 < halfAngle) {
+                    angle = halfAngle + angle2;
+                } else if (angle < -halfAngle && angle + angle2 > -halfAngle) {
+                    angle = -halfAngle - angle2;
+                }
+                
+                
+                pushMatrix();
+                translate(this.x, this.y);
+                rotate(angle);
+                text(player.researchOptions[i], 0, -r2);
+                //text(i * dAngle, 0, -r);
+                popMatrix();
+            }
+        }
+    }
+    
+    // Number of meeples assigned to this task
+    var num = plural(this.meeples);
+    var txt = this.meeples ? "Time: " + this.getTimeRemaining() : "";
+    
+    textFont(sansFont, 11);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text(num, x, y + 6);
+    text(txt, x, y + 18);
+};
+
+ResearchAction.prototype.getActiveVerb = function() {
+    return "researching " + this.project.toLowerCase();
+};
+
+ResearchAction.prototype.mouseOverInactive = function() {
+    var s = "Researching " + this.project.toLowerCase();
+    s += " costs " + getCostString(this.cost, true, " + ");
+    
+    if (this.meeples) {
+        s += ". " + plural(this.meeples) + " will take " + getTimeString(this.getDuration(), true) + ".";
+    } else {
+        s += " and takes up to " + getTimeString(this.getDuration(), true) + ".";
+    }
+    return s;
+};
+
+ResearchAction.prototype.mouseDragged = function() {
+    Action.prototype.mouseDragged.call(this);
+    this.direction = atan2(mouse.y - this.y, mouse.x - this.x);
+    if (this.direction < 0) { this.direction += 360; }
+};
+
+/*********************************************************
+ *      Special action for making a new meeple
+ * Making a meeple does not require assigning meeples. It
+ * has a fixed cost (it increases each time, but cannot be
+ * influence) and a fixed time. The result is always one
+ * new meeple.
+**********************************************************/
+var MakeMeepleAction = function(x, y) {
+    Action.call(this, x, y, "Make meeple");
+    this.meeplesNotRequired = true;
+};
+MakeMeepleAction.prototype = Object.create(Action.prototype);
+
+MakeMeepleAction.prototype.drawButton = function() {
+    strokeWeight(2);
+    stroke(255);
+    rect(this.x - this.r, this.y - this.r, this.d, this.d, 4);
+};
+
+MakeMeepleAction.prototype.drawSelected = function() {
+    this.draw();
+};
+
+MakeMeepleAction.prototype.isBlocked = function() {
+    if (player.meeples >= player.maxMeeples) {
+        return "Reached\nmeeple limit";
+    } else if (!player.canAfford(this.cost)) {
+        return this.getMouseOverLabel();
+    }
+};
+
+MakeMeepleAction.prototype.timeComplete = function() {
+    this.mode = 'inactive';
+    this.resolveAction();
+};
+
+MakeMeepleAction.prototype.resolveAction = function() {
+    player.addMeeple();
+};
+
+MakeMeepleAction.prototype.mouseDragged = function() {
+    // If we move the mouse off the button, deselect it
+    if (!this.mouseOver()) {
+        this.isSelected = false;
+    }
+};
+
+MakeMeepleAction.prototype.getMouseOverLabel = function() {
+    return getCostString(this.cost);
+};
+
+MakeMeepleAction.prototype.mouseOverInactive = function() {
+    var s = "Make a new meeple.";
+    s += " Takes " + getTimeString(this.getDuration(), true);
+    s += " and costs " + getCostString(this.cost, true, " + ") + ".";
+    return s;
+};
+
+}
+/*************************************
+ *  A hexagonal tile on the board
+**************************************/
+{
+// Light vector
+var lightX = 8;
+var lightY = 5;
+var lightZ = -8;
+
+// Normalise
+var lightD = -sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
+lightX /= lightD;
+lightY /= lightD;
+lightZ /= lightD;
+
+// Square root of 3 is very useful for regular hexagons
+var R3 = sqrt(3);
+var TILE_HEIGHT = TILE_SIZE * R3;
+var halfAngle = 2 * asin(1);
+var hexAngle = halfAngle / 3;
+var hexAngleI = 1 / hexAngle;
+
+var HexTile = function(x, y, grid, row, col, type, height) {
+    this.x = x;
+    this.y = y;
+    this.grid = grid;
+    this.r = TILE_SIZE;
+    this.row = row;
+    this.col = col;
+    this.height = height || 0;
+    
+    this.type = type;
+    if (type) {
+        this.color1 = type.color1;
+        this.color2 = type.color2;
+    } else {
+        this.color1 = color(240);
+    }
+    
+    // Coordinates for drawing tile
+    // TODO: should only calculate coords once per grid
+    this.getCoords(this.x, this.y);
+    
+    // Which tiles touch this one
+    this.neighbours = [false, false, false, false, false, false];
+    
+    // Add action buttons
+    this.actions = [];
+    this.addAction("Explore");
+    this.selectedAction = false;
+    this.visible = false;
+    this.explored = false;
+};
+
+HexTile.prototype.draw = function(highlight) {
+    if (!this.visible) { return; }
+    
+    // Add opaque cover to unexplored tiles
+    var col = this.explored ? this.color1 : lerpColor(this.color1, BLACK, 0.5);
+    fill(col);
+    stroke(highlight ? 250: col);
+    
+    // Draw tile
+    beginShape();
+    for (var i = 0; i < this.coords.length; i++) {
+        vertex(this.coords[i][0], this.coords[i][1]);
+    }
+    endShape(CLOSE);
+
+    // Draw available actions on explored or highlighted tiles
+    if (this.explored || highlight) {
+        this.actions.forEach(function(el) {
+            if (!el.isSelected) {
+                el.draw();
+            }
+        });
+    } else {
+        // Always draw actions that are in progress
+        this.actions.forEach(function(el) {
+            if (el.mode !== 'inactive' &&
+                el.mode !== 'birth') {
+                el.drawCountdown();
+            }
+        });
+    }
+
+    if (highlight) {
+        // Tile type
+        fill(255);
+        textFont(sansFont, 18);
+        textAlign(CENTER, TOP);
+        text(this.type.name, this.x, this.y - this.r + 20);
+        
+        var action = this.selectedAction;
+        if (action && action.isSelected) {
+            if (action.mode === 'inactive') {
+                action.drawSelected();
+            } else {
+                action.drawCountdown();
+            }
+            
+        }
+    }
+
+};
+
+HexTile.prototype.getCoords = function(x, y) {
+    this.coords = [];
+    for (var theta = 0; theta < 360; theta += 60) {
+        this.coords.push([
+            x + TILE_SIZE * cos(theta),
+            y + TILE_SIZE * sin(theta)
+        ]);
+    }
+};
+
+HexTile.prototype.explore = function() {
+    // Remove explore action
+    // Assume it will only ever be the first action
+    if (this.actions[0].name === "Explore") {
+        this.actions.shift();
+    }
+    
+    this.explored = true;
+    this.visible = true;
+    player.territories++;
+    
+    // Reveal neighbours
+    for (var i = 0; i < 6; i++) {
+        if (this.neighbours[i]) {
+            this.neighbours[i].visible = true;
+        }
+    }
+    
+    // Show actions
+    var newActions = this.type.actions;
+    if (newActions) {
+        for (var i = 0; i < newActions.length; i++) {
+            var action = newActions[i];
+            if (actions[action] && !actions[action].hidden) {
+                this.addAction(action);
+            }
+        }
+    }
+};
+
+HexTile.prototype.settle = function() {
+    // Add actions to the top of the action list
+    this.addAction("Make meeple", 0);
+    this.addAction("Research", 1);
+    this.rearrangeActions();
+};
+
+HexTile.prototype.addAction = function(action, position) {
+    if (actions[action]) {
+        var dy = 30;
+        var x = this.x - this.r * 0.45;
+        var y = this.y;
+        var newAction;
+        
+        switch (action) {
+            case 'Explore':
+            newAction = new ExploreAction(x, y, this);
+            break;
+            
+            case 'Research':
+            newAction = new ResearchAction(x, y, this.grid);
+            break;
+            
+            case 'Make meeple':
+            newAction = new MakeMeepleAction(x, y);
+            break;
+            
+            default:
+            newAction = new Action(x, y, action);
+        }
+        
+        if (position === undefined) {
+            this.actions.push(newAction);
+        } else {
+            this.actions.splice(position, 0, newAction);
+        }
+        
+        this.rearrangeActions();
+    }
+};
+
+HexTile.prototype.rearrangeActions = function() {
+    // Loop through actions moving them
+    var dy = TILE_HEIGHT / (this.actions.length + 1);
+    var y = this.y - TILE_HEIGHT * 0.5 + dy;
+    
+    for (var i = 0; i < this.actions.length; i++) {
+        this.actions[i].y = y;
+        y += dy;
+    }
+};
+
+HexTile.prototype.mouseOverAction = function() {
+    for (var i = 0; i < this.actions.length; i++) {
+        if (this.actions[i].mouseOver()) {
+            return this.actions[i];
+        }
+    }
+};
+
+HexTile.prototype.mousePressed = function() {
+    var action = this.mouseOverAction();
+    if (action) {
+        this.selectedAction = action;
+        action.mousePressed();
+    }
+};
+
+HexTile.prototype.mouseDragged = function() {
+    if (this.selectedAction) {
+        this.selectedAction.mouseDragged();
+    }
+};
+
+HexTile.prototype.mouseReleased = function() {
+    if (this.selectedAction) {
+        this.selectedAction.mouseReleased();
+        this.selectedAction = false;
+    } else if (this.visible && system.doubleClick) {
+        // TODO: Slide movement to tile
+        mouse.dx = width / 2 - this.x;
+        mouse.dy = height / 2 - this.y;
+    }
+};
+
+}
+/*********************************************************
+ *  A board of hexagonal tiles
+**********************************************************/
+
+var board = {
+    init: function(terrainMap, heightMap) {
+        // Number of tiles across
+        this.cols = terrainMap[0].length;
+        
+        // Number of tiles down
+        this.rows = terrainMap.length;
+        this.nTiles = this.cols * this.rows;
+        
+        // Get board dimensions
+        this.width = (this.cols * 3 + 1) * TILE_SIZE * 0.5;
+        this.height = (this.rows + 0.5) * TILE_HEIGHT;
+        
+        // Put first tile in the center of the board
+        this.x = width / 2 - TILE_SIZE * 2.5;
+        this.y = height / 2 - TILE_HEIGHT * 2;
+        
+        this.makeTiles(terrainMap, heightMap);
+        this.tilesLoaded = 0;
+        this.selectedTile = false;
+        
+        // Extent of explored board
+        this.minX = 0;
+        this.maxX = 0;
+        this.minY = 0;
+    },
+    
+    startGame: function() {
+        // Set first tile as explored
+        var homeTile = this.tiles[1][1];
+        
+        homeTile.explore();
+        homeTile.settle();
+    },
+    
+    makeTiles: function(terrainMap, heightMap) {
+        this.tiles = [];
+        
+        var i, j;
+        var x = this.x + TILE_SIZE;
+        for (i = 0; i < this.cols; i++) {
+            var row = [];
+            var y = this.y + (i % 2 + 1) * TILE_HEIGHT * 0.5;
+            
+            for (j = 0; j < this.rows; j++) {
+                var type = tileTypes[terrainMap[j][i]];
+                var height = heightMap[j][i];
+                var tile = new HexTile(x, y, this, i, j, type, height);
+                row.push(tile);
+                y += TILE_HEIGHT;
+            }
+            
+            x += TILE_SIZE * 1.5;
+            this.tiles.push(row);
+        }
+        
+        // Add neighbours
+        for (i = 0; i < this.cols; i++) {
+            for (j = 0; j < this.rows; j++) {
+                // Add tile below
+                this.addNeighbour(this.tiles[i][j], i, j + 1, 1);
+                if (i % 2) {
+                    this.addNeighbour(this.tiles[i][j], i + 1, j, 5);
+                    this.addNeighbour(this.tiles[i][j], i + 1, j + 1, 0);
+                } else {
+                    this.addNeighbour(this.tiles[i][j], i + 1, j, 0);
+                    this.addNeighbour(this.tiles[i][j], i + 1, j - 1, 5);
+                }
+            }
+        }
+    },
+    
+    addNeighbour: function(tile1, x, y, n) {
+        var tile2 = this.getTile([x, y]);
+        if (tile2) {
+            tile1.neighbours[n] = tile2;
+            tile2.neighbours[(n + 3) % 6] = tile1;
+        }
+    },
+    
+    revealAction: function(actionName) {
+        // The action is now possible so not hidden
+        var action = actions[actionName];
+        
+        if (action && action.hidden) {
+            action.hidden = false;
+            
+            // Loop through explored tiles, adding this action
+            var i, j, row, tile;
+            for (i = 0; i < this.cols; i++) {
+                row = this.tiles[i];
+                for (j = 0; j < this.rows; j++) {
+                    tile = row[j];
+                    if (tile.explored && tile.type.actions.indexOf(actionName) > -1) {
+                        tile.addAction(actionName);
+                    }
+                }
+            }
+        }
+    },
+    
+    draw: function() {
+        pushMatrix();
+        translate(mouse.dx, mouse.dy);
+        
+        for (var i = 0; i < this.cols; i++) {
+            var row = this.tiles[i];
+            for (var j = 0; j < this.rows; j++) {
+                row[j].draw();
+            }
+        }
+        
+        var highlight = this.selectedTile ||
+                        this.mouseOverTile();
+        if (highlight) {
+            strokeWeight(3);
+            highlight.draw(true);
+        }
+        
+        popMatrix();
+    },
+    
+    pixelToHex: function(x, y) {
+        var boardX = x - this.x;
+        var boardY = y - this.y;
+        
+        if (boardX >= 0 && boardX <= this.width &&
+            boardY >= 0 && boardY <= this.height) {
+            var tileX = boardX / (TILE_SIZE * 1.5);
+            var fTileX = floor(tileX);
+            var downRow = fTileX % 2;
+            var tileY = boardY / TILE_HEIGHT - downRow * 0.5;
+            var fTileY = floor(tileY);
+            
+            // Take into account jagged edge
+            if (3 * (tileX - fTileX) < 1) {
+                var dy = 0.5 + fTileY - tileY;
+                var fTileX2 = floor(tileX - abs(dy) * 2 / 3);
+                
+                // If we back a column, check whether we should move up or down a row
+                if (fTileX2 !== fTileX) {
+                    if (downRow) {
+                        if (dy < 0) { fTileY++; }
+                    } else {
+                        if (dy > 0) { fTileY--; }
+                    }
+                    fTileX = fTileX2;
+                }
+            }
+            //println(fTileX + " " + fTileY);
+            return [fTileX, fTileY];
+        }
+        
+        return [-1, -1];
+    },
+    
+    mouseOverTile: function() {
+        return this.getTile(this.pixelToHex(mouse.x, mouse.y));
+    },
+
+    getTile: function(coord) {
+        var row = this.tiles[coord[0]];
+        if (!row) {
+            return false;
+        } else {
+            return row[coord[1]];
+        }
+    },
+    
+    getMouseOverInfo: function() {
+        // Mouseover toolbars
+        if (mouseY <= 25) {
+            return "This toolbar shows the assets that make up your meeple civilisation.";
+        } else if (mouseY > height - 22) {
+            return "This toolbar gives you information about whatever your mouse is currently over.";
+        }
+        
+        var tile = this.selectedTile || this.mouseOverTile();
+        
+        if (tile && tile.visible) {
+            var action = tile.selectedAction ||
+                         tile.mouseOverAction();
+            
+            if (!action) {
+                var name = tile.type.name;
+                if (!tile.explored) {
+                    name = "Unexplored " + name.toLowerCase();
+                }
+                return name;
+            } else {
+                return action.tooltipInfo();
+            }
+        } else {
+            return "The mysterious unknown";
+        }
+    },
+    
+    mousePressed: function() {
+        var tile = this.mouseOverTile();
+        if (tile) {
+            tile.mousePressed();
+            this.selectedTile = tile;
+        }
+    },
+    
+    mouseDragged: function() {
+        if (this.selectedTile) {
+            this.selectedTile.mouseDragged();
+            if (this.selectedTile.selectedAction) {
+                return;
+            }
+        }
+        
+        // Move mouse relative to world
+        mouse.dx += mouseX - pmouseX;
+        mouse.dy += mouseY - pmouseY;
+    },
+    
+    mouseReleased: function() {
+        if (this.selectedTile) {
+            this.selectedTile.mouseReleased();
+            this.selectedTile = false;
+        }
+    }
+};
+
+/*********************************************************
+ *      Button
+**********************************************************/
+{
+var CircleButton = function(x, y, r, name, trigger) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.d = r * 2;
+    this.r2 = r * r;
+    this.name = name;
+    this.trigger = trigger;
+    this.showing = true;
+};
+
+CircleButton.prototype.draw = function() {
+    if (!this.showing) { return; }
+    var mouseOver = this.mouseOver();
+    
+    if (mouseOver) {
+        noStroke();
+        fill(255);
+        cursor(HAND);
+    } else {
+        strokeWeight(2);
+        stroke(255);
+        noFill();
+    }
+
+    ellipse(this.x, this.y, this.d, this.d);
+    
+    fill(mouseOver ? 0 : 255);
+    textAlign(CENTER, CENTER);
+    textFont(sansFont, 13);
+    text(this.name, this.x, this.y);
+};
+
+CircleButton.prototype.mouseOver = function() {
+    return (mouseX - this.x) * (mouseX - this.x) + 
+           (mouseY - this.y) * (mouseY - this.y) <= this.r2;
+};
+
+CircleButton.prototype.mouseReleased = function() {
+    if (this.showing && this.mouseOver()) {
+        this.trigger();
+    }
+};
+}
+/*********************************************************
+ *  Window contains text and has a close button
+**********************************************************/
+{
+var Window = function(x, y, w, h, pages) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.h = h;
+    this.pages = pages;
+    this.index = 0;
+    
+    this.closeButton = new CircleButton(
+        x + 16, y + 16, 8, "X", this.close.bind(this)
+    );
+    
+    this.buttons = [this.closeButton];
+    
+    if (this.pages.length > 1) {
+        this.prevButton = new CircleButton(
+            x + w - 36, y + 16, 8, "<",
+            this.prevPage.bind(this)
+        );
+        this.nextButton = new CircleButton(
+            x + w - 16, y + 16, 8, ">",
+            this.nextPage.bind(this)
+        );
+        
+        this.buttons.push(this.prevButton, this.nextButton);
+        this.prevButton.showing = false;
+    }
+};
+
+Window.prototype.draw = function() {
+    strokeWeight(2);
+    stroke(255);
+    fill(18, 20, 16);
+    rect(this.x, this.y, this.w, this.h, 8);
+    
+    var page = this.pages[this.index];
+    
+    // Title
+    fill(255);
+    textFont(sansFont, 20);
+    textAlign(CENTER, BASELINE);
+    text(page[0], this.x + this.w / 2, this. y + 25);
+    
+    // Title
+    textFont(sansFont, 15);
+    textAlign(LEFT, BASELINE);
+    
+    if (typeof page[1] === 'function') {
+        text(page[1](), this.x + 10, this.y + 40, this.w - 20, this.h - 45);
+    } else {
+        text(page[1], this.x + 10, this.y + 40, this.w - 20, this.h - 45);
+    }
+    
+    for (var i = this.buttons.length; i--;) {
+        this.buttons[i].draw();
+    }
+};
+
+Window.prototype.close = function() {
+    system.removeElement(this);
+};
+
+Window.prototype.prevPage= function() {
+    this.index--;
+    if (this.nextButton) {
+        this.nextButton.showing = true;
+        if (this.index === 0) {
+            this.prevButton.showing = false;
+        }
+    }
+};
+
+Window.prototype.nextPage= function() {
+    this.index++;
+    if (this.prevButton) {
+        this.prevButton.showing = true;
+        if (this.index === this.pages.length - 1) {
+            this.nextButton.showing = false;
+        }
+    }
+};
+
+Window.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+Window.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        for (var i = this.buttons.length; i--;) {
+            if (this.buttons[i].mouseOver()) {
+                this.selected = this.buttons[i];
+                return true;
+            }
+        }
+    } else {
+        // Click outside of window closes it 
+        this.close();
+    }
+};
+    
+Window.prototype.mouseDragged = function() {};
+    
+Window.prototype.mouseReleased = function() {
+    if (this.selected) {
+        this.selected.mouseReleased();
+        this.selected = false;
+    }
+};
+
+// Return a function that adds the current window to system
+var getAddWindowFunction = function(window) {
+    return function() {
+        system.addElement(window, true);
+    };
+};
+} // Window object
+
+{
+var helpWindow = new Window(20, 40, width - 40, 360,
+[["Help",
+"All interactions work through clicking and dragging.\n\nProgress is made by assigning idle meeples (workers) to tasks.\n\nTasks appear as circles on the map.\nTo assign a meeple to a task, click the task and drag.\nAs you drag, more meeples are assigned to that task.\nWhen you release the mouse, those meeples will start work on the task.\n\nYou can cancel a task by clicking on it before it is half-completed.\n\nWhen the task is complete, a blue circle will contract onto it to notify you. Click the task to complete it, release the resources, and return the meeples to the idle state. You may also be notified of a random event.\n\nThere is also a 'Make meeple' task. This doesn’t require meeples, so just click it. It has a cost that depends on your current population and takes a fixed amount of time. It completes automatically."],
+["About: Tasks",
+"There are three types of task you can assign a meeple to:\n\nGather\n   • Appear as the names of objects you can gather, such as berries or twigs.\n   • Allows you to gain resources.\n   • Takes a fixed amount of time.\n   • The more meeples assigned to gathering, the more resources gathered.\n\nResearch\n   • Gain some benefit, such as making gathering more efficient or\n      making a new task possible.\n   • Has a fixed cost that depends on how much you have researched already.\n   • The more meeples assigned to research, the less time it takes.\n\nExplore\n   • Reveals a new part of the map and the tasks you can do there.\n   • The more meeples assigned to exploring, the less time it takes.\n   • However, each meeple assigned increases the cost of exploring.\n   • The more meeples exploring, the less chance they will be lost.\n\nNote that meeples are generally less efficient, the more assigned to a task."]]);
+
+var infoWindow = new Window(20, 40, width - 40, 250,
+[["About",
+"You are in charge of a primitive tribe of meeples. Help them collect resources, explore the land and research new technologies. Guide this small band of meeples to flourish into a great civilisation that can conquer the world.\n\nThe game features:\n    • 4 terrain types each offering different opportunities.\n    • 13 actions to discover and assign meeples to.\n    • 12 technologies to research in a non-linear tech tree.\n    • Many random events (hopefully) to befall your growing civilisation.\n    • Easy to edit code for those who want it."]]);
+
+var achievementsWindow = new Window(20, 40, width - 40, 250,
+[["Achievements",
+function() {
+    return "    • " + plural(player.territories, "Territory", "Territories")  + " explored.\n    • 13 actions to discover and assign meeples to.\n    • 12 technologies to research in a non-linear tech tree.\n    • Many random events (hopefully) to befall your growing civilisation.\n    • Easy to edit code for those who want it.";
+}
+]]);
+} // Window text
+/*********************************************************
+ *      Toolbar
+**********************************************************/
+
+var Toolbar = {
+    buttons: [],
+    
+    init: function(_height) {
+        this.h = _height;
+        this.y = _height * 0.5;
+        
+        this.buttons = [
+            new CircleButton(
+                width - 12, this.y, 8, "i",
+                getAddWindowFunction(infoWindow)
+            ),
+            new CircleButton(width - 33, this.y, 8, "?",
+                getAddWindowFunction(helpWindow)
+            ),
+            new CircleButton(width - 54, this.y, 8, "★",
+                getAddWindowFunction(achievementsWindow)
+            ),
+        ];
+    },
+    
+    draw: function() {
+        strokeWeight(1);
+        stroke(45, 48, 42);
+        stroke(200);
+        fill(18, 20, 16);
+        //fill(250);
+        rect(-1, -1, width + 1, this.h);
+        
+        fill(250);
+        //fill(10);
+        textAlign(LEFT, CENTER);
+        textFont(sansFont, 13);
+        
+        var txt = "Meeples: " + player.idle + "/" + player.meeples + "/" + player.maxMeeples;
+        txt += " (idle/total/max)";
+        //txt += " Armed with " + player.weapon.toLowerCase() + ".";
+        
+        txt += "    Territories: " + player.territories;
+        txt += "    Food: " + player.food;
+        txt += "    Wood: " + player.wood;
+    
+        text(txt, 5, this.y);
+        
+        for (var i = 0; i < this.buttons.length; i++) {
+            this.buttons[i].draw();
+        }
+    },
+    
+    mousePressed: function() {
+        for (var i = 0; i < this.buttons.length; i++) {
+            if (this.buttons[i].mouseOver()) {
+                this.selected = this.buttons[i];
+                break;
+            }
+        }
+    },
+    
+    mouseDragged: function() {},
+    
+    mouseReleased: function() {
+        if (this.selected) {
+            this.selected.mouseReleased();
+            this.selected = false;
+        }
+    }
+};
+
+Toolbar.init(22);
+
+/*********************************************************
+ *      Create game
+**********************************************************/
+
+board.init(terrainMap, heightMap);
+board.startGame();
+
+// Elements to draw and interact with
+system.addElement(board);
+system.addElement(Toolbar);
+
+/*********************************************************
+ *      Main loop
+**********************************************************/
+
+var drawMouseOverInfo = function() {
+    strokeWeight(1);
+    stroke(45, 48, 42);
+    stroke(200);
+    fill(18, 20, 16);
+    rect(-1, height - 22, width + 1, 23);
+    
+    fill(250);
+    textAlign(LEFT, CENTER);
+    textFont(sansFont, 12);
+    text(board.getMouseOverInfo(), 5, height - 11);
+};
+
+var draw = function() {
+    //background(40, 40, 60);
+    background(30, 30, 40);
+   
+    system.update();
+    system.draw();
+    
+    // TODO: Conver to second toolbar object
+    drawMouseOverInfo();
+};
+
+/*********************************************************
+ *      Event handling
+**********************************************************/
+{
+mousePressed = function() {
+    system.mousePressed();
+};
+
+mouseDragged = function() {
+    callForEach(system.elements, 'mouseDragged');
+};
+
+mouseReleased = function() {
+    system.mouseReleased();
+};
+
+//mouseOut = mouseReleased;
+}

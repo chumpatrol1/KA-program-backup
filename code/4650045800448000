@@ -1,0 +1,621 @@
+/**************************************
+ * Create a blade of grass
+ * Drag the control points (circle) to
+ *  change its orientation
+ * Use the slider to change the
+ *  resolution of the model
+ * Drag the skeleton view to change
+ *  the outline of the grass
+***************************************/
+
+var CONTROL_POINT_SIZE = 15;    // Size of control points
+var MAX_WIDTH = 40;             // Maximum width of grass
+var MAX_RESOLUTION = 20;
+var GRASS_BASE = height - 20;
+var GRASS_TIP = 120;
+
+// Colours
+var BACKGROUND = color(250, 250, 250);
+var BACKGROUND = color(240, 250, 255);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBARCOL = color(225, 225, 225, 180);
+
+var SKIN_COL = color(40, 180, 10);
+var SKELETON_COL = color(120, 210, 40);
+var BACKBONE_COL = color(0, 140, 0);
+
+// What to draw
+var selectedPoint = false;
+var showing = {
+    Construction: false,
+    Curve: true,
+    Skeleton: true,
+    Fill: false
+};
+
+var myCurve, widthControl;
+var sliders = [];
+
+var toolbarX = 4;
+var toolbarY = 4;
+var toolbarWidth = 120;
+var toolbarHeight = 205;
+
+// Given the end points of two lines (x1, y1) to (x2, y2) and (x3, y3) to (x4, y4),
+// return the point where they intersect
+// Assume lines do intersect (i.e. are not parallel and are not segments)
+var findIntersection = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+    var dx1 = (x1 - x2);
+    var dx2 = (x3 - x4);
+    var dy1 = (y1 - y2);
+    var dy2 = (y3 - y4);
+    var d = dx1 * dy2 - dy1 * dx2;
+    return [(dx2 * (x1 * y2 - y1 * x2) - dx1 * (x3 * y4 - y3 * x4)) / d,
+            (dy2 * (x1 * y2 - y1 * x2) - dy1 * (x3 * y4 - y3 * x4)) / d];
+};
+
+/*********************************************************************
+ * GUI Slider to vary parameters
+*********************************************************************/
+
+var Slider = function(x, y, width, min_v, max_v, current_v, name) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.held = false;
+    this.name = name;
+    
+    this.ballR = 8;
+    this.ballD = this.ballR * 2;
+    
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        noStroke();
+        fill(180);
+        rect(this.x-8, this.y - this.h/2, this.width + 16, this.h, 8);
+    
+        strokeWeight(1);
+        stroke(0, 0, 0, 120);
+        fill(180, 180, 250);
+        ellipse(this.bx, this.y, this.ballD, this.ballD);
+        noStroke();
+        fill(255, 255, 255, 150);
+        ellipse(this.bx - this.ballR * 0.3, this.y - this.ballR * 0.3, 5, 5);
+
+    };
+    
+    this.selected = function() {
+        this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + round((x - this.x) * this.scale);
+            return true;
+        }
+    };
+  
+    // This is used if you want to update the value in a way other
+    // than using the slider (but want the slider to update).
+    this.update = function(d) {
+        this.val = constrain(this.val + d, this.min, this.max);
+        this.bx = (this.val - this.min) / this.scale + this.x;
+    };
+};
+
+/********************************************************
+ *  GUI Button
+*********************************************************/
+
+var Button = function(x, y, w, h, name, clickF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultCol = color(200, 200, 200, 250);
+    this.highlightCol = color(250, 50, 50, 250);
+    this.showing = true;
+    
+    var boxSize = this.h - 6;
+    
+    this.mouseover = function() {
+        return (mouseX >= this.x && mouseX <= this.x + this.w &&
+                mouseY >= this.y && mouseY <= this.y + this.h);
+    };
+    
+    this.click = function() {
+        showing[this.name] = !showing[this.name];
+    };
+    
+    this.draw = function() {
+        if (!this.showing) { return; }
+        
+        noStroke();
+        if (this.mouseover() || this.selected) {
+            fill(this.defaultCol);
+        } else {
+            noFill();
+        }
+        rect(this.x - 5, this.y, this.w + 2, this.h + 1, 5);
+        
+        fill(10);
+        textAlign(LEFT, CENTER);
+        text(this.name, this.x + boxSize + 5, this.y + this.h/2);
+        
+        noFill();
+        stroke(10);
+        strokeWeight(1);
+        rect(this.x, this.y + 3, boxSize, boxSize);
+        
+        if (showing[this.name]) {
+            line(this.x, this.y + 3, this.x + boxSize, this.y + 3 + boxSize);
+            line(this.x + boxSize + 1, this.y + 3, this.x + 1, this.y + 3 + boxSize);
+        }
+    };
+};
+
+/*********************************************************************
+* GUI control for width of skeleton
+*********************************************************************/
+
+var WidthController = function(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.x2 = x + w;
+    this.y2 = y + h;
+    
+    // Set heights to a sine wave
+    this.setHeights = function() {
+        var n = sliders[0].val;
+        this.heights = [];
+        
+        for (var i = 0; i < n + 1; i++) {
+            var proportion = i / (n + 1);
+            var vertebrae = sliders[1].val * sin(proportion * 180);
+            if (i * 2 < n) {
+                vertebrae = (sliders[1].val + vertebrae) * 0.5;
+            }
+            this.heights.push(vertebrae);
+        }
+    };
+    this.setHeights();
+};
+
+WidthController.prototype.draw = function() {
+    noFill();
+    strokeWeight(1);
+    stroke(200);
+    rect(this.x, this.y, this.w, this.h);
+    
+    var dx = this.w / (this.heights.length + 1);
+    
+    // Outline
+    noStroke();
+    var c = sliders[2].val;
+    fill(color(c * 0.5, 100 + c, c / 8));
+    beginShape();
+        vertex(this.x + (this.heights.length + 0.5) * dx, this.y2);
+        vertex(this.x + 0.5 * dx, this.y2);
+        for (var i = 0; i < this.heights.length; i++) {
+            var x = this.x + (i + 0.5) * dx;
+            vertex(x, this.y2 - this.heights[i] * 2);
+        }
+    endShape();
+    
+    strokeWeight(2);
+    stroke(SKELETON_COL);
+    for (var i = 0; i < this.heights.length; i++) {
+        var x = this.x + (i + 0.5) * dx;
+        line(x, this.y2  - 1, x, this.y2 - this.heights[i] * 2);
+    }
+    
+    // Axis
+    strokeWeight(1);
+    stroke(10);
+    line(this.x, this.y2, this.x2, this.y2);
+};
+
+WidthController.prototype.drag = function() {
+    if (mouseX < this.x || mouseX > this.x2 || mouseY < this.y || mouseY > this.y2) {
+        return;
+    }
+    
+    var x = floor((this.heights.length + 1) * (mouseX - this.x) / this.w);
+    if (x < this.heights.length) {
+        this.heights[x] = (this.y2 - mouseY) / 2;
+        myCurve.findOutline();   
+    }
+};
+
+/*********************************************************************
+ * Control points are circles that can be dragged
+*********************************************************************/
+
+/*********************************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+*********************************************************/
+
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (selectedPoint === this || this.mouseover()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+/*********************************************************************
+ * A curve fixed at point (x1, y2) and curving towards (x2, y2)
+ * The degree of curve depends on the length to the third control point
+*********************************************************************/
+
+var Curve = function(x1, y1, x2, y2, length) {
+    this.length = length;
+    this.p1 = new DraggablePoint(x1, y1);
+    this.p2 = new DraggablePoint(x2, y2);
+    this.p3 = new DraggablePoint(0, 0);
+    this.controlPoints = [this.p2, this.p3];
+    
+    this.directAngle = 0;   // Angle between ends p1 and p2
+    this.apexAngle = 0;     // Angle between base, p1, and apex, p3
+    
+    this.splinePoints = [];
+    this.outlinePoints = [];
+    
+    // Find the angle from p1 to p3 relative to the line between p1 and p2
+    this.findApexPoint = function() {
+        this.directAngle = atan2(this.p2.y - this.p1.y, this.p2.x - this.p1.x);
+        var midLength = dist(this.p1.x, this.p1.y, this.p2.x, this.p2.y) * 0.5;
+        var midX = (this.p1.x + this.p2.x) * 0.5;
+        var midY = (this.p1.y + this.p2.y) * 0.5;
+        
+        // Points stretched in a line
+        if (midLength > this.length) { this.length = midLength; }
+        
+        var d = sqrt(this.length * this.length - midLength * midLength);
+        var angle = this.apexAngle < 0 ? this.directAngle - 90 : this.directAngle + 90;
+        
+        this.p3.x = midX + d * cos(angle);
+        this.p3.y = midY + d * sin(angle);
+        this.apexAngle = atan2(this.p3.y - this.p1.y, this.p3.x - this.p1.x) - this.directAngle;
+    };
+    this.findApexPoint();
+    
+    // Fill splinePoints array with points along the curve
+    this.createSpline = function() {
+        var n = sliders[0].val;
+        var x1 = this.p1.x;
+        var y1 = this.p1.y;
+        var x2 = this.p2.x + this.length * n / (n + 1) * this.ca2;
+        var y2 = this.p2.y + this.length * n / (n + 1) * this.sa2;
+        var l = this.length / (n + 1);
+        
+        this.splinePoints = [[x1, y1]];
+        for (var i = 1; i <= n; i++) {
+            var len1 = l * i;
+            var len2 = l * (n - i);
+            var x3 = this.p1.x + len1 * this.ca1;
+            var y3 = this.p1.y + len1 * this.sa1;
+            var x4 = this.p2.x + len2 * this.ca2;
+            var y4 = this.p2.y + len2 * this.sa2;
+            var coord = findIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+            
+            x1 = coord[0];
+            y1 = coord[1];
+            x2 = x4;
+            y2 = y4;
+            this.splinePoints.push([x1, y1]);
+        }
+        this.splinePoints.push([x2, y2]);
+        
+        this.findOutline();
+    };
+    
+    this.findOutline = function() {
+        this.outlinePoints = [];
+        var n = this.splinePoints.length;
+        
+        for (var i = 0; i < n - 1; i++) {
+            var p1 = this.splinePoints[i];
+            var p2 = this.splinePoints[i + 1];
+            var angle = atan2(p1[1] - p2[1], p1[0] - p2[0]) + 90;
+            var vertebrae = widthControl.heights[i];
+            var dx = vertebrae * cos(angle);
+            var dy = vertebrae * sin(angle);
+            this.outlinePoints.push([p1[0] + dx, p1[1] + dy]);
+            this.outlinePoints.push([p1[0] - dx, p1[1] - dy]);
+        }
+    };
+    
+    // Move tip
+    this.updatePoint = function() {
+        this.p2.x += mouseX - pmouseX;
+        this.p2.y += mouseY - pmouseY;
+        
+        this.directAngle = atan2(this.p2.y - this.p1.y, this.p2.x - this.p1.x);
+        var midLength = dist(this.p1.x, this.p1.y, this.p2.x, this.p2.y) * 0.5;
+        
+        // Points stretched in a line
+        if (midLength >= this.length) {
+            this.p2.x = this.p1.x + (2 * this.length - 1)* cos(this.directAngle);
+            this.p2.y = this.p1.y + (2 * this.length - 1) * sin(this.directAngle);
+        }
+        
+        this.findApexPoint();
+        this.update();
+    };
+    
+    // Find angle between the end points and the apex point
+    this.update = function() {
+        // Set position p3
+        this.p3.x = this.p1.x + this.length * cos(this.apexAngle + this.directAngle);
+        this.p3.y = this.p1.y + this.length * sin(this.apexAngle + this.directAngle);
+        
+        // Angle from p1 to p3
+        this.ca1 = cos(this.apexAngle + this.directAngle);
+        this.sa1 = sin(this.apexAngle + this.directAngle);
+        
+        // Angle from p2 to p3
+        var angle = atan2(this.p3.y - this.p2.y, this.p3.x - this.p2.x);
+        this.ca2 = cos(angle);
+        this.sa2 = sin(angle);
+        this.createSpline();
+    };
+    
+    this.update();
+};
+
+Curve.prototype.drawConstruction = function() {
+    strokeWeight(1);
+    stroke(GREY);
+    var n = sliders[0].val;
+    for (var i = 0; i <= n; i++) {
+        var len1 = this.length * i / (n + 1);
+        var len2 = this.length * (n - i) / (n + 1);
+        var x1 = this.p1.x + len1 * this.ca1;
+        var y1 = this.p1.y + len1 * this.sa1;
+        var x2 = this.p2.x + len2 * this.ca2;
+        var y2 = this.p2.y + len2 * this.sa2;
+        line(x1, y1, x2, y2);
+    }
+
+    strokeWeight(2);
+    stroke(BLUE);
+    line(this.p1.x, this.p1.y, this.p3.x, this.p3.y);
+    line(this.p2.x, this.p2.y, this.p3.x, this.p3.y);
+};
+
+Curve.prototype.drawParabola = function() {
+    strokeWeight(5);
+    stroke(BACKBONE_COL);
+    var x1 = this.splinePoints[0][0];
+    var y1 = this.splinePoints[0][1];
+    
+    for (var i = 1; i < this.splinePoints.length; i++) {
+        var x2 = this.splinePoints[i][0];
+        var y2 = this.splinePoints[i][1];
+        line(x1, y1, x2, y2);
+        x1 = x2;
+        y1 = y2;
+    }
+};
+
+Curve.prototype.drawSkeleton = function() {
+    strokeWeight(1);
+    stroke(SKELETON_COL);
+    for (var i = 0; i < this.outlinePoints.length; i += 2) {
+        var p1 = this.outlinePoints[i];
+        var p2 = this.outlinePoints[i + 1];
+        line(p1[0], p1[1], p2[0], p2[1]);
+    }
+};
+
+Curve.prototype.drawOutline = function() {
+    noStroke();
+    var c = sliders[2].val;
+    fill(color(c * 0.5, 80 + c, c / 8));
+    beginShape();
+        for (var i = 0; i < this.outlinePoints.length; i += 2) {
+            var p = this.outlinePoints[i];
+            vertex(p[0], p[1]);
+        }
+        vertex(this.p2.x, this.p2.y);
+        for (var i = 1; i < this.outlinePoints.length; i += 2) {
+            var p = this.outlinePoints[this.outlinePoints.length - i];
+            vertex(p[0], p[1]);
+        }
+    endShape();
+};
+
+// Main Curve draw function
+Curve.prototype.draw = function() {
+    if (showing.Fill) { this.drawOutline(); }
+    if (showing.Skeleton) { this.drawSkeleton(); }
+    if (this.splinePoints.length && showing.Curve) { this.drawParabola(); }
+    if (showing.Construction) { this.drawConstruction(); }
+
+    for (var i = 0; i < this.controlPoints.length; i++) {
+        this.controlPoints[i].draw();
+    }
+};
+
+Curve.prototype.selectPoint = function() {
+    for (var i = 0; i < this.controlPoints.length; i++) {
+        if (this.controlPoints[i].mouseover()) {
+            selectedPoint = i;
+        }
+    }
+};
+
+Curve.prototype.mouseDrag = function() {
+    if (selectedPoint !== false) {
+        if (selectedPoint === 0) {
+            this.updatePoint();
+        } else {
+            this.apexAngle = atan2(mouseY - this.p1.y, mouseX - this.p1.x) - this.directAngle;
+            var d = 2 * this.length * cos(this.apexAngle);
+            this.p2.x = this.p1.x + d * cos(this.directAngle);
+            this.p2.y = this.p1.y + d * sin(this.directAngle);
+            this.update();
+        }
+    }
+};
+
+/*******************************************************
+ * Creation of objects
+********************************************************/
+var createButtons = function() {
+    var buttons = [];
+    var x = toolbarX + 12;
+    var y = 130;
+    var w = 100;
+    var h = 15;
+    
+    for (var opt in showing) {
+        buttons.push(new Button(x, y, w, h, opt));
+        y += 20;
+    }
+    
+    return buttons;
+};
+
+var createSliders = function() {
+    var sliders = [];
+    var x = toolbarX + 16;
+    var y = toolbarY + 30;
+    var w = 88;
+    
+    var maxes = [MAX_RESOLUTION, MAX_WIDTH, 80];
+    var starting = [10, 20, 80];
+    var names = ["Num of strings", "Width", "Color"];
+    
+    for (var i = 0; i < starting.length; i++) {
+        sliders.push(new Slider(x, y, w, 0, maxes[i], starting[i], names[i]));
+        y += 40;
+    }
+    
+    return sliders;
+};
+
+sliders = createSliders();
+var buttons = createButtons();
+
+widthControl = new WidthController(105, 25, 275, 46);
+
+var midW = width/2;
+myCurve = new Curve(midW, GRASS_BASE, midW + 20, GRASS_TIP, dist(midW, GRASS_BASE, midW + 20, GRASS_TIP) * 0.6);
+
+/*********************************************************************
+ * Draw functions
+*********************************************************************/
+
+var drawGUI = function() {
+    stroke(200, 200, 200);
+    strokeWeight(1);
+    fill(TOOLBARCOL);
+    rect(4, 4, toolbarWidth, toolbarHeight, 8);
+    
+    textAlign(CENTER, CENTER);
+    
+    for (var i = 0; i < sliders.length; i++) {
+        var s = sliders[i];
+        fill(10);
+        var t =  s.name + (i < 2 ? ": " + s.val : "");
+        text(t,  s.x + s.width / 2, s.y - 18);
+        s.draw();
+    }
+    // widthControl.draw();
+    
+    textAlign(LEFT, CENTER);
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    myCurve.draw();
+    drawGUI();
+};
+
+/*********************************************************************
+ * Event handling
+*********************************************************************/
+
+mousePressed = function() {
+    myCurve.selectPoint();
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].selected();
+    }
+};
+
+mouseReleased = function() {
+    selectedPoint = false;
+    for (var i = 0; i < sliders.length; i++) {
+        sliders[i].held = false;
+    }
+    for (var b = 0; b < buttons.length; b++) {
+        if (buttons[b].mouseover()) {
+            buttons[b].click();
+        }
+    }
+};
+
+mouseOut = function() {
+    mouseReleased();
+};
+
+mouseDragged = function() {
+    myCurve.mouseDrag();
+    //widthControl.drag();
+    for (var i = 0; i < sliders.length; i++) {
+        if (sliders[i].drag()) {
+            widthControl.setHeights();
+            myCurve.createSpline();
+        }
+    }
+};

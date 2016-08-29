@@ -1,0 +1,63 @@
+// Given a wavelength in nm return a reasonably accurate colour
+// Colours will also depend on your monitor
+
+var wavelengthToColour = function(wavelength) {
+    // Black to violet (380 nm - 400 nm)
+    if (wavelength < 400) {
+        var p = max(0, 255 * (wavelength - 360) / 40);
+        return color(p, 0,  p);
+    }
+    
+    // Violet to blue  (400 nm - 450 nm)
+    if (wavelength < 450) {
+        var p = 255 * (wavelength - 400) / 50;
+        return color(255 - p, 0,  255);
+    }
+
+    // Blue to cyan (450 nm - 480 nm)
+    if (wavelength < 480) {
+        var p = 255 * (wavelength - 450) / 30;
+        return color(0, p,  255);
+    }
+
+    // Cyan to green (480 nm - 540 nm)
+    if (wavelength < 540) {
+        var p = 255 * (wavelength - 480) / 60;
+        return color(0, 255,  255-p);
+    }
+
+    // Green to yellow (540 nm - 580 nm)
+    if (wavelength < 580) {
+        var p = 255 * (wavelength - 540) / 40;
+        return color(p, 255, 0);
+    }
+
+    // Yellow to red (580 nm - 700 nm)
+    if (wavelength < 700) {
+        var p = 255 * (wavelength - 580) / 120;
+        return color(255, 255-p, 0);
+    }
+
+    // Black to red (700 nm - 750 nm)
+    if (wavelength < 760) {
+        var p = 255 * (wavelength - 700) / 60;
+        return color(255-p, 0, 0);
+    }
+
+    return color(0, 0, 0);
+};
+
+background(0);
+
+fill(255);
+textSize(12);
+textAlign(RIGHT, CENTER);
+
+var x = 60;
+for (var i=0; i<400; i++) {
+    stroke(wavelengthToColour(360 + i));
+    line(x, i, 380, i);
+    if ((i + 360) % 25 === 0) {
+        text(360 + i + " nm", x - 5, i);
+    }
+}

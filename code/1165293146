@@ -1,0 +1,61 @@
+/************************************************************
+ * Rendering a turtle pixel-by-pixel
+************************************************************/
+
+var r1 = 115;      // Height
+var r2 = r1*r1;    // Squared
+var r3 = 1.2;      // Ratio of height to width
+var r4 = r3*r3;    // Squared
+var step1 = 70 / r1;
+
+
+// Position of light source - try moving these
+var lightX = -30;
+var lightY = -20;
+
+// Colours
+var g = color(0, 160, 0);
+var y = color(220, 255, 45);
+
+// head
+ellipse(200, 76, 83, 78);
+
+translate(200, 200);
+
+var d;
+var light1;
+var light2;
+
+noStroke();
+for (var y = -r1; y < r1; y++) {
+    d = sqrt((r2 - y*y) / r4);
+    light1 = max(0, cos(radians((y - lightY) * step1)));
+    
+    var step2 = r3 * 70 / r1;
+    for (var x = -d; x < d; x++) {
+        light2 = light1 * max(0, cos(radians((x - lightX)*step2)));
+        var p = (y*y + r4*x*x) / r2;
+        var rC = light2 * (220 - round(220 * p));
+        var gC = light2 * (255 - round(95 * p));
+        var bC = light2 * (45 - round(45 * p));
+
+        stroke(color(rC, gC, bC));
+        point(x, y);
+    }
+}
+
+noFill();
+stroke(46, 42, 40);
+strokeWeight(2);
+ellipse(0, 0, 2*r1/r3, 2*r1);
+
+// eyes
+fill(8, 8, 8);
+var eyeSize = 12;
+
+ellipse(-24, -138, eyeSize-1, eyeSize);
+ellipse(24, -138, eyeSize-1, eyeSize);
+
+stroke(255, 255, 255);
+point(-26, -140);
+point(22, -140);

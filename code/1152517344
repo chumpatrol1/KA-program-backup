@@ -1,0 +1,124 @@
+/******************************************************
+ * Working out how to draw intersecting circles
+ * And testing my trigometry & geometry to breaking point
+ * This must be useful for something...
+ * 
+ * Use the mouse to drag the circles.
+ * 
+ * Ensure it works regardless of the order of circles.
+ * Of maybe sort by size.
+ * Work out how to use > 2 circles.
+ *****************************************************/
+
+ellipseMode(CENTER);
+
+var Bubble = function(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    
+    this.draw = function() {
+        stroke(4, 13, 117);
+        strokeWeight(2);
+        ellipse(this.x, this.y, 2 * this.r, 2 * this.r);
+    };
+    
+    this.drawArc = function(normal, delta) {
+        var a1 = (normal + delta) % 360;
+        var a2 = (normal - delta) % 360;
+        if (a2 < a1) { a2 += 360; }
+        stroke(4, 13, 117);
+        strokeWeight(2);
+        arc(this.x, this.y, 2 * this.r, 2 * this.r, a1, a2);
+    };
+    
+    this.isMouseOver = function () {
+        if (mouseX >= this.x - this.r && 
+            mouseX <= this.x + this.r &&
+            mouseY >= this.y - this.r && 
+            mouseY <= this.y + this.r) {
+                return this;
+            }
+            return false;
+    };
+};
+
+var bubbles = [new Bubble(216, 233, 40),
+              new Bubble(142, 145, 80)];
+
+var selected = false;
+
+
+var drawIntersection = function(b1, b2, d2, d, angle) {
+    var r2 = b2.r * b2.r;
+    var x = (d2 + r2 - b1.r * b1.r) / (2 * d);
+    var h = sqrt(r2 - x * x);
+    var theta1 = asin(h / b1.r);
+    var theta2 = asin(h / b2.r);
+    b1.drawArc(angle, theta1);
+    b2.drawArc(angle+180, theta2);
+    
+    // Fill in the area between
+    fill(255, 255, 255);
+    noStroke();
+    h -= 0.5;
+    var dx = h * sin(angle);
+    var dy = h * cos(angle);
+    quad(b1.x + dx, b1.y - dy, b2.x + dx, b2.y - dy,
+         b2.x - dx, b2.y + dy, b1.x - dx, b1.y + dy);
+};
+
+var interact = function(b1, b2) {
+    var dx = b1.x - b2.x;
+    var dy = b1.y - b2.y;
+    var r2 = b1.r + b2.r;
+    var d2 = dx * dx + dy * dy;  // distance squared
+    
+    if (d2 < r2 * r2) {
+        var d = sqrt(d2);
+        if (d < b1.r || d < b1.r) {
+            if (b1.r < b2.r) {
+                b2.draw();
+            } else {
+                b1.draw();
+            }
+        } else {
+            var angle = atan2(dy, dx) + 180;
+            drawIntersection(b1, b2, d2, d, angle);
+        }
+    } else {
+        b1.draw();
+        b2.draw();
+    }
+};
+
+var draw = function() {
+    background(209, 212, 255);
+    
+    //arc(200, 200, 100, 100, 60, 360);
+    
+    for (var i=0; i<bubbles.length; i++) {
+        for (var j=i+1; j<bubbles.length; j++) {
+            interact(bubbles[i], bubbles[j]);
+        }
+    }
+    
+    if (selected) {
+        selected.x = mouseX;
+        selected.y = mouseY;
+    }
+};
+
+var mousePressed = function() {
+    selected = false;
+    for (var b=0; b<bubbles.length; b++) {
+        var s = bubbles[b].isMouseOver();
+        if (s) {
+            selected = s;
+            break;
+        }
+    }
+};
+
+var mouseOut = function() { selected = false; };
+var mouseReleased = function() { selected = false; };

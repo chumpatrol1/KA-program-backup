@@ -1,0 +1,201 @@
+var BACKGROUND = color(250, 250, 250);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+
+var pointR = 10;
+var gridSize = 20;
+
+var directrixY = height - 50;
+var focusX = width/2;
+var focusY = height - 100;
+var selected = false;
+var plottedPoints = [];
+
+var animationLength = 16;
+
+var radius1 = dist(mouseX, mouseY, focusX, focusY);
+var radius2 = abs(mouseY - directrixY);
+
+// The minimum distance two plotted points can be apart
+var gapBetweenPoints = 8;
+var gapBetweenPoints2 = gapBetweenPoints * gapBetweenPoints;
+
+// How close two radii must be to be considered a match
+var TOLERANCE = 0.5;
+
+var draggableCircle = function(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    
+    this.draw = function() {
+        var colour = BLUE;
+        var pr = pointR;
+        
+        if (selected === this || this.mouseover()) {
+            colour = ORANGE;
+            pr += 4;
+        }
+        
+        // Center
+        noStroke();
+        fill(colour);
+        ellipse(this.x, this.y, pr, pr);
+        
+        // Circle
+        stroke(colour);
+        noFill();
+        ellipse(this.x, this.y, this.r, this.r);
+    };
+    
+    this.mouseover = function() {
+        return dist(mouseX, mouseY, this.x, this.y) <= pointR / 2;
+    };
+};
+
+//var circle1 = new draggableCircle(300, 100, 100);
+var selectables = [];
+
+/***************************************************
+ *  Draw functions
+***************************************************/
+
+var drawDirectrix = function() {
+    stroke(ORANGE);
+    strokeWeight(2);
+    line(0, directrixY, width, directrixY);
+    
+    fill(TEXTCOL);
+    textSize(14);
+    textAlign(LEFT, TOP);
+    text("Directrix", 5, directrixY + 4);
+};
+
+var drawVertex = function() {
+    noStroke();
+    fill(ORANGE);
+    ellipse(focusX, focusY, pointR, pointR);
+
+    fill(TEXTCOL);
+    textSize(14);
+    textAlign(CENTER, TOP);
+    text("Focus", focusX, focusY + 4);
+};
+
+var drawCircles = function() {
+    noStroke();
+    fill(BLUE);
+    ellipse(mouseX, mouseY, pointR, pointR);
+    
+    if (abs(radius1 - radius2) < TOLERANCE) {
+        stroke(GREEN);
+    } else {
+        stroke(BLUE);   
+    }
+    
+    noFill();
+    strokeWeight(2);
+    stroke(BLUE);
+    ellipse(mouseX, mouseY, radius1 * 2, radius1 * 2);
+    stroke(PINK);
+    ellipse(mouseX, mouseY, radius2 * 2, radius2 * 2);
+    
+    strokeWeight(1);
+    stroke(BLUE);
+    line(mouseX, mouseY, focusX, focusY);
+    stroke(PINK);
+    line(mouseX, mouseY, mouseX, directrixY);
+};
+
+// Draw points found to be where the radii are equal length
+var drawPoints = function() {
+    strokeWeight(2);
+    
+    for (var i = 0; i < plottedPoints.length; i++) {
+        var p = plottedPoints[i];
+        if (p[2] > 0) {
+            noFill();
+            stroke(GREEN);
+            var r = sin(180 * p[2] / animationLength);
+            ellipse(p[0], p[1], pointR + r * 40, pointR + r * 40);
+            p[2]--;
+        } else {
+            noStroke();
+            fill(GREEN);
+            ellipse(p[0], p[1], pointR, pointR);      
+        }
+    }
+};
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    for (var x = 1; x < width / gridSize; x++) {
+        line(x * gridSize, 0, x * gridSize, height);
+    }
+    for (var y = 1; y < height / gridSize; y++) {
+        line(0, y * gridSize, width, y * gridSize);
+    }
+};
+
+// Write the distance between the mouse 
+// and the focus and directrix
+var drawDistances = function() {
+    textSize(16);
+    textAlign(LEFT, TOP);
+    
+    fill(BLUE);
+    text("Distance to focus: " + round(radius1), 5, 4);
+    fill(PINK);
+    text("Distance to directrix: " + round(radius2), 5, 24);
+};
+
+/***************************************************
+ *  Main loop
+***************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    drawGrid();
+    drawPoints();
+    drawCircles();
+    drawDirectrix();
+    drawVertex();
+    drawDistances();
+};
+
+/***************************************************
+ *  Event handling
+***************************************************/
+
+mousePressed = function() {
+};
+
+mouseReleased = function() {
+};
+
+mouseMoved = function() {
+    radius1 = dist(mouseX, mouseY, focusX, focusY);
+    radius2 = abs(mouseY - directrixY);
+    
+    if (abs(radius1 - radius2) < TOLERANCE) {
+        var px = mouseX;
+        var py = directrixY - radius1;
+        
+        // Check there are no very close points
+        for (var i = 0; i < plottedPoints.length; i++) {
+            var dx = plottedPoints[i][0] - px;
+            var dy = plottedPoints[i][1] - py;
+            if (dx * dx + dy * dy < gapBetweenPoints2) {
+                return;
+            }
+        }
+        plottedPoints.push([px, py, animationLength]);
+    }
+};

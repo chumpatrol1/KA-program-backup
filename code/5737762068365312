@@ -1,0 +1,58 @@
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+
+var bases = 'ATCG';
+var colours = {
+    A : BLUE,
+    T: PINK,
+    C: GREEN,
+    G: ORANGE
+};
+var complement = { A: 'T', T: 'A', C: 'G', G: 'C' };
+
+var generateSequence = function(n) {
+    var sequence = "";
+    
+    for (var i = 0; i < n; i++) {
+        sequence += bases.charAt(floor(random() * 4));
+    }
+    return sequence;
+};
+
+var drawBase = function(base, x, y, size) {
+    fill(colours[base]);
+    ellipse(x, y, size + 3, size + 3);
+    fill(255);
+    text(base, x, y);
+};
+
+var drawSequence = function(sequence, x, y, size, t) {
+    stroke(255);
+    textSize(size);
+    textAlign(CENTER, CENTER);
+    x += size / 2;
+    
+    var r = size * 2;
+    
+    for (var i = 0; i < sequence.length; i++) {
+        var base = sequence.charAt(i);
+        var d = constrain(round(t - (sequence.length - i - 1) * 30), 0, 90);
+        var dy = r * sin(d);
+        
+        drawBase(base, x, y + dy, size);
+        drawBase(complement[base], x, y - dy, size);
+        
+        x += size + 4;
+    }
+};
+
+var sequence = generateSequence(20);
+var t = 0;
+
+draw = function() {
+    background(255);
+    drawSequence(sequence, 10, 200, 14, t);
+    t += 4;
+};

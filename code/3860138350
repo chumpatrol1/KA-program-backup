@@ -1,0 +1,123 @@
+var tileWidth = 200;
+var tileHeight = 200;
+
+var baseColor = color(224, 196, 130);
+
+// Get initial parameters in the range 0 - 255
+var baseHue = hue(baseColor) / 255;
+var baseSat = saturation(baseColor) / 255;
+var baseBri = brightness(baseColor) / 255;
+
+noiseDetail(4, 0.5);
+
+var drawSand = function() {
+    loadPixels();
+    
+    var pix = imageData.data;
+    var x, y, index, h, s, v;
+    var r, b, g, i, f, p, q, t;
+    
+    for (x = 0; x < tileWidth; x++) {
+        for (y = 0; y < tileHeight; y++) {
+            index = x + y * width << 2;
+            h = baseHue + 0.1 * (noise(x * 0.04, y * 0.04) - 0.5);
+            v = baseBri + 0.15 * (noise(x * 0.1 + 0.2, y * 0.15 + 0.2) - 0.5);
+            s = baseSat + 0.1 * (noise(x * 0.1 + 0.5, y * 0.1 + 0.5) - 0.5);
+            //v *= v * (3 - 2 * v);
+            //v *= v * (3 - 2 * v);
+            
+            i = floor(h * 6);
+            f = h * 6 - i;
+            p = v * (1 - s);
+            q = v * (1 - f * s);
+            t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            pix[index++] = r * 0xFF;
+            pix[index++] = g * 0xFF;
+            pix[index] = b * 0xFF;
+        }
+        
+    }
+    
+    updatePixels();
+};
+
+var drawWood = function() {
+    loadPixels();
+    
+    var pix = imageData.data;
+    var x, y, n, index;
+    
+    var c1 = color(150, 113, 27);
+    var c2 = color(207, 185, 136);
+    var r1 = red(c1);
+    var r2 = red(c2);
+    var g1 = green(c1);
+    var g2 = green(c2);
+    var b1 = blue(c1);
+    var b2 = blue(c2);
+    
+    for (x = 0; x < 0 + tileWidth; x++) {
+        for (y = 0; y < tileHeight; y++) {
+            n = noise(x * 0.1, sin(y * 0.1) * 6);
+            index = 200 + x + y * width << 2;
+            pix[index++] = n * r1 + (1 - n) * r2;
+            pix[index++] = n * g1 + (1 - n) * g2;
+            pix[index] = n * b1 + (1 - n) * b2;
+        }
+        
+    }
+    
+    updatePixels();
+};
+
+// Based on https://www.khanacademy.org/computer-programming/wip/6211859819659264
+var drawWood2 = function(tileWidth, tileHeight) {
+    loadPixels();
+    
+    var pix = imageData.data;
+    var x, y, n, m, index;
+    
+    var col = color(5, 29, 92);
+    var col = color(170, 130, 80);
+    var r = red(col);
+    var g = green(col);
+    var b = blue(col);
+    
+    for (x = 0; x < tileWidth; x++) {
+        for (y = 0; y < tileHeight; y++) {
+            noiseDetail(4, 0.5);
+            n = noise(x * 0.012, y * 0.002) * 20;
+            n = (1 - (n - floor(n))) * 0.5;
+            n += noise(x * 0.2, y * 0.2) + 0.5;
+            
+            noiseDetail(1, 1);
+            m = noise(x * 0.9, y * 0.02) * 1.2;
+            n -= m * m * m * m;
+            n = (n * 0.5 + 1.7) * 0.5;
+            
+            index = x + y * width << 2;
+            pix[index++] = n * r;
+            pix[index++] = n * g;
+            pix[index] = n * b;
+        }
+        
+    }
+    
+    updatePixels();
+};
+
+draw = function() {
+    background(255);
+    //drawWood();
+    drawWood2(400, 200);
+    noLoop();
+};
+

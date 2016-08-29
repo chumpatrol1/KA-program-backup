@@ -1,0 +1,206 @@
+/********************************************************
+ * A grid of magnets which interact with their
+ * immediate neighbours. They start with a random
+ * orientation but an order generally emerges.
+ * 
+ * Hold down the mouse to influence the position.
+*********************************************************/
+
+var heat = 4;
+
+var material1 = {
+    x: 10,
+    y: 40,
+    width: 380,
+    height: 170,
+    force: 0.8,
+    friction: 0.9
+};
+
+var material2 = {
+    x: 10,
+    y: 220,
+    width: 380,
+    height: 170,
+    force: 0.05,
+    friction: 0.8
+};
+
+// Square distance from mouse
+var mouseInfluence = 400;    
+var mouseForce = 3;
+
+// Display
+var gap = 4;
+var needleSize = 12;
+
+var Magnet = function(x, y, r, theta) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.rotation = 0;
+    this.theta = theta;
+    
+    this.draw = function() {
+        var t = this.theta;
+        var dx = r/2 * sin(t);
+        var dy = r/2 * cos(t);
+        var x1 = this.x + dx;
+        var y1 = this.y - dy;
+        line(x-dx, y+dy, x1, y1);
+        line(x1, y1, x1 + 3*cos(t+60), y1 + 3*sin(t+60));
+        line(x1, y1, x1 + 3*cos(t+120), y1 + 3*sin(t+120));
+    };
+    
+    this.move = function(friction) {
+        this.theta += this.rotation;
+        this.rotation +=  (random() - 0.5) * heat;
+        this.rotation *= friction;
+    };
+    
+    this.interact = function(that, force) {
+        var r = force * sin(that.theta - this.theta);
+        this.rotation += r;
+        that.rotation -= r;
+    };
+};
+
+var Material = function(parameters) {
+    this.x = parameters.x;
+    this.y = parameters.y;
+    this.width = parameters.width;
+    this.height = parameters.height;
+    this.force = parameters.force;
+    this.friction = parameters.friction;
+    this.netVector = [0, 0];
+    
+    // Add poles
+    this.magnets = [];
+    this.nPoles = 0;
+    this.poleX = floor(this.width / (needleSize + gap));
+    this.poleY = floor(this.height / (needleSize + gap));
+    var dx = 0.5 * (this.width - this.poleX * (needleSize + gap));
+    var dy = 0.5 * (this.height - this.poleY * (needleSize + gap));
+
+    for (var x=0; x < this.poleX; x++) {
+        var magnetRow = [];
+        for (var y=0; y < this.poleY; y++) {
+            var mX = this.x + dx + (x + 0.5) * (needleSize + gap);
+            var mY = this.y + dy + (y + 0.5) * (needleSize + gap);
+            var theta = random() * 360;
+            magnetRow.push(new Magnet(mX, mY, needleSize, theta));
+            this.nPoles++;
+        }
+        this.magnets.push(magnetRow);
+    }
+
+    this.draw = function() {
+        noStroke();
+        fill(160, 160, 160);
+        rect(this.x+3, this.y+3, this.width, this.height, 5);
+        
+        strokeWeight(1);
+        stroke(30, 30, 30);
+        fill(255, 255, 255);
+        rect(this.x, this.y, this.width, this.height, 5);
+        
+        stroke(20, 20, 20);
+        strokeWeight(2);
+        
+        this.netVector = [0, 0];
+        
+        for (var x = 0; x < this.poleX; x++) {
+            for (var y = 0; y < this.poleY; y++) {
+                var m = this.magnets[x][y];
+                m.draw();
+                this.netVector[0] += sin(m.theta);
+                this.netVector[1] -= cos(m.theta);
+            }
+        }
+        
+        this.netVector[0] /= this.nPoles;
+        this.netVector[1] /= this.nPoles;
+        this.drawNetVector();
+    };
+    
+    this.drawNetVector = function() {
+        var strength = sqrt(this.netVector[0] * this.netVector[0] +
+                            this.netVector[1] * this.netVector[1]);
+        this.netVector[0] /= strength;
+        this.netVector[1] /= strength;
+        
+        /*
+        var vx = this.x + this.width/2 + 0.5;
+        var vy = this.y + this.height/2 + 0.5;
+        stroke(200, 0, 0, strength*255);
+        strokeWeight(10);
+        line(vx - this.netVector[0], vy - this.netVector[1],
+             vx + this.netVector[0], vy + this.netVector[1]);
+        */
+             
+        var width = 2 + round(strength * 6);
+        var length = 1 + round(strength * 40);
+        var arrow = 20 * strength;
+        var arrowS = length - arrow * 1.4;
+        
+        stroke(20, 20, 20);
+        strokeWeight(1);
+        fill(255, 255*(1-strength), 255*(1-strength));
+        
+        translate(this.x + this.width/2, this.y + this.height/2);
+        rotate(-atan2(this.netVector[0], this.netVector[1]));
+            
+        beginShape();
+        vertex(-width, -length);
+        vertex( width, -length);
+        vertex( width, arrowS);
+        vertex( width + arrow/2, arrowS);
+        vertex(0, length);
+        vertex(-width - arrow/2, arrowS);
+        vertex(-width, arrowS);
+        vertex(-width, -length);
+        endShape();
+        resetMatrix();
+        
+    };
+    
+    this.interact = function() {
+        for (var x = 0; x < this.poleX; x++) {
+            for (var y = 0; y < this.poleY; y++) {
+                var m = this.magnets[x][y];
+                if (x > 0) {
+                    m.interact(this.magnets[x-1][y], this.force);
+                }
+                if (y > 0) {
+                    m.interact(this.magnets[x][y-1], this.force);
+                }
+                if (mouseIsPressed) {
+                    m.mouseInteract();
+                }
+            }
+        }
+    };
+    
+    this.update = function() {
+        this.interact();
+        
+        for (var x = 0; x < this.poleX; x++) {
+            for (var y = 0; y < this.poleY; y++) {
+                var m = this.magnets[x][y];
+                m.move(this.friction);
+            }
+        }
+    };
+};
+
+var materials = [new Material(material1), new Material(material2)];
+
+var draw = function() {
+    background(230, 240, 240);
+    stroke(0, 0, 0);
+    
+    for (var i=0; i<materials.length; i++) {
+        materials[i].update();
+        materials[i].draw();
+    }
+};

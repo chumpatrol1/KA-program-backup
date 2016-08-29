@@ -1,0 +1,257 @@
+/*********************************************************
+ * Drag the focus (orange dot) or directrix (orange line)
+ * to define the parabola.
+ * 
+ * Drag to blue dot on the directrix to see which two
+ * tangents to the curve intersect at that point.
+*********************************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+
+textSize(14);
+var CONTROL_POINT_SIZE = 12;
+var gridSize = 20;
+
+var directrixY = height - 60;
+var focusX = width/2;
+var focusY = height /2 + 50;
+var selected = false;
+
+/*********************************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+*********************************************************/
+
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (selected === this || this.mouseover()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+/*********************************************************
+ * ConstrainedPoint
+ * A point that is constrained to a horizontal line
+*********************************************************/
+
+var ConstrainedPoint = function(line, x, color) {
+    this.x = x;
+    this.line = line;
+    this.update();
+    
+    this.color = color;
+    this.animation = 0;
+};
+ConstrainedPoint.prototype = Object.create(DraggablePoint.prototype);
+
+ConstrainedPoint.prototype.update = function() {
+    this.y = this.line.y;
+};
+
+ConstrainedPoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+};
+
+/*********************************************************
+ * DraggableLine
+ * A horizontal line that can be dragged up and down.
+*********************************************************/
+
+var DraggableLine = function(y) {
+    this.y = y;
+    
+    this.draw = function() {
+        if (this.mouseover()) {
+            strokeWeight(5);
+        } else {
+            strokeWeight(3);    
+        }
+        
+        stroke(ORANGE);
+        line(0, this.y, width, this.y);
+    };
+    
+    this.mouseover = function() {
+        return abs(mouseY - this.y) <= 4;
+    };
+    
+    this.move = function() {
+        this.y += mouseY - pmouseY;
+    };
+};
+
+/*********************************************************
+ * A parabola defined by a focus and directrix
+*********************************************************/
+
+var Parabola = function(focus, directrix) {
+    this.focus = focus;
+    this.directrix = directrix;
+    this.update();
+};
+
+Parabola.prototype.update = function() {
+    var d = this.focus.y - this.directrix.y;
+    this.x1 = this.focus.x;
+    this.y1 = this.directrix.y + 0.5 * d;
+    this.a = 0.5 / d;
+
+    this.getY = function(x) {
+        x -= this.x1;
+        return this.a * x * x + this.y1;
+    };
+    
+    this.getGrad = function(x) {
+        x -= this.x1;
+        return 2 * this.a * x;
+    };
+};
+
+Parabola.prototype.draw = function() {
+    strokeWeight(3);
+    stroke(GREEN);
+    noFill();
+    
+    var dx = 5;
+    beginShape();
+    for (var x = 0; x <= width; x += dx) {
+        var y = this.getY(x);
+        vertex(x, y);
+    }
+    endShape();
+};
+
+/*********************************************************
+ *      Create objects
+*********************************************************/
+
+var focus = new DraggablePoint(focusX, focusY, ORANGE);
+var directrix = new DraggableLine(directrixY);
+var linePoint = new ConstrainedPoint(directrix, width/2, BLUE);
+var parabola = new Parabola(focus, directrix);
+var selectables = [focus, directrix, linePoint];
+
+/*********************************************************
+ *      Draw functions
+*********************************************************/
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    for (var x = 1; x < width / gridSize; x++) {
+        line(x * gridSize, 0, x * gridSize, height);
+    }
+    for (var y = 1; y < height / gridSize; y++) {
+        line(0, y * gridSize, width, y * gridSize);
+    }
+};
+
+var drawConnections = function() {
+    var a = parabola.a;
+    var x1 = linePoint.x;
+    var y1 = linePoint.y;
+    
+    var px = x1 - parabola.x1;
+    var py = 0.25 / a;
+    
+    var rad1 = sqrt(a * a * px * px + 1/4) / a;
+    var connect1x = px - rad1;
+    var connect2x = px + rad1;
+    var grad1 = connect1x * 2 * a;
+    var grad2 = connect2x * 2 * a;
+    var sign = a < 0 ? 1 : -1;
+    
+    noFill();
+    strokeWeight(2);
+    stroke(BLUE);
+    
+    // Connections
+    var d = sign * width;
+    line(x1, y1, x1 + d, y1 + d * grad1);
+    line(x1, y1, x1 - d, y1 - d * grad2);
+    ellipse(parabola.x1 + connect1x, parabola.getY(parabola.x1 + connect1x), 10 ,10);
+    ellipse(parabola.x1 + connect2x, parabola.getY(parabola.x1 + connect2x), 10 ,10);
+    
+    // Right angle marker
+    strokeWeight(1);
+    var d = sign * 12;
+    var angle = atan(grad1);
+    var dx = d * cos(angle);
+    var dy = d * sin(angle);
+    
+    line(x1 + dx, y1 + dy, x1 + dx + dy, y1 + dy - dx);
+    line(x1 + dy, y1 - dx, x1 + dx + dy, y1 + dy - dx);
+};
+
+/*********************************************************
+ *      Main Loop
+*********************************************************/
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    drawGrid();
+    parabola.draw();
+    drawConnections();
+    
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].draw();
+    }
+};
+
+/*********************************************************
+ *      Event handling
+*********************************************************/
+
+var mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseover()) {
+            selected = selectables[i];
+        }
+    }
+};
+
+var mouseReleased = function() {
+    selected = false;
+};
+
+var mouseDragged = function() {
+    if (selected) {
+        selected.move();
+    }
+    parabola.update();
+    linePoint.update();
+};

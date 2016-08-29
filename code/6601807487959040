@@ -1,0 +1,61 @@
+var selected = false;
+
+var Window = function(name, x, y) {
+    this.name = name;
+    this.x = x;
+    this.y = y;
+    this.w = 200;
+    this.h = 80;
+};
+
+Window.prototype.draw = function() {
+    stroke(10);
+    fill(240);
+    rect(this.x, this.y, this.w, this.h, 5);
+    
+    fill(30);
+    textAlign(CENTER, TOP);
+    text(this.name, this.x + this.w / 2, this.y + 4);
+};
+
+Window.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+var windows = [
+    new Window("Window 1", 20, 50),
+    new Window("Window 2", 180, 100),
+    new Window("Window 3", 50, 200)
+];
+
+draw = function() {
+    background(255);
+    
+    for (var i = 0; i < windows.length; i++) {
+        windows[i].draw();
+    }
+};
+
+mousePressed = function() {
+    selected = false;
+    
+    for (var i = windows.length - 1; i >=0; i--) {
+        if (windows[i].mouseOver()) {
+            selected = windows.splice(i, 1)[0];
+            windows.push(selected);
+            break;
+        }
+    }
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.x += mouseX - pmouseX;
+        selected.y += mouseY - pmouseY;
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};

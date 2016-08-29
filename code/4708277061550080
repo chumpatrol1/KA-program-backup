@@ -1,0 +1,1046 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var BLACK = color(0, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 200);
+
+var CONTROL_POINT_SIZE = 14;
+var RESOLUTION = 40;
+
+var NUM_POINTS = floor(random() * 3) + 3;
+
+var sansFont = createFont("sans", 14);
+var serifFont = createFont("serif", 16);
+
+var gridSize = 18;
+var snapSize = 9;
+
+var showing = {
+    'Control points': true,
+    'Control arms': true,
+    Construction: true,
+    Curve: false,
+    //Labels: true,
+    Grid: false,
+    //Equation: false,
+    //Evaluation: false
+};
+
+var dragX, dragY;
+
+var snap = function(n) {
+    return round(n / snapSize) * snapSize;
+};
+
+var snapX = function(x) {
+    return width / 2 - snap(width / 2 - x);
+};
+
+var snapY = function(y) {
+    return height / 2 - snap(height / 2 - y);
+};
+
+/****************************************************
+ * GUI Slider to vary parameters
+*****************************************************/
+
+var Slider = function(x, y, width, min_v, max_v, current_v, name, updateF) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.held = false;
+    this.name = name;
+    this.updateF = updateF;
+    
+    this.ballD = CONTROL_POINT_SIZE;
+    this.ballR = this.ballD / 2;
+    
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        if (this.name) {
+            textAlign(CENTER, CENTER);
+            fill(10);
+            textSize(13);
+            text(this.name + " = " + (this.val / 100),  this.x + this.width / 2, this.y - 15);
+        }
+        
+        strokeWeight(2);
+        stroke(PINK);
+        line(this.x, this.y, this.bx, this.y);
+    
+        stroke(BLUE);
+        line(this.bx, this.y, this.x + this.width, this.y);
+    
+        strokeWeight(1);
+        stroke(255);
+        fill(GREEN);
+        ellipse(this.bx, this.y, this.ballD, this.ballD);
+
+    };
+};
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        textAlign(CENTER, CENTER);
+        fill(10);
+        textSize(13);
+        text(this.name + " = " + (this.val / 100),  this.x + this.width / 2, this.y - 15);
+    }
+    
+    strokeWeight(2);
+    stroke(PINK);
+    line(this.x, this.y, this.bx, this.y);
+
+    stroke(BLUE);
+    line(this.bx, this.y, this.x + this.width, this.y);
+
+    strokeWeight(1);
+    stroke(255);
+    fill(GREEN);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+};
+
+Slider.prototype.selected = function() {
+    this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.drag = function() {
+    if (this.held) {
+        var x = constrain(mouseX, this.x, this.x + this.width);
+        this.bx = x;
+        this.val = this.min + round((x - this.x) * this.scale);
+        this.update();
+        return true;
+    }
+};
+
+Slider.prototype.update = function() {
+    if (this.updateF) {
+        this.updateF(this.val);
+    }
+};
+
+/**************************************
+ *  GUI Button
+***************************************/
+{
+var Button = function(x, y, w, h, name, clickFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultCol = color(220, 220, 220, 250);
+    this.highlightCol = color(255, 255, 255, 240);
+    this.showing = true;
+    this.clickFunction = clickFunction;
+};
+
+Button.prototype.mouseOver = function() {
+    return mouseX >= this.x &&
+           mouseX <= this.x + this.w &&
+           mouseY >= this.y &&
+           mouseY <= this.y + this.h;
+};
+
+Button.prototype.click = function() {
+    if (this.clickFunction) {
+        this.clickFunction();
+    }
+};
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    if (this.mouseOver() || this.selected) {
+        fill(this.defaultCol);
+    } else {
+        noFill();
+    }
+    strokeWeight(1);
+    stroke(200);
+    rect(this.x, this.y - 1, this.w, this.h + 3, 8);
+    
+    fill(10);
+    textSize(15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, name);
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.click = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    noStroke();
+    if (this.mouseOver() || this.selected) {
+        fill(this.highlightCol);
+        rect(this.x, this.y, this.w, this.h + 1, 5);
+    } else {
+        noFill();
+    }
+    
+    fill(10);
+    textSize(14);
+    textFont(sansFont);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1,
+             this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/*************************************
+ *      Number scrubber object
+ * Shows a number with up and down
+ * arrow buttons to change the value
+**************************************/
+{
+var Scrubber = function(x, y, w, h, nowValue, values, updateF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.index = nowValue;
+    if (Array.isArray(values)) {
+        this.mapping = values;
+        this.value = this.mapping[this.index];
+        this.maxValue = this.mapping.length;
+    } else {
+        this.maxValue = values;
+        this.value = this.index;
+    }
+    
+    this.updateFunction = updateF;
+    this.selected = false;
+};
+
+Scrubber.prototype.draw = function(x, y) {
+    if (x) { this.x = x; }
+    if (y) { this.y = y; }
+    
+    // Box
+    var d = 16;
+    stroke(200);
+    noFill();
+    strokeWeight(1);
+    rect(this.x + d, this.y - 1, this.w - d * 2, this.h + 1, 8);
+    
+    // Text
+    textSize(15);
+    textAlign(CENTER, CENTER);
+    fill(TEXTCOL);
+    
+    var ty = this.y + this.h / 2;
+    text("" + this.value, this.x + this.w / 2, ty);
+    
+    // Arrow buttons
+    var mouseover = this.mouseOver();
+    if (this.selected === 1 || mouseover === 1) {
+        fill(200);
+        stroke(160);
+    } else {
+        noFill();
+        stroke(200);
+    }
+    
+    triangle(this.x + 3, ty,
+             this.x + d - 2, this.y + 1,
+             this.x + d - 2, this.y + this.h - 1);
+    
+    if (this.selected === 2 || mouseover === 2) {
+        fill(200);
+        stroke(160);
+    } else {
+        noFill();
+        stroke(200);
+    }
+    
+    triangle(this.x + this.w - 3, ty,
+             this.x + this.w - d + 2, this.y + 1,
+             this.x + this.w - d + 2, this.y + this.h -1);
+};
+
+Scrubber.prototype.updateValue = function() {
+    if (this.selected === 1) {
+        this.index = (this.index - 1 + this.maxValue) % this.maxValue;
+    } else if (this.selected === 2) {
+        this.index = (this.index + 1) % this.maxValue;
+    }
+
+    this.mapValue();
+    this.update();
+};
+
+Scrubber.prototype.mapValue = function() {
+    if (this.mapping) {
+        this.value = this.mapping[this.index];
+    } else {
+        this.value = this.index;
+    }
+};
+
+Scrubber.prototype.setValue = function(n) {
+    this.value = n;
+    if (this.mapping) {
+        this.index = this.mapping.indexOf(this.value);
+    } else {
+        this.index = this.value;
+    }
+};
+
+// Return 1 or 2 if mouse over top or bottom
+// arrow respectively. Otherwise return null
+Scrubber.prototype.mouseOver = function() {
+    if (mouseY >= this.y && mouseY <= this.y + this.h) {
+        if (mouseX >= this.x && mouseX <= this.x + 16) {
+            return 1;
+        } else if (mouseX >= this.x + this.w - 16 && mouseX <= this.x + this.w) {
+            return 2;
+        }
+    }
+};
+
+Scrubber.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+    println(this.selected);
+};
+
+Scrubber.prototype.mouseReleased = function() {
+    if (this.selected) {
+        this.updateValue();
+        this.selected = false;
+    }
+};
+
+Scrubber.prototype.click = function() {
+    this.selected = this.mouseOver();
+    this.updateValue();
+};
+
+Scrubber.prototype.update = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.index, this.value);
+    }
+};
+}
+/**************************************
+ *      Toolbar
+ *  Contains other GUI elements
+***************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 4;
+    
+    this.buttons = [];
+    this.sliders = [];
+};
+
+Toolbar.prototype.draw = function() {
+    noStroke();
+    fill(230, 230, 230, 200);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    for (var i = 0; i < this.buttons.length; i++) {
+        this.buttons[i].draw();
+    }
+    
+    for (var i = 0; i < this.sliders.length; i++) {
+        this.sliders[i].draw();
+    }
+};
+
+Toolbar.prototype.addButton = function(name, func) {
+    var h = 18;
+    var x = this.x + 5;
+    var y = this.h + h / 2;
+    var w = this.w - 10;
+    
+    this.buttons.push(new Button(x, y, w, h, name, func));
+    this.h += h + 8;
+};
+
+Toolbar.prototype.addSlider = function(minX, maxX, nowX, name, updateF) {
+    var h = 12;
+    var x = this.x + 15;
+    var y = this.h + h;
+    var w = this.w - 30;
+    
+    if (name) {
+        y += 18;
+        this.h += 18;
+    }
+    
+    this.sliders.push(new Slider(x, y, w, minX, maxX, nowX, name, updateF));
+    
+    this.h += h + 2;
+};
+
+Toolbar.prototype.addScrubber = function(nowValue, values, updateF) {
+    var h = 18;
+    var x = this.x + 5;
+    var y = this.h + h / 2;
+    var w = this.w - 10;
+    
+    this.buttons.push(new Scrubber(x, y, w, h, nowValue, values, updateF));
+    this.h += h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.h + 10;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        this.buttons.push(new CheckBox(x, y, w, h, opt));
+        y += 28;
+    }
+    
+    this.h = y - 5;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.buttons.length; i++) {
+        if (this.buttons[i].mouseOver()) {
+            this.buttons[i].selected = true;
+        }
+    }
+    
+    for (var i = 0; i < this.sliders.length; i++) {
+        this.sliders[i].selected();
+    }
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.buttons.length; i++) {
+        var button = this.buttons[i];
+        if (button.selected && button.mouseOver()) {
+            button.click();
+        }
+        button.selected = false;
+    }
+    for (var i = 0; i < this.sliders.length; i++) {
+        this.sliders[i].held = false;
+    }
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    for (var i = 0; i < this.sliders.length; i++) {
+        if (this.sliders[i].drag()) {
+            return true;
+        }
+    }
+};
+}
+/**************************************
+ * DraggablePoint
+ * A freely draggable point with a
+ * position and colour.
+***************************************/
+{
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function(selected) {
+    if (selected === this || (!selected && this.mouseover())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x = snapX(mouseX + dragX);
+    this.y = snapY(mouseY + dragY);
+};
+}
+/*********************************************
+ * InteractivePoint
+ * A point with a position and colour
+ * which has a mouseover effect.
+**********************************************/
+
+var InteractivePoint = function(x, y, n) {
+    this.x = x;
+    this.y = y;
+    this.n = n;
+    this.d = 7;
+    this.animation = 0;
+};
+
+InteractivePoint.prototype.draw = function(selected) {
+    if (selected || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+    
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    
+    if (selected) {
+        fill(PINK);
+    } else {
+        fill(GREY);    
+    }
+    
+    var d = this.d + this.animation / 2 ;
+    quad(this.x, this.y - d, this.x + d, this.y, this.x, this.y + d, this.x - d, this.y);
+    
+    fill(0);
+    //text(this.n, this.x, this.y);
+};
+
+InteractivePoint.prototype.mouseOver = function() {
+    return mouseX >= this.x - this.d && mouseX <= this.x + this.d && 
+           mouseY >= this.y - this.d && mouseY <= this.y + this.d;
+};
+
+/*****************************************************
+ * HalfLine
+ * Line between by two points with two colours 
+*****************************************************/
+
+var HalfLine = function(p1, p2, t, thickness) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.thickness = thickness || 1;
+    
+    this.point = new InteractivePoint(0, 0, (p1.n + p2.n) / 2);
+    this.updateT(t);
+};
+
+HalfLine.prototype.draw = function() {
+    strokeWeight(this.thickness);
+    stroke(PINK);
+    line(this.p1.x, this.p1.y, this.point.x, this.point.y);
+    stroke(BLUE);        
+    line(this.point.x, this.point.y, this.p2.x, this.p2.y);
+};
+
+HalfLine.prototype.updateT = function(t) {
+    this.point.x = lerp(this.p1.x, this.p2.x, t);
+    this.point.y = lerp(this.p1.y, this.p2.y, t);
+};
+
+/*****************************************************
+ * Curve
+ * Curve between by two points at
+ * (x1, y1) and (x2, y2), with n control points
+*****************************************************/
+
+var Curve = function(cx, cy, n) {
+    this.cx = cx;
+    this.cy = cy;
+    this.n = n;
+    this.t = 0.5;
+    this.selectedControl = false;
+    
+    this.setControlPoints(n);
+    this.getControlArms();
+    this.curvePoint = this.arms[0].point;
+};
+
+Curve.prototype.setControlPoints = function(n) {
+    this.controlPoints = [];
+    
+    var radius = min(width, height) * 0.4 - 20;
+    var dAngle = (random(150) + 120) / (n - 1);
+    var angle = random(360);
+    
+    for (var i = 0; i < n; i++) {
+        angle += dAngle + (random(20) - 10);
+        var r = radius + (random(40) - 20);
+        var x = constrain(this.cx - r * cos(angle), 0, width);
+        var y = constrain(this.cy - r * sin(angle), 0, height);
+        var p = new DraggablePoint(x, y);
+        p.n = i;
+        this.controlPoints.push(p);
+    }
+};
+
+Curve.prototype.getControlArms = function() {
+    this.arms = [];
+    for (var i = 0; i < this.controlPoints.length - 1; i++) {
+        var p1 = this.controlPoints[i];
+        var p2 = this.controlPoints[i + 1];
+        this.arms.push(new HalfLine(p1, p2, this.t, 3));
+    }
+};
+
+Curve.prototype.updateT = function(t) {
+    this.t = t;
+    for (var i = 0; i < this.arms.length; i++) {
+        this.arms[i].updateT(t);
+    }
+};
+
+Curve.prototype.addArm = function(p1, p2) {
+    var arm = new HalfLine(p1, p2, this.t, 1);
+    this.arms.push(arm);
+    this.curvePoint = arm.point;
+    this.calculateCurve();
+};
+
+Curve.prototype.calculateCurve = function() {
+    this.curvePoints = [];
+    var n = this.arms.length;
+    
+    if (!n) { return; }
+    
+    for (var i = 0; i <= RESOLUTION; i++) {
+        for (var j = 0; j < n; j++) {
+            this.arms[j].updateT(i / RESOLUTION);
+        }
+        this.curvePoints.push([
+            this.curvePoint.x,
+            this.curvePoint.y
+        ]);
+    }
+    
+    // Reset t
+    for (var i = 0; i < n; i++) {
+        this.arms[i].updateT(this.t);
+    }
+};
+
+Curve.prototype.draw = function() {
+    if (showing.Curve && this.curvePoints) {
+       this.drawCurve();   
+    }
+    
+    // Lines to control points
+    if (showing['Control arms']) {
+        var n = showing.Construction ? this.arms.length : this.n - 1;
+        for (var i = 0; i < n; i++) {
+            this.arms[i].draw();
+        }
+        
+        for (var i = 0; i < n; i++) {
+            this.arms[i].point.draw(this.selected === this.arms[i]);
+        }
+    }
+    
+    // Point at t
+    if (showing.Curve) {
+        stroke(255);
+        fill(GREEN);
+        strokeWeight(1);
+        ellipse(this.curvePoint.x, this.curvePoint.y, 12, 12);
+    }
+    
+    if (showing['Control points']) {
+        this.drawControlPoints();
+    }
+    
+    if (this.selected) {
+        strokeWeight(1);
+        stroke(GREY);
+        line(this.selected.point.x, this.selected.point.y, mouseX, mouseY);
+    }
+};
+
+Curve.prototype.drawCurve = function() {
+    strokeWeight(5);
+    stroke(GREEN);
+    noFill();
+    
+    beginShape();
+    for (var i = 0; i < this.curvePoints.length; i++) {
+        vertex(this.curvePoints[i][0], this.curvePoints[i][1]);
+    }
+    endShape();
+};
+
+Curve.prototype.drawControlPoints = function() {
+    for (var i = 0; i < this.controlPoints.length; i++) {
+        this.controlPoints[i].draw(this.selected);
+    }
+    
+    if (showing.Labels) {
+        this.drawLabels();
+    }
+};
+
+Curve.prototype.drawLabels = function() {
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    
+    var x1 = this.p1.x;
+    var y1 = this.p1.y;
+    var x2 = this.p2.x;
+    var y2 = this.p2.y;
+    var x3 = this.p3.x;
+    var y3 = this.p3.y;
+    
+    this.drawLabel("C", x1, y1, x3, y3);
+    this.drawLabel("A", x2, y2, x3, y3);
+    this.drawLabel("B", x3, y3, (x1 + x2)/2, (y1 + y2) / 2);
+    
+    x1 = lerp(x3, x1, this.t);
+    y1 = lerp(y3, y1, this.t);
+    x2 = lerp(x2, x3, this.t);
+    y2 = lerp(y2, y3, this.t);
+    var x3 = lerp(x2, x1, this.t);
+    var y3 = lerp(y2, y1, this.t);
+    
+    fill(0);
+    this.drawLabel("R", x1, y1, x2, y2);
+    this.drawLabel("Q", x2, y2, x1, y1);
+    
+    fill(GREEN);
+    var angle = atan2(y1 - y2, x1 - x2) - 90;
+    this.drawLabel("P", x3, y3, x3 + cos(angle), y3 + sin(angle));
+};
+
+Curve.prototype.drawLabel = function(name, x1, y1, x2, y2) {
+    var dx = x1 - x2;
+    var dy = y1 - y2;
+    var d = sqrt(dx * dx + dy * dy);
+    dx /= d;
+    dy /= d;
+    
+    text(name, x1 + dx * 15, y1 + dy * 15);
+};
+
+Curve.prototype.mousePressed = function() {
+    for (var i = 0; i < this.controlPoints.length; i++) {
+        if (this.controlPoints[i].mouseover()) {
+            this.selectedControl = this.controlPoints[i];
+            dragX = this.selectedControl.x - mouseX;
+            dragY = this.selectedControl.y - mouseY;
+            break;
+        }
+    }
+    
+    var oldSelected = this.selected;
+    this.selected = false;
+    
+    for (var i = 0; i < this.arms.length; i++) {
+        if (this.arms[i].point.mouseOver()) {
+            this.selected = this.arms[i];
+            break;
+        }
+    }
+    
+    // Add new line
+    if (this.selected && oldSelected) {
+        this.addArm(oldSelected.point, this.selected.point);
+        this.selected = false;
+    }
+};
+
+Curve.prototype.mouseDragged = function() {
+    if (this.selectedControl !== false) {
+        this.selectedControl.move();
+        this.calculateCurve();
+    }
+};
+
+Curve.prototype.mouseReleased = function() {
+    this.selectedControl = false;
+};
+
+/*************************************
+ * Creation of objects
+**************************************/
+var myCurve = new Curve(width / 2, height / 2, NUM_POINTS);
+
+var updateT = function(v) {
+    myCurve.updateT(v / 100);
+};
+var updateDepth = function(i, v) {
+    myCurve.setControlPoints(i);
+};
+
+var toolbar = new Toolbar(width * 0.01, width * 0.01, 125);
+//toolbar.addScrubber(2, ["Linear", "Quadratic", "Cubic", "Quartic", "Quintic"], updateDepth);
+toolbar.addSlider(0, 100, 50, "t", updateT);
+toolbar.addOptions(showing);
+
+/*************************************
+ *  Draw functions
+**************************************/
+var drawMessage = function() {
+    textAlign(CENTER, CENTER);
+    textSize(16);
+    textLeading(20);
+    
+    var message = "Click on two grey diamonds to add a construction line between them";
+    
+    strokeWeight(3);
+    stroke(20, 60, 160);
+    fill(TOOLBAR);
+    
+    var w = textWidth(message) + 24;
+    var h = 32;
+    var x = width / 2;
+    var y = 6;
+    rect(x - w / 2, y, w, h, 20);
+    
+    fill(20);
+    text(message, x, y + h / 2);
+};
+
+var colorText = function(txtArr, x, y) {
+    for (var i = 0; i < txtArr.length; i++) {
+        fill(txtArr[i][1]);
+        var txt = txtArr[i][0];
+        text(txt, x, y);
+        x += textWidth(txt);
+    }
+    return x;
+};
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    var n = ceil(0.5 * width / gridSize);
+    for (var x = -n; x < n; x++) {
+        var gx = width / 2 + x * gridSize;
+        line(gx, 0, gx, height);
+    }
+    
+    n = ceil(0.5 * height / gridSize);
+    for (var y = -n; y < n; y++) {
+        var gy = height / 2 + y * gridSize;
+        line(0, gy, width, gy);
+    }
+    
+    // Axes
+    stroke(GREY);
+    line(width / 2, 0, width / 2, height);
+    line(0, height / 2, width, height / 2);
+    
+    // Labels
+    fill(GREY);
+    textSize(11);
+    
+    textAlign(CENTER, TOP);
+    n = ceil(0.25 * width / gridSize) * 2;
+
+    for (var x = -n; x <= n; x += 2) {
+        if (x) {
+            var gx = width / 2 + x * gridSize;
+            line(gx, height/2 - 2, gx, height/2 + 2);
+            text("" + x, gx, height / 2 + 5);
+        }
+    }
+    
+    textAlign(RIGHT, CENTER);
+    n = ceil(0.25 * height / gridSize) * 2;
+    for (var y = -n; y <= n; y += 2) {
+        if (y) {
+            var gy = height / 2 + y * gridSize;
+            line(width/2 - 2, gy, width/2 + 2, gy);
+            text("" + (-y),  width/2 - 5, gy);   
+        }
+    }
+};
+
+var drawEvaluation = function() {
+    var tx = 10;
+    var tdy = 20;
+    var ty = height - tdy * 6 + 6;
+    var equationH = tdy * 6 + 5;
+    var equationW = 260;
+    
+    noStroke();
+    fill(TOOLBAR);
+    rect(4, height - equationH - 4, equationW, equationH, 8);
+    
+    textSize(15);
+    textAlign(LEFT, BASELINE);
+    
+    var t = myCurve.t;
+    var Ax = round(2*(myCurve.p2.x - width / 2) / gridSize) / 2;
+    var Ay = round(-2*(myCurve.p2.y - height / 2) / gridSize) / 2;
+    var Bx = round(2*(myCurve.p3.x - width / 2) / gridSize) / 2;
+    var By = round(-2*(myCurve.p3.y - height / 2) / gridSize) / 2;
+    var Cx = round(2*(myCurve.p1.x - width / 2) / gridSize) / 2;
+    var Cy = round(-2*(myCurve.p1.y - height / 2) / gridSize) / 2;
+    
+    var Qx = round(100 * lerp(Ax, Bx, t)) / 100;
+    var Qy = round(100 * lerp(Ay, By, t)) / 100;
+    var Rx = round(100 * lerp(Bx, Cx, t)) / 100;
+    var Ry = round(100 * lerp(By, Cy, t)) / 100;
+    
+    var vals = [
+        ["Qx", Ax, Bx, BLACK, ORANGE],
+        ["Qy", Ay, By, BLACK, ORANGE],
+        ["Rx", Bx, Cx, BLACK, ORANGE],
+        ["Ry", By, Cy, BLACK, ORANGE],
+        ["Px", Qx, Rx, GREEN, BLACK],
+        ["Py", Qy, Ry, GREEN, BLACK],
+    ];
+    
+    var w = 100;
+    for (var i = 0; i < vals.length; i++) {
+        var v = vals[i];
+        var Px = round(100 * lerp(v[1], v[2], t)) / 100;
+    
+        var x2 = colorText([
+            [v[0], v[3]],
+            [" = ", GREY],
+            [round(100*(1 - t)) / 100 + "(", BLUE],
+            ["" + v[1], v[4]],
+            [")", BLUE],
+            [" + ", GREY],
+            [t + "(", PINK],
+            ["" + v[2], v[4]],
+            [")", PINK],
+            [" = ", GREY],
+            ["" + Px, v[3]]
+            ], tx, ty);
+        ty += tdy;
+    }
+};
+
+var drawEquation = function() {
+    var equationH = 80;
+    var equationW = 180;
+    
+    var tx = 16;
+    var tdy = 24;
+    var ty = height - 144 - tdy * 2;
+    
+    noStroke();
+    fill(TOOLBAR);
+    rect(4, ty - 22, equationW, equationH, 8);
+    
+    textSize(18);
+    textAlign(LEFT, BASELINE);
+    
+    colorText([
+        ["Q = ", GREY],
+        ["(1 - t)(", BLUE],
+        ["A", ORANGE],
+        [")", BLUE],
+        [" + ", GREY],
+        ["t(", PINK],
+        ["B", ORANGE],
+        [")", PINK],
+        ], tx, ty);
+        
+    ty += tdy;
+    colorText([
+        ["R = ", GREY],
+        ["(1 - t)(", BLUE],
+        ["B", ORANGE],
+        [")", BLUE],
+        [" + ", GREY],
+        ["t(", PINK],
+        ["C", ORANGE],
+        [")", PINK],
+        ], tx, ty);
+        
+    ty += tdy;
+    colorText([
+        ["P", GREEN],
+        [" = ", GREY],
+        ["(1 - t)(", BLUE],
+        ["Q", ORANGE],
+        [")", BLUE],
+        [" + ", GREY],
+        ["t(", PINK],
+        ["R", ORANGE],
+        [")", PINK],
+        ], tx, ty);
+};
+
+/*************************************
+ * Main loop
+**************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    if (showing.Grid) {
+        drawGrid();
+    }
+    myCurve.draw();
+    toolbar.draw();
+    //drawMessage();
+    
+    if (showing.Equation) {
+        drawEquation();
+    }
+    if (showing.Evaluation) {
+        drawEvaluation();
+    }
+};
+
+/****************************************************
+ * Event handling
+*****************************************************/
+
+mousePressed = function() {
+    myCurve.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseReleased = function() {
+    myCurve.mouseReleased();
+    toolbar.mouseReleased();
+};
+
+mouseDragged = function() {
+    myCurve.mouseDragged();
+    toolbar.mouseDragged();
+};

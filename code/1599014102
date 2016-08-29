@@ -1,0 +1,638 @@
+/****************************************************
+* You are a single cell at sea.
+* Your aim is to stay alive and replicate your DNA.
+* But avoid the red toxins and keep out of trouble.
+* 
+* Use the arrow keys to move.
+* 
+* To Do:
+*   Protein synthesis
+*   Evolve new proteins
+*   Add enemy cells/ viruses?
+*   Replication animation
+*****************************************************/
+var cell;
+var state = 'paused';
+var genomeLength = 100;
+var generation = 1;
+
+var menuFont = createFont("impact", 50);
+var interFont = createFont("sans-serif", 16);
+
+var Cell = function(x, y, r, n) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.nodes = [];
+    this.movement = [];
+    
+    this.DNA = 0;
+    this.ATP = 800;
+    this.dNTP = 0;
+    this.toxin = 0;
+    
+    var friction = 0.96;
+    var noise = 0.1;
+    var speed = 0.7;
+    
+    for (var i = 0; i < n; i++) {
+        var nx = x + r * sin(360 * i / n);
+        var ny = y - r * cos(360 * i / n);
+        this.nodes.push([nx, ny]);
+        this.movement.push([0, 0]);
+    }
+    
+    this.move = function(dir, dx, dy) {
+        if (random() < 0.7) { this.ATP--; }
+        var node = round(n * dir / 4);
+        var d;
+        
+        if (dx !== 0) {
+            d = dx * speed;
+            if (this.toxin > 0) { d *= 0.6; }
+            this.movement[node][0] += d * (random()/2 + 0.5);
+            this.movement[(node + 1) % n][0] += d * random();
+            this.movement[(node + n - 1) % n][0] += d * random();
+        } else {
+            d = dy * speed;
+            if (this.toxin > 0) { d *= 0.6; }
+            this.movement[node][1] += d * (random()/2 + 0.5);
+            this.movement[(node + 1) % n][1] += d * random();
+            this.movement[(node + n - 1) % n][1] += d * random();   
+        }
+    };
+    
+    this.collide = function(that) {
+        var dx = this.x - that.x;
+        var dy = this.y - that.y;
+        
+        if (dx * dx + dy * dy <= this.r * this.r + 16) {
+            if (that.type === 'rock') {
+                // Collide with rock
+                var minD = this.r * this.r;
+                var node = 0;
+                
+                // Find closest node
+                for (i = 0; i < n; i++) {
+                    var dnx = that.x - this.nodes[i][0];
+                    var dny = that.y - this.nodes[i][1];
+                    var d = dnx * dnx + dny * dny;
+                    if (d < minD) {
+                        minD = d;
+                        node = i;
+                    }
+                }
+                
+                // Dist and Angle between node and centre
+                dx = this.nodes[node][0] - this.x;
+                dy = this.nodes[node][1] - this.y;
+                //var dist = sqrt(dx * dx + dy * dy);
+                var theta = atan2(dy, dx);
+                
+                var c = -cos(theta)/2;
+                var s = -sin(theta)/2;
+                this.movement[node][0] = c * 2;
+                this.movement[node][1] = s * 2;
+                this.movement[(node + 1) % n][0] = c;
+                this.movement[(node + 1) % n][1] = s;
+                this.movement[(node + n - 1) % n][0] = c;
+                this.movement[(node + n - 1) % n][1] = s;
+                this.x += c * 2;
+                this.y += c * 2;
+                
+                that.dx = -c;
+                that.dy = -s;
+            } else {
+                // Eat nutrient
+                if (!that.eaten) {
+                    that.eaten = 1;
+                }
+            }
+        }
+    };
+    
+    this.update = function(driftAngle, drift, recentre) {
+        // Check for game end
+        if (this.DNA >= genomeLength && !this.toxin) {
+            state = 'win';
+        } else if (this.ATP <= 0) {
+            state = 'lose';
+        }
+        
+        // General metabolism
+        if (frameCount % 6 === 0) {
+            this.ATP--;
+            if (this.dNTP > 0 && this.DNA < genomeLength) {
+                this.DNA++;
+                this.dNTP--;
+                this.ATP -= 4;
+            }
+        }
+        
+        // Toxin
+        if (this.toxin > 0) {
+            this.toxin--;
+            this.ATP--;
+        }
+        
+        // Find cell centre
+        this.x = 0;
+        this.y = 0;
+        var i;
+        
+        for (i = 0; i < n; i++) {
+            this.x += this.nodes[i][0];
+            this.y += this.nodes[i][1];
+        }
+        this.x /= n;
+        this.y /= n;
+        
+        // Sick cells shrink
+        var r = this.r;
+        if (this.toxin) { r = this.r * 0.75; }
+        
+        // Move nodes to centre
+        for (i = 0; i < n; i++) {
+            var dx = 0.25 * (this.nodes[i][0] - 
+                     (this.x + r * sin(360 * i / n)));
+            var dy = 0.25 * (this.nodes[i][1] - 
+                     (this.y - r * cos(360 * i / n)));
+                    
+            this.movement[i][0] += 0.05 * drift * sin(driftAngle)-dx;
+            this.movement[i][1] += 0.05 * drift * cos(driftAngle)-dy;
+            this.nodes[i][0] += this.movement[i][0] + recentre[0];
+            this.nodes[i][1] += this.movement[i][1] + recentre[1];
+            this.movement[i][0] *= friction;
+            this.movement[i][1] *= friction;
+            this.movement[i][0] += noise * (random() - 0.5);
+            this.movement[i][1] += noise * (random() - 0.5);
+        }
+    };
+    
+    this.draw = function() {
+        strokeWeight(2);
+        stroke(22, 117, 17);
+        if (this.toxin === 0) {
+            fill(127, 209, 123);
+        } else {
+            var c = lerpColor(color(127, 209, 123),
+                              color(255, 38, 0),
+                              (this.toxin % 16) / 15);
+            fill(c);
+        }
+        
+        beginShape();
+        curveVertex(this.nodes[n-1][0],
+                    this.nodes[n-1][1]);
+        for (var i = 0; i < n; i++) {
+            curveVertex(this.nodes[i][0], this.nodes[i][1]);
+        }
+        curveVertex(this.nodes[0][0], this.nodes[0][1]);
+        curveVertex(this.nodes[1][0], this.nodes[1][1]);
+        endShape();
+        
+        strokeWeight(1);
+        stroke(22, 117, 17);
+        fill(255, 255, 255, 220);
+        ellipse(this.x, this.y, this.r/2, this.r/2);
+    };
+};
+
+var rockImg = getImage("cute/Rock");
+
+var Particle = function(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.angle = random() * 360;
+    this.rotate = random() * 5;
+    this.r = 8 + floor(random() * 7);
+    this.dx = random() - 0.5;
+    this.dy = random() - 0.5;
+    this.type = type;
+    
+    this.eaten = false;
+    
+    var friction = 0.69 + (2.4 / this.r);
+    var noise = 0.1;
+    
+    this.drawNutrient = function() {
+        if (this.eaten) {
+            if (this.eaten <= 10 + this.r) {                
+                strokeWeight(3);
+                var radius = this.r + this.eaten * 4;
+                var c = lerpColor(this.stroke, this.strokeT,
+                       this.eaten/(10 + this.r));
+                noFill();
+                stroke(c);
+                ellipse(this.x, this.y, radius, radius);   
+                fill(c);
+                textAlign(CENTER, CENTER);
+                textFont(menuFont, 16);
+                text(this.type, this.x, this.y-this.eaten*2+5);
+                
+                switch (this.type) {
+                    case 'ATP':
+                        cell.ATP += 12;
+                        break;
+                    case 'dNTP':
+                        cell.dNTP++;
+                        break;
+                    case 'toxin':
+                        cell.toxin += 8;
+                }
+                this.eaten++;
+            }
+        } else {
+            strokeWeight(1);
+            fill(this.fill);
+            stroke(this.stroke);
+            ellipse(this.x, this.y, this.r, this.r);      
+        }
+    };
+    
+    this.drawImage = function() {
+        pushMatrix();
+        translate(round(this.x), round(this.y));
+        rotate(this.angle);
+        scale(this.r/100, this.r/100);
+        image(rockImg, -50, -115);
+        popMatrix();
+    };
+    
+    switch(this.type) {
+        case "rock":
+            this.r = 15 + random() * 20;
+            this.draw = this.drawImage;
+            break;
+        case "ATP":
+            this.fill = color(40, 180, 20);
+            this.stroke = color(15, 90, 5);
+            this.strokeT = color(15, 90, 5, 50);
+            this.draw = this.drawNutrient;
+            break;
+        case "dNTP":
+            this.fill = color(176, 44, 242);
+            this.stroke = color(230, 97, 230);
+            this.strokeT = color(176, 44, 242, 50);
+            this.draw = this.drawNutrient;
+            break;
+        case "amino":
+            this.fill = color(8, 247, 235);
+            this.stroke = color(0, 97, 201);
+            this.strokeT = color(8, 247, 235, 50);
+            this.draw = this.drawNutrient;
+            break;
+        case "toxin":
+            this.fill = color(255, 0, 0);
+            this.stroke = color(255, 99, 99);
+            this.strokeT = color(255, 0, 0, 50);
+            this.draw = this.drawNutrient;
+            break;
+    }
+    
+    this.collide = function(that) {
+        var dx = this.x - that.x;
+        var dy = this.y - that.y;
+        if (dx * dx + dy * dy < this.r * this.r) {
+            var theta = atan2(dy, dx);
+            var c = -cos(theta)/2;
+            var s = -sin(theta)/2;
+            this.x -= 2 * c;
+            this.y -= 2 * s;
+            that.x += 2 * c;
+            that.y += 2 * s;
+            this.dx *= -1;
+            this.dy *= -1;
+            that.dx *= -1;
+            that.dy *= -1;
+            this.angle += (random()-0.5) * 20;
+            that.angle += (random()-0.5) * 20;
+        }
+    };
+    
+    this.update = function(driftAngle, drift, recentre) {
+        this.x += this.dx + drift * 8 / this.r * sin(driftAngle);
+        this.y += this.dy + drift * 8 / this.r * cos(driftAngle);
+        this.x += recentre[0];
+        this.y += recentre[1];
+        
+        this.dx *= friction;
+        this.dy *= friction;
+        this.dx += noise * (random() - 0.5);
+        this.dy += noise * (random() - 0.5);
+        this.angle += this.rotate;
+        this.rotate += noise * (random() - 0.5);
+    };
+};
+
+// Probabilities for the various particle types.
+var pParticles = {
+    ATP: 15,
+    dNTP: 7,
+    amino: 8,
+    toxin: 22
+};
+
+// Add n random particles to the given array
+var addParticles = function(arr, n, x, y) {
+    for (var i = 0; i < n; i++) {
+        var px, py;
+        if (x === undefined) {
+            px = random() * 800 - 200;
+        } else {
+            px = x;
+        }
+        if (y === undefined) { 
+            py = random() * 800 - 200;
+        } else {
+            py = y;
+        }
+        
+        // Determine particle type
+        var particleN = random() * 100;
+        
+        for (var p in pParticles) {
+            particleN -= pParticles[p];
+            if (particleN < 0) {
+                arr.push(new Particle(px, py, p));
+                break;
+            }
+        }
+        if (particleN >= 0) {
+            arr.push(new Particle(px, py, 'rock'));
+        }
+    }
+};
+
+var newLevel = function() {
+    generation++;
+    
+    // Reset cell
+    cell.DNA = 0;
+    genomeLength += 20;
+    if (cell.ATP < 800) {
+        cell.ATP = 800;
+    } else {
+        cell.ATP = 600 + floor(0.5 * (cell.ATP - 600));
+    }
+    
+    // Make non-toxins particles less frequent
+    var totalP = 0;
+    for (var p in pParticles) {
+        if (p !== 'toxin') {
+            pParticles[p] *= 0.96;
+            totalP += pParticles[p];
+        }
+    }
+    
+    // Increase toxin probability
+    pParticles.toxin = 50 - totalP;
+};
+
+/******************************
+ * Initialise objects
+******************************/
+
+cell = new Cell(200, 200, 18, 12);
+var bodies = [cell];
+addParticles(bodies, 32);
+
+// Example particles
+var egATP = new Particle(115, 140, 'ATP');
+var egdNTP = new Particle(115, 175, 'dNTP');
+var egAA = new Particle(115, 235, 'amino');
+var egToxin = new Particle(115, 320, 'toxin');
+egATP.r = 14;
+egdNTP.r = 14;
+egAA.r = 14;
+egToxin.r = 14;
+
+// Vector describing flow of water
+var driftAngle = random() * 360;
+var drift = 1;
+
+// Working out density of particles
+var recentreSum = [0, 0];
+
+var centreDisplayOnCell = function() {
+    var dx = (200 - cell.x) * 0.05;
+    var dy = (200 - cell.y) * 0.05;
+    return [dx, dy];
+};
+
+/******************************
+ * Main game loop
+******************************/
+
+var update = function() {
+    var i;
+    
+    // Remove offscreen particles (remove only 1 each time)
+    for (i=1; i<bodies.length-1; i++) {
+        var p = bodies[i];
+        if (p.x < -400 || p.x > 800 ||
+            p.y < -400 || p.y > 800 ||
+            p.eaten > 10 + p.r) {
+                bodies.splice(i, 1);
+                break;
+        }
+    }
+    
+    // Collision detection
+    for (i=0; i<bodies.length-1; i++) {
+        for (var j=i+1; j<bodies.length; j++) {
+            bodies[i].collide(bodies[j]);
+        }
+    }
+
+    // Recentre screen to follow cell
+    var recentre = centreDisplayOnCell();
+    recentreSum[0] = recentreSum[0] * 0.5 + recentre[0];
+    recentreSum[1] = recentreSum[1] * 0.5 + recentre[1];
+
+    for (i=0; i<bodies.length; i++) {
+        bodies[i].update(driftAngle, drift, recentre);
+    }
+    
+    // Add new particles
+    var movement = abs(recentreSum[0]) + abs(recentreSum[1]);
+    if (movement*random() > 1 && random() < 10 / (10+bodies.length)) {
+        var x, y;
+        // Calculate what side to add particle;
+        if (abs(recentreSum[0]) > abs(recentreSum[1])) {
+            if (recentreSum[0] > 0) {
+                x = -100;
+            } else {
+                x = 500;
+            }
+        } else {
+            if (recentreSum[1] > 0) {
+                y = -100;
+            } else {
+                y = 500;
+            }
+        }
+        addParticles(bodies, 1, x, y);
+    }
+    
+    // Reorient drift direction
+    if (random() < 0.007) {
+        driftAngle = random() * 360;
+    } else {
+        driftAngle += (random() - 0.5);   
+    }
+};
+
+/******************************
+ * Event handling
+******************************/
+var keys = [];
+var keyPressed = function() {
+    keys[keyCode] = true;
+};
+
+var keyReleased = function() {
+    keys[keyCode] = false;
+};
+
+var keyHandling = function() {
+    if (keys[UP]) { cell.move(0, 0, -1); }
+    if (keys[DOWN]) { cell.move(2, 0, 1); }
+    if (keys[LEFT]) { cell.move(3, -1, 0); }
+    if (keys[RIGHT]) { cell.move(1, 1, 0); }
+};
+
+var mouseClicked = function() {
+    if (state === 'paused') {
+        state = 'running';
+    } else if (state === 'win') {
+        newLevel();
+        state = 'running';
+    }
+};
+
+var mouseOut = function() {
+    //paused = true;
+};
+
+/******************************
+ * Display
+******************************/
+var DNACol1 = color(150, 120, 170);
+var DNACol2 = color(100, 10, 245);
+
+var drawBar = function(name, x, y, len, c1, c2, value, maxV) {
+    var p = value / maxV;
+    
+    if (round(p*100) > 99) {
+        fill(c2);
+        stroke(180, 180, 180);
+        rect(x, y, len + 10, 14, 8);
+    } else {
+    
+        noStroke();
+        fill(c1);
+        rect(x, y, len + 10, 14, 8);
+        
+        // Filled in bar
+        if (p > 0) {
+            fill(c2);
+            rect(x+7, y+1, len * p, 13);
+            arc(x+7, y+7, 14, 14, 90, 270);
+        }
+        
+        // Outline
+        stroke(180, 180, 180);
+        noFill();
+        rect(x, y, len + 10, 14, 8);
+    }
+    
+    fill(240, 240, 240);
+    textFont(interFont, 10);
+    textAlign(CENTER, BASELINE);
+    
+    var txt = name + ": " + round(value) + " / " + maxV;
+    text(txt, x + len/2 + 5, y+11);
+};
+
+var drawInterface = function() {
+    fill(220, 250, 255);
+    textFont(interFont, 14);
+    textAlign(LEFT, BASELINE);
+    text("Level: " + generation, 7, 18);
+    text("ATP: " + cell.ATP, 320, 19);
+
+    // Health bars            
+    var ATPCol = egATP.stroke;
+    if(cell.ATP < 400 && floor(frameCount/10) % 2) {
+        ATPCol = lerpColor(color(255, 38, 0), egATP.stroke,
+                            cell.ATP/400);
+    }
+    drawBar("ATP", 70, 5, 145, ATPCol, egATP.fill,
+            cell.ATP, 3000);
+    drawBar("DNA", 235, 5, 145, DNACol1, DNACol2,
+            cell.DNA, genomeLength);
+};
+
+var drawIntroductionScreen = function() {
+    rect(0, 0, 400, 400);
+    fill(240, 240, 240);
+    text("Click to start level " + (generation) , 200, 65);
+    
+    textFont(menuFont, 28);
+    textAlign(LEFT, CENTER);
+    text("Eat:", 25, 140);
+    text("Avoid:", 25, 320);
+    
+    egATP.draw();
+    egdNTP.draw();
+    egAA.draw();
+    egToxin.draw();
+    
+    textFont(menuFont, 22);
+    fill(240, 240, 240);
+    text("ATP  ( for energy )", 130, 140);
+    text("deoxyribonucleotides", 130, 175);
+    text("( to make DNA )", 130, 200);
+    text("Amino acids ( not used yet )", 130, 235);
+    text("Toxins", 130, 320);
+};
+
+var draw = function() {
+    if (keyIsPressed) { keyHandling(); }
+    background(24, 66, 112);
+    
+    for (var i=0; i<bodies.length; i++) {
+        bodies[i].draw();
+    }
+    
+    if (state === 'running') { update(); }
+    drawInterface();
+    
+    noStroke();
+    fill(60, 60, 80, 230);
+    textFont(menuFont, 42);
+    textAlign(CENTER, BASELINE);
+    
+    switch (state) {
+        case 'running':
+            if (!focused) { state = 'paused'; }
+            break;
+        case 'paused':
+            drawIntroductionScreen();
+            break;
+        case 'lose':
+            noStroke();
+            rect(0, 0, 400, 400);
+            fill(240, 240, 240);
+            text("You ran out of ATP!", 200, 167);
+            break;
+       case 'win':
+            noStroke();
+            rect(0, 0, 400, 400);
+            fill(240, 240, 240);
+            text("You replicated!", 200, 167);
+            text("Click for level " + (generation+1), 200, 225);
+            break; 
+    }
+};

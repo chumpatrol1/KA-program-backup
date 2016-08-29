@@ -1,0 +1,383 @@
+/**************************************************************
+ * Representing the sky, Earth and a star
+ * 
+ * Need to improve how order of drawing is determined.
+**************************************************************/
+
+// Move to centre of screen
+translate(200, 200);
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+var AXES = color(225, 225, 225);
+var SKY = color(140, 100, 255, 160);
+var GRASS = color(50, 120, 35);
+var GRASS_STROKE = color(35, 80, 20);
+var GROUND = color(120, 70, 20);
+var GROUND_STROKE = color(80, 40, 10);
+
+var star = { azimuth: 60, altitude: 30 };
+
+// Sizes
+var sphereR = 160;
+var sphereD = sphereR * 2;
+
+var convertSphericalCoordinatesToCartesian = function(phi, theta) {
+    var r = sphereR * sin(90 - theta);
+    var x = r * cos(phi);
+    var y = r * sin(phi);
+    var z = sphereR * cos(90 - theta);
+    return [x, y, z];
+};
+
+star.position = convertSphericalCoordinatesToCartesian(star.azimuth, star.altitude);
+
+/*******************************************
+ * Camera set-up
+********************************************/
+
+var _camera = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+
+// Return the position of an object at position (x, y)
+// given the current camera
+var applyCamera = function(x, y, z) {
+    return [x * _camera[0][0] + y * _camera[1][0] + z * _camera[2][0],
+            x * _camera[0][1] + y * _camera[1][1] + z * _camera[2][1],
+            x * _camera[0][2] + y * _camera[1][2] + z * _camera[2][2]];
+};
+
+// Return [x', y', z'], the coords of a node [x, y, z] as seen from the _camera
+var applyCameraToNode = function(node) {
+    return [node[0] * _camera[0][0] + node[1] * _camera[1][0] + node[2] * _camera[2][0],
+            node[0] * _camera[0][1] + node[1] * _camera[1][1] + node[2] * _camera[2][1],
+            node[0] * _camera[0][2] + node[1] * _camera[1][2] + node[2] * _camera[2][2]];
+};
+
+/*******************************************
+ * Linear algebra functions
+ * All assume vector has 3 dimensions
+********************************************/
+var addVectors = function(v1, v2) {
+    return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
+};
+
+var subtractVectors = function(v1, v2) {
+    return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+};
+
+var vectorTimesScalar = function(v, s) {
+    return [v[0] * s, v[1] * s, v[2] * s];
+};
+
+var vectorLength = function(v) {
+    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+};
+
+var normaliseVector = function(v) {
+    var d = vectorLength(v);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var dotProduct = function(v1, v2) {
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+// Given a fac
+var normalOfPlane = function(face, nodes) {
+    var n1 = nodes[face[0]];
+    var n2 = nodes[face[1]];
+    var n3 = nodes[face[2]];
+    
+    var v1 = subtractVectors(n1, n2);
+    var v2 = subtractVectors(n1, n3);
+    
+    var v3 = [[v1[1]*v2[2] - v1[2]*v2[1]],
+              [v1[2]*v2[0] - v1[0]*v2[2]],
+              [v1[0]*v2[1] - v1[1]*v2[0]]];
+              
+    return v3;
+};
+
+// Given two vectors return a vector representing the normal
+var normalOfTwoVectors = function(v1, v2) {
+    return [[v1[1] * v2[2] - v1[2] * v2[1]],
+            [v1[2] * v2[0] - v1[0] * v2[2]],
+            [v1[0] * v2[1] - v1[1] * v2[0]]];
+};
+
+/*******************************************
+ * Camera transformations
+********************************************/
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+
+    for (var i = 0; i < _camera.length; i++) {
+        x = _camera[i][0];
+        y = _camera[i][1];
+        z = _camera[i][2];
+        _camera[i] = [ct*x + st*z, y, -st*x + ct*z];
+    }
+};
+
+var rotateX3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+    
+    for (var i = 0; i < _camera.length; i++) {
+        x = _camera[i][0];
+        y = _camera[i][1];
+        z = _camera[i][2];
+        _camera[i] = [x, ct*y - st*z, st*y + ct*z];
+    }
+};
+
+/*******************************************
+ * Display
+********************************************/
+
+// Draw a rotated ellipse at (x, y)
+// with its face defined by two vectors, v1, v2
+// and a diameter of d
+var drawDisc = function(center, v1, v2, d) {
+    var normal = normalOfTwoVectors(applyCameraToNode(v1), applyCameraToNode(v2));
+    var minor = d * sqrt(1 - normal[0] * normal[0] - normal[1] * normal[1]);
+    var angle = atan2(normal[1], normal[0]) + 90;
+    var coords = applyCameraToNode(center);
+
+    pushMatrix();
+    translate(coords[0], coords[1]);
+    rotate(angle);
+    ellipse(0, 1, d, minor);
+    popMatrix();
+};
+
+// Draw a 180 degree arc between angles a1 and a2, with diameter d
+var drawArc = function(v1, v2, a1, a2, d) {
+    var normal = normalOfTwoVectors(applyCameraToNode(v1), applyCameraToNode(v2));
+    var minor = d * sqrt(1 - normal[0] * normal[0] - normal[1] * normal[1]);
+    var angle = atan2(normal[1], normal[0]) + 90;
+    
+    pushMatrix();
+    rotate(angle);
+    if (normal[2] < 0) {
+        arc(0, 0, d, minor, a1, a2);
+    } else {
+        arc(0, 0, d, minor, -a2, -a1);
+    }
+    popMatrix();
+};
+
+var drawArc2 = function(v1, v2, a1, a2, d) {
+    var normal = normalOfTwoVectors(applyCameraToNode(v1), applyCameraToNode(v2));
+    var minor = d * sqrt(1 - normal[0] * normal[0] - normal[1] * normal[1]);
+    var angle = atan2(normal[1], normal[0]) + 90;
+    
+    pushMatrix();
+    rotate(angle);
+    if (a2 > a1) {
+        arc(0, 0, d, minor, a1, a2);   
+    } else {
+        arc(0, 0, d, minor, a1-360, a2);
+    }
+    popMatrix();
+};
+
+var convertAngleToAngleOnEllipse = function(angle, rotationAngle, minor) {
+    var position = applyCamera(cos(angle), sin(angle), 0);
+    var theta = atan2(position[1], position[0]) - rotationAngle;
+    var a = minor * cos(theta);
+    var b = sphereD * sin(theta);
+    
+    //println(position[2]);
+    var angle = acos(cos(theta) * minor / sqrt(a * a + b * b));
+    if ((theta + 360) % 360 > 180) {
+        return 360 - angle;
+    } else {
+        return angle;
+    }
+
+};
+
+var drawAzimuth = function(a1, a2, v1, v2) {
+    var normal = normalOfTwoVectors(applyCameraToNode(v1), applyCameraToNode(v2));
+    var minor = sphereD * sqrt(1 - normal[0] * normal[0] - normal[1] * normal[1]);
+    var rotationAngle = atan2(normal[1], normal[0]) - 90;
+    
+    //println(rotationAngle);
+    //println(minor);
+    //line(0, 0, normal[0]*50, normal[1]*50);
+    
+    a1 = convertAngleToAngleOnEllipse(a1, rotationAngle, minor);
+    a2 = convertAngleToAngleOnEllipse(a2, rotationAngle, minor);
+    
+    drawArc2(v1, v2, a1, a2, sphereD);
+};
+
+var drawGuideLines = function() {
+    noFill();
+    strokeWeight(2);
+    stroke(255, 0, 0);
+    
+    var v1 = [1, 0, 0];
+    var v2 = [0, 1, 0];
+    drawAzimuth(90, star.azimuth - 180, v1, v2);
+    
+    var v1 = [cos(star.azimuth), sin(star.azimuth), 0];
+    var v2 = [0, 0, 1];
+    //drawAzimuth(0, star.altitude -180, v1, v2);
+    //drawDisc([0,0,0], v1, v2, sphereD);
+    drawArc(v1, v2, -90, 0, sphereD);
+};
+
+// Draw axis is direction given by vector
+var drawAxis = function(name, v) {
+    var coord = applyCameraToNode(v);
+    var end = sphereR + 20;
+    
+    noFill();
+    stroke(AXES);
+    strokeWeight(2);
+    line(coord[0] * sphereR, coord[1] * sphereR, coord[0] * end, coord[1] * end);
+    
+    fill(250);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text(name, coord[0] * (end + 10), coord[1] * (end + 10));
+};
+
+var drawWinston = function() {
+    // Shadow
+    noStroke();
+    fill(0, 0, 0, 100);
+    drawDisc([0, -10, 0], [1, 0, 0], [0, 1, 0], 20);
+    
+    // Face
+    strokeWeight(1);
+    stroke(255);
+    fill(255, 255, 0);
+    drawDisc([0, 0, 10], [1, 0, 0], [0, 0, 1], 20);
+    
+    // Mouth
+    noStroke();
+    fill(252, 65, 65);
+    drawDisc([3, 0, 7], [1, 0, 0], [0, 0, 1], 8);
+    
+    // Eyes
+    fill(46);
+    drawDisc([-1, 0, 14], [1, 0, 0], [0, 0, 1], 3);
+    drawDisc([6, 0, 14], [1, 0, 0], [0, 0, 1], 3);
+};
+
+var drawStar = function(star) {
+    var coord = applyCameraToNode(star.position);
+    
+    noStroke();
+    fill(255, 255, 100);
+    triangle(coord[0], coord[1] - 5, coord[0] + 4, coord[1] + 2, coord[0] - 4, coord[1] + 2);
+    triangle(coord[0], coord[1] + 5, coord[0] + 4, coord[1] - 2, coord[0] - 4, coord[1] - 2);
+};
+
+// Draw a disc of land and Winston
+// Tricky part is getting the order right
+var drawEarth = function() {
+    var personZ = applyCamera(0, 0, 20)[2];
+    var starZ = applyCameraToNode(star.position)[2];
+    
+    if (personZ < 0) {
+        drawWinston();
+        drawStar(star);
+        
+        // Under ground
+        fill(GROUND);
+        stroke(GROUND_STROKE);
+        drawDisc([0, 0, 0], [1, 0, 0], [0, 1, 0], sphereD);
+    } else {
+        // Over ground
+        fill(GRASS);
+        stroke(GRASS_STROKE);
+        drawDisc([0, 0, 0], [1, 0, 0], [0, 1, 0], sphereD);
+        drawWinston();
+        drawStar(star);
+    }
+};
+
+var drawSphere = function() {
+    var north = applyCamera(0, -1, 0);
+    var east = applyCamera(1, 0, 0);
+    
+    // Lower meridians
+    noFill();
+    stroke(AXES);
+    strokeWeight(2);
+    // North-South meridian
+    drawArc([0, 1, 0], [0, 0, 1], 0, 180, sphereD);
+    // East-West meridian
+    drawArc([-1, 0, 0], [0, 0, 1], 0, 180, sphereD);
+    if (north[2] >= 0) {
+        drawAxis("S", [0, 1, 0], sphereD);
+    } else {
+        drawAxis("N", [0, -1, 0], sphereD);
+    }
+    if (east[2] >= 0) {
+        drawAxis("W", [-1, 0, 0], sphereD);
+    } else {
+        drawAxis("E", [1, 0, 0], sphereD);
+    }
+    
+    // Sphere
+    noStroke();
+    fill(SKY);
+    ellipse(0, 0, sphereD+2, sphereD+2);
+    
+    drawEarth();
+    drawGuideLines();
+    
+    // Upper meridians
+    noFill();
+    stroke(AXES);
+    strokeWeight(2);
+    // North-South meridian
+    drawArc([0, 1, 0], [0, 0, 1], -180, 0, sphereD);
+    // East-West meridian
+    drawArc([-1, 0, 0], [0, 0, 1], -180, 0, sphereD);
+    
+    if (north[2] < 0) {
+        drawAxis("S", [0, 1, 0], sphereD);
+    } else {
+        drawAxis("N", [0, -1, 0], sphereD);
+    }
+    if (east[2] < 0) {
+        drawAxis("W", [-1, 0, 0], sphereD);
+    } else {
+        drawAxis("E", [1, 0, 0], sphereD);
+    }
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    drawSphere();
+};
+
+// Initial rotation
+//rotateX3D(60);
+//rotateY3D(20);
+
+/*******************************************
+ * Event handling
+********************************************/
+
+var mouseDragged = function() {
+    var theta1 = -(pmouseX - mouseX) * PI / 10;
+    var theta2 = (pmouseY - mouseY) * PI / 10;
+    rotateY3D(theta1);
+    rotateX3D(theta2);
+};
+
+// Spacebar toggles animation
+var keyPressed = function() {
+    //if (keyCode === 32) { running = !running; }
+};

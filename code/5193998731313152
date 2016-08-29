@@ -1,0 +1,337 @@
+/****************************************
+ * Demonstration of a weighted average.
+*****************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(60, 60, 70);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 200);
+
+var myFont = createFont("Times", 20);
+
+var CONTROL_POINT_SIZE = 12;
+
+var toolbarX =width * 0.01;
+var gridSize = 20;
+var snapSize = 10;
+var weight = 0.4;
+
+var dragX, dragY;
+var point1, point2, point3;
+var selected = false;
+
+var snap = function(n) {
+    return round(n / snapSize) * snapSize;
+};
+
+var draggablePoint = function(x, y, color, name) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.animation = 0;
+    this.name = name || "";
+};
+
+draggablePoint.prototype.update = function() {
+    // empty for overwriting
+};
+
+draggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2 + 2;
+};
+
+draggablePoint.prototype.move = function() {
+    var oldX = this.x;
+    var oldY = this.y;
+    this.x = snap(mouseX + dragX);
+    this.y = snap(mouseY + dragY);
+    
+    // Check points don't overlap
+    if (point1.x === point2.x && point1.y === point2.y) {
+        this.x = oldX;
+        this.y = oldY;
+    }
+};
+
+draggablePoint.prototype.draw = function() {
+    if (selected === this || (!selected && this.mouseover())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+var constrainedPoint = function(p1, p2, weight, color, name) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.w = weight;
+
+    this.name = name;    
+    this.animation = 0;
+    this.update();
+    this.setColor();
+};
+constrainedPoint.prototype = Object.create(draggablePoint.prototype);
+
+constrainedPoint.prototype.update = function() {
+    this.x = this.p1.x * this.w + this.p2.x * (1 - this.w);
+    this.y = this.p1.y * this.w + this.p2.y * (1 - this.w);
+};
+
+constrainedPoint.prototype.move = function() {
+    if (point1.x === point2.x && point1.y === point2.y) {
+        return;
+    }
+    
+    // Project (mouseX, mouseY) onto line
+    var lx = point1.x - point2.x;
+    var ly = point1.y - point2.y;
+    var mx = mouseX - point2.x;
+    var my = mouseY - point2.y;
+    
+    var w = (mx * lx + my * ly ) / (lx * lx + ly * ly);
+    this.w = constrain(round(w * 20) / 20, 0, 1);
+    this.setColor();
+    
+};
+
+constrainedPoint.prototype.setColor = function() {
+    if (this.w === 0.5) {
+        this.color = GREY;
+    } else if (this.w < 0.5) {
+        this.color = lerpColor(this.p2.color, GREY, this.w * 2);
+    } else {
+        this.color = lerpColor(GREY, this.p1.color, this.w * 2 - 1);
+    }
+    
+    this.color = lerpColor(this.p2.color, this.p1.color, this.w);
+};
+
+point1 = new draggablePoint(80, 300, PINK, "A");
+point2 = new draggablePoint(width - 80, 150, BLUE, "B");
+point3 = new constrainedPoint(point1, point2, weight, ORANGE, "M");
+var selectables = [point1, point2, point3];
+
+/****************************************
+ *      Display functions
+****************************************/
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    for (var x = 1; x < width / gridSize; x++) {
+        line(x * gridSize, 0, x * gridSize, height);
+    }
+    for (var y = 1; y < height / gridSize; y++) {
+        line(0, y * gridSize, width, y * gridSize);
+    }
+};
+
+var drawLineSegment = function(x1, y1, x2, y2, dx, dy, angle, txt) {
+    strokeWeight(2);
+    line(x1, y1, x2, y2);
+    
+    strokeWeight(1);
+    line(x1 - dx * 14, y1 - dy * 14, x2 - dx * 14, y2 - dy * 14);
+    line(x1 - dx * 8, y1 - dy * 8, x1 - dx * 20, y1 - dy * 20);
+    
+    // Write weight
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    
+    pushMatrix();
+    var tx = (x1 + x2) / 2 - dx * 28;
+    var ty = (y1 + y2) / 2 - dy * 28;
+    translate(tx, ty);
+    rotate(angle + 180);
+    text(txt, 0, 0);
+    popMatrix();
+};
+
+var drawLine = function() {
+    var angle = atan2(point1.y - point2.y, point1.x - point2.x);
+
+    var angle2;
+    if (angle >= 90 || (angle < 0 && angle >= -90)) {
+        angle2 = angle - 90;
+    } else {
+        angle2 = angle + 90;
+    }
+
+    var sAngle = sin(angle2);
+    var cAngle = cos(angle2);
+    
+    var d = abs(cAngle) + (1 - abs(cAngle));
+    var dx = d * cAngle;
+    var dy = d * sAngle;
+    var p1x = point1.x;
+    var p1y = point1.y;
+    var p2x = point2.x;
+    var p2y = point2.y;
+    var p3x = point3.x;
+    var p3y = point3.y;
+    
+
+    var txt = "(1 - t) = " + (round(100 * point3.w) / 100);
+    fill(point1.color);
+    stroke(point1.color);
+    drawLineSegment(p2x, p2y, p3x, p3y, dx, dy, angle, txt);
+
+    txt = "t = " + (round(100 - 100 * point3.w)/100);
+    fill(point2.color);
+    stroke(point2.color);
+    drawLineSegment(p1x, p1y, p3x, p3y, dx, dy, angle, txt);
+    
+    
+    // Measure lines
+    fill(point3.color);
+    stroke(point3.color);
+    strokeWeight(1);
+    line(p3x - dx * 8, p3y - dy * 8, p3x - dx * 20, p3y - dy * 20);
+
+    textSize(14);
+    textAlign(CENTER, BASELINE);
+    
+    for (var i = 0; i < selectables.length; i++) {
+        var x = selectables[i].x;
+        var y = selectables[i].y;
+        
+        fill(selectables[i].color);
+        var s = selectables[i].name + " = (";
+        s += (round(10 * x) / 10) + ", " + (round(10 * y) / 10) +")";
+        
+        var d = abs(cAngle) * (textWidth(s) / 2 + 8) + (1 - abs(cAngle)) * 14;
+        x += d * cAngle;
+        y += d * sAngle;
+        
+        //ellipse(x, y, 4, 4);
+        text(s, x, y + CONTROL_POINT_SIZE / 2 + 1);
+    }
+    
+};
+
+var colorText = function(txtArr, x, y) {
+    for (var i = 0; i < txtArr.length; i++) {
+        fill(txtArr[i][1]);
+        var txt = txtArr[i][0];
+        text(txt, x, y);
+        x += textWidth(txt);
+    }
+};
+
+var drawEquation = function() {
+    strokeWeight(1);
+    stroke(GRIDGREY);
+    fill(TOOLBAR);
+    
+    rect(toolbarX, toolbarX, 320, 75, 8);
+    
+    var tx = toolbarX + 76;
+    var ty = toolbarX + 18;
+    var tdy = 24;
+    var weight = "" + (round(100 * point3.w) / 100);
+    var negWeight = "" + (round(100 - 100 * point3.w) / 100);
+    
+    textFont(myFont);
+    textSize(18);
+    textAlign(RIGHT, BASELINE);
+    
+    // Left side of equations
+    var leftSide = ["M(x, y)", "Mx", "My"];
+    for (var i = 0; i < leftSide.length; i++) {
+        colorText([
+            [leftSide[i], point3.color]
+            ], tx, ty + tdy * i);
+    }
+    
+    textAlign(LEFT, BASELINE);
+    var txtArr = [
+        [" = ", GREY],
+        ["(1 - t)(" + point1.name +")", point1.color],
+        [" + ", GREY],
+        ["t(" + point2.name + ")", point2.color]
+    ];
+    colorText(txtArr, tx, ty);
+    
+    var txtArr = [
+        [" = ", GREY],
+        [weight + "(" + point1.x + ")", point1.color],
+        [" + ", GREY],
+        [negWeight + "(" + point2.x + ")", point2.color],
+        [" = ", GREY],
+        ["" + round(100 * point3.x) / 100, point3.color],
+    ];
+    ty += tdy;
+    colorText(txtArr, tx, ty);
+    
+    txtArr = [
+        [" = ", GREY],
+        [weight + "(" + point1.y + ")", point1.color],
+        [" + ", GREY],
+        [negWeight + "(" + point2.y + ")", point2.color],
+        [" = ", GREY],
+        ["" + round(100 * point3.y) / 100, point3.color],
+    ];
+    ty += tdy;
+    colorText(txtArr, tx, ty);
+};
+
+/****************************************
+ *      Main loop
+****************************************/
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    drawGrid();
+    drawLine();
+    drawEquation();
+    
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].update();
+        selectables[i].draw();
+    }
+};
+
+Program.runTest(function() {
+    return true;
+});
+
+/****************************************
+ *      Event handling
+****************************************/
+
+var mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseover()) {
+            selected = selectables[i];
+            dragX = selected.x - mouseX;
+            dragY = selected.y - mouseY;
+        }
+    }
+};
+
+var mouseReleased = function() {
+    selected = false;
+};
+
+var mouseDragged = function() {
+    if (selected) {
+        selected.move();
+    }
+};

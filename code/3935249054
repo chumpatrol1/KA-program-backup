@@ -1,0 +1,898 @@
+/********************************************
+ * Demonstrate the path of a ray from a
+ * source, through a pinhole at the origin
+ * to a image plane. The source and image
+ * plane can be dragged.
+ * 
+ * TODO:
+ *  Use fractions?
+ *  Allow toolbar to be moved?
+ *  Arrange labels better?
+ *  Label origin?
+*********************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var PINK = color(255, 0, 175);
+var BLUE = color(64, 95, 237);
+var GREY = color(100, 100, 100);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var showing = {
+    Grid: true,
+    Axes: true,
+    Numbers: false
+};
+
+/************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+**************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*************************************************
+ *  GUI Button
+**************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = color(230, 230, 230, 200);
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(20);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, { name: name });
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+
+var RadioButton = function(x, y, w, h, name, trigger) {
+    Button.call(this, x, y, w, h, {name: name, trigger: trigger});
+    this.r = this.h - 6;
+    this.cx = this.x + this.r / 2 + 5;
+    this.cy = this.y + this.h / 2;
+    this.marked = false;
+};
+RadioButton.prototype = Object.create(Button.prototype);
+
+RadioButton.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(10);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.cx + this.r /2 + 4, this.cy + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    ellipse(this.cx, this.cy, this.r, this.r);
+    
+    if (this.marked) {
+        fill(10);
+        ellipse(this.cx, this.cy, this.r / 2, this.r / 2);
+    }
+};
+}
+/*************************************************
+ * GUI Slider
+**************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = 12;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+
+var ColorSlider = function(x, y, w, h, params) {
+    Slider.call(this, x, y, w, h, params);
+    this.saturation = params.saturation || 200;
+    this.brightness = params.brightness || 180;
+    this.setColor();
+};
+ColorSlider.prototype = Object.create(Slider.prototype);
+
+ColorSlider.prototype.setColor = function() {
+    colorMode(HSB);
+    this.color = color(this.val, this.saturation, this.brightness);
+    colorMode(RGB);
+    this.R = red(this.color);
+    this.G = green(this.color);
+    this.B = blue(this.color);
+};
+
+ColorSlider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(this.color);
+    strokeWeight(4);
+    stroke(this.stroke);
+    line(this.x, this.y, this.x2, this.y);
+    stroke(250);
+    strokeWeight(1);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+};
+
+ColorSlider.prototype.trigger = function() {
+    this.setColor();
+};
+
+}
+/*************************************************
+ * GUI Label
+**************************************************/
+var Label = function(x, y, w, h, name) {
+    this.x = x + w / 2;
+    this.x1 = x + 8;
+    this.x2 = x + w - 8;
+    this.y = y + h - 2;
+    this.y2 = y + h / 2;
+    this.name = name;
+};
+
+Label.prototype.draw = function() {
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y2);
+    
+    strokeWeight(1);
+    stroke(20);
+    line(this.x1, this.y, this.x2, this.y);
+};
+/*************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for
+ * adding components like buttons and sliders.
+**************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 5;
+    this.components = [];
+    this.labels = [];
+};
+
+Toolbar.prototype.draw = function() {
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+    this.labels.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 3;
+};
+
+Toolbar.prototype.addLabel = function(name) {
+    var h = 20;
+    this.labels.push(new Label(this.x, this.y + this.h, this.w, h, name));
+    this.h += h + 8;
+};
+
+Toolbar.prototype.addRadioButtons = function(options, trigger, defaultOption) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var radioButtons = [];
+    
+    var triggerFunction = function() {
+        if (!this.marked) {
+            this.marked = true;
+            
+            // Deselected other buttons
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i] !== this) {
+                    radioButtons[i].marked = false;
+                }
+            }
+        }
+        if (trigger) { trigger(this.name); }
+    };
+    
+    for (var i = 0; i < options.length; i++) {
+        var button = new RadioButton(x, y, w, 22, options[i], triggerFunction);
+        radioButtons.push(button);
+        y += 27;
+        this.h += 27;
+    }
+    
+    radioButtons[defaultOption || 0].trigger();
+    
+    this.components = this.components.concat(radioButtons);
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+/**************************************
+ *      DraggablePoint
+ *  A point that can be dragged
+***************************************/
+{
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.r = 6;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+DraggablePoint.prototype.constrainX = function(x) {
+    // Empty for overwriting
+    return x;
+};
+
+DraggablePoint.prototype.constrainY = function(y) {
+    // Empty for overwriting
+    return y;
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x = mouseX + dx;
+    this.y = mouseY + dy;
+};
+}
+/**************************************
+ *      DraggableLine
+ *  A line that can be dragged
+***************************************/
+{
+var DraggableLine = function(x) {
+    this.x = x;
+    this.color = ORANGE;
+};
+   
+DraggableLine.prototype.draw = function() {
+    stroke(this.color);
+    if (this.selected || this.mouseOver()) {
+        strokeWeight(5);
+        cursor("col-resize");
+    } else {
+        strokeWeight(3);
+    }
+    
+    line(this.x, 0, this.x, height);
+};
+
+DraggableLine.prototype.mouseOver = function() {
+    return abs(mouseX - this.x) < 5;
+};
+    
+var Ray = function(p1, p2) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.color = BLUE;
+};
+
+Ray.prototype.draw = function() {
+    strokeWeight(2);
+    stroke(this.color);
+    line(this.p1.x, this.p1.y, this.x2, this.y2);
+    
+    // Arrows
+    pushMatrix();
+    translate(this.x2, this.y2);
+    rotate(this.angle);
+    line(0, 0, -10, -5);
+    line(0, 0, -10, 5);
+    popMatrix();
+    
+    /*
+    pushMatrix();
+    translate(this.x2, this.y2);
+    rotate(this.angle);
+    line(0, 0, 10, -5);
+    line(0, 0, 10, 5);
+    popMatrix();
+    */
+};
+
+Ray.prototype.update = function(ix) {
+    var dx = this.p2.x - this.p1.x;
+    var dy = this.p2.y - this.p1.y;
+    var len = sqrt(dx * dx + dy * dy);
+    this.angle = atan2(dy, dx);
+    var y = this.p1.x - ix;
+    
+    // True position for calculation
+    this.x = ix;
+    this.y = this.p1.y - y * dy / dx;
+    
+    // Offset position for drawn line
+    this.x2 = ix + 3;
+    this.y2 = this.p1.y - (y - 3) * dy / dx;
+};
+
+}
+/**************************************
+ *      Grid object
+ *  A Cartesian grid and with methods to
+ * convert between pixels and grid coordinates.
+***************************************/
+{
+var Grid = function(x0, y0, tickSize, tickValue) {
+    this.originX = x0;
+    this.originY = y0;
+    this.tickSize = tickSize;
+    this.tickValue = tickValue;
+    
+    this.minX = this.originX % this.tickSize;
+    this.minY = this.originY % this.tickSize;
+    this.snapSize = tickSize * 0.5;
+    
+    this.objects = [];
+    this.selectables = [];
+    this.selected = false;
+    
+    this.init();
+};
+
+Grid.prototype.init = function() {
+    this.lens = new DraggablePoint(
+        this.gridToPixelX(0),
+        this.gridToPixelY(0));
+    
+    // TODO: Add constraints
+    this.source = new DraggablePoint(
+        this.gridToPixelX(12),
+        this.gridToPixelY(3));
+    
+    this.source.constrainX = function(x) {
+        return constrain(x,
+            this.gridToPixelX(1),
+            this.gridToPixelX(17));
+    }.bind(this);
+    
+    this.source.constrainY = function(y) {
+        return constrain(y,
+            this.gridToPixelY(9),
+            this.gridToPixelY(-9));
+    }.bind(this);
+    
+    this.imagePlane = new DraggableLine(
+        this.gridToPixelX(-8));
+    
+    this.imagePlane.constrainX = function(x) {
+        return constrain(x,
+            this.gridToPixelX(-17),
+            this.gridToPixelX(-1));
+    }.bind(this);
+    
+    this.imagePlane.constrainY = function(y) {
+        return this.gridToPixelY(-9);
+    }.bind(this);
+    
+    this.ray = new Ray(this.source, this.lens);
+    this.ray.update(this.imagePlane.x);
+    
+    this.objects = [
+        this.imagePlane,
+        this.ray,
+        this.source,
+    ];
+    
+    this.selectables.push(this.source, this.imagePlane);
+};
+
+Grid.prototype.draw = function() {
+    background(BACKGROUND);
+    
+    this.drawGrid();
+    this.drawFocalLength();
+    
+    // Draw aperture
+    strokeWeight(5);
+    stroke(80);
+    line(this.originX, 0, this.originX, this.originY - 5);
+    line(this.originX, height, this.originX, this.originY + 5);
+    
+    for (var i = 0; i < this.objects.length; i++) {
+        this.objects[i].draw();
+    }
+    
+    // Labels
+    fill(20);
+    textFont(sansFont, 14);
+    
+    // Where ray hits image plane
+    var txt = showing.Numbers ?
+        this.getCoordinate(this.ray):
+        this.getCoordinateLabel(1);
+    
+    var rx, alignX;
+    var ry = constrain(this.ray.y, 10, height - 10);
+    var alignY = CENTER;
+    
+    if (false /*this.ray.x - textWidth(txt) - 7 > 0*/) {
+        alignX = RIGHT;
+        rx = this.ray.x - 5;
+    } else {
+        alignX = LEFT;
+        rx = this.ray.x + 5;
+        
+        if (this.ray.y <= this.originY) {
+            alignY = BASELINE;
+            ry = max(this.ray.y - 5, 15);
+        } else {
+            alignY = TOP;
+            ry = min(this.ray.y, height - 16);
+        }
+    }
+    
+    textFont(serifFont, 16);
+    textAlign(alignX, alignY);
+    text(txt, rx, ry);
+    
+    textAlign(CENTER, BASELINE);
+    txt = showing.Numbers ?
+            this.getCoordinate(this.source):
+            this.getCoordinateLabel(0);
+    text(txt, this.source.x, this.source.y - 10);
+};
+
+Grid.prototype.getCoordinate = function(p) {
+    var x = round(this.pixelToGridX(p.x) * 100) / 100;
+    var y = round(this.pixelToGridY(p.y) * 100) / 100;
+    return "(" + x + ", " + y + ")";
+};
+
+Grid.prototype.getCoordinateLabel = function(n) {
+    return "(x" + n + ", y" + n + ")";
+};
+
+Grid.prototype.drawGrid = function() {
+    if (showing.Grid) {
+        // Grid lines
+        stroke(230, 240, 230);
+        strokeWeight(1);
+        
+        for (var x = this.minX; x < width; x += this.tickSize) {
+            line(x, 0, x, height);
+        }
+        
+        for (var y = this.minY; y < height; y += this.tickSize) {
+            line(0, y, width, y);
+        }
+    }
+    
+    if (showing.Axes) {
+        stroke(128);
+        strokeWeight(1);
+        line(this.originX, 0, this.originX, height);
+        line(0, this.originY, width, this.originY);
+    }
+};
+
+Grid.prototype.drawFocalLength = function() {
+    strokeWeight(1);
+    stroke(20);
+    var x1 = this.imagePlane.x + 2;
+    var x2 = this.originX - 1;
+    var y = this.gridToPixelY(9);
+    var y = this.gridToPixelY(3);
+    line(x1, y, x2, y);
+    line(x1 + 1, y, x1 + 7, y - 3);
+    line(x1 + 1, y + 1, x1 + 7, y + 4);
+    line(x2 - 1, y, x2 - 7, y - 3);
+    line(x2 - 1, y + 1, x2 - 7, y + 4);
+    
+    fill(20);
+    textAlign(CENTER, BASELINE);
+    textFont(serifFont, 16);
+    
+    var d = abs(this.pixelToGridX(this.imagePlane.x));
+    if (!showing.Numbers) {
+        text("i", (x1 + x2) / 2, y - 6);
+    } else if (d > 1.5) {
+        text("i = " + d, (x1 + x2) / 2, y - 6);
+    } else {
+        text("i", (x1 + x2) / 2, y - 6);
+        textAlign(CENTER, TOP);
+        text(d + "", (x1 + x2) / 2, y + 4);
+    }
+};
+
+Grid.prototype.snapTo = function(n, origin) {
+    origin = origin || 0;
+    n = origin - n;
+    n = round(n / this.snapSize) * this.snapSize;
+    return origin - n;
+};
+
+Grid.prototype.pixelToGridX = function(x) {
+    return (x - this.originX) / this.tickSize;
+};
+
+Grid.prototype.pixelToGridY = function(y) {
+    return (this.originY - y) / this.tickSize;
+};
+
+Grid.prototype.gridToPixelX = function(x) {
+    return x * this.tickSize + this.originX;
+};
+
+Grid.prototype.gridToPixelY = function(y) {
+    return this.originY - y * this.tickSize;
+};
+
+Grid.prototype.gridToPixel = function(x, y) {
+    return {
+        x: this.gridToPixelX(x),
+        y: this.gridToPixelY(y)
+    };
+};
+
+Grid.prototype.mousePressed = function() {
+    for (var i = 0; i < this.selectables.length; i++) {
+        var selectable = this.selectables[i];
+        if (selectable.mouseOver()) {
+            this.selected = selectable;
+            this.selected.selected = true;
+            this.dragX = selectable.x - mouseX;
+            this.dragY = selectable.y - mouseY;
+        }
+    }
+};
+
+Grid.prototype.mouseReleased = function() {
+    this.selected.selected = false;
+    this.selected = false;
+};
+
+Grid.prototype.mouseDragged = function() {
+    if (this.selected) {
+        var x = this.snapTo(mouseX + this.dragX, this.originX);
+        var y = this.snapTo(mouseY + this.dragY, this.originY);
+        
+        x = this.selected.constrainX(x);
+        y = this.selected.constrainY(y);
+
+        // Check object doesn't overlap with any other point:
+        for (var i = 0; i < this.selectables.length; i++) {
+            var selectable = this.selectables[i];
+            if (selectable.x === x && selectable.y === y) {
+                return;
+            }
+        }
+        this.selected.x = x;
+        this.selected.y = y;
+        this.ray.update(this.imagePlane.x);
+    }
+};
+
+}
+/**************************************
+ *  Create objects
+***************************************/
+
+var grid = new Grid(width / 2, height / 2, 20);
+
+var toolbar = new Toolbar(5, 5, 100);
+toolbar.addOptions(showing);
+
+/*********************************************
+ *      Main loop
+**********************************************/
+
+draw = function() {
+    //cursor("col-resize");
+    cursor("default");
+    grid.draw();
+    toolbar.draw();
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+{
+mousePressed = function() {
+    grid.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseReleased = function() {
+    grid.mouseReleased();
+    toolbar.mouseReleased();
+};
+
+mouseDragged = function() {
+    grid.mouseDragged();
+    toolbar.mouseDragged();
+};
+
+mouseOut = mouseReleased;
+}

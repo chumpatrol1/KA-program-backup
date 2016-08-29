@@ -1,0 +1,343 @@
+/********************************************************
+ * Click and drag to launch the planet into orbit.
+ * 
+ * How does the initial position and velocity of the 
+ * planet effect its orbit?
+ * 
+ * What is the shape of the orbit?
+ * Can you create a stable orbit?
+ * 
+ * To Do
+ *   - reset scale
+ *   - alert when orbit is hyperbolic
+*******************************************************/
+
+var gravity = 3000;
+
+var planet = getImage("cute/Rock");
+var planetX = 100;
+var planetY = 100;
+var planetSize = 24;
+var planetdx = 0;
+var planetdy = 0;
+var planetSpeed = 0.02;
+var planetAngle = atan2(-planetY, -planetX);
+
+var arrow = false;
+
+var sunR = 19;
+
+var infoX = -180;
+var infoY = 180;
+var infoW = 380;
+var infoH = 80;
+var infoDY = 18;
+
+var oldCoords = [];
+var oldAngles = [];
+var maxCoords = 100;
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+var ORBITER = color(120, 80, 255, 255);
+var ORBITER_T = color(120, 80, 255, 0);
+
+var running = false;
+
+var startAngle = 0;
+var startTime = 0;
+var period, eccentricity, aperihelion, perihelion;
+var maxDist, minDist, maxPoint, focus;
+
+var t = 0;
+var _scale = 1;
+var tx = 200;
+var ty = 150;
+translate(tx, ty);
+
+var reset = function() {
+    t = 0;
+    _scale = 1;
+    planetX = 100;
+    planetY = 100;
+    
+    period = false;
+    perihelion = false;
+    aperihelion = false;
+    eccentricity = false;
+    focus = false;
+    maxDist = dist(planetX, planetY, 0, 0);
+    minDist = maxDist;
+    oldCoords = [];
+    oldAngles = [];
+    running = false;
+    arrow = false;
+};
+
+var update = function() {
+    // Move planet
+    planetX += planetdx;
+    planetY += planetdy;
+    
+    // Record position
+    t++;
+    if (t % round(2 * _scale) === 0) {
+        oldCoords.push([planetX, planetY]);
+        if (oldCoords.length > maxCoords) {
+            oldCoords.shift();
+        }   
+    }
+    
+    // Find orbit parameters
+    var d = dist(planetX, planetY, 0, 0);
+    if (d < minDist) {
+        minDist = d;
+    } else if (d > maxDist) {
+        maxDist = d;
+        maxPoint = [planetX, planetY];
+    }
+    
+    var angle = atan2(planetY, planetX);
+    oldAngles.push((angle - startAngle + 540) % 360);
+    
+    if (oldAngles.length > 3) {
+        oldAngles.shift();
+
+        // Find where angle crosses boundary 
+        var a = oldAngles[0] - oldAngles[1];
+        var b = oldAngles[1] - oldAngles[2];
+        if (a * b < 0) {
+            // New loop
+            period = frameCount - startTime;
+            startTime = frameCount;
+            perihelion = round(minDist);
+            aperihelion = round(maxDist);
+            var fd = aperihelion - perihelion;
+            var major = (perihelion + aperihelion) / 2;
+            var minor = (perihelion + aperihelion) / 2;
+            eccentricity = round(1000 *(aperihelion - perihelion) /
+                           (perihelion + aperihelion))/1000;
+                           
+            if (maxPoint) {
+                var angle = atan2(maxPoint[1], maxPoint[0]);
+                focus = [fd * cos(angle), fd * sin(angle)];
+            }
+            
+            // Reset things
+            oldAngles = [];
+            maxDist = dist(planetX, planetY, 0, 0);
+            minDist = maxDist;
+        }
+    } 
+    
+    // Calculate gravity assume sun at (0, 0)        
+    var f = gravity / (planetX * planetX + planetY * planetY);
+    
+    // Update velocity
+    planetdx -= f * cos(angle);
+    planetdy -= f * sin(angle);
+    
+    planetAngle = atan2(planetdy, planetdx);
+};
+
+var Button = function(x, y, w, h, name, clickF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultCol = color(200, 200, 200, 120);
+    this.highlightCol = color(250, 250, 250, 200);
+    this.showing = true;
+    
+    this.mouseover = function() {
+        var x = mouseX - tx;
+        var y = mouseY - ty;
+        return (x >= this.x && x <= this.x + this.w &&
+                y >= this.y && y <= this.y + this.h);
+    };
+    
+    this.click = function() {
+
+    };
+    
+    this.draw = function() {
+        if (!this.showing) { return; }
+        
+        noStroke();
+        if (this.mouseover() || this.selected) {
+            fill(this.highlightCol);
+        } else {
+            fill(this.defaultCol);
+        }
+        rect(this.x, this.y, this.w, this.h, 5);
+        
+        fill(10);
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text(this.name, this.x + this.w/2, this.y + this.h/2);
+    };
+};
+
+var button = new Button(infoX, height/2 + 20, 63, 20, "Restart");
+
+var drawArrow = function() {
+    var x1 = arrow[0] / _scale;
+    var y1 = arrow[1] / _scale;
+    var x2 = arrow[2] / _scale;
+    var y2 = arrow[3] / _scale;
+
+    strokeWeight(1);
+    line(x1, y1, x2, y2);
+    line(x1, y1, x1 - 20*cos(arrow[4]+20), y1 - 20*sin(arrow[4]+20));
+    line(x1, y1, x1 - 20*cos(arrow[4]-20), y1 - 20*sin(arrow[4]-20));
+};
+
+var launch = function(x, y) {
+    var dragX = x - planetX / _scale;
+    var dragY = y - planetY / _scale;
+    var theta = atan2(dragY, dragX);
+    
+    // Arrow    
+    arrow = [x * _scale, y * _scale, planetX, planetY, theta];
+    stroke(255, 255, 255);
+    drawArrow();
+    
+    // Launch
+    planetdx = dragX * planetSpeed;
+    planetdy = dragY * planetSpeed;
+};
+
+var drawInfo = function() {
+    textAlign(LEFT, BASELINE);
+    stroke(50);
+    strokeWeight(1);
+    fill(0, 0, 0, 200);
+    rect(infoX-10, infoY-16, infoW, infoH);
+    
+    fill(255);
+    textSize(13);
+    var d = round(dist(planetX, planetY, 0, 0));
+    var v = round(10 * dist(planetdx, planetdy, 0, 0)) / 10;
+    
+    //text("Scale: " + round(_scale*10)/10, infoX, infoY);
+    text("Distance from sun: " +  d, infoX, infoY);
+    text("Speed: " +  v, infoX, infoY + infoDY);
+    if (period) {
+        text("Periodicity: " + period, 0, infoY);
+        text("Perihelion: " + perihelion, 0, infoY + infoDY);
+        text("Aperihelion: " + aperihelion, 0, infoY + infoDY*2);
+        text("Eccentricity: " + eccentricity, 0, infoY + infoDY*3);
+    } else {
+        if (running) {
+            text("Calculating parameters", 0, infoY);
+        } else {
+            text("Click to launch the satellite!", 0, infoY);
+        }
+    }
+};
+
+var drawOrbiter = function() {
+    var x = planetX / _scale;
+    var y = planetY / _scale;
+    
+    if (mouseIsPressed && !running) {
+        planetAngle = atan2(mouseY - ty - planetY, mouseX - tx - planetX);
+    }
+    
+    pushMatrix();
+    translate(x, y);
+    rotate(planetAngle + 90);
+    
+    stroke(100);
+    fill(200);
+    rect(-10, 0, 21, -8);
+    quad(-4, 0, 4, 0, 10, 8, -10, 8);
+    
+    popMatrix();
+    
+    // Update scale if orbiter off bounds
+    if (x < 20 - tx || x > 360 - tx || y < 20 - ty || y > 360 - ty) {
+        _scale *= 1.2;
+    }
+};
+
+var drawSun = function(x, y, flare) {
+    noStroke();
+    fill(255, 204, 0);
+    ellipse(x, y, sunR, sunR);
+    fill(255, 151, 33, 200);
+    var flareA = 10;
+    
+    beginShape();
+        curveVertex(x + sunR/2 + flare, y);
+        var up = true;
+        for (var i = 0; i <= 360; i += flareA) {
+            var r = up ? sunR/2 + flare : sunR/2;
+            curveVertex(x + r * cos(i),
+                        y + r * sin(i));
+            up = !up;
+        }
+        curveVertex(x + sunR/2, y);
+    endShape();
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    drawSun(0, 0, 3);
+
+    if (focus && running) {
+        fill(180);
+        ellipse(focus[0] / _scale, focus[1] / _scale, sunR/2, sunR/2);
+    }
+
+    if (mouseIsPressed) {
+        launch(mouseX - tx, mouseY - ty);
+    } else if (running){
+        update();
+    }
+    
+    // Old coordinates
+    noStroke();
+    for (var i in oldCoords) {
+        var p = oldCoords[i];
+        fill(lerpColor(ORBITER_T, ORBITER, i/(oldCoords.length)));
+        ellipse(p[0]/_scale, p[1]/_scale, planetSize/3, planetSize/3);
+    }
+    
+    // Comet
+    drawOrbiter();
+    
+    if (arrow) {
+        stroke(255, 255, 255, 120);
+        drawArrow();
+    }
+    
+    drawInfo();
+    button.draw();
+};
+
+var mouseReleased = function() {
+    // Reset things
+    running = true;
+    startAngle =  atan2(planetY, planetX) + 180;
+    startTime = frameCount;
+    period = false;
+    perihelion = false;
+    aperihelion = false;
+    eccentricity = false;
+    focus = false;
+    maxDist = dist(planetX, planetY, 0, 0);
+    minDist = maxDist;
+    oldCoords = [];
+
+    if (button.mouseover()) {
+        reset();
+    }
+};
+
+var keyPressed = function() {
+    // Spacebar toggles animation
+    if (keyCode === 32) { running = !running; }
+};

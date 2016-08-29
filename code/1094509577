@@ -1,0 +1,151 @@
+ /****************************************************
+ * Graph based on this video:
+ * http://www.khanacademy.org/math/algebra/introduction-to-algebra/v/super-yoga-plans--plotting-points
+ *****************************************************/
+
+// This determines the price for the basic plan
+// based on the number of sessions
+var basicPlan = function (sessions) {
+    var cost = 20 + sessions * 8;
+    return cost;
+};
+
+// This determines the price for the trial plan
+// based on the number of sessions
+var trialPlan = function (sessions) {
+    var cost = sessions * 12;
+    return cost;
+};
+
+// Graph display parameters
+var originX = 68;
+var originY = 240;
+var graphWidth = 280;
+var graphHeight = 200;
+var maxSessions = 8;
+
+var plans = [{ name: "Basic plan",
+               cost: basicPlan,
+               colour: color(235, 87, 61) },
+             { name: "Trial plan",
+               cost: trialPlan,
+               colour: color(187, 132, 209) }];
+
+// Find max cost for any plan
+// Assume that sessions cost > 0
+var maxCost = -1;
+for (var p in plans) {
+    var cost = plans[p].cost(maxSessions);
+    if (cost > maxCost) { maxCost = cost; }
+}
+maxCost = 10 * round(maxCost / 10);
+
+var sessions = -1;
+
+var draw = function() {
+    var x, y, x1, y1, x2, y2;
+    var scaleX = graphWidth / maxSessions;
+    var scaleY = graphHeight / maxCost;
+    background(0, 0, 0);
+    
+    // gridlines
+    stroke(30, 30, 32);
+    for (x = 0; x <= maxSessions; x++) {
+        x1 = originX + scaleX * x;
+        line(x1, originY-graphHeight, x1, originY);
+    }
+    
+    for (y = 0; y <= maxCost; y += 10) {
+        y1 = originY - scaleY * y;
+        line(originX, y1, originX+graphWidth, y1);
+    }
+    
+    // Determine mouseover
+    if(mouseY >= originY-graphHeight && mouseY < originY + 20) {
+        var mx = round((mouseX - originX)/scaleX);
+        if (mx >=0 && mx <= maxSessions) {
+            sessions = mx;
+        }
+    }
+
+    // Mouseover text
+    textAlign(LEFT, 1);
+    textSize(15);
+    if (sessions === -1) {
+        fill(255,255,255);
+        text("Mouse over the x-axis for details", 40 ,320);
+    }
+    
+    // Mouse over information
+    strokeWeight(1);
+    for (var p in plans) {
+        fill(plans[p].colour);
+        if (sessions > -1) {
+            var s = "sessions";
+            if(sessions === 1 ) { s = "session"; }
+            text(plans[p].name + ": " + sessions + " " + s + " costs $" + plans[p].cost(sessions), 40, 320 + p*20);
+
+            stroke(plans[p].colour);
+            line(originX,
+                 originY - scaleY * plans[p].cost(sessions),
+                 originX + scaleX * sessions,
+                 originY - scaleY * plans[p].cost(sessions));
+
+            stroke(255, 255, 255);
+            line(originX + scaleX * sessions,
+                 originY,
+                 originX + scaleX * sessions,
+                 originY - scaleY * plans[p].cost(sessions));
+        }
+    }
+    
+    // Draw series
+    strokeWeight(2);
+    for (p in plans) {
+        stroke(plans[p].colour);
+        
+        for (x = 0; x < maxSessions; x++) {
+            x1 = originX + scaleX * x;
+            x2 = originX + scaleX * (x+1);
+            y1 = originY - scaleY * plans[p].cost(x);
+            y2 = originY - scaleY * plans[p].cost(x+1);
+            line(x1, y1, x2, y2);
+        }
+    }
+    
+    // Axes
+    stroke(250, 250, 255);
+    strokeWeight(1);
+    line(originX, originY - graphHeight, originX, originY);
+    line(originX, originY, originX + graphWidth, originY);
+    
+    // Axis units
+    textSize(12);
+    textAlign(CENTER, 1);
+    fill(250, 250, 255);
+    
+    for (x = 0; x <= maxSessions; x ++) {
+        x1 = originX + scaleX * x;
+        text(x, x1, originY + 18);
+        line(x1, originY, x1, originY + 4);
+    }
+    
+    textAlign(RIGHT, 1);
+    for (y = 0; y <= maxCost; y += 10) {
+        y1 = originY - scaleY * y;
+        text(y, originX - 7, y1 + 4);
+        line(originX, y1, originX - 3, y1);
+    }
+    
+    // Axis labels
+    fill(201, 232, 0);
+    textAlign(CENTER, 1);
+    textSize(16);
+    text("Number of sessions", originX + graphWidth/2, originY + 36);
+    
+    fill(216, 20, 255);
+    translate(originX - 36, originY - graphHeight/2);
+    rotate(270);
+    text("Cost ($)", 0, 0);
+    resetMatrix();
+};

@@ -1,0 +1,23 @@
+var dAngle1 = 60;
+var dAngle2 = 70;
+
+var drawTree = function(x1, y1, length, angle, n) {
+    var x2 = x1 + length * cos(angle);
+    var y2 = y1 - length * sin(angle);
+    
+    strokeWeight(n);
+    if (n < 2) {
+        stroke(40, 160, 0);
+    } else {
+        stroke(190, 128, 32);
+    }
+    
+    line(x1, y1, x2, y2);
+    
+    if (n > 0) {
+        drawTree(x2, y2, length * 0.75, angle + dAngle1, n - 1);
+        drawTree(x2, y2, length * 0.75, angle - dAngle2, n - 1);
+    }
+};
+
+drawTree(200, 300, 80, 90, 10);

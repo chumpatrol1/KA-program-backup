@@ -1,0 +1,254 @@
+ /*********************************************************
+ * The geocentric model with circular orbits.
+ * 
+ * Note, the size of the sun and planets is not to scale.
+ * 
+ * Spacebar: pause
+ * a: toggle show old positions
+ * s: toggle show orbit shape
+*********************************************************/
+var speed = 500;
+
+// Sizes
+var sun_size = 20;
+var mars_size = 7;
+var earth_size = 13;
+
+// Colours
+var SUN_COL = color(255, 255, 0);
+var MARS_COL = color(212, 95, 17);
+var EARTH_COL = color(61, 100, 255);
+
+// Earth days for orbit
+var mars_year = 687;
+var earth_year = 365;
+
+// Circular orbit radii in millions of km (x, y)
+var mars_orbit_r = 228;
+var earth_orbit_r = 150;
+
+// Other variables for the display
+var scaling_factor = 0.5;
+var orbit_plots = 5;
+var max_points = 1400;
+var showCycles = true;
+var showOld = false;
+var oppositions = [];
+var block = 0;
+
+var fixed;
+
+var t = 0;
+var running = true;
+
+// Put (0, 0) in the centre to make things easier
+translate(200, 200);
+
+var Sun = function(r, colour) {
+    this.x = 0;
+    this.y = 0;
+    this.previous_points = [];
+    
+    this.update = function(t) {        
+        if (t % orbit_plots === 0) {
+            var x = this.x - fixed.x;
+            var y = this.y - fixed.y;
+            this.previous_points.push([x, y]);
+            if (this.previous_points.length > 460/orbit_plots) {
+                this.previous_points.shift();
+            }
+        }
+    };
+    
+    this.display = function(x, y) {
+        fill(colour);
+        ellipse(x, y, r, r);
+        fill(255, 89, 0, 100);
+        ellipse(x, y, r+3, r+3);
+    };
+    
+    this.draw = function() {
+        var x = this.x - fixed.x;
+        var y = this.y - fixed.y;
+        
+        fill(colour);
+        if (showOld) {
+            for (var i in this.previous_points) {
+                var p = this.previous_points[i];
+                ellipse(p[0], p[1], 2, 2);
+            }   
+        }
+        this.display(x, y);
+    };
+};
+
+var Planet = function(r, year, size, mass, colour) {
+    this.angle = 0;
+    this.mass = mass;
+    r *= scaling_factor;
+    this.x = r * cos(this.angle);
+    this.y = r * sin(this.angle);
+    
+    this.previous_points = [];
+    
+    this.update = function(t) {
+        // Distance to sun
+        var d = sqrt(this.x*this.x + this.y*this.y);
+        
+        // Velocity
+        var v = sqrt((2/d - 1/r));
+        
+        // Distance from ellipse centre
+        var d = dist(0, 0, this.x, this.y);
+        
+        this.angle = (this.angle + speed * v/d) % 360;
+        
+        this.x = r * cos(this.angle);
+        this.y = r * sin(this.angle);
+        
+        if (t % orbit_plots === 0) {
+            var x = this.x - fixed.x;
+            var y = this.y - fixed.y;
+            this.previous_points.push([x, y]);
+            if (this.previous_points.length > max_points) {
+                this.previous_points.shift();
+            }
+        }
+    };
+    
+    this.display = function(x, y) {
+        fill(colour);
+        ellipse(x, y, size, size);
+    };
+    
+    this.drawCycle = function() {
+        ellipse(-fixed.x, -fixed.y, r*2, r*2);
+    };
+    
+    this.draw = function() {
+        fill(colour);
+        
+        if (showOld) {
+            for (var i in this.previous_points) {
+                var p = this.previous_points[i];
+                ellipse(p[0], p[1], 2, 2);
+            }
+        }
+        
+        this.display(this.x - fixed.x, this.y - fixed.y);
+    };
+};  
+
+/********************************************************
+ *               Make planets here
+*********************************************************/
+var sun = new Sun(sun_size, SUN_COL);
+
+var mars = new Planet(mars_orbit_r, mars_year, mars_size,
+                        0.11, MARS_COL);
+
+var earth = new Planet(earth_orbit_r, earth_year, earth_size,
+                        1, EARTH_COL);
+                       
+var bodies = [sun, earth, mars];
+var names = ["Sun", "Earth", "Mars"];
+
+fixed = earth;
+
+var clearPoints = function() {
+    for (var i in bodies) {
+        bodies[i].previous_points = [];
+    }  
+};
+/********************************************************
+ *               Display functions
+*********************************************************/
+// Menu
+var menu_x = 5;
+var menu_y = 5;
+var menu_w = 82;
+var menu_h = bodies.length*30 + 25;
+
+var drawOptions = function() {
+    var x = menu_x - 200;
+    var y = menu_y - 200;
+    
+    // Outline
+    stroke(120, 120, 120, 120);
+    fill(0, 0, 0, 200);
+    rect(x, y, menu_w, menu_h);
+    
+    // Title
+    textSize(16);
+    textAlign(CENTER, BASELINE);
+    fill(240);
+    text("Key", x + menu_w/2, y + 18);
+    
+    textSize(13);
+    textAlign(LEFT, CENTER);
+    for (var i=0; i<bodies.length; i++) {
+        bodies[i].display(x + 18, y + i*30 + 40);
+        fill(255);
+        text(names[i], x + 35, y + i*30 + 40);
+    }
+};
+
+var draw = function() {    
+    if (running) {
+        t++;
+
+        for (var i in bodies) {
+            bodies[i].update(t);
+        }
+        
+        if ((round(mars.angle)-round(earth.angle)+360) % 360 === 0) {
+            if (block === 0) {
+                oppositions.push([-fixed.x, -fixed.y, mars.x-fixed.x,
+                                  mars.y - fixed.y]);
+                block = 10;
+            }
+        } else {
+            // Preventing creating two lines
+            if (block > 0) {
+                block--;
+            }
+        }
+    }
+    
+    background(0, 0, 0);
+    noStroke();
+    
+    // Draw cycles
+    if (showCycles) {
+        fill(61, 100, 255, 60);
+        earth.drawCycle();
+        fill(212, 95, 17, 36);
+        mars.drawCycle();
+    }
+    
+    // Draw oppositions
+    stroke(200);
+    for (var o in oppositions) {
+        var opp = oppositions[o];
+        line(opp[0], opp[1], opp[2], opp[3]);
+    }
+    
+    // Draw bodies
+    noStroke();
+    for (var i in bodies) {
+        bodies[i].draw();
+    }
+    
+    drawOptions();
+};
+
+/********************************************************
+ *               Event handling
+*********************************************************/
+
+var keyPressed = function() {
+    // Spacebar toggles animation
+    if (keyCode === 32) { running = !running; }
+    if (keyCode === 65) { showOld = !showOld; }
+    if (keyCode === 83) { showCycles = !showCycles; }
+};

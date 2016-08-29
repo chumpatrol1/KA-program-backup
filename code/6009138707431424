@@ -1,0 +1,43 @@
+var asteroids = [];
+
+var addAsteroids = function(n) {
+    for (var i = 0; i < n; i++) {
+        asteroids.push({
+            angle: random() * 360,
+            d: random(60, 120),     // Distance from sun
+            size: random(2, 8),
+            speed: (random() + 1) / 20
+        });
+    }
+};
+
+// Add 20 asteroids
+addAsteroids(20);
+
+// Position of sun
+var sunX = 250;
+var sunY = 180;
+
+var draw = function() {
+    background(0);
+    
+    // Draw sun
+    noStroke();
+    fill(255, 255, 0);
+    ellipse(sunX, sunY, 20, 20);
+    
+    // Draw asteroids
+    fill(171, 122, 70);
+    for (var i = 0; i < asteroids.length; i++) {
+        var asteroid = asteroids[i];
+        var x = sunX + asteroid.d * cos(asteroid.angle);
+        var y = sunY + asteroid.d * sin(asteroid.angle);
+        ellipse(x, y, asteroid.size, asteroid.size);
+    }
+    
+    // Move asteroids
+    for (var i = 0; i < asteroids.length; i++) {
+        asteroids[i].angle += asteroids[i].speed;
+    }
+    
+};

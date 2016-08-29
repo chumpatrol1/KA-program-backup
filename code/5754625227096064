@@ -1,0 +1,223 @@
+// Bump-mapping based on
+// https://www.khanacademy.org/computer-programming/sphere/1744699339
+
+var _width = 300;
+var _height = 250;
+var startX = (width - _width) / 2;
+var startY = (height - _height) / 2;
+var lightZ = 50;
+var lightZ2 = lightZ * lightZ;
+
+var possionDiscSampling = function(minDist, x1, y1, w, h) {
+    x1 = x1 || 0;
+    y1 = y1 || 0;
+    w = w || width;
+    h = h || height;
+    
+    // How many points we try before rejecting a point
+    var k = 30;
+    
+    // Final array of points that we'll return
+    var points = [];
+    
+    // Points that we use to find neighbours
+    var activePoints = [];
+    
+    var addPoint = function(x, y) {
+        points.push([x, y]);
+        activePoints.push([x, y]);
+    };
+    
+    // Start at a random point not too close to the edge
+    addPoint(x1 + (0.2 + random() * 0.6) * w, y1 + (0.2 + random() * 0.6) * h);
+    
+    var x, y;
+    while (activePoints.length) {
+        // Pick a random active point
+        var activeIndex = floor(random() * activePoints.length);
+        var currentPoint = activePoints[activeIndex];
+        
+        var pointAdded = false;
+        
+        for (var i = 0; i < k; i++) {
+            var angle = random() * 360;
+            var d = minDist + random() * minDist;
+            x = currentPoint[0] + cos(angle) * d;
+            y = currentPoint[1] + sin(angle) * d;
+            
+            if (x < x1 || x > w || y < y1 || y > h) {
+                continue;
+            }
+            
+            // Check distance from each other point is > minDist
+            // TODO make this more efficient using the sampleGrid
+            var collision = false;
+            for (var j = 0; j < points.length; j++) {
+                if (dist(x, y, points[j][0], points[j][1]) < minDist) {
+                    collision = true;
+                    break;
+                }
+            }
+            
+            if (!collision) {
+                addPoint(x, y);
+                pointAdded = true;
+                break;
+            }
+        }
+        
+        // Failed to add point so remove it from the active list
+        if (!pointAdded) {
+            activePoints.splice(activeIndex, 1);
+        }
+    }
+    
+    return points;
+};
+
+var sites = possionDiscSampling(60, 0, 0, _width, _height);
+
+// Generate a 1D array of the bumped normals
+var normMap = [];
+var getNormalMap = function() {
+    // Cache noise
+    noiseDetail(4, 0.5);
+    var noiseScale = 1;
+    var t = 1.5;
+    var m;
+    var n = sites.length;
+    var d1, d2, d3, i;
+    
+    var getHeight = function(x, y) {
+        m = 1 - noise(x * t, y * t) * 0.86;
+        
+        // Push noise the extremes with S-curve
+        m *= m * (3 - 2 * m);
+        m = m * 1.3 - 0.25;
+        if (m > 1) { m = 1; }
+        //m *= m * (3 - 2 * m);
+        m *= m * (3 - 2 * m);
+        m *= m * (3 - 2 * m);
+        // Smooth surface
+        m *= m * (6 - 5 * m) * 0.6;
+        
+        return 1 - m;
+    };
+    
+    var getHeight = function(x, y) {
+        d1 = 160000;
+            
+        // Find minimum distance to each point
+        for (i = 0; i < n; i++) {
+            m = sites[i];
+            d3 = (x - m[0]) * (x - m[0]) + (y - m[1]) * (y - m[1]);
+            if (d3 < d1) {
+                d2 = d1;
+                d1 = d3;
+            } else if (d3 < d2) {
+                d2 = d3;
+            }
+        }
+        
+        m = max(0, sqrt(d2 - d1) * 0.01 - 0.05);
+        m *= m * (3 - 2 * m);
+        m = m > 0.5 ? 0.5 : m;
+        //m *= m * (3 - 2 * m);
+        m *= m * (3 - 2 * m);
+        
+        return m;
+    };
+    
+    var x, y, xp, yp, d0, dx, dy;
+    var zp = 0.03;
+    var zp2 = zp * zp;
+    
+    for (y = 0; y < _height; y++) {
+        for (x = 0; x < _width; x++) {
+            d0 = getHeight(x, y);
+            dx = getHeight(x + 0.5, y);
+            dy = getHeight(x, y + 0.5);
+            
+            // Shift each position
+            xp = d0 - dx;
+            yp = d0 - dy;
+
+            // Normalise
+            m = 255 * d0 / sqrt(xp * xp + yp * yp + zp2);
+            normMap.push([xp * m, yp * m, zp * m]);
+        }
+    }
+};
+
+getNormalMap();
+//println(normMap[0]);
+
+draw = function() {
+    background(0);
+    loadPixels();
+    
+    var p = this.imageData.data;
+    var ms = millis();
+    
+    // Calculate normalised light vector
+    var lightXNorm = mouseX - 200;
+    var lightYNorm = mouseY - 200;
+    var lightDist = sqrt(lightXNorm * lightXNorm + lightYNorm * lightYNorm + lightZ2);
+    lightXNorm /= lightDist;
+    lightYNorm /= lightDist;
+    var lightZNorm = lightZ / lightDist;
+    
+    var light, lightY, lightX, drawY, pixelIndex;
+    var norm, x, y;
+    var count = 0;
+    
+    for (y = 0; y < _height; y++) {
+        // Where to draw the sphere
+        drawY = startX + (y + startY) * 400;
+        lightY = mouseY - startY - y;
+        
+        for (x = 0; x < _width; x++) {
+            // Find vector from mouse to pixel
+            lightX = mouseX - startX - x;
+            lightDist = sqrt(lightX * lightX + lightY * lightY + lightZ2);
+            
+            // Dot product of light and position on sphere
+            // Normal of sphere = [xp, yp, zp]
+            norm = normMap[count++];
+            light = (norm[0] * lightX + norm[1] * lightY + norm[2] * lightZ) / lightDist;
+            //light = norm[0] * lightXNorm + norm[1] * lightYNorm + norm[2] * lightZNorm;
+            light = light * 1.4 + 30;
+            
+            pixelIndex = x + drawY << 2;
+            p[pixelIndex] = light;
+            p[pixelIndex + 1] = light;
+            p[pixelIndex + 2] = light * 0.8;
+        }
+    }
+    
+    ms = millis() - ms;
+    updatePixels();
+    
+    fill(200);
+    x = mouseX - startX;
+    y = mouseY - startY;
+    if (x > 0 && x < _width && y > 0 && y < _height) {
+        var p = y * _width + x;
+        //text(normMap[p], 10, 390);
+    }
+    
+    // Test speed
+    fill(200);
+    text(ms, 370, 390);
+    
+    // Show bump map for value
+    x = mouseX - startX;
+    y = mouseY - startY;
+
+    if (x >= 0 && x < _width && y >= 0 && y < _height) {
+        var n = normMap[x + y * _width];
+        text(round(n[0]) + " " + round(n[1]) + " " + round(n[2]), 30, 390);
+    }
+    
+    //text(d, 370, 370);
+};

@@ -1,0 +1,232 @@
+
+// Animation made at https://www.khanacademy.org/computer-programming/a/4959022212579328
+
+frameRate(24);
+var shapes = [{
+  name: "base",
+  origin: [130, 350],
+  fill: -1972501,
+  stroke: -3618616,
+  vertices: [[66, 350], [194, 350], [190, 335], [138, 335], [138, 320], [122, 320], [122, 335], [70, 335]]
+}, {
+  name: "arm1",
+  origin: [130, 328],
+  fill: -1972501,
+  stroke: -3618616,
+  vertices: [[130, 337], [140, 327], [60, 247], [50, 257]]
+}, {
+  name: "arm2",
+  origin: [60, 257],
+  fill: -1972501,
+  stroke: -3618616,
+  vertices: [[50, 257], [60, 267], [140, 187], [130, 177]]
+}, {
+  name: "head",
+  origin: [127, 194],
+  fill: -1972501,
+  stroke: -3618616,
+  vertices: [[150, 197], [130, 177], [110, 197], [130, 217], [150, 277], [210, 217]]
+}];
+var connections = ["base->arm1", "arm1->arm2->head"];
+var deformers = ["translateX->base", "translateY->base", "rotate->arm1", "rotate->arm2", "rotate->head", "scale->head"];
+var n = 162;
+
+var avars = [
+[0,0,0,0,0,0,0,0,-0.01,-0.01,-0.01,-0.02,-0.02,-0.03,-0.04,-0.05,-0.05,-0.07,-0.08,-0.1,-0.11,-0.13,-0.15,-0.17,-0.2,-0.23,-0.27,-0.3,-0.34,-0.37,-0.42,-0.46,-0.52,-0.59,-0.65,-0.71,-0.78,-0.86,-0.95,-1.04,-1.14,-1.25,-1.36,-1.48,-1.6,-1.73,-1.87,-2.05,-2.2,-2.37,-2.58,-2.76,-2.99,-3.24,-3.45,-3.72,-4,-4.3,-4.56,-4.88,-5.29,-5.66,-6.03,-6.43,-6.92,-7.35,-7.89,-8.36,-8.95,-9.56,-10.2,-2.86,4.38,11.5,20.26,27.14,33.92,40.59,47.15,53.62,61.55,67.78,73.91,79.93,85.86,91.69,98.84,104.45,109.96,115.38,120.7,127.22,132.33,137.35,142.27,147.11,151.86,157.67,162.22,166.68,171.05,175.34,179.55,184.68,188.7,192.63,196.49,200.26,203.96,207.57,211.11,215.42,218.78,222.07,225.29,228.43,231.49,234.49,237.41,240.27,243.05,245.77,248.41,250.99,253.51,255.96,258.34,260.66,262.91,265.11,267.24,269.31,271.32,273.28,275.17,277.01,278.79,280.51,281.77,283.4,284.97,286.49,287.96,289.38,290.41,291.74,293.02,294.26,295.15,296.3,297.41,298.47,299.24,300.22,301.16,301.84,302.71,303.54,304.13,304.89,305.43,306.12],
+[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7.98,14.01,21.09,27.69,33.82,39.49,44.71,49.49,54.67,58.54,62.66,65.67,68.79,70.99,73.19,74.65,75.99,76.89,77.32,77.48,77.25,76.78,75.92,74.73,73.51,71.79,70.15,67.97,65.97,63.84,61.57,59.18,56.69,54.1,51.43,48.68,45.88,43.6,40.72,38.4,35.48,33.15,30.81,28.49,26.18,23.9,21.64,19.41,17.23,15.09,13.01,11.49,9.51,8.07,6.22,4.88,3.59,1.95,0.79,-0.32,-1.37,-2.36,-3.29,-4.15,-4.94,-5.66,-6.3,-6.87,-7.35,-7.63,-7.98,-8.24,-8.37,-8.48,-8.49,-8.45,-8.31,-8.16,-7.84,-7.58,-7.26,-6.7,-6.26,-5.78,-4.95,-4.34,-3.67,-2.95,-1.77,-0.91,0],
+[0,-0.04,-0.12,-0.29,-0.54,-0.86,-1.25,-1.7,-2.39,-2.97,-3.82,-4.52,-5.5,-6.55,-7.64,-8.79,-9.96,-11.17,-12.69,-13.91,-15.43,-16.92,-18.08,-19.48,-20.8,-22.02,-23.12,-23.91,-24.76,-25.44,-25.86,-26.19,-26.31,-26.27,-26.08,-25.71,-23.95,-23.08,-21.36,-19.67,-18.01,-16.37,-14.77,-13.19,-11.64,-10.11,-8.61,-7.14,-4.97,-3.56,-1.48,0.56,1.88,3.84,5.75,7.62,10.05,11.82,14.14,16.4,19.14,21.29,23.91,26.98,29.98,32.92,36.32,39.69,43.55,46.96,50.42,53.96,57.6,60.83,64.17,67.06,70.04,72.49,70.33,67.7,65.66,63.67,61.74,59.86,58.02,56.24,54.51,53.23,51.58,49.97,48.79,47.26,45.77,44.68,43.26,42.22,40.87,39.88,38.6,37.66,36.43,35.54,34.37,33.51,32.4,31.32,30.53,29.49,28.74,27.75,27.03,26.08,25.16,24.48,23.6,22.74,22.1,21.27,20.46,19.66,18.88,18.11,17.35,16.42,15.69,14.97,14.08,13.2,12.33,11.46,10.6,9.57,8.54,7.5,4.7,1.48,-0.85,-2.99,-5.4,-7.12,-8.65,-10.33,-11.49,-12.49,-13.34,-14.19,-14.72,-15.11,-15.38,-15.53,-15.57,-15.5,-15.32,-15.13,-14.79,-14.37,-13.87,-13.45,-12.83,-12.32,-11.6,-11.02],
+[0,0.28,0.63,1.07,1.76,2.36,3.27,4.28,5.41,6.63,8.28,10.06,11.96,13.96,16.05,18.21,20.43,23.16,25.47,27.8,30.13,31.98,34.29,36.11,37.9,39.65,41.36,42.61,44.23,45.41,46.54,47.64,48.69,49.7,50.34,51.26,45.87,42.36,37.21,33.85,28.94,24.17,19.54,15.05,10.69,6.47,2.38,-1.58,-5.42,-10.33,-13.88,-18.41,-22.73,-25.84,-29.8,-33.56,-37.13,-40.5,-44.46,-47.43,-50.21,-53.46,-56.44,-59.17,-61.18,-63.49,-65.56,-67.42,-69.07,-70.52,-72.01,-73.04,-73.91,-74.61,-75.16,-75.56,-75.78,-75.94,-72.37,-68.11,-64.86,-61.74,-58.76,-55.92,-53.2,-50.6,-48.12,-46.34,-44.07,-41.91,-40.35,-38.38,-36.5,-35.16,-33.45,-32.23,-30.68,-29.57,-28.17,-27.17,-25.9,-25,-23.86,-23.04,-22.02,-21.29,-20.37,-19.5,-18.88,-18.1,-17.55,-16.85,-16.18,-15.71,-15.11,-14.53,-14.12,-13.59,-13.08,-12.58,-12.1,-11.63,-11.16,-10.59,-10.12,-9.65,-9.05,-8.42,-7.77,-7.09,-6.36,-5.43,-4.41,-3.3,0.19,2.65,5.73,8.56,11.15,13.5,15.6,17.46,19.06,20.72,21.77,22.56,23.2,23.42,23.39,23.1,22.37,21.5,20.37,18.97,17.31,15.38,13.19,10.73,8.71,5.78,2.58,0],
+[0,0.23,0.43,0.61,0.75,0.87,0.96,1.01,1.02,0.99,0.92,0.8,0.56,0.32,-0.08,-0.45,-1.04,-1.56,-2.35,-3.27,-4.32,-5.51,-6.84,-8.33,-9.96,-11.77,-14.25,-17.02,-19.44,-22.73,-27.09,-31.08,-36.31,-41.05,-48.3,-55.1,-51.24,-47.52,-42.2,-38.84,-35.61,-31.01,-28.12,-25.35,-21.45,-17.83,-15.57,-12.41,-9.52,-6.89,-4.52,-2.4,-0.52,1.11,2.52,4.04,4.93,5.79,6.19,6.42,6.32,5.89,4.92,3.82,2.06,-0.11,-2.65,-5.54,-9.42,-12.97,-17.57,-22.48,-28.56,-34.01,-40.57,-46.31,-53.09,-59.87,-55.03,-51.08,-47.31,-43.71,-40.85,-37.57,-34.96,-31.98,-29.62,-27.37,-25.22,-23.17,-21.23,-19.74,-17.97,-16.62,-15.01,-13.8,-12.35,-11.26,-10.22,-8.99,-8.06,-7.19,-6.36,-5.58,-4.84,-4.15,-3.51,-2.9,-2.34,-1.82,-1.33,-0.89,-0.57,-0.19,0.16,0.48,0.7,0.96,1.19,1.35,1.53,1.69,1.79,1.91,1.98,2.05,2.11,2.13,2.16,2.16,2.15,2.13,2.1,2.06,2,1.95,1.88,1.81,1.72,1.65,1.54,1.46,1.38,1.26,1.18,1.06,0.97,0.86,0.77,0.66,0.58,0.51,0.41,0.34,0.26,0.2,0.14,0.09,0.05,0.02,0,0],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]];
+var deformerData = {
+  translateX: {
+    id: "Tx",
+    min: -500,
+    max: 500,
+    transform: function (coord, origin, value) {
+            coord.x += value;
+        }
+  },
+  translateY: {
+    id: "Ty",
+    min: -200,
+    max: 200,
+    transform: function (coord, origin, value) {
+            coord.y -= value;
+        }
+  },
+  scale: {
+    id: "S",
+    min: 0.2,
+    max: 3,
+    value: 1,
+    transform: function (coord, origin, value) {
+            coord.x = (coord.x - origin.x) * value + origin.x;
+            coord.y = (coord.y - origin.y) * value + origin.y;
+        }
+  },
+  rotate: {
+    id: "R",
+    min: -180,
+    max: 180,
+    transform: function (coord, origin, value) {
+            var cosAngle = cos(value);
+            var sinAngle = sin(value);
+            var x = coord.x - origin.x;
+            var y = coord.y - origin.y;
+            coord.x = origin.x + x * cosAngle - y * sinAngle;
+            coord.y = origin.y + x * sinAngle + y * cosAngle;
+        }
+  }
+};
+
+var drawBackground = function (x, y, w, h) {
+    noStroke();
+    fill(82, 115, 173);
+    rect(x, y, w, h - 75);
+    fill(184, 134, 40);
+    rect(x, y + h - 75, w, 75);
+};
+
+var drawCircle = function() {
+    var r = dist(this.finalCoords[0].x, this.finalCoords[0].y, this.finalCoords[1].x, this.finalCoords[1].y);
+    ellipse(this.finalCoords[0].x, this.finalCoords[0].y, r, r);
+};
+var Shape = function(data, name) {
+    this.name = name;
+    this.nodeR = 5;
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data
+.origin[1]);
+    }
+    if (data.radius && data.center) {
+        var center = data.center;
+        data.vertices = [center, [center[0] + data.radius,
+center[1]]];
+        data.drawShape = drawCircle;
+    }
+    this.originalCoords = data.vertices || [];
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    this.subdivide = constrain(data.subdivide | 0, 0, 4);
+    if (data.drawShape) {
+        this.drawShape = data.drawShape.bind(this);
+    }
+    this.dependentShapes = [];
+    this.resetCoords();
+    this.updateCurvePoints();
+};
+Shape.prototype.resetCoords = function() {
+    this.finalCoords = this.originalCoords.map(function(coord){
+        return new PVector(coord[0], coord[1]);
+    });
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+};
+Shape.prototype.transform = function(transform, origin, value) {
+    for (var i = 0; i < this.finalCoords.length; i++) {
+        transform(this.finalCoords[i], origin, value);
+    }
+    this.updateCurvePoints();
+    this.dependentShapes.forEach(function(shape) {
+        transform(shape.origin, origin, value);
+        shape.transform(transform, origin, value);
+    });
+};
+Shape.prototype.draw = function() {
+    if (this.fillColor || this.drawShape) {
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(2, 3);
+        this.drawShape(true);
+        popMatrix();
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    if (this.strokeColor) {
+        strokeWeight(this.strokeWeight);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    this.drawShape();
+};
+Shape.prototype.drawShape = function() {
+    beginShape();
+    this.curvePoints.forEach(function(p) { vertex(p.x, p.y); });
+    endShape(CLOSE);
+};
+Shape.prototype.updateCurvePoints = function() {
+    if (!this.subdivide) {
+        this.curvePoints = this.finalCoords;
+    } else {
+        var q = pow(2, this.subdivide);
+        var q2 = q * q;
+        var n = this.finalCoords.length;
+        var p1, p2, p3, a, b, c, s, t, x, y;
+        this.curvePoints = [];
+        for (var i = 0; i < n; i++) {
+            p1 = this.finalCoords[(i + n - 1) % n];
+            p2 = this.finalCoords[i];
+            p3 = this.finalCoords[(i + 1) % n];
+            for (t = 0; t < q; t++) {
+                s = q - t - 1;
+                a = (s * s + s) >> 1;
+                c = (t * t + t) >> 1;
+                b = q2 - a - c;
+                x = (p1.x * a + p2.x * b + p3.x * c) / q2;
+                y = (p1.y * a + p2.y * b + p3.y * c) / q2;
+                this.curvePoints.push({x: x, y: y});
+            }
+        }
+    }
+};
+var Model = function(shapes, connections, deformers) {
+    this.shapes = {};
+    this.deformers = [];
+    this.id = 0;
+    if (shapes) {
+        for (var i = 0; i < shapes.length; i++) {
+            var shape = shapes[i];
+            if (!shape) { continue; }
+            var name = shape.name || 'shape' + this.id++;
+            this.shapes[name] = new Shape(shape, name);
+        }
+    }
+    var splitRE = new RegExp('\\s*->\\s*');
+    if (connections) {
+        for (var i = 0; i < connections.length; i++) {
+            var shapes = connections[i].split(splitRE);
+            for (var j = 0; j < shapes.length - 1; j++) {
+                this.shapes[shapes[j]].dependentShapes.push(this.shapes[shapes[j + 1]]);
+            }
+        }
+    }
+    if (deformers) {
+        for (var i = 0; i < deformers.length; i++) {
+            var d = deformers[i].split(splitRE);
+            this.deformers.push([this.shapes[d[1]], deformerData[d[0]].transform, avars[i]]);
+        }
+    }
+};
+
+
+var model = new Model(shapes, connections, deformers);
+var t = 0;
+
+draw = function() {
+	t = (t + 1) % n;
+	for (var shape in model.shapes) {model.shapes[shape].resetCoords();}
+	model.deformers.forEach(function(d){d[0].transform(d[1], d[0].origin, d[2][t]);});
+	background(0);
+	drawBackground(0, 50, 400, 300);
+	pushMatrix();
+	translate(0, 50);
+	scale(0.75, 0.75);
+	for (var shape in model.shapes) { model.shapes[shape].draw(); }
+	popMatrix();
+};

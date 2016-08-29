@@ -1,0 +1,215 @@
+// Light vector
+var lightX = -6;
+var lightY = 1;
+var lightZ = -10;
+
+// Normalise
+var lightD = sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
+lightX /= lightD;
+lightY /= lightD;
+lightZ /= lightD;
+
+// Leg parameters
+// Coordinates of base of leg
+var legX = 0;
+var legY = 650;
+var legZ = 1520;
+
+// Coordinates of top of leg
+var legX2 = 0;
+var legY2 = 200;
+var legZ2 = 1520;
+
+// Leg vector
+var legDX = legX2 - legX;
+var legDY = legY2 - legY;
+var legDZ = legZ2 - legZ;
+var legD = sqrt(legDX * legDX + legDY * legDY + legDZ * legDZ);
+legDX /= legD;
+legDY /= legD;
+legDZ /= legD;
+
+// Radius of leg with and without scales
+var legR = 600 / PI;
+var legR2 = legR * legR;
+var scaleThickness = 16;
+var legInner = legR - scaleThickness;
+
+var legDot = legX * legDX + legY * legDY + legZ * legDZ;
+var legDotX = legX - legDot * legDX;
+var legDotY = legY - legDot * legDY;
+var legDotZ = legZ - legDot * legDZ;
+//println(legDotX + " " + legDotY + " " + legDotZ);
+
+var LegC = legDotX * legDotX + legDotY * legDotY + legDotZ * legDotZ - legR2;
+
+// Cone parameters
+var clawR = 25;     // Radius where claw meets skin
+var clawL = 100;    // Length of claw from tip to skin
+
+// Half-angle for claw cone
+var clawA = atan(clawR / clawL);
+var cosA = cos(clawA);
+var sinA = sin(clawA);
+var cosA2 = cosA * cosA;
+var sinA2 = sinA * sinA;
+
+var clawAngle = 60; // Angle around leg
+var clawX = legX + cos(clawAngle) * (clawL + legInner);
+var clawY = legY - clawR;
+var clawZ = legZ - sin(clawAngle) * (clawL + legInner);
+
+// Claw vector
+var clawDX = legX - clawX;
+var clawDY = legY - clawY;
+var clawDZ = legZ - clawZ;
+
+var clawD = sqrt(clawDX * clawDX + clawDY * clawDY + clawDZ * clawDZ);
+clawDX /= clawD;
+clawDY /= clawD;
+clawDZ /= clawD;
+
+// For intersection calculations
+var clawDot = clawX * clawDX + clawY * clawDY + clawZ * clawDZ;
+var clawDotX = clawDot * clawDX - clawX;
+var clawDotY = clawDot * clawDY - clawY;
+var clawDotZ = clawDot * clawDZ - clawZ;
+var clawDotD = clawDotX * clawDotX + clawDotY * clawDotY + clawDotZ * clawDotZ;
+var clawC = cosA2 * clawDotD - sinA2 * clawDot * clawDot;
+
+/*********************************************************
+ *      PixelGrid
+ *  Where we do the ray-tracing 
+*********************************************************/
+
+var PixelGrid = {
+    // Set up pixel grid with width and height (w, h),
+    // centered on (0, y, z), perpendicular to the vector
+    // from (0, 0, 0) to (0, y, z)
+    x: 0,
+
+    setup: function(y, z, w, h) {
+        this.y = y;
+        this.z = z;
+        
+        this.w = w;
+        this.h = h;
+        var w2 = w / 2 - 0.5;
+        var h2 = h / 2 - 0.5;
+
+        var d = sqrt(y * y + z * z);
+        this.dy = z / d;
+        this.dz = -y / d;
+        
+        // Vector to top left corner
+        this.x1 = this.x - w2;
+        this.y1 = this.y - h2 * this.dy;
+        this.z1 = this.z - h2 * this.dz;
+    },
+    
+    rayTrace: function() {
+        var x, y, y2, z2, px, py, pz, ix, iy, iz, dx, dy, dz;
+        var vx, vy, vz, nx, ny, nz;
+        var A, B, i, t, d, dot, det;
+        var intensity, diffusion, specular, rx, ry, rz;
+        var shine = 40;
+        intensity = 1;
+        loadPixels();
+        var p = imageData.data;
+        
+        for (y = 0; y < this.h; y++) {
+            // Coordinate for this pixel
+            py = this.y1 + y * this.dy;
+            pz = this.z1 + y * this.dz;
+            y2 = py * py;
+            z2 = pz * pz;
+
+            for (x = 0; x < this.w; x++) {
+                // Raytrace with a ray from [0, 0, 0] to [px, py, pz]
+                px = this.x1 + x;
+                
+                // Intersection with leg (cylinder)
+                dot = px * legDX + py * legDY + pz * legDZ;
+                
+                // Project ray onto leg axis
+                vx = px - dot * legDX;
+                vy = py - dot * legDY;
+                vz = pz - dot * legDZ;
+                
+                A = 2 * (vx * vx + vy * vy + vz * vz);
+                B = -2 * (vx * legDotX + vy * legDotY + vz * legDotZ);
+                det = B * B - 2 * A * LegC;
+                
+                // Dot ray vector with claw cone vector
+                dot = px * clawDX + py * clawDY + pz * clawDZ;
+
+                if (det > 0) {
+                    t = (-B - sqrt(det)) / A;
+
+                    // Calculate intersection point
+                    ix = t * px;
+                    iy = t * py;
+                    iz = t * pz;
+                    
+                    // Check whether intersection with above top or below base
+                    // (I - base) dot (LegVector)
+                    dx = ix - legX;
+                    dy = iy - legY;
+                    dz = iz - legZ;
+                    dot = dx * legDX + dy * legDY + dz * legDZ;
+                    
+                    if (dot < 0 || dot > legD) { continue; }
+
+                    // Calculate vector from projection of intersection
+                    // point onto leg axis to intersection point
+                    // i.e. the normal of the surface at that point
+                    nx = dx - dot * legDX;
+                    ny = dy - dot * legDY;
+                    nz = dz - dot * legDZ;
+                    d = 1 / sqrt(nx * nx + ny * ny + nz * nz);
+                    
+                    nx *= d;
+                    ny *= d;
+                    nz *= d;
+                    
+                    // Calculate diffuse light
+                    diffusion = nx * lightX + ny * lightY + nz * lightZ;
+                    
+                    // Add some background light
+                    intensity = 0.2 + 0.8 * diffusion;
+                    
+                    // Reflection
+                    diffusion *= 2;
+                    rx = diffusion * nx - lightX;
+                    ry = diffusion * ny - lightY;
+                    rz = diffusion * nz - lightZ;
+                    
+                    // Dot with vector towards camera (-ix, -iy, -iz)
+                    specular = ix * rx + iy * ry + iz * rz;
+                    specular /= -sqrt(ix * ix + iy * iy + iz * iz);
+                    
+                    if (specular > 0) {
+                        intensity += 0.5 * pow(specular, 15);
+                    }
+
+                    // Index
+                    i = x + y * width << 2;
+                    p[i++] = 120 * intensity;
+                    p[i++] = 160 * intensity;
+                    p[i++] = 60 * intensity;
+                    
+                } else {
+                    
+                }
+                
+
+            }
+        }
+        
+        updatePixels();
+    }
+};
+PixelGrid.setup(300, 1000, 400, 400);
+
+background(0);
+PixelGrid.rayTrace();

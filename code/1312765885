@@ -1,0 +1,182 @@
+/***********************************************************
+ * Investigation into Benford's Law
+ * 
+ * This program explores the frequency at which numbers
+ * start with the digit 1.
+ * 
+ * You might expect that the frequency is 10%, but that is 
+ * only true for numbers in the range 1 to a power of 10,
+ * e.g. 1 - 1000. The frequency of numbers between 1 and, 
+ * for example, 2000 is ~55%.
+ * 
+ * The graph shows the frequency of numbers starting with 1
+ * when looking in the range 1 - N, for different N.
+ * 
+ * Benford's law tells us that on average, a random number
+ * will start with a 1 ~30.1% of the time, which seems to
+ * be the average for all N.
+ * 
+ * For more information, see:
+ * https://www.khanacademy.org/math/trigonometry/exponential_and_logarithmic_func/log_functions/v/benford-s-law-explanation--sequel-to-mysteries-of-benford-s-law
+************************************************************/
+
+// Pick sampleSize random numbers between 1 and upperBound.
+var initialUpperBound = 10;
+var maxUpperBound = 3000000;
+var upperBound = initialUpperBound;
+
+// Number of samples to run before updating the display.
+var updateRate = 10;
+
+// Number of sample to average before adding to result array
+// This increases over time to minimise lines drawn.
+var binSize = 1;
+
+// Maximum length of data before increasing the bin size.
+var maxDataLength = 300;
+
+var graphX = 75;
+var graphY = 50;
+var graphWidth = 300;
+var graphHeight = 300;
+var maxFrequency = 0.6;
+
+// Speed of simulation
+frameRate(80);
+
+var freqForUpperBound = [];
+var meanFrequency = 0;
+var numbersStartingWith1 = 0;
+
+var halveArray = function(arr) {
+    // Given an array, find the mean of pairs of number
+    // and so return an array half the size.
+
+    var halvedArray = [];
+    for (var i=1; i<arr.length; i += 2) {
+        halvedArray.push(0.5 * (arr[i-1] + arr[i]));
+    }
+    return halvedArray;
+};
+
+var drawGraph = function(freqForN) {
+    var x1, y1, x2, y2;
+    var gy2 = graphY + graphHeight;
+    var scaleX = graphWidth / freqForN.length;
+    var scaleY = graphHeight / maxFrequency;
+    
+    // X-axis gridlines on log scale 1, 2, 10, 20, 100, 200 etc.
+    stroke(220, 220, 220);
+    strokeWeight(1);
+    fill(30, 30, 40);
+    textAlign(CENTER, TOP);
+    textSize(11);
+
+    var i = 1;
+    var count = 0;
+
+    while (i < upperBound) {
+        if (i > upperBound / 60) {
+            x1 = graphX + (i / binSize) * scaleX;
+            line(x1, graphY, x1, graphY + graphHeight + 3);
+            text(i, x1, graphY + graphHeight + 5 + 10*(count%2));   
+        }
+        
+        if (count % 2) {
+            i *= 5;
+        } else {
+            i *= 2;
+        }
+        count++;
+    }
+    text(upperBound, graphX+graphWidth, graphY + graphHeight + 5); 
+    
+    // Y-gridlines
+    textAlign(RIGHT, CENTER);
+    y2 = gy2 - 0.1 * scaleY;
+    line(graphX - 4, y2, graphX + graphWidth + 4, y2);
+    text("10%", graphX - 6, y2);
+    y2 = gy2 - 0.5 * scaleY;
+    line(graphX - 4, y2, graphX + graphWidth + 4, y2);
+    text("50%", graphX - 6, y2);
+    
+    // Plot data
+    stroke(22, 16, 168);
+    strokeWeight(2);
+    
+    for (i=0; i<freqForN.length; i++) {
+        x2 = graphX + i * scaleX;
+        y2 = gy2 - freqForN[i] * scaleY;
+        if (i) { line(x1, y1, x2, y2); }
+        x1 = x2;
+        y1 = y2;
+    }
+    
+    // Draw mean line
+    stroke(80, 80, 80);
+    strokeWeight(1);
+    var mean = meanFrequency / (upperBound - initialUpperBound + 1);
+    y2 = gy2 - mean * scaleY;
+    line(graphX - 4, y2, graphX + graphWidth + 4, y2);
+    text("Mean " + round(mean*1000)/10 + "%", graphX - 6, y2);
+    
+    // Draw predicted
+    y2 = gy2 - 0.301 * scaleY;
+    x1 = graphX - 4;
+    while (x1 < graphX + graphWidth + 4){
+        line(x1, y2, x1 + 5, y2);
+        x1 += 10;
+    }
+    text("Pred. 30.1%", graphX - 6, y2);
+
+    // Axis
+    stroke(20, 20, 40);
+    strokeWeight(1);
+    line(graphX, gy2, graphX+graphWidth, gy2);
+    line(graphX, graphY, graphX, gy2);
+    
+    textAlign(CENTER, TOP);
+    textSize(16);
+    var midX = graphX + graphWidth/2;
+    text("N", midX, gy2 + 20);
+    text("Frequency of numbers < N starting", 200, graphY-44);
+    text("with a 1, as a function of N", 200, graphY-25);
+
+    textAlign(LEFT, TOP);
+    textSize(14);
+    text("Frequency", 3, graphY);
+
+};
+
+var updateData = function() {
+    if (upperBound < maxUpperBound) {
+        for (var i=0; i<updateRate; i++) {
+            var frequency = 0;
+
+            for (var j=0; j<binSize; j++) {
+                if ((upperBound + "")[0] === "1") {
+                    numbersStartingWith1++;  
+                }
+                var f = numbersStartingWith1 / upperBound;
+                frequency += f;
+                meanFrequency += f;
+                upperBound++;
+            }
+            freqForUpperBound.push(frequency /binSize);
+        }
+    }
+
+    if (freqForUpperBound.length > maxDataLength) {
+        freqForUpperBound = halveArray(freqForUpperBound);
+        binSize *= 2;
+    }
+};
+
+var draw = function() {
+    updateData();
+
+    background(250, 250, 250);
+    drawGraph(freqForUpperBound);
+};
+
+

@@ -1,0 +1,1252 @@
+/*****************************************************
+ *          Rigging Challenge
+ * 
+ * What character can you make and rig?
+ * 
+ * Edit the shapes, connections and deformers array
+ * below to build your model.
+ * 
+ * We have got you started with a snowman, but you
+ * can make anything you like.
+ * 
+ * Try changing the colours, the amount of subdivision
+ * and the vertices. Add more shapes, connect them,
+ * then add some deformers.
+******************************************************/
+var x = 100;
+var glassesY = 175;
+var mouthY = 220;
+var glassesOrigin = [x, glassesY + 5];
+
+var shapes = [
+    {
+        name: "body",
+        vertices: [[50, 220],[50, 150],[x, 120],[150, 150],[150, 220],
+                   [150,280],[150,340],[x,360],[50,340],[50,280]],
+        origin: [100, 320],
+        subdivide: 4,
+        fill: color(250, 210, 80)
+    },
+    {
+        name: "pants",
+        vertices: [[50,310],[50,310],[70,310],[70,250],[130,250],[130,310],
+                   [150,310],[150,310],[150,280],[150,340],[x,360],[50,340],[50,280]],
+        origin: [100, 320],
+        subdivide: 4,
+        fill: color(65, 100, 150)
+    },
+    {
+        name: 'leg-L',
+        vertices: [[70, 330], [95, 330], [95, 375], [78, 375]],
+        origin: [80, 340],
+        subdivide: 4,
+        fill: color(65, 100, 150)
+    },
+    {
+        name: 'leg-R',
+        vertices: [[130, 330], [105, 330], [105, 375], [122, 375]],
+        origin: [120, 340],
+        subdivide: 4,
+        fill: color(65, 100, 150)
+    },
+    {
+        name: 'shoe-L',
+        vertices: [[95, 370], [66, 365], [66, 380], [92, 380]],
+        origin: [80, 375],
+        subdivide: 4,
+        fill: color(10)
+    },
+    {
+        name: 'shoe-R',
+        vertices: [[105, 370], [134, 365], [134, 380], [108, 380]],
+        origin: [120, 375],
+        subdivide: 4,
+        fill: color(10)
+    },
+    {
+        name: 'glasses-strap',
+        vertices: [[49, glassesY], [151, glassesY],
+                   [151, glassesY + 10], [49, glassesY + 10]],
+        fill: color(10),
+        origin: glassesOrigin,
+    },
+    {
+        name: 'glasses',
+        center: glassesOrigin,
+        origin: glassesOrigin,
+        radius: 46,
+        fill: color(160)
+    },
+    {
+        name: 'eye',
+        center: glassesOrigin,
+        origin: glassesOrigin,
+        radius: 34
+    },
+    {
+        name: 'iris',
+        center: glassesOrigin,
+        origin: glassesOrigin,
+        radius: 10,
+        //fill: color(180, 100, 75)
+        fill: color(0)
+    },
+    {
+        name: 'mouth',
+        vertices: [[60, mouthY], [x, mouthY + 10], [140, mouthY], [x, mouthY + 20]],
+        origin: [x, mouthY + 10],
+        subdivide: 4,
+        fill: color(0)
+    },
+    {
+        name: 'arm-L1',
+        vertices: [[55, 255], [65, 265], [25, 305], [15, 295]],
+        origin: [60, 260],
+        subdivide: 4,
+        fill: color(250, 210, 80)
+    },
+    {
+        name: 'arm-L2',
+        vertices: [[45, 328], [60, 335], [55, 322], [25, 285], [15, 295]],
+        origin: [25, 295],
+        subdivide: 4,
+        fill: color(250, 210, 80)
+    },
+    {
+        name: 'hand-L',
+        radius: 25,
+        center: [60, 330],
+        origin: [60, 330],
+        fill: color(0)
+    },
+
+    {
+        name: 'arm-R1',
+        vertices: [[145, 255], [135, 265], [175, 305], [185, 295]],
+        origin: [140, 260],
+        subdivide: 4,
+        fill: color(250, 210, 80)
+    },        
+    {
+        name: 'arm-R2',
+        vertices: [[155, 328], [140, 335], [145, 322], [175, 285], [185, 295]],
+        origin: [175, 295],
+        subdivide: 4,
+        fill: color(250, 210, 80)
+    },
+    {
+        name: 'hand-R',
+        radius: 25,
+        center: [140, 330],
+        origin: [140, 330],
+        fill: color(0)
+    },
+
+];
+
+var connections = [
+    'body->glasses-strap->glasses->eye->iris',
+    'body->mouth',
+    'body->pants',
+    'body->leg-L->shoe-L',
+    'body->leg-R->shoe-R',
+    'body->arm-L1->arm-L2->hand-L',
+    'body->arm-R1->arm-R2->hand-R'
+];
+
+var deformers = [
+    'translateX25->glasses',
+    'translateX10->iris', 'rotate->iris',
+    'scaleY->mouth',
+    'rotate->mouth',
+    'translateX->body', 'rotate->body',
+    'rotate->arm-L1', 'rotate->arm-L2',
+    'rotate->arm-R1', 'rotate->arm-R2',
+    'rotate->leg-L',
+    'rotate->leg-R',
+];
+
+/*****************************************************
+ *          Deformers
+ * This is the deformers variable. Here you can edit
+ * the deformers used to rig the model. Try making
+ * your own deformer with a new transform function.
+ * What sort of effects can you come up with?
+ * 
+ * The min and max values control the range of the
+ * slider.
+******************************************************/
+
+var deformerData = {
+    translateX: {
+        min: -200,
+        max: 200,
+        transform: function(coordinates, value) {
+            coordinates.x += value;
+        }
+    },
+    translateX25: {
+        min: -25,
+        max: 25,
+        transform: function(coordinates, value) {
+            coordinates.x += value;
+        }
+    },
+    translateX10: {
+        min: -10,
+        max: 10,
+        transform: function(coordinates, value) {
+            coordinates.x += value;
+        }
+    },
+    translateY: {
+        min: -200,
+        max: 200,
+        transform: function(coordinates, value) {
+            coordinates.y -= value;
+        }
+    },
+    scale: {
+        min: 0.2,
+        max: 3,
+        value: 1,
+        transform: function(coordinates, value, origin) {
+            coordinates.x = (coordinates.x - origin.x) * value + origin.x;
+            coordinates.y = (coordinates.y - origin.y) * value + origin.y;
+        }
+    },
+    scaleX: {
+        min: 0.2,
+        max: 3,
+        value: 1,
+        transform: function(coordinates, value, origin) {
+            coordinates.x = (coordinates.x - origin.x) * value + origin.x;
+        }
+    },
+    scaleY: {
+        min: 0.2,
+        max: 3,
+        value: 1,
+        transform: function(coordinates, value, origin) {
+            coordinates.y = (coordinates.y - origin.y) * value + origin.y;
+        }
+    },
+    rotate: {
+        min: -180,
+        max: 180,
+        transform: function(coordinates, value, origin) {
+            var cosAngle = cos(value);
+            var sinAngle = sin(value);
+            var x = coordinates.x - origin.x;
+            var y = coordinates.y - origin.y;
+            
+            coordinates.x = origin.x + x * cosAngle - y * sinAngle;
+            coordinates.y = origin.y + x * sinAngle + y * cosAngle;
+        }
+    }
+};
+
+/*****************************************************
+ * Function for drawing the background
+******************************************************/
+
+var BACKGROUND1 = color(245, 210, 245);
+var BACKGROUND2 = color(60, 30, 200);
+
+var drawBackground = function() {
+    background(99, 163, 78);
+    var h = 80;
+    var h2 = height - h;
+    
+    strokeWeight(2);
+    for (var i = 0; i <= h2; i += 2) {
+        stroke(lerpColor(BACKGROUND2, BACKGROUND1, i / h2));
+        line(0, i, width, i);
+    }
+};
+
+/*****************************************************
+ *      Main code below here
+ * No need to look in here unless you're interested.
+*****************************************************/
+
+var showing = {
+    'Show final model': true
+};
+
+// Standard colours and variables
+{
+var BACKGROUND = color(250);
+var GUI_GREY = color(180);
+var PINK = color(255, 0, 175);
+var ORANGE = color(255, 165, 0);
+var TOOLBAR = color(230, 230, 230, 200);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+}
+/*****************************************************
+ *  Generic GUI component from which other elements
+ * inherit
+******************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.name = name;
+    this.updateFunction = updateFunction;
+    
+    this.showing = true;
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction();
+    }
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.mouseOver() || this.selected) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*****************************************************
+ *  GUI Button
+******************************************************/
+{
+var Button = function(x, y, w, h, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, h, name, updateFunction);
+
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = color(210, 210, 210, 250);
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+var CircleButton = function(x, y, r, clickFunction, drawIcon) {
+    Button.call(this, x, y, r * 2, r * 2, "", clickFunction);
+    this.r = r;
+    this.drawIcon = drawIcon;
+};
+CircleButton.prototype = Object.create(Button.prototype);
+
+CircleButton.prototype.draw = function() {
+    this.fade();
+    
+    fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+    
+    stroke(lerpColor(GUI_GREY, this.highlightCol, this.transition / 10));
+    strokeWeight(2);
+    ellipse(this.x, this.y, this.w, this.w);
+    
+    if (this.drawIcon) {
+        var c = lerpColor(color(100, 100, 100), color(255, 255, 255), this.transition / 10);
+        this.drawIcon(this.x, this.y, this.r, c);   
+    }
+};
+
+CircleButton.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, name);
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/*****************************************************
+ * GUI Slider to vary parameters
+******************************************************/
+{
+var Slider = function(x, y, w, minValue, maxValue, nowValue, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, 4, name, updateFunction);
+    
+    this.x2 = x + w;
+    this.ballR = 10;
+    this.ballD = this.ballR * 2;
+    
+    this.min = minValue || 0;
+    this.max = maxValue === undefined ? 1 : maxValue;
+    this.val = nowValue === undefined ? this.min : nowValue;
+    this.setValue(this.val);
+    
+    this.held = false;
+    this.decimalPlaces = 0;
+    if (this.max - this.min < 8) {
+        this.decimalPlaces = 1;
+    }
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    this.fade();
+    fill(lerpColor(BACKGROUND, GUI_GREY, this.transition / 10));
+    stroke(GUI_GREY);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.val);
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*****************************************************
+ *          Toolbar
+ *  Contains other GUI elements
+******************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 2;
+    
+    this.buttons = [];
+    this.sliders = [];
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    noStroke();
+    fill(255, 255, 255, 240);
+    rect(this.x, this.y, this.w, this.h, 8);
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].draw();
+    }
+};
+
+Toolbar.prototype.addButton = function(name, updateF, options) {
+    var h = 18;
+    var x = this.x + 5;
+    var y = this.y + this.h;
+    var w = this.w - 10;
+    var button = new Button(x, y, w, h, name, updateF);
+    
+    if (options) {
+        for (var opt in options) {
+            button[opt] = options[opt];
+        }
+    }
+    
+    this.buttons.push(button);
+    this.components.push(button);
+    this.h += h + 8;
+    return button;
+};
+
+Toolbar.prototype.addSlider = function(minX, maxX, nowX, name, updateF) {
+    var h = 10;
+    var x = this.x + 15;
+    var y = this.y + this.h + h;
+    var w = this.w - 30;
+    var slider = new Slider(x, y, w, minX, maxX, nowX, name, updateF);
+    
+    this.sliders.push(slider);
+    this.components.push(slider);
+    this.h += h + 16;
+    return slider;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.buttons.push(button);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mousePressed();
+    }
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.components.length; i++) {
+        this.components[i].mouseReleased();
+    }
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    for (var i = 0; i < this.sliders.length; i++) {
+        if (this.sliders[i].mouseDragged()) {
+            return true;
+        }
+    }
+};
+}
+/*****************************************************
+ *          Deformer Control
+ * A slider that controls a deformer.
+ * Has a close button to remove it from a node and a
+ * handle to allow reordering.
+*****************************************************/
+{
+// Icon draw function
+var drawCloseIcon = function(x, y, r, col) {
+    var d = floor(r / 2);
+    strokeWeight(2);
+    stroke(col);
+    line(x - d, y - d, x + d, y + d);
+    line(x - d, y + d, x + d, y - d);
+};
+
+var drawResetIcon = function(x, y, r, col) {
+    textAlign(CENTER, CENTER);
+    textSize(r * 1.5);
+    fill(col);
+    text("↻", x, y);
+};
+    
+var DeformerControl = function(model, y, name, deformer, shape, index) {
+    this.model = model;
+    this.w = 138;
+    this.h = 46;
+    this.x = width - this.w - 32;
+    this.y = y;
+    
+    this.name = name;
+    this.index = index;
+    this.shape = shape;
+    this.transform = deformer.transform;
+    this.defaultValue = deformer.value || 0;
+    this.value = this.defaultValue;
+    this.selected = false;
+    
+    this.elements = [
+        new Slider(
+            this.x + 32, this.y + 32, this.w - 66,
+            deformer.min, deformer.max, this.value,
+            "", this.update.bind(this)
+        ),
+        new CircleButton(
+            this.x + this.w - 12, this.y + 33, 8,
+            this.reset.bind(this), drawResetIcon
+        )
+    ];
+    
+    this.elements[1].highlightCol = color(0, 100, 160);
+};
+
+DeformerControl.prototype.draw = function() {
+    // Background
+    if (this.shape.mouseOverOrigin()) {
+        strokeWeight(3);
+        stroke(PINK);
+    } else {
+        strokeWeight(1);
+        stroke(GUI_GREY);
+    }
+
+    fill(BACKGROUND);
+    rect(this.x, this.y, this.w, this.h, 8);
+    
+    // Label
+    fill(20);
+    textAlign(CENTER, TOP);
+    textFont(sansFont, 13);
+    var name = this.index + ". " + this.name;
+    text(name, this.x + 18, this.y + 3, this.w - 20, 20);
+    
+    // Grip effect
+    strokeWeight(1);
+    stroke(200);
+    line(this.x + 17, this.y + 1, this.x + 17, this.y + this.h - 1);
+    
+    for (var i = 4; i < 13; i += 4) {
+        stroke(220);
+        line(this.x + i, this.y + 6, this.x + i, this.y + this.h - 6);
+        stroke(200);
+        line(this.x + i + 1, this.y + 6, this.x + i + 1, this.y + this.h - 6);
+    }
+    
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].draw();
+    }
+};
+
+DeformerControl.prototype.update = function(value) {
+    this.value = value;
+    this.model.update();
+};
+
+DeformerControl.prototype.updateDeformer = function() {
+    this.shape.transform(this.transform, this.value, this.shape.origin);
+};
+
+DeformerControl.prototype.updatePosition = function(y) {
+    var dy = y - this.y;
+    this.y = y;
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].y += dy;
+    }
+};
+
+DeformerControl.prototype.remove = function() {
+    this.shape.removeDeformer(this);
+    this.model.removeDeformer(this);
+};
+
+DeformerControl.prototype.reset = function() {
+    this.elements[0].setValue(this.defaultValue);
+};
+
+DeformerControl.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+DeformerControl.prototype.mouseOverMoveTab = function() {
+    return mouseX >= this.x && mouseX <= this.x + 20 &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+DeformerControl.prototype.mousePressed = function() {
+    if (!this.mouseOver()) { return; }
+    
+    for (var i = 0; i < this.elements.length; i++) {
+        if (this.elements[i].mousePressed()) {
+            this.selected = this.elements[i];
+        }
+    }
+    
+    // Are we going to drag this
+    return this.mouseOverMoveTab();
+};
+
+DeformerControl.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].mouseReleased();
+    }
+    
+    if (this.selected) {
+        this.selected.selected = false;
+        this.selected = false;
+    }
+};
+
+DeformerControl.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.mouseDragged();
+    }
+};
+}
+/*****************************************************
+ *          Shape
+ * A set of points, which are connected by straight
+ * lines, and filled. Points are drawn relative to
+ * an origin, which is a node where deformers can be
+ * added.
+*****************************************************/
+{
+var drawCircle = function() {
+    var r = dist(this.finalCoords[0].x,
+                 this.finalCoords[0].y,
+                 this.finalCoords[1].x,
+                 this.finalCoords[1].y);
+    ellipse(this.finalCoords[0].x,
+            this.finalCoords[0].y, r, r);
+};
+    
+var Shape = function(data, name) {
+    this.name = name;
+    
+    if (data.origin) {
+        this.originalOrigin = new PVector(data.origin[0], data.origin[1]);
+    }
+    
+    // Are we creating a circle
+    if (data && data.radius && data.center) {
+        var center = data.center;
+        data.vertices = [center, [center[0] + data.radius, center[1]]];
+        data.drawShape = drawCircle;
+    }
+    
+    this.originalCoords = data.vertices || [];
+
+    this.fillColor = data.fill;
+    this.strokeColor = data.stroke;
+    this.strokeWeight = data.strokeWeight || 1;
+    this.subdivide = constrain(data.subdivide | 0, 0, 4);
+
+    if (data.drawShape) {
+        this.drawShape = data.drawShape.bind(this);
+    }
+
+    // Deformers that control this shape
+    this.deformers = [];
+    
+    // Shapes controlled by this one
+    this.dependentShapes = [];
+    
+    this.resetCoords();
+    this.updateCurvePoints();
+};
+
+// Convert arrays of two coordinates, [x, y], into PVectors
+// With values relative to the origin
+Shape.prototype.resetCoords = function() {
+    this.finalCoords = this.originalCoords.map(function(p) {
+        return new PVector(p[0], p[1]);
+    });
+    
+    if (this.originalOrigin) {
+        this.origin = this.originalOrigin.get();
+    }
+    
+    this.updateCurvePoints();
+};
+
+Shape.prototype.transform = function(transform, value, origin) {
+    if (this.moved) {
+        return;
+    }
+    this.moved = true;
+    
+    var shape, i;
+    for (i = this.finalCoords.length; i--;) {
+        transform(this.finalCoords[i], value, origin);
+    }
+    
+    this.updateCurvePoints();
+    
+    for (i = 0; i < this.dependentShapes.length; i++) {
+        shape = this.dependentShapes[i];
+        transform(shape.origin, value, origin);
+        shape.transform(transform, value, origin);
+    }
+};
+
+Shape.prototype.draw = function() {
+    if (this.fillColor || this.drawShape) {
+        // Shadow
+        noStroke();
+        fill(0, 0, 0, 50);
+        pushMatrix();
+        translate(2, 3);
+        this.drawShape(true);
+        popMatrix();
+        fill(this.fillColor);
+    } else {
+        noFill();
+    }
+    
+    if (this.strokeColor) {
+        strokeWeight(this.strokeWeight);
+        stroke(this.strokeColor);
+    } else {
+        noStroke();
+    }
+    
+    this.drawShape();
+};
+
+Shape.prototype.drawShape = function() {
+    // Draw a polygon by drawing a line from each point in drawPoints
+    beginShape();
+    for (var i = 0; i < this.curvePoints.length; i++) {
+        vertex(this.curvePoints[i].x, this.curvePoints[i].y);
+    }
+    endShape(CLOSE);
+};
+
+Shape.prototype.drawNode = function() {
+    if (this.origin) {
+    var d = 10;
+    
+    if (this.deformers.length) {
+        d += 4;
+        var isPink = this.mouseOverOrigin();
+        if (!isPink) {
+            for (var i = 0; i < this.deformers.length; i++) {
+                if (this.deformers[i].mouseOver()) {
+                    isPink = true;
+                    break;
+                }
+            }
+        }
+        fill(isPink ? PINK : ORANGE);
+    } else {
+        fill(120);
+    }
+    
+    strokeWeight(1);
+    stroke(250, 250, 250);
+    ellipse(this.origin.x, this.origin.y, d, d);
+    
+    // TODO: Only do this when deformers reordered
+    var deformers = [];
+    for (var i = 0; i < this.deformers.length; i++) {
+        deformers.push(this.deformers[i].index);
+    }
+    
+    deformers.sort(function(a, b) { return a - b; });
+    
+    textAlign(LEFT, BASELINE);
+    textFont(serifFont, 16);
+    fill(PINK);
+    text(deformers.join(", "), this.origin.x + 8, this.origin.y);
+    }
+};
+
+Shape.prototype.updateCurvePoints = function() {
+    if (!this.subdivide) {
+        this.curvePoints = this.finalCoords;
+        return;
+    }
+    
+    this.curvePoints = [];
+    
+    var q = pow(2, this.subdivide);
+    var q2 = q * q;
+    var n = this.finalCoords.length;
+    var p1, p2, p3, a, b, c, s, t, x, y;
+    
+    for (var i = 0; i < n; i++) {
+        p1 = this.finalCoords[(i + n - 1) % n];
+        p2 = this.finalCoords[i];
+        p3 = this.finalCoords[(i + 1) % n];
+        
+        for (t = 0; t < q; t++) {
+            s = q - t - 1;
+            a = (s * s + s) >> 1;
+            c = (t * t + t) >> 1;
+            b = q2 - a - c;
+            
+            x = (p1.x * a + p2.x * b + p3.x * c) / q2;
+            y = (p1.y * a + p2.y * b + p3.y * c) / q2;
+            this.curvePoints.push({x: x, y: y});
+        }
+    }
+};
+
+Shape.prototype.addDependentShape = function(shape) {
+    this.dependentShapes.push(shape);
+};
+
+Shape.prototype.mouseOverOrigin = function() {
+    return dist(mouseX, mouseY, this.origin.x, this.origin.y) <= 10;
+};
+}
+/*****************************************************
+ *          Model
+ * A character consisting of a set shapes.
+ * It also stores the deformers when they are added.
+*****************************************************/
+{
+var Model = function(shapes) {
+    this.shapes = {};
+    this.deformers = [];
+    this.id = 0;
+    
+    // Position for avar controls
+    this.y = 10;
+    this.dy = 50;
+    
+    // Scroll bar ball
+    this.scrollX = width - 16;
+    this.scrollY = 20;
+    this.scrollH = height - 20;
+    this.scrollR = 12;
+    this.scrollPosition = 0;
+    this.setScrollAmount();
+    
+    this.selectedControl = false;
+
+    if (shapes) { this.addShapes(shapes || []); }
+    if (deformers) { this.addDeformers(deformers); }
+    if (connections) { this.addConnections(connections); }
+};
+
+Model.prototype.draw = function() {
+    for (var shape in this.shapes) {
+        this.shapes[shape].draw();
+    }
+    
+    if (!showing['Show final model']) {
+        for (var shape in this.shapes) {
+            this.shapes[shape].drawNode();
+        }
+    }
+    
+    this.drawControls();
+};
+
+Model.prototype.drawControls = function() {
+    for (var i = 0; i < this.deformers.length; i++) {
+        var deformer = this.deformers[i];
+        
+        if (deformer === this.selectedDeformer) {
+            cursor(MOVE);
+        } else {
+            deformer.draw();
+            if (deformer.mouseOverMoveTab()) {
+                cursor(MOVE);
+            } else if (deformer.elements[0].mouseOver() ||
+                       deformer.elements[1].mouseOver()) {
+                cursor(HAND);
+            }
+        }
+    }
+    
+    if (this.selectedDeformer) {
+        var x = this.selectedDeformer.x;
+        var y = this.selectedDeformer.y;
+        
+        pushMatrix();
+            translate(x, y + this.selectedDeformer.dragY);
+            rotate(5);
+            // Shadow
+            noStroke();
+            fill(0, 0, 0, 50);
+            rect(3, 3, this.selectedDeformer.w, this.selectedDeformer.h, 8);
+            
+            // Moving deformer
+            translate(-x, -y);
+            this.selectedDeformer.draw();
+        popMatrix();
+    }
+    
+    // Draw scrollbar
+    if (this.maxScroll) {
+        fill(BACKGROUND);
+        stroke(GUI_GREY);
+        strokeWeight(4);
+        
+        line(this.scrollX, 10, this.scrollX, this.scrollH + 10);
+        ellipse(this.scrollX, this.scrollY, this.scrollR * 2, this.scrollR * 2);
+    }
+};
+
+Model.prototype.setScrollAmount = function() {
+    // Length of content that is scrollable
+    this.maxScroll = max(0, this.y + this.dy * this.deformers.length - this.scrollH);
+    this.scrollScale = this.maxScroll / this.scrollH;
+    this.scrollY = map(this.scrollPosition, 0, this.maxScroll, 20, this.scrollH);
+};
+
+Model.prototype.addShapes = function(shapes) {
+    for (var i = 0; i < shapes.length; i++) {
+        if (shapes[i]) {
+            var name = shapes[i].name || "shape" + this.id++;
+            this.shapes[name] = new Shape(shapes[i], name);
+        }
+    }
+};
+
+Model.prototype.getShape = function(name) {
+    var shape = this.shapes[name];
+    if (shape) {
+        return shape;
+    } else {
+        println("ERROR: Invalid index: " + name);
+    }
+};
+
+Model.prototype.addConnections = function(connections) {
+    for (var i = 0; i < connections.length; i++) {
+        var shapes = connections[i].split(/\s*->\s*/);
+        for (var j = 0; j < shapes.length - 1; j++) {
+            var parent = this.getShape(shapes[j]);
+            var child = this.getShape(shapes[j + 1]);
+            if (parent && child && parent !== child) {
+                parent.dependentShapes.push(child);
+            }
+        }
+    }
+};
+
+Model.prototype.addDeformers = function(deformers) {
+    for (var i = 0; i < deformers.length; i++) {
+        var d = deformers[i].split(/\s*->\s*/);
+        var deformer = deformerData[d[0]];
+        if (deformer) {
+            var shape = this.getShape(d[1]);
+            if (!shape) { continue; }
+            
+            var name = d[0][0].toUpperCase() + d[0].slice(1) + " " + d[1];
+            var n = this.deformers.length;
+            var y = this.y + this.dy * n;
+            var deformer = new DeformerControl(this, y, name, deformer, shape, n + 1);
+            
+            this.deformers.push(deformer);
+            shape.deformers.push(deformer);
+        } else {
+            println("ERROR: no such deformer, " + d[0]);
+        }
+    }
+    
+    this.setScrollAmount();
+    this.scrollPosition = this.maxScroll;
+    this.scrollY = this.scrollH;
+    this.reorderDeformers(0);
+};
+
+Model.prototype.addDeformer = function(deformer, shapeName) {
+    var shape = this.getShape(shapeName);
+    if (!shape) { return; }
+    
+    var name = deformer.name + " " + shapeName;
+    var n = this.deformers.length;
+    var y = this.y + this.dy * n;
+    var deformer = new DeformerControl(this, y, name, deformer, shape, n + 1);
+    
+    this.deformers.push(deformer);
+    shape.deformers.push(deformer);
+    
+    this.setScrollAmount();
+    this.scrollPosition = this.maxScroll;
+    this.scrollY = this.scrollH;
+    this.reorderDeformers(0);
+};
+
+Model.prototype.removeDeformer = function(deformer) {
+    var index = this.deformers.indexOf(deformer);
+    if (index !== -1) {
+        this.deformers.splice(index, 1);
+        this.setScrollAmount();
+        this.reorderDeformers(0);
+    }
+};
+
+// Drag and drop deformers to move them
+Model.prototype.rearrangeDeformers = function() {
+    var t = this.selectedDeformer;
+    if (!t || this.deformers.length < 2) { return; }
+    
+    var index = this.deformers.indexOf(t);
+    
+    if (index < this.deformers.length - 1 && t.dragY > t.h / 2) {
+        // Move down
+        this.deformers[index] = this.deformers[index + 1];
+        this.deformers[index + 1] = t;
+        t.dragY -= this.deformers[index].h;
+        this.reorderDeformers(index);
+    } else if (index > 0 && -t.dragY > t.h / 2) {
+        // Move up
+        this.deformers[index] = this.deformers[index - 1];
+        this.deformers[index - 1] = t;
+        t.dragY += this.deformers[index].h;
+        this.reorderDeformers(index - 1);
+    }
+};
+
+// Change the y positions of deformer controls to match
+// their order, starting with a given control
+Model.prototype.reorderDeformers = function(start) {
+    for (var i = start; i < this.deformers.length; i++) {
+        this.deformers[i].updatePosition(this.y + i * this.dy - this.scrollPosition);
+        this.deformers[i].index = i + 1;
+    }
+    this.update();
+};
+
+Model.prototype.update = function() {
+    // Reset all coords equal to original positions
+    for (var shape in this.shapes) {
+        this.shapes[shape].resetCoords();
+    }
+    
+    // Go through deformers in order, updating each shape
+    for (var i = 0; i < this.deformers.length; i++) {
+        // Set moved to false so we can make sure we there are no infinite loops
+        for (var shape in this.shapes) {
+            this.shapes[shape].moved = false;
+        }
+        
+        this.deformers[i].updateDeformer();
+    }
+};
+
+Model.prototype.mousePressed = function() {
+    if (this.maxScroll && dist(mouseX, mouseY, this.scrollX, this.scrollY) <= this.scrollR) {
+        this.selectedScroll = true;
+        return;
+    }
+    
+    for (var i = 0; i < this.deformers.length; i++) {
+        if (this.deformers[i].mousePressed()) {
+            this.selectedDeformer = this.deformers[i];
+            this.selectedDeformer.dragX = 0;
+            this.selectedDeformer.dragY = 0;
+        }
+    }
+};
+
+Model.prototype.mouseReleased = function() {
+    if (this.selectedDeformer) {
+        this.selectedDeformer = false;
+    } else {
+        for (var i = 0; i < this.deformers.length; i++) {
+            this.deformers[i].mouseReleased();
+        }
+    }
+    this.selectedScroll = false;
+};
+
+Model.prototype.mouseDragged = function() {
+    if (this.selectedDeformer) {
+        this.selectedDeformer.dragY += mouseY - pmouseY;
+        this.rearrangeDeformers();
+    } else if (this.selectedScroll) {
+        var d = this.scrollScale * (mouseY - pmouseY);
+        this.scrollPosition = constrain(this.scrollPosition + d, 0, this.maxScroll);
+        this.scrollY = map(this.scrollPosition, 0, this.maxScroll, 20, this.scrollH);
+        this.reorderDeformers(0);
+    } else {
+        for (var i = 0; i < this.deformers.length; i++) {
+            this.deformers[i].mouseDragged();
+        }
+    }
+};
+}
+/*****************************************************
+ * Create display objects
+*****************************************************/
+
+// Create our model object
+var model = new Model(shapes, connections, deformers);
+
+/*****************************************************
+ * Create interface
+*****************************************************/
+{
+var toolbar = new Toolbar(10, 10, 150);
+toolbar.addOptions(showing);
+}
+/*****************************************************
+ *  Main loop
+*****************************************************/
+
+draw = function() {
+    cursor();
+    drawBackground();
+    model.draw();
+    toolbar.draw();
+};
+
+/*****************************************************
+ *  Event handling
+*****************************************************/
+
+mousePressed = function() {
+    model.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    model.mouseDragged();
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    model.mouseReleased();
+    toolbar.mouseReleased();
+};
+
+mouseOut = mouseReleased;

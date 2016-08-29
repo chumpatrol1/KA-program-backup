@@ -1,0 +1,724 @@
+/********************************************************
+ * 
+**********************************************************/
+
+var img_x = 0;
+var img_w = 400;
+
+var legR = img_w / PI;
+var legInner = legR - 16;
+var legZ = 1450;
+var legR2 = legR * legR;
+var legInner2 = legInner * legInner;
+
+var cols = [
+    color(0),
+    color(200, 0, 0),
+    color(0, 200, 0),
+    color(50, 50, 240),
+    color(214, 34, 202),
+    color(212, 141, 34),
+    color(0, 255, 234)
+];
+
+var vertices = [[160, 20], [210, 10], [260, 60], [180, 110], [150, 80]];
+
+var innerEdges = [];
+
+// Coordinates of the inner edge points on 3D cylinder
+var coords1 = [];
+var coords2 = [];
+var normals1 = [];
+var normals2 = [];
+
+// Edge from scale surface to skin surface
+var edges1 = [];
+
+// Edge along scale surface
+var edges2 = [];
+
+// Edge along skin surface
+var edges3 = [];
+
+var n = vertices.length;
+
+// Get coordinates on 2D plane for inner edge
+for (var i = 0; i < n; i++) {
+    var x = 190;
+    var y = 60;
+    var edgeDistance = 16;
+    
+    var coord = vertices[i];
+    var dx = coord[0] - x;
+    var dy = coord[1] - y;
+    var d = sqrt(dx * dx + dy * dy) - edgeDistance;
+    var angle = atan2(dy, dx);
+    innerEdges.push([x + d * cos(angle), y + d * sin(angle)]);
+}
+
+var inner = [
+    [-119.79, 255.78, 1543.16],
+    [-97.66, 224.89, 1581.7],
+    [-73.44, 238.58, 1604.01],
+    [-72.62, 276.78, 1604.59],
+    [-76.54, 280.08, 1601.75],
+    [-111.54, 286.46, 1561.41],
+    [-118.1, 277.36, 1547.58]
+];
+var outer = [
+[-102.32, 255.64, 1532.39],
+[-81.91, 219.95, 1569.35],
+[-58.76, 236.41, 1589.81],
+[-58.09, 279.06, 1590.24],
+[-61.7, 282.9, 1587.82],
+[-95.12, 290.62, 1549.7],
+[-100.85, 279.88, 1536.71]];
+
+inner = [
+    [-115.62, 256.08, 1553.33],
+    [-98.71, 235.77, 1580.42],
+    [-81.3, 243.36, 1597.99],
+    [-80.44, 271.77, 1598.7],
+    [-83.6, 273.89, 1596.03],
+    [-108.46, 277.31, 1566.69],
+    [-114.22, 271.81, 1556.25],
+];
+outer = [
+    [-102.32, 255.64, 1532.39],
+    [-81.91, 219.95, 1569.35],
+    [-58.76, 236.41, 1589.81],
+    [-58.09, 279.06, 1590.24],
+    [-61.7, 282.9, 1587.82],
+    [-95.12, 290.62, 1549.7],
+    [-100.85, 279.88, 1536.71],
+];
+
+//Scale 59
+inner = [
+    [103.36, 277.79, 1574.35],
+    [110.67, 275.86, 1562.96],
+    [121.98, 292.89, 1536.5],
+    [114.17, 320.23, 1556.35],
+    [109.13, 323.56, 1565.58],
+    [96.96, 302.53, 1582.52],
+];
+outer = [
+    [84.48, 269.26, 1566.2],
+    [93.38, 265.86, 1552.91],
+    [104.88, 290.85, 1522.78],
+    [97.52, 329.59, 1544.82],
+    [91.55, 333.51, 1556.01],
+    [76.09, 304.02, 1575.69],
+];
+
+// Scale 64
+inner = [
+[-53.78, 240.24, 1334.59],
+[-32.4, 221.9, 1326.87],
+[3.79, 234.74, 1322.73],
+[12.78, 254.73, 1323.32],
+[11.1, 262.27, 1323.16],
+[-16.25, 289.73, 1323.72],
+[-53.57, 274, 1334.49],
+];
+outer = [
+[-52.21, 236.24, 1356.23],
+[-29.91, 212.43, 1346.93],
+[9.76, 228.49, 1343.12],
+[19.12, 254.63, 1344.39],
+[17.52, 264.43, 1344.12],
+[-12.45, 299.62, 1343.4],
+[-51.71, 278.89, 1355.96],
+];
+
+/*
+// Scale 46
+inner = [
+    [-46.24, 372.87, 1381.37],
+    [-13.36, 348.5, 1373.38],
+    [-9.41, 353.19, 1373.02],
+    [-5.93, 383.86, 1372.81],
+    [-35.46, 405.83, 1377.71],
+    [-42.34, 403.33, 1379.92],
+];
+outer = [
+    [-46.44, 370.26, 1403.24],
+    [-7.82, 339.38, 1392.96],
+    [-3.15, 344.95, 1392.72],
+    [3.15, 386.38, 1392.72],
+    [-32.44, 415.31, 1397.69],
+    [-40.02, 411.69, 1400.41],
+];
+
+inner = [
+    [-28.23, 570.3, 1325.85],
+    [-20.37, 568.2, 1324.32],
+    [-10.85, 568.61, 1323.14],
+    [-7.06, 569.77, 1322.87],
+    [-9.87, 582.22, 1323.06],
+    [-13.37, 583.83, 1323.38],
+    [-18.29, 578.89, 1324],
+];
+outer = [
+    [-43.73, 563.02, 1351.99],
+    [-29.78, 547.2, 1346.89],
+    [6.65, 550.62, 1342.88],
+    [14.06, 559.28, 1343.6],
+    [5.04, 602.83, 1342.79],
+    [-5.12, 608.78, 1342.8],
+    [-23.47, 603, 1345.27],
+];
+*/
+
+//n = inner.length;
+
+// Convert 2D coordinates to 3D coordinates
+/*
+var getCoords = function() {
+    for (var i = 0; i < n; i++) {
+        var coord = innerEdges[i];
+        var x = r1 * sin((coord[0] - img_x) * 180 / img_w - 90);
+        var y = coord[1];
+        var z = legZ - sqrt(r1 * r1 - x * x);
+        
+        var coord = vertices[i];
+        var x2 = r2 * sin((coord[0] - img_x) * 180 / img_w - 90);
+        var y2 = coord[1];
+        var z2 = legZ - sqrt(r2 * r2 - x2 * x2);
+        
+        coords1.push([x, y, z]);
+        coords2.push([x2, y2, z2]);
+        edges1.push([x2 - x, y2 - y, z2 - z]);
+    }
+};
+*/
+//getCoords();
+
+// Get 3D coordinates based on inner and outer arrays
+var getCoords2 = function() {
+    n = inner.length;
+    
+    for (var i = 0; i < n; i++) {
+        //inner[i][1] -= 300;
+        //inner[i][2] -= 1400;
+        //outer[i][1] -= 300;
+        //outer[i][2] -= 1400;
+        edges1.push([
+            outer[i][0] - inner[i][0],
+            outer[i][1] - inner[i][1],
+            outer[i][2] - inner[i][2]
+        ]);
+    }
+};
+getCoords2();
+
+var bary = [];
+var edges4 = [];
+
+// Get more edges and normals
+for (var i = 0; i < n; i++) {
+    var p1 = inner[i];
+    var p2 = inner[(i + n - 1) % n];
+    var px = p2[0] - p1[0];
+    var py = p2[1] - p1[1];
+    var pz = p2[2] - p1[2];
+
+    // Edge along the scale at the surface
+    edges2.push([px, py, pz]);
+
+    // Normal of plane
+    var edge1 = edges1[i];
+    var px2 = py * edge1[2] - pz * edge1[1];
+    var py2 = pz * edge1[0] - px * edge1[2];
+    var pz2 = px * edge1[1] - py * edge1[0];
+    
+    var d = 1 / sqrt(px2 * px2 + py2 * py2 + pz2 * pz2);
+    normals1.push([px2 * d, py2 * d, pz2 * d]);
+
+    var v0 = px * px + py * py + pz * pz;
+    var v1 = edge1[0] * edge1[0] + edge1[1] * edge1[1] + edge1[2] * edge1[2];
+    var v2 = px * edge1[0] + py * edge1[1] + pz * edge1[2];
+    v2 *= v2;
+    bary.push(v1 * v2 - v2);
+    
+    var p1 = outer[i];
+    var p2 = outer[(i + n - 1) % n];
+    var px = p2[0] - p1[0];
+    var py = p2[1] - p1[1];
+    var pz = p2[2] - p1[2];
+    edges3.push([px, py, pz]);
+    
+    var edge1 = edges1[(i + n - 1) % n];
+    var px2 = py * edge1[2] - pz * edge1[1];
+    var py2 = pz * edge1[0] - px * edge1[2];
+    var pz2 = px * edge1[1] - py * edge1[0];
+    var d = 1 / sqrt(px2 * px2 + py2 * py2 + pz2 * pz2);
+    normals2.push([px2 * d, py2 * d, pz2 * d]);
+    
+    var p1 = outer[i];
+    var p2 = inner[(i + n - 1) % n];
+    var px = p2[0] - p1[0];
+    var py = p2[1] - p1[1];
+    var pz = p2[2] - p1[2];
+    edges4.push([px, py, pz]);
+
+}
+
+// Print out some properties
+for (var i = 0; i < n; i++) {
+    //println(normals1[i]);
+    //println(edges2[i]);
+}
+
+var rayCols = [];
+var nodes = [];
+
+// Create nodes for drawing
+for (var i = 0; i < n; i++) {
+    nodes.push(inner[i]);
+    nodes.push([
+        inner[i][0] + edges1[i][0],
+        inner[i][1] + edges1[i][1],
+        inner[i][2] + edges1[i][2]
+    ]);
+    nodes.push([
+        inner[i][0] + edges2[i][0] + edges1[(i + n - 1) % n][0],
+        inner[i][1] + edges2[i][1] + edges1[(i + n - 1) % n][1],
+        inner[i][2] + edges2[i][2] + edges1[(i + n - 1) % n][2]
+    ]);
+    nodes.push([
+        inner[i][0] + edges2[i][0],
+        inner[i][1] + edges2[i][1],
+        inner[i][2] + edges2[i][2]
+    ]);
+}
+
+// Find minT then check edges
+var calculateIntersection = function(rx, ry, rz) {
+    var ix, iy, iz, hx, hy, hz, face = -1;
+    var minT = Infinity;
+    
+    var t1, j;
+    for (var i = 0; i < n; i++) {
+        var norm1 = normals1[i];
+        var norm2 = normals2[i];
+
+        var inCoord = inner[i];
+        var outCoord = outer[i];
+        
+        var t = minT;
+        
+        // Find intersection with first normal
+        var dot = norm1[0] * rx + norm1[1] * ry + norm1[2] * rz;
+        if (dot > 0) {
+            t1 = (inCoord[0] * norm1[0] + inCoord[1] * norm1[1] + inCoord[2] * norm1[2]) / dot;
+            if (t1 > 0) { t = t1; }
+        }
+        
+        // Find intersection with second normal
+        dot = norm2[0] * rx + norm2[1] * ry + norm2[2] * rz;
+        
+        if (dot > 0) {
+
+            t1 = (outCoord[0] * norm2[0] + outCoord[1] * norm2[1] + outCoord[2] * norm2[2]) / dot;
+            if (t1 > 0 && t1 < t) { t = t1; }
+        }
+        
+        if (t >= minT) { continue; }
+
+        //println(inCoord[1] + " " + norm1[1]);
+        
+        // Find intersection
+        ix = rx * t;
+        iy = ry * t;
+        iz = rz * t;
+        
+        d = ix * ix + (iz - legZ) * (iz - legZ);
+        //if (d < legInner2 || d > legR2) { continue; }
+
+        // Check we are in front of leg
+        if (iz < legZ) {
+            j = (i + n - 1) % n;
+            if (
+
+                // Left
+                edges1[i][0] * (iy-inner[i][1]) - edges1[i][1] * (ix-inner[i][0]) < 0 &&
+                // Right
+                edges1[j][0] * (iy-inner[j][1]) - edges1[j][1] * (ix-inner[j][0]) > 0 &&
+                // Upper
+                edges2[i][0] * (iy-inner[i][1]) - edges2[i][1] * (ix-inner[i][0]) > 0 &&
+                // Lower
+                edges3[i][0] * (iy-outer[j][1]) - edges3[i][1] * (ix-outer[j][0]) < 0
+            ) {
+                
+                    //println(sqrt(d));
+                    hx = ix;
+                    hy = iy;
+                    hz = iz;
+                    minT = t;
+                    face = i;
+                    
+                    //println(rx +" " + ry + " " + rz);
+                    //println(norm1);
+            }
+        }
+    }
+    
+    if (face > -1) {
+        rayCols.push(cols[face]);
+        //println(hx + " " + hy + " " + hz);
+        return [hx, hy, hz];
+    }
+    
+};
+
+// Check edges for both planes
+var calculateIntersection2 = function(rx, ry, rz) {
+    var ix, iy, iz, hx, hy, hz, face = -1;
+    var minT = Infinity;
+    
+    var t1, j;
+    for (var i = 0; i < n; i++) {
+        var inCoord = inner[i];
+        var outCoord = outer[i];
+        var t;
+        
+        j = (i + n - 1) % n;
+        
+        // Find intersection with first normal
+        var norm = normals1[i];
+        var dot = norm[0] * rx + norm[1] * ry + norm[2] * rz;
+        if (dot > 0) {
+            t = (inCoord[0] * norm[0] + inCoord[1] * norm[1] + inCoord[2] * norm[2]) / dot;
+            if (t > 0 && t < minT) {
+                // Find intersection
+                ix = rx * t;
+                iy = ry * t;
+                iz = rz * t;
+                //d = ix * ix + (iz - legZ) * (iz - legZ);
+                // Check we are in front of leg
+                if (iz < legZ /*&& d < legR2*/) {
+                    if (
+            
+                        // Left
+                        edges1[i][0] * (iy-inner[i][1]) - edges1[i][1] * (ix-inner[i][0]) < 0 &&
+                        // Right
+                        edges1[j][0] * (iy-inner[j][1]) - edges1[j][1] * (ix-inner[j][0]) > 0 &&
+                        // Upper
+                        edges2[i][0] * (iy-inner[i][1]) - edges2[i][1] * (ix-inner[i][0]) > 0 &&
+                        // Lower
+                        edges3[i][0] * (iy-outer[j][1]) - edges3[i][1] * (ix-outer[j][0]) < 0
+                    ) {
+                            hx = ix;
+                            hy = iy;
+                            hz = iz;
+                            minT = t;
+                            face = i;
+                    }
+                }
+                
+            }
+        }
+        
+        var norm = normals2[i];
+        var dot = norm[0] * rx + norm[1] * ry + norm[2] * rz;
+        if (dot > 0) {
+            t = (inCoord[0] * norm[0] + inCoord[1] * norm[1] + inCoord[2] * norm[2]) / dot;
+            if (t > 0 && t < minT) {
+                // Find intersection
+                ix = rx * t;
+                iy = ry * t;
+                iz = rz * t;
+                //d = ix * ix + (iz - legZ) * (iz - legZ);
+                
+                // Check we are in front of leg
+                if (iz < legZ /*&& d < legR2*/) {
+                    if (
+            
+                        // Left
+                        edges1[i][0] * (iy-inner[i][1]) - edges1[i][1] * (ix-inner[i][0]) < 0 &&
+                        // Right
+                        edges1[j][0] * (iy-inner[j][1]) - edges1[j][1] * (ix-inner[j][0]) > 0 &&
+                        // Upper
+                        edges2[i][0] * (iy-inner[i][1]) - edges2[i][1] * (ix-inner[i][0]) > 0 &&
+                        // Lower
+                        edges3[i][0] * (iy-outer[j][1]) - edges3[i][1] * (ix-outer[j][0]) < 0
+                    ) {
+                            hx = ix;
+                            hy = iy;
+                            hz = iz;
+                            minT = t;
+                            face = i;
+                    }
+                }
+                
+            }
+        }
+
+    }
+    
+    if (face > -1) {
+        rayCols.push(cols[face]);
+        //println(hx + " " + hy + " " + hz);
+        return [hx, hy, hz];
+    }
+    
+};
+
+// Check edges for both planes
+var calculateIntersection3 = function(rx, ry, rz) {
+    var ix, iy, iz, hx, hy, hz, face = -1;
+    var minT = Infinity;
+    
+    var t1, j;
+    for (var i = 6; i < n; i++) {
+        var inCoord = inner[i];
+        var t;
+        
+        j = (i + n - 1) % n;
+        
+        // Find intersection with first normal
+        var norm = normals1[i];
+        var dot = norm[0] * rx + norm[1] * ry + norm[2] * rz;
+    
+        if (dot > 0) {
+           
+            t = (inCoord[0] * norm[0] + inCoord[1] * norm[1] + inCoord[2] * norm[2]) / dot;
+            
+            if (t > 0 && t < minT) {
+                
+                // Find intersection
+                ix = rx * t;
+                iy = ry * t;
+                iz = rz * t;
+                //d = ix * ix + (iz - legZ) * (iz - legZ);
+                // Check we are in front of leg
+                if (iz < legZ /*&& d < legR2*/) {
+                    if (
+                        // Left
+                        edges1[i][0] * (iy-inner[i][1]) - edges1[i][1] * (ix-inner[i][0]) < 0 &&
+                        // Upper
+                        edges2[i][0] * (iy-inner[i][1]) - edges2[i][1] * (ix-inner[i][0]) > 0 &&
+                        // Lower
+                        edges4[i][0] * (iy-inner[j][1]) - edges4[i][1] * (ix-inner[j][0]) < 0
+                    ) {
+                        
+                            hx = ix;
+                            hy = iy;
+                            hz = iz;
+                            minT = t;
+                            face = i;
+                            
+                    }
+                }
+                
+            }
+        }
+
+        var outCoord = outer[i];
+        var norm = normals2[i];
+        var dot = norm[0] * rx + norm[1] * ry + norm[2] * rz;
+        if (dot > 0) {
+            t = (outer[j][0] * norm[0] + outer[j][1] * norm[1] + outer[j][2] * norm[2]) / dot;
+            if (t > 0 && t < minT) {
+                // Find intersection
+                ix = rx * t;
+                iy = ry * t;
+                iz = rz * t;
+                //d = ix * ix + (iz - legZ) * (iz - legZ);
+                
+                // Check we are in front of leg
+                if (iz < legZ && d < legR2) {
+                    if (
+                        // Right
+                        edges1[j][0] * (iy-inner[j][1]) - edges1[j][1] * (ix-inner[j][0]) > 0 &&
+                        // Upper
+                       edges4[i][0] * (iy-outer[i][1]) - edges4[i][1] * (ix-outer[i][0]) > 0 &&
+                        // Lower
+                        edges3[i][0] * (iy-outer[j][1]) - edges3[i][1] * (ix-outer[j][0]) < 0
+                    ) {
+                        
+                            hx = ix;
+                            hy = iy;
+                            hz = iz;
+                            minT = t;
+                            face = i;
+                            
+                    }
+                }
+                
+            }
+        }
+
+
+    }
+    
+    if (face > -1) {
+        rayCols.push(cols[face]);
+        //println(hx + " " + hy + " " + hz);
+        return [hx, hy, hz];
+    }
+    
+};
+
+// Fire an array of rays and test where they hit the plane
+// Add nodes there
+var rayTrace = function() {
+    var d = 1.5;
+    var z = legZ - 100;
+    
+    var x, y, t;
+    
+    for (x = -60; x < 20; x += d) {
+        for (y = 200; y < 320; y += d) {
+            t = calculateIntersection3(x, y, z);
+            if (t) {
+                nodes.push(t);
+                //println(x + " " + y + " " + z);
+                //println(t);
+            }
+        }
+    }
+};
+
+rayTrace();
+
+var t = calculateIntersection(-18, 309, 1400);
+//println(t);
+
+var drawPlane = function() {
+    strokeWeight(1);
+    noFill();
+    
+    for (var i = 0; i < n; i++) {
+        stroke(cols[i]);
+        var j = i * 4;
+        /*
+        quad(nodes[j][0], nodes[j][1], nodes[j + 1][0], nodes[j + 1][1],
+             nodes[j + 2][0], nodes[j + 2][1], nodes[j + 3][0], nodes[j + 3][1]);
+        */
+        
+        // Edge 1
+        line(nodes[j][0], nodes[j][1], nodes[j + 1][0], nodes[j + 1][1]);
+        // Edge 2
+        line(nodes[j][0], nodes[j][1], nodes[j + 3][0], nodes[j + 3][1]);
+        
+        // Normal
+        //stroke(60, 100, 240);
+        strokeWeight(2);
+        var coord = inner[i];
+        var norm = normals1[i];
+        //line(coord[0], coord[1], coord[0] + norm[0] * 20, coord[1] + norm[1] * 20);
+    }
+    
+/*
+    var coord = coords2[n - 1];
+    var norm = normals2[0];
+    line(coord[0], coord[1], coord[0] + norm[0] * 20, coord[1] + norm[1] * 20);
+*/
+};
+
+var drawRayPoints = function() {
+    strokeWeight(3);
+    
+    var j = 0;
+    for (var i = n * 4; i < nodes.length; i++) {
+        stroke(rayCols[j++] + (100<<24));
+        point(nodes[i][0], nodes[i][1]);
+    }
+    
+};
+
+var draw2D = function() {
+    noFill();
+    pushMatrix();
+    translate(200, 0);
+    
+    for (var i = 0; i < n; i++) {
+        stroke(cols[i]);
+        
+        strokeWeight(4);
+        // Inner
+        point(inner[i][0], inner[i][1]);
+        // Outer
+        point(outer[i][0], outer[i][1]);
+        
+        strokeWeight(1);
+        // Edge 1
+        line(inner[i][0], inner[i][1],
+             inner[i][0] + edges1[i][0],
+             inner[i][1] + edges1[i][1]);
+        
+        // Edge 2
+        line(inner[i][0], inner[i][1],
+             inner[i][0] + edges2[i][0],
+             inner[i][1] + edges2[i][1]);
+             
+        // Edge 3
+        /*
+        line(outer[i][0], outer[i][1],
+             outer[i][0] + edges3[i][0],
+             outer[i][1] + edges3[i][1]);*/
+             
+        // Edge 4
+        line(outer[i][0], outer[i][1],
+             outer[i][0] + edges4[i][0],
+             outer[i][1] + edges4[i][1]);
+        
+    }
+    
+    popMatrix();
+};
+
+var draw = function() {
+    // Move to centre of screen
+    pushMatrix();
+    translate(200, -200);  
+    
+    background(255);
+    
+    drawPlane();
+    drawRayPoints();
+    draw2D();
+    
+    /*
+    stroke(255, 0, 0);
+    stroke(8);
+    point(0, 0);
+    stroke(2);
+    line(nodes[0][0], nodes[0][1], nodes[1][0], nodes[1][1]);
+    */
+    
+    popMatrix();
+};
+
+var rotateY3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, z;
+    
+    for (var i = 0; i < nodes.length; i+=1) {
+        x = nodes[i][0];
+        z = nodes[i][2] - legZ;
+        nodes[i][0] = ct * x + st * z;
+        nodes[i][2] = legZ + ct * z - st * x;
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var y, z;
+    
+    for (var i = 0; i < nodes.length; i+=1) {
+        y = nodes[i][1];
+        z = nodes[i][2] - legZ;
+        nodes[i][1] = ct * y - st * z;
+        nodes[i][2] = legZ + st * y + ct * z;
+    }
+};
+
+mouseDragged = function() {
+    rotateY3D(mouseX - pmouseX);
+    rotateX3D(mouseY - pmouseY);
+};

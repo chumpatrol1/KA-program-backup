@@ -1,0 +1,544 @@
+/*************************************
+ * 
+ * Version history
+ * {
+ * 5.4 {
+ *    Create grid of hex tiles
+ *    Find neighbours
+ *    Mouseover selection
+ *    Start generating tile images
+ * }
+ * 6.4 {
+ *    Create two-colour textures
+ *    Load multiple images
+ * }
+ * }
+ * 
+ * TODO:
+ *  Improve merge with neighbouring tiles
+ *  Vary noise for terrain types?
+ *  Contours
+**************************************/
+
+// Square root of 3 is very useful for regular hexagons
+var R3 = sqrt(3);
+var halfAngle = 2 * asin(1);
+var hexAngle = halfAngle / 3;
+var hexAngleI = 1 / hexAngle;
+
+// Light vector
+var lightX = 8;
+var lightY = 5;
+var lightZ = -10;
+
+// Normalise
+var lightD = -sqrt(lightX * lightX + lightY * lightY + lightZ * lightZ);
+lightX /= lightD;
+lightY /= lightD;
+lightZ /= lightD;
+
+var DRAW_BORDER = 0;
+var LOAD_TILES = -1;
+
+// Map tile ID to its properties
+var tileTypes = {
+    G: {
+        name: 'Grass',
+        color1: color(60, 150, 70),
+        color2: color(106, 176, 92),
+        noiseY: 0.2
+    },
+    F: {
+        name: 'Forest',
+        color1: color(40, 120, 60),
+        color2: color(100, 170, 90),
+         noiseX: 0.07,
+        noiseY: 0.07
+    },
+    S: {
+        name: 'Sand',
+        color1: color(180, 150, 90),
+        color2: color(195, 175, 145),
+        noiseX: 0.12,
+        noiseY: 0.3
+    },
+    W: {
+        name: 'Water',
+        color1: color(40, 80, 185)
+    }
+};
+
+// 2D array of the types for each tile
+var terrainMap = ['SS',];
+
+// 2D array of heights for tile centers
+var heightMap = [[100, 50]];
+
+var writeVector = function(arr) {
+    return round(100 * arr[0]) / 100 + ", " + 
+           round(100 * arr[1]) / 100 + ", " +
+           round(100 * arr[2]) / 100;
+};
+
+/*************************************
+ *  A hexagonal tile on the grid
+**************************************/
+
+var HexTile = function(x, y, r, row, col, type, height) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.row = row;
+    this.col = col;
+    this.height = height || 0;
+    
+    this.type = type;
+    if (type) {
+        this.color1 = type.color1;
+        this.color2 = type.color2;
+    } else {
+        this.color1 = color(240);
+    }
+    
+    // Coordinates for drawing tile
+    // TODO: should only calculate coords once per grid
+    this.getCoords(this.x, this.y, this.r, this.tilt);
+    
+    // Which tiles touch this one
+    this.neighbours = [false, false, false, false, false, false];
+};
+
+// Find the height of the middle of each edge
+// This is the average of the two hieghts it is between
+HexTile.prototype.findEdgeHeights = function() {
+    this.heights = [];
+    
+    for (var i = 0; i < 6; i++) {
+        // Height is the average of this tile's height and a neighbour's
+        // Unless the neighbour is the sea
+        var neighbour = this.neighbours[i];
+        this.heights.push(neighbour ? 0.5 * (this.height + neighbour.height) : 0);
+    }
+};
+
+HexTile.prototype.findNormals = function() {
+    this.normals = [];
+
+    var nx = 0;
+    var ny = 0;
+    var nz = 0;
+    var r = this.r * R3;
+    var x, y, z, d, dx1, dy1, dz1, dx2, dy2, dz2, neighbour;
+    
+    // Normal of vertex is normal to the plane connecting the center
+    // of three tiles surrounding that vertex
+    
+    for (var i = 0; i < 6; i++) {
+        dx1 = r * cos(hexAngle * (i - 0.5));
+        dy1 = r * sin(hexAngle * (i - 0.5));
+        dx2 = r * cos(hexAngle * (i + 0.5));
+        dy2 = r * sin(hexAngle * (i + 0.5));
+        
+        neighbour = this.neighbours[(i + 5) % 6];
+        dz1 = neighbour ? neighbour.height - this.height : -this.height;
+        neighbour = this.neighbours[i];
+        dz2 = neighbour ? neighbour.height - this.height : -this.height;
+        /*
+        d1 = sqrt(dx1 * dx1 + dy1 * dy1 + dz1 * dz1);
+        d2 = sqrt(dx2 * dx2 + dy2 * dy2 + dz2 * dz2);
+        dx1 /= d1;
+        dy1 /= d1;
+        dz1 /= d1;
+        dx2 /= d2;
+        dy2 /= d2;
+        dz2 /= d2;
+        */
+        // Find normal of plane using cross-product
+        x = dy1 * dz2 - dz1 * dy2;
+        y = dz1 * dx2 - dx1 * dz2;
+        z = dx1 * dy2 - dy1 * dx2;
+        d = sqrt(x * x + y * y + z * z);
+        x /= d;
+        y /= d;
+        z /= d;
+        
+        this.normals.push([x, y, z]);
+        
+        // Normal at center point
+        nx += x;
+        ny += y;
+        nz += z;
+    }
+    
+    var d = sqrt(nx * nx + ny * ny + nz * nz);
+    this.normal = [nx / d, ny / d, nz / d];
+};
+
+HexTile.prototype.findNormalOfVertex = function(i) {
+    var r = this.r * R3;
+    var dx1 = r * cos(hexAngle * (i - 0.5));
+    var dy1 = r * sin(hexAngle * (i - 0.5));
+    var dx2 = r * cos(hexAngle * (i + 0.5));
+    var dy2 = r * sin(hexAngle * (i + 0.5));
+    
+    var neighbour = this.neighbours[(i + 5) % 6];
+    var dz1 = neighbour ? neighbour.height - this.height : -this.height * 2;
+    neighbour = this.neighbours[i];
+    var dz2 = neighbour ? neighbour.height - this.height : -this.height * 2;
+    
+    return [[dx1, dy1, dz1], [dx2, dy2, dz2]];
+};
+
+HexTile.prototype.createImage = function() {
+    // Make things global
+    var tileX = this.x;
+    var tileY = this.y;
+    
+    var midX = this.r;
+    var midY = this.r * R3 / 2;
+    var tileWidth = midX * 2;
+    var tileHeight = midY * 2;
+    
+    var R1 = red(this.color1);
+    var G1 = green(this.color1);
+    var B1 = blue(this.color1);
+    
+    var R2 = red(this.color2);
+    var G2 = green(this.color2);
+    var B2 = blue(this.color2);
+    
+    var noiseX = this.type.noiseX || 0.1;
+    var noiseY = this.type.noiseY || 0.1;
+    
+    background(0);
+    loadPixels();
+    
+    noiseDetail(2, 0.4);
+    var p = imageData.data;
+    var x, y, dx, dy, d, c, p1, p2, v, r, g, b, r2, g2, b2;
+    var nColour, angle, triangle, index, nx, ny, nz;
+    var n2, n3, n1 = this.normal;
+    
+    for (y = 0; y < tileHeight; y++) {
+        for (x = 0; x < tileWidth; x++) {
+            dx = x - midX;
+            dy = y - midY;
+            index = x + y * width << 2;
+
+            if ((midX - abs(dx)) * R3 >= abs(dy)) {
+                // Get initial color
+                c = 1.2 * noise((tileX + x) * noiseX, (tileY + y) * noiseY);
+                if (c > 1) { c = 1; }
+                c *= c * (3 - 2 * c);
+                c *= c * (3 - 2 * c);
+                
+                r = c * R1 + (1 - c) * R2;
+                g = c * G1 + (1 - c) * G2;
+                b = c * B1 + (1 - c) * B2;
+                
+                // Distance from center
+                d = sqrt(dx * dx + dy * dy);
+
+                // Distance as a proportion
+                p1 = d / midX;
+
+                // Smooth distance
+                p1 *= p1 * (3 - 2 * p1);
+                
+                // Angle around center
+                angle = atan2(dy, dx) * hexAngleI ;
+                if (angle < 0) { angle += 6 ; }
+
+                // Which triangle are we in?
+                triangle = floor(angle);
+                
+                // How far around the triangle
+                p2 = angle - triangle;
+
+                // Smooth angle
+                p2 *= p2 * (3 - 2 * p2);
+
+                // Calculate normal at this point
+                n2 = this.normals[triangle];
+                n3 = this.normals[(triangle + 1) % 6];
+                nx = (1 - p1) * n1[0] + p1 * ((1 - p2) * n2[0] + p2 * n3[0]);
+                ny = (1 - p1) * n1[1] + p1 * ((1 - p2) * n2[1] + p2 * n3[1]);
+                nz = (1 - p1) * n1[2] + p1 * ((1 - p2) * n2[2] + p2 * n3[2]);
+
+                // Intensity based on contours
+                v = 0.4 + 0.7 *max(0, lightX * nx + lightY * ny + lightZ * nz);
+            
+                p[index] = r * v;
+                p[index + 1] = g * v;
+                p[index + 2] = b * v;
+            } else {
+                p[index + 3] = 0;
+            }
+            
+        }
+    }
+    
+    updatePixels();
+    this.img = get(0, 0, tileWidth, tileHeight);
+};
+
+HexTile.prototype.draw = function(highlight) {
+    if (this.img) {
+        imageMode(CENTER);
+        image(this.img, this.x, this.y);
+        noFill();
+    } else {
+        fill(this.color1);
+    }
+    
+    if (highlight || DRAW_BORDER) {
+        stroke(highlight ? 0: 255);
+        beginShape();
+        for (var i = 0; i < this.coords.length; i++) {
+            vertex(this.coords[i][0], this.coords[i][1]);
+        }
+        endShape(CLOSE);
+    }
+
+    if (highlight) {
+        fill(40);
+        textSize(16);
+        textAlign(CENTER, CENTER);
+        text(this.type.name, this.x, this.y - 10);
+        //text(this.height, this.x, this.y + 10)
+        //text(writeVector(this.normal), this.x, this.y + 10);
+        
+        var dx = mouseX - this.x;
+        var dy = mouseY - this.y;
+        var angle = atan2(dy, dx) * hexAngleI ;
+        if (angle < 0) { angle += 6 ; }
+        var triangle = floor(angle);
+        
+        var vectors = this.findNormalOfVertex(triangle);
+        
+        //println(vectors);
+        
+        text(writeVector(vectors[0]), this.x, this.y + 10);
+        text(writeVector(vectors[1]), this.x, this.y + 25);
+        
+        ellipse(this.x + vectors[0][0], this.y + vectors[0][1], 10, 10);
+        ellipse(this.x + vectors[1][0], this.y + vectors[1][1], 10, 10);
+        
+        // Show height of each vertex
+        textSize(12);
+        fill(255);
+        var r = this.r - 20;
+        for (var i = 0; i < 6; i++) {
+            /*
+            text(this.heights[i].toFixed(2),
+                 this.x + r * cos(i * hexAngle),
+                 this.y + r * sin(i * hexAngle));*/
+            text(writeVector(this.normals[i]),
+                 this.x + r * cos(i * hexAngle),
+                 this.y + r * sin(i * hexAngle));
+        }
+    }
+
+};
+
+HexTile.prototype.getCoords = function(x, y, r, tilt) {
+    this.coords = [];
+    for (var theta = tilt ? 30 : 0; theta < 360; theta += 60) {
+        this.coords.push([x + r * cos(theta), y + r * sin(theta)]);
+    }
+};
+
+HexTile.prototype.mouseClicked = function() {
+    println("Vertex normals");
+    this.normals.forEach(function(e) {
+        println(e);
+    });
+};
+
+/*************************************
+ *  A grid of hexagonal tiles
+**************************************/
+
+var Grid = function(terrainMap, heightMap, tileSize) {
+    this.cols = terrainMap[0].length;  // Number of tiles across
+    this.rows = terrainMap.length;     // Number of tiles down
+    this.nTiles = this.cols * this.rows;
+    this.tileSize = tileSize;
+    this.tileHeight = tileSize * R3;
+    
+    // Get board dimensions
+    this.width = (this.cols * 3 + 1) * tileSize * 0.5;
+    this.height = (this.rows + 0.5) * this.tileHeight;
+    
+    // Put board in the center of the screen
+    this.x = (width - this.width) / 2;
+    this.y = (height - this.height) / 2;
+    
+    this.makeTiles(terrainMap, heightMap);
+    this.tilesLoaded = 0;
+};
+
+Grid.prototype.makeTiles = function(terrainMap, heightMap) {
+    this.tiles = [];
+    
+    var i, j;
+    var x = this.x + this.tileSize;
+    for (i = 0; i < this.cols; i++) {
+        var row = [];
+        var y = this.y + (i % 2 + 1) * this.tileHeight * 0.5;
+        
+        for (j = 0; j < this.rows; j++) {
+            var type = tileTypes[terrainMap[j][i]];
+            var height = heightMap[j][i];
+            var tile = new HexTile(x, y, this.tileSize, i, j, type, height);
+            row.push(tile);
+            y += this.tileHeight;
+        }
+        
+        x += this.tileSize * 1.5;
+        this.tiles.push(row);
+    }
+    
+    // Add neighbours
+    for (i = 0; i < this.cols; i++) {
+        for (j = 0; j < this.rows; j++) {
+            // Add tile below
+            this.addNeighbour(this.tiles[i][j], i, j + 1, 1);
+            if (i % 2) {
+                this.addNeighbour(this.tiles[i][j], i + 1, j, 5);
+                this.addNeighbour(this.tiles[i][j], i + 1, j + 1, 0);
+            } else {
+                this.addNeighbour(this.tiles[i][j], i + 1, j, 0);
+                this.addNeighbour(this.tiles[i][j], i + 1, j - 1, 5);
+            }
+        }
+    }
+    
+    // Add heights
+    for (i = 0; i < this.cols; i++) {
+        for (j = 0; j < this.rows; j++) {
+            this.tiles[i][j].findEdgeHeights();
+        }
+    }
+    
+    // Add normals
+    for (i = 0; i < this.cols; i++) {
+        for (j = 0; j < this.rows; j++) {
+            this.tiles[i][j].findNormals();
+        }
+    }
+};
+
+Grid.prototype.addNeighbour = function(tile1, x, y, n) {
+    var tile2 = this.getTile([x, y]);
+    if (tile2) {
+        tile1.neighbours[n] = tile2;
+        tile2.neighbours[(n + 3) % 6] = tile1;
+    }
+};
+
+Grid.prototype.loadTileImage = function() {
+    if (LOAD_TILES < 0) { LOAD_TILES = this.nTiles; }
+    
+    if (this.tilesLoaded < LOAD_TILES) {
+        var x = floor(this.tilesLoaded / this.rows);
+        var y = this.tilesLoaded - x * this.rows;
+        this.tiles[x][y].createImage();
+        this.tilesLoaded++;
+        return true;
+    }
+};
+
+Grid.prototype.draw = function() {
+    stroke(40);
+    strokeWeight(2);
+    noFill();
+    //rect(this.x, this.y, this.width, this.height);
+    
+    for (var i = 0; i < this.cols; i++) {
+        var row = this.tiles[i];
+        for (var j = 0; j < this.rows; j++) {
+            row[j].draw();
+        }
+    }
+    
+    var highlight = this.getTile(this.pixelToHex(mouseX, mouseY));
+    if (highlight) {
+        strokeWeight(3);
+        highlight.draw(true);
+    }
+};
+
+Grid.prototype.pixelToHex = function(x, y) {
+    var boardX = x - this.x;
+    var boardY = y - this.y;
+    
+    if (boardX >= 0 && boardX <= this.width && boardY >= 0 && boardY <= this.height) {
+        var tileX = boardX / (this.tileSize * 1.5);
+        var fTileX = floor(tileX);
+        var downRow = fTileX % 2;
+        var tileY = boardY / this.tileHeight - downRow * 0.5;
+        var fTileY = floor(tileY);
+        
+        // Take into account jagged edge
+        if (3 * (tileX - fTileX) < 1) {
+            var dy = 0.5 + fTileY - tileY;
+            var fTileX2 = floor(tileX - abs(dy) * 2 / 3);
+            
+            // If we back a column, check whether we should move up or down a row
+            if (fTileX2 !== fTileX) {
+                if (downRow) {
+                    if (dy < 0) { fTileY++; }
+                } else {
+                    if (dy > 0) { fTileY--; }
+                }
+                fTileX = fTileX2;
+            }
+        }
+        //println(fTileX + " " + fTileY);
+        return [fTileX, fTileY];
+    }
+    
+    return [-1, -1];
+};
+
+Grid.prototype.getTile = function(coord) {
+    var row = this.tiles[coord[0]];
+    if (!row) {
+        return false;
+    } else {
+        return row[coord[1]];
+    }
+};
+
+Grid.prototype.mouseClicked = function() {
+    var tile = this.getTile(this.pixelToHex(mouseX, mouseY));
+    if (tile) {
+        tile.mouseClicked();
+    }
+};
+
+/*************************************
+ *  Setup
+**************************************/
+
+var grid = new Grid(terrainMap, heightMap, 120);
+
+/*************************************
+ *      Main loop
+**************************************/
+
+var draw = function() {
+    grid.loadTileImage();
+    
+    background(tileTypes.W.color1);
+    grid.draw();    
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+
+mouseClicked = function() {
+    grid.mouseClicked();
+};

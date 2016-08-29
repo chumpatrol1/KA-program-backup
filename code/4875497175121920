@@ -1,0 +1,18 @@
+
+draw = function() {
+    background(0);
+    loadPixels();
+    var p = this.imageData.data, x, y, i;
+    
+    for (x = 0; x < 0xff; x++) {
+        for (y = 0; y < 0xff; y++) {
+            i = 72 + x + (y + 72) * 400 << 2;
+            p[i++] = x ^ y;
+            p[i++] = x ^ y;
+            p[i]   = x ^ y;
+        }
+    }
+
+    updatePixels();
+    noLoop();
+};

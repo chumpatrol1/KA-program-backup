@@ -1,0 +1,231 @@
+/********************************************************
+ * Change the molecule variable below to create
+ * your own 3D molecule.
+ * 
+ * Use the mouse or keyboard to rotate the molecule.
+ ********************************************************/
+
+// This is the molecule variable.
+// A molecule consists of atoms and bonds.
+// Atoms have a element (H, C, N, O, P, S, CL, FE).
+// and a position, which is an array of coordinates [x, y, z].
+// Bonds are an array of two atoms indices.
+// e.g. [0, 1] creates a bond between atoms 0 and 1.
+var molecule = {
+    atoms: [
+        { element: 'C', position: [0, 100, 0] },
+        { element: 'O', position: [50, 100, 0] },
+        { element: 'S', position: [-50, 100, 0] },
+    ],
+    bonds: [
+        [0, 1],
+        [0, 2]
+    ]
+};
+
+// Display parameters
+var ATOM_SIZE = 8;
+var BOND_THICKNESS = 4;
+var BOND_COLOUR = color(128, 125, 128);
+var BOND_HIGHLIGHT = color(166, 159, 166);
+var HIGHLIGHT = color(255, 255, 255, 50);
+var BACKGROUND = color(250, 250, 255);
+
+// Atomic data (atoms have a size and a colour)
+var atomData = {
+    H: { colour: color(180, 180, 180, 230), size: 1.2 },
+    C: { colour: color(64, 61, 64, 230), size: 1.7 },
+    N: { colour: color(68, 75, 219, 230), size: 1.55 },
+    O: { colour: color(250, 15, 15, 230), size: 1.52 },
+    P: { colour: color(230, 107, 7, 230), size: 1.8 },
+    S: { colour: color(200, 180, 20, 230), size: 1.8 },
+    CL: { colour: color(40, 200, 20, 230), size: 1.6 },
+    FE: { colour: color(165, 60, 10, 230), size: 2 },
+};
+
+var atoms = [];
+var bonds = [];
+
+var Atom = function(element, position) {
+    this.element = element;
+    this.x = position[0];
+    this.y = position[1];
+    this.z = position[2];
+    
+    // Default parameters
+    this.colour = color(0, 0, 0);
+    this.size = ATOM_SIZE;
+    
+    if (atomData[element]) {
+        this.size *= atomData[element].size;
+        this.colour = atomData[element].colour;
+    }
+    
+    this.draw = function() {
+        //var fade = 1 - (this.z + 300) / 600;
+        //fill(lerpColor(this.colour, BACKGROUND, fade));
+        
+        noStroke();
+        fill(this.colour);
+        ellipse(this.x, this.y, this.size, this.size);
+        fill(HIGHLIGHT);
+        ellipse(this.x, this.y, this.size - 2, this.size - 2);
+        ellipse(this.x - 1, this.y - 1, this.size - 9, this.size - 9);
+    };
+    
+    this.getZ = function() {
+        return this.z;
+    };
+};
+
+var Bond = function(a, b) {
+    this.atom1 = atoms[a];
+    this.atom2 = atoms[b];
+    
+    this.draw = function() {
+        var atom1 = this.atom1;
+        var atom2 = this.atom2;
+                
+        var dx = atom1.x - atom2.x;
+        var dy = atom1.y - atom2.y;
+        var theta = atan2(dx, dy);
+
+        var x1 = atom1.x - 0.5 * atom1.size * sin(theta);
+        var y1 = atom1.y - 0.5 * atom1.size * cos(theta);
+        var x2 = atom2.x + 0.5 * atom2.size * sin(theta);
+        var y2 = atom2.y + 0.5 * atom2.size * cos(theta);
+        
+        stroke(BOND_COLOUR);
+        strokeWeight(BOND_THICKNESS);
+        line(x1, y1, x2, y2);
+        stroke(BOND_HIGHLIGHT);
+        strokeWeight(1);
+        line(x1, y1, x2, y2);
+    };
+    
+    this.getZ = function() {
+        return 0.5 * (this.atom1.z + this.atom2.z);
+    };
+};
+
+// Create the molecule here
+for (var a = 0; a < molecule.atoms.length; a++) {
+    var atom = molecule.atoms[a];
+    atoms.push(new Atom(atom.element, atom.position));
+}
+
+for (var b = 0; b < molecule.bonds.length; b++) {
+    var bond = molecule.bonds[b];
+    bonds.push(new Bond(bond[0], bond[1]));
+}
+
+var parts = bonds.concat(atoms);
+
+var moveObjectToCentre = function(atoms) {
+    // Find range of x values and scale to fill screen
+    var minValue = atoms[0].y;
+    var maxValue = atoms[0].y;
+
+    for (var i=0; i<atoms.length; i++){
+        if (atoms[i].y > maxValue) {
+            maxValue = atoms[i].y;
+        } else if (atoms[i].y < minValue) {
+            minValue = atoms[i].y;
+        }
+    }
+    var scaleValue = 300 / (maxValue - minValue);
+    scaleValue = 20;
+    
+    // Scale and shift everything
+    var dims = ['x', 'y', 'z'];
+    for (var d = 0; d<3; d++) {
+        // Find mean values for each dimension
+        var meanValue = 0;
+        var dimension = dims[d];
+        for (i=0; i<atoms.length; i++) {
+            meanValue += atoms[i][dimension];
+        }
+        meanValue /= atoms.length;
+        
+        for (i=0; i<atoms.length; i++) {
+            atoms[i][dimension] = (atoms[i][dimension] - meanValue);
+        }
+    }
+};
+
+moveObjectToCentre(atoms);
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, z;
+
+    for (var i = 0; i < atoms.length; i+=1) {
+        x = atoms[i].x;
+        z = atoms[i].z;
+        atoms[i].x = ct*x + st*z;
+        atoms[i].z = -st*x + ct*z;
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var y, z;
+    
+    for (var i = 0; i < atoms.length; i+=1) {
+        y = atoms[i].y;
+        z = atoms[i].z;
+        atoms[i].y = ct*y - st*z;
+        atoms[i].z = st*y + ct*z;
+    }
+};
+
+// Return the difference of the z-coordinate
+var sortByZ = function(a, b) {
+    return b.getZ() - a.getZ();
+};
+
+// Move to centre of screen
+translate(200, 200);
+
+var draw = function() {
+    parts.sort(sortByZ);
+    background(BACKGROUND);
+
+    // Draw atoms and bonds
+    for (var i = 0; i < parts.length; i++) {
+        parts[i].draw();
+    }
+};
+
+var keyPressed = function() { 
+    if (keyCode === LEFT) {
+        rotateY3D(-3);
+    } else if (keyCode === RIGHT) {
+        rotateY3D(3);
+    } else if (keyCode === UP) {
+        rotateX3D(-3);
+    } else if (keyCode === DOWN) {
+        rotateX3D(3);
+    }
+};
+
+// Let go when mouse leaves canvas
+var mouseOut = function(){
+    mouseIsPressed = false;
+};
+
+var mouseDragged = function() {
+    var dx = mouseX - pmouseX;
+    var dy = mouseY - pmouseY;
+    rotateY3D(dx);
+    rotateX3D(dy);
+};
+
+// Initial rotations
+rotateX3D(90);
+rotateY3D(90);
+rotateX3D(90);
+rotateY3D(90);
+rotateX3D(180);

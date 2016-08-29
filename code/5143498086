@@ -1,0 +1,754 @@
+/** THE MATHFORMER TRIAL **/
+/** By Aidaвaιda **/
+
+// Notes on this game and its development
+/*
+    The idea came, as so many ideas do, in the shower. 
+    I use the shower as a place to relax and reflect on the day, 
+    with the warm stream of water providing something like a
+    massage. 
+    
+    It occured to me that very few people had actually
+    succesfully combined a platformer game with a 
+    puzzle game.
+    
+    Michael Da Boss and his excellent "Writer's Block"
+    was one of the few exceptions I could think of.
+    
+    It then occured to me that I should attempt to make one,
+    to create an interesting core, puzzle mechanic at the
+    heart of a platformer, and then explore it deeply
+    in a set of interesting levels.
+    
+    It was thus that The Mathformer Trial came to be.
+    
+    A simple idea - you must be going the speed shown
+    on the portal to proceed to the next level, but it soon
+    occured to me just how interesting the development of that
+    concept could become.
+    
+    What if there were walls you could only pass if you were
+    going the correct speed? What if you could collect blocks
+    and have to use math expressions to change your speed?
+    
+    In these levels, I've attempted to make an interesting
+    exploration of a somewhat unique concept, and hopefully
+    provide a fascinating gaming experience.
+    
+    Leve design has never been my strong suit, but I really gave
+    this game my all, and I hope it comes through.
+    
+    A special mention to my good friend Blaze for creating
+    the stunning graphics - you can always count on him.
+    
+    Please enjoy "The Mathformer Trial"
+
+*/
+
+// Some variables, hoisted out from beneath the depths.
+{
+    var scene = 'game';
+var killLag = true;
+var player;
+noStroke();
+var Camera;
+var gravity = 0.5;
+var transitioning = false;
+var blocks = [];
+var iBlocks = [];
+var inventory = [];
+var widthGlobal;
+
+var currentLevel = 0;
+var num1 = '0',
+    num2 = '0',
+    op = '?';
+var readMap;
+var symbols = ['!', '@', '#', '$', '%', '^','&','?','('];
+}
+// The game map, a template for what's to come. Foreshadowing.
+var gameMap = [
+    [
+        'bbbbbbbbbbbbbbbbbb',
+        'beeeeeeeeeeeeeeeeb',
+        'beeeeeeeee*eeeeeeb',
+        'beeebbbbbbbbbe+eeb',
+        'bee2b+e&e/&ebeeeeb',
+        'beebb-ebbbbebeeeeb',
+        'beebeee^e*^ebeeeeb',
+        'beebeebbbbbebbbb2b',
+        'bee%eb-e#-#eeeebeb',
+        'bebbbb3ebbbee82beb',
+        'bP^eeeee(+(ee2pbeb',
+        'bbbbbbbbbbbbbbbbbb'
+    ]
+];
+
+// The speeds, the singlemost important factor in this game...
+var speeds = [12];
+
+// The messages that come from the sky...wherefore do they go? :(
+var messages = ['Quadruple your speed. How hard could be? So many options... four times three?'];
+
+// What is language but a code? What are symbols but an encryption?
+var findSymbol = function(val){
+    return symbols.indexOf(val) > -1;
+};
+var whichSymbolPosition = function(val){
+    return symbols.indexOf(val) + 1;
+};
+
+var player;
+var widthGlobal = width/15;
+
+// Inventory, what we have collected over our long and weary span on this earth
+var inventoryBlock = function(x, y, w, h, val) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.val = val;
+    this.selected = false;
+};
+inventoryBlock.prototype.draw = function() {
+    fill(100);
+    if (this.selected) {
+        stroke(255);
+        strokeWeight(2);
+    } else {
+        noStroke();
+        strokeWeight(0);
+    }
+    rect(this.x, this.y, this.w, this.h);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    textSize(11);
+    text(this.val, this.x + this.w / 2, this.y + this.h / 2);
+    textAlign(LEFT);
+    if (player.x + player.w >= this.x && player.x <= this.x + this.w && player.y + player.h >= this.y && player.y <= this.y + this.h) {
+        for (var i = 0; i < iBlocks.length; i++) {
+            if (iBlocks[i] === this) {
+                inventory.push(this);
+                iBlocks.splice(i, 1);
+            }
+        }
+    }
+};
+
+
+var blockTexture = function(){
+    background(0, 0, 0 ,0);
+    for (var i = 0; i < widthGlobal; i+=2){
+        for (var b = 0; b < widthGlobal; b+=2){
+            textSize(3);
+            var val = random(0, 70);
+            fill(val, val, val);
+            text(floor(random(0, 2)), i, b);
+        }
+    }
+    return get(0, 0, widthGlobal, widthGlobal);
+};
+var blockImg = blockTexture();
+// Life is not complete without obstacles, and success is not sweet without having overcome adversity.
+var block = function(x, y, w, h, type, rs) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.type = type;
+    this.falling = false;
+    this.yVelocity = 0;
+    this.wired = false;
+    this.xVelocity = 0;
+    this.maxFall = 9;
+    this.allow = [true, true, true, true];
+    this.requiredSpeed = rs;
+    this.solid = true;
+};
+
+// A simple function to determine your destiny.
+var readMap = function() {
+    blocks = [];
+    inventory = [];
+    iBlocks = [];
+    player.maxSpeed = 3;
+    for (var i = 0; i < gameMap[currentLevel].length; i++) {
+        for (var b = 0; b < gameMap[currentLevel][i].length; b++) {
+            if (!findSymbol(gameMap[currentLevel][i].charAt(b))){
+            switch (gameMap[currentLevel][i].charAt(b)) {
+                case 'e':
+                    break;
+                case 'b':
+                    blocks.push(new block(b * widthGlobal, i * widthGlobal, widthGlobal, widthGlobal, 'wall'));
+                    break;
+                case 'p':
+                    blocks.push(new block(b * widthGlobal, i * widthGlobal, widthGlobal, widthGlobal, 'portal', speeds[currentLevel]));
+                    break;
+                case 'P':
+                    player.x = b * widthGlobal;
+                    player.y = i * widthGlobal;
+                    break;
+                default:
+                    iBlocks.push(new inventoryBlock(b * widthGlobal, i * widthGlobal, widthGlobal, widthGlobal, gameMap[currentLevel][i].charAt(b)));
+                    break;
+            }
+            } else {
+                 blocks.push(new block(b * widthGlobal, i * widthGlobal, widthGlobal, widthGlobal, 'breaker', whichSymbolPosition(gameMap[currentLevel][i].charAt(b))));
+            }
+        }
+    }
+};
+
+// Draw the blocks, collide them! On and on they pound and blow!!
+block.prototype.draw = function() {
+    if (this.type === 'wall') {
+        fill(136, 139, 145);
+    } else if (this.type === 'portal') {
+        fill(0, 255, 0);
+    } else if (this.type === 'breaker'){
+        fill(0, 0, 255);
+    }
+    if (this.type === 'breaker' && abs(player.maxSpeed - this.requiredSpeed) < EPSILON){
+        this.solid = false;   
+    } else {
+        this.solid = true;   
+    }
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 5);
+    image(blockImg, this.x, this.y);
+    
+    if (this.type === 'portal' || this.type === 'breaker') {
+        fill(255);
+        textAlign(CENTER, CENTER);
+        textSize(20);
+        text(this.requiredSpeed.toFixed(1), this.x + this.w / 2, this.y + this.h / 2);
+        textAlign(LEFT);
+    }
+};
+block.prototype.collideY = function(player) {
+    var p = player;
+    if (p.x + p.w > this.x && p.x < this.x + this.w && p.y + p.h > this.y && p.y + p.h < this.y + this.h && p.yVelocity > 0 && this.xVelocity === 0) {
+        if (this.type === 'portal' && player.maxSpeed === this.requiredSpeed) {
+            transitioning = true;
+        }
+        player.falling = false;
+        p.y = this.y - p.h;
+        p.yVelocity = 0;
+    }
+    if (p.x + p.w > this.x && p.x < this.x + this.w && p.y < this.y + this.h && p.y + p.h > this.y && p.yVelocity < 0 && this.xVelocity === 0) {
+        if (this.type === 'portal' && player.maxSpeed === this.requiredSpeed) {
+            transitioning = true;
+        }
+        p.y = this.y + this.h;
+        p.yVelocity = 0;
+        player.falling = true;
+    }
+};
+block.prototype.collideX = function(player) {
+    var p = player;
+    if (p.y + p.h > this.y && p.y + p.h < this.y + this.h + p.h && p.x + p.w > this.x && p.x + p.w < this.x + this.w && p.xVelocity > 0) {
+        if (this.type === 'portal' && player.maxSpeed === this.requiredSpeed) {
+            transitioning = true;
+        }
+        p.x = this.x - p.w;
+        p.xVelocity = 0;
+        p.allow[0] = false;
+    }
+    if (p.y + p.h > this.y && p.y + p.h < this.y + this.h + p.h && p.x < this.x + this.w && p.x > this.x && p.xVelocity < 0) {
+        if (this.type === 'portal' && player.maxSpeed === this.requiredSpeed) {
+            transitioning = true;
+        }
+        p.x = this.x + this.w;
+        p.xVelocity = 0;
+        p.allow[1] = false;
+    }
+};
+
+// The controls...dictating your movements
+var keys = [];
+keyPressed = function() {
+    keys[keyCode] = true;
+    if (key.toString().toUpperCase() === 'R') {
+        readMap();
+        Camera.x = 0;
+        Camera.y = 0;
+    }
+};
+keyReleased = function() {
+    keys[keyCode] = false;
+};
+
+// And enter thee...my player.
+var Player = function() {
+    this.x = 0;
+    this.y = 0;
+    this.dead = false;
+    this.w = widthGlobal;
+    this.h = widthGlobal;
+    this.yVelocity = 0;
+    this.xVelocity = 0;
+    this.allow = [true, true];
+    this.speed = 1;
+    this.maxSpeed = 6;
+    this.maxFall = 19;
+    this.jumpHeight = 13;
+    this.beingHurt = false;
+};
+Player.prototype.update = function() {
+    this.x += this.xVelocity;
+    this.collideX(blocks);
+    this.falling = true;
+    this.y += this.yVelocity;
+    this.collideY(blocks);
+    this.yVelocity += gravity;
+};
+Player.prototype.draw = function() {
+    noStroke();
+    fill(112, 112, 112);
+    rect(this.x, this.y, widthGlobal, widthGlobal, 2);
+    fill(51, 255, 0);
+    ellipse(this.x + widthGlobal/3, this.y + widthGlobal/3, widthGlobal/4, widthGlobal/4);
+    fill(255, 0, 0);
+    ellipse(this.x + widthGlobal/3, this.y + 2*widthGlobal/3, widthGlobal/4, widthGlobal/4);
+    fill(255, 255, 255);
+    ellipse(this.x + widthGlobal/3 + widthGlobal/25, this.y + widthGlobal/3 - widthGlobal/25, widthGlobal/10, widthGlobal/10);
+    ellipse(this.x + widthGlobal/3 + widthGlobal/25, this.y + 2*widthGlobal/3 - widthGlobal/25, widthGlobal/10, widthGlobal/10);
+    fill(44, 107, 102);
+    rect(this.x + widthGlobal/2, this.y + widthGlobal/6, widthGlobal/2.3, widthGlobal/1.3, 2);
+    textAlign(CENTER, CENTER);
+    textSize(widthGlobal/3);
+    fill(255, 255, 255);
+    text(this.maxSpeed.toFixed(1), this.x + 3.6*widthGlobal/5, this.y + widthGlobal/2);
+};
+Player.prototype.collideX = function(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].solid){
+        arr[i].collideX(player);
+        }
+    }
+};
+Player.prototype.collideY = function(arr) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].solid){
+        arr[i].collideY(player);
+        }
+    }
+};
+Player.prototype.move = function() {
+    if (keys[UP] && !this.falling) {
+        this.yVelocity -= this.jumpHeight;
+    }
+    if (keys[LEFT]) {
+        this.movingL = true;
+        this.xVelocity -= player.speed;
+    }
+    if (keys[RIGHT]) {
+        this.movingR = true;
+        this.xVelocity += player.speed;
+    }
+    if (!keys[LEFT] && !keys[RIGHT]) {
+        this.movingX = this.movingR = false;
+        if (this.xVelocity > 0) {
+            this.xVelocity -= player.speed;
+        }
+        if (this.xVelocity < 0) {
+            this.xVelocity += player.speed;
+        }
+    }
+    if (this.xVelocity > this.maxSpeed) {
+        this.xVelocity = this.maxSpeed;
+    }
+    if (this.xVelocity < -this.maxSpeed) {
+        this.xVelocity = -this.maxSpeed;
+    }
+    if (this.yVelocity > this.maxFall) {
+        this.yVelocity = this.maxFall;
+    }
+    if (this.yVelocity < -this.maxFall) {
+        this.yVelocity = -this.maxFall;
+    }
+};
+
+// Lo...life from the darkness
+var player = new Player();
+
+// All our life is seen but through the eyes of a camera...
+var Camera = new PVector(0, 0);
+
+// It all fades in the end...
+var fade = 0;
+
+// Let there be blocks!
+readMap();
+
+textFont(createFont("Trebuchet MS"));
+
+// Are all functions as unimportant as these?
+var inventorySelectNum = function() {
+    var daNum = 0;
+    for (var i = 0; i < inventory.length; i++) {
+        if (inventory[i].selected) {
+            daNum++;
+        }
+    }
+    return daNum;
+};
+
+var removeBlocks = function() {
+    num1 = '0';
+    num2 = '0';
+    op = '?';
+    for (var i = inventory.length - 1; i >= 0; i--) {
+        if (inventory[i].selected) {
+            inventory.splice(i, 1);
+        }
+    }
+};
+
+// Click, click...that is all the mouse knows
+var mouse = false;
+mouseClicked = function() {
+    mouse = true;
+};
+
+// Enetereth the dark world of UI...
+var slideBar = function(x) {
+    this.beginningX = this.x = x;
+    this.selected = false;
+    this.draw = function() {
+        noStroke();
+        fill(189, 147, 110);
+        rect(this.x, 0, 150, height);
+        rect(this.x - 20, (height / 2) - 20, 20, 40);
+        fill(40);
+        rect(this.x - 18, (height / 2) - 18, 3, 35);
+        rect(this.x - 8, (height / 2) - 18, 3, 35);
+        if (mouseX >= this.x - 20 && mouseX <= this.x && mouseY >= height / 2 - 20 && mouseY <= height / 2 - 20 + 40) {
+            cursor(HAND);
+            if (mouse) {
+                this.selected = !this.selected;
+            }
+        }
+        if (this.selected) {
+            if (this.x > this.beginningX - 150) {
+                this.x -= 4;
+            }
+        } else {
+            if (this.x < this.beginningX) {
+                this.x += 4;
+            }
+        }
+    };
+};
+var inventoryS = new slideBar(width);
+var Button = function(config) {
+    this.x = config.x;
+    this.y = config.y;
+    this.w = config.w || 100;
+    this.h = config.h || 30;
+    this.identifier = config.identifier || undefined;
+    this.type = config.type || 'rect';
+    this.text = config.text || 'untitled';
+    this.txtNormal = config.txtNormal || color(255);
+    this.txtOn = config.txtOn || color(255);
+    this.txtScale = config.txtScale || 11;
+    this.radius = config.radius || 20;
+};
+Object.defineProperty(Button.prototype, "mouseOn", {
+    get: function() {
+        if (this.type === 'rect') {
+            return (mouseX >= this.x && mouseX <= this.x + this.w && mouseY >= this.y && mouseY <= this.y + this.h);
+        } else {
+            return (dist(mouseX, mouseY, this.x, this.y) < this.radius);
+        }
+    }
+});
+Button.prototype.draw = function() {
+    this.action = false;
+    stroke(0);
+    strokeWeight(0.5);
+    fill(255);
+    if (this.type === 'rect') {
+        rect(this.x, this.y, this.w, this.h, 2);
+    } else {
+        ellipse(this.x, this.y, this.radius * 2, this.radius * 2);
+    }
+    fill(0);
+    textAlign(CENTER, CENTER);
+    var label = this.text;
+    textSize(this.txtScale);
+    if (this.type === 'rect') {
+        text(this.text, this.x + this.w / 2, this.y + this.h / 2);
+    } else {
+        text(this.text, this.x, this.y);
+    }
+    if (this.mouseOn) {
+        cursor(HAND);
+        if (mouse) {
+            this.action = true;
+        }
+    }
+};
+var executeButton = new Button({
+    x: 0,
+    y: width - 30,
+    w: 100,
+    h: 20,
+    text: 'Execute',
+});
+var setToSpeed = new Button({
+    x: 0,
+    y: width - 70,
+    w: 100,
+    h: 20,
+    text: 'Use Current Speed',
+});
+
+// The game functions cometh.
+var drawInventory = function(){
+    inventoryS.draw();
+    executeButton.x = inventoryS.x + 24;
+    setToSpeed.x = inventoryS.x + 24;
+    for (var i = 0; i < inventory.length; i++) {
+        inventory[i].x = inventoryS.x + 60;
+        inventory[i].y = i * 50 + 34;
+        inventory[i].draw();
+        if (mouseX >= inventory[i].x && mouseX <= inventory[i].x + inventory[i].w && mouseY >= inventory[i].y && mouseY <= inventory[i].y + inventory[i].h) {
+            cursor(HAND);
+            if (mouse) {
+                if (inventory[i].selected) {
+                    inventory[i].selected = false;
+                    switch (inventory[i].val) {
+                        case '*':
+                            op = '?';
+                            break;
+                        case '+':
+                            op = '?';
+                            break;
+                        case '-':
+                            op = '?';
+                            break;
+                        case '/':
+                            op = '?';
+                            break;
+                        default:
+                            if (num1 !== '0') {
+                                num1 = '0';
+                            } else {
+                                num2 = '0';
+                            }
+                            break;
+                    }
+                } else {
+                    if (inventorySelectNum() < 3) {
+                        inventory[i].selected = true;
+                        switch (inventory[i].val) {
+                            case '*':
+                                op = '*';
+                                break;
+                            case '+':
+                                op = '+';
+                                break;
+                            case '-':
+                                op = '-';
+                                break;
+                            case '/':
+                                op = '/';
+                                break;
+                            default:
+                                if (num1 === '0') {
+                                    num1 = inventory[i].val;
+                                } else {
+                                    num2 = inventory[i].val;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    fill(0);
+    text('Current Expression', inventoryS.x + 75, width - 60);
+    text(num1 + ' ' + op + ' ' + num2, inventoryS.x + 75, width - 40);
+    executeButton.draw();
+    setToSpeed.draw();
+    if (setToSpeed.action ){
+        if (num1 === '0'){
+        num1 = player.maxSpeed.toString();
+        
+        } else {
+            num1 = '0';
+        }
+    }
+   if (player.y > gameMap[currentLevel].length * widthGlobal + 300){
+       readMap();
+       Camera.x= 0;
+       Camera.y =0;
+   }
+    if (executeButton.action) {
+        switch (op) {
+            case '*':
+                player.maxSpeed = parseFloat(num1) * parseFloat(num2);
+                
+                removeBlocks();
+                break;
+            case '-':
+                player.maxSpeed = parseFloat(num1) - parseFloat(num2);
+                
+                removeBlocks();
+                break;
+            case '/':
+                player.maxSpeed = parseFloat(num1) / parseFloat(num2);
+                
+                removeBlocks();
+                break;
+            case '+':
+                player.maxSpeed = parseFloat(num1) + parseFloat(num2);
+                
+                removeBlocks();
+                break;
+            default:
+                break;
+        }
+    }
+};
+var handleTransitions = function(){
+    if (transitioning) {
+        
+        fade += 25;
+        if (fade >= 255) {
+            if (currentLevel !== gameMap.length-1){
+                currentLevel++;
+            readMap();
+            fade = 0;
+            transitioning = false;
+            Camera.x = 0;
+            Camera.y = 0;
+            gravity = 0.5;
+            num1 = '0';
+            num2 = '0';
+            op = '?';
+            } else {
+                scene = 'you win';   
+            }
+        }
+    }
+};
+var drawPlayerImage = function(){
+     fill(250);
+    rect(player.x, player.y, player.w, player.h);
+   
+    fill(255, 0, 0);
+    textAlign(CENTER, CENTER);
+    text(player.maxSpeed.toFixed(1), player.x + player.w / 2, player.y + player.h / 2);
+};
+var colr = color(0, 136, 255); //This is the color to fade to. 
+var hexagon = function(x, y, s){
+    pushMatrix();
+    translate(x, y);
+    rotate(30);
+    beginShape();
+    for(var i = 0; i < 360; i+=360/6){
+        vertex(cos(i)*s, sin(i)*s);
+    }
+    endShape(CLOSE);
+    popMatrix();
+};
+
+var drawGame = function(){
+      cursor(ARROW);
+   
+    background(0);
+    pushMatrix();
+    translate(-Camera.x, -Camera.y);
+
+    textAlign(LEFT);
+    player.update();
+    player.draw();
+    player.move();
+    for (var i = 0; i < blocks.length; i++) {
+        if (dist(player.x, player.y, blocks[i].x, blocks[i].y) < 648) {
+            blocks[i].draw();
+        }
+    }
+    for (var i = 0; i < iBlocks.length; i++) {
+        if (dist(player.x, player.y, iBlocks[i].x, iBlocks[i].y) < 648) {
+            iBlocks[i].draw();
+        }
+    }
+    
+    popMatrix();
+
+    fill(255, 255, 255, fade);
+    rect(0, 0, width, height);
+    handleTransitions();
+    Camera.x += (player.x - Camera.x - width/2)/20;
+    Camera.y += (player.y - Camera.y - (3*height)/4)/20;
+ 
+    fill(255, 255, 255);
+    textAlign(LEFT);
+    textSize(14);
+    text(messages[currentLevel], 20, height - 40);
+    if (player.beingHurt) {
+        fill(200, 0, 0, random(0, 40));
+        textAlign(CENTER);
+        rect(0, 0, width, height);
+    }
+    drawInventory();
+    textSize(20);
+    player.beingHurt = false;
+    mouse = false;
+};
+var drawWin = function(){
+    background(0);
+  
+    textSize(30);
+    textAlign(CENTER, CENTER);
+    fill(255);
+    text('You\'ve Beaten What I Have So Far', 300, 300);
+};
+var playButton = new Button({
+    type: 'ellipse',
+    x: 300,
+    y: 450,
+    radius: 70,
+    txtScale: 30,
+    text: 'Play',
+});
+var drawMenu = function(){
+  
+    textAlign(CENTER, CENTER);
+  fill(255);
+      textSize(50);
+    text("The", 100, 115);
+    textSize(100);
+    text("Mathformer", 300, 176);
+    textSize(50);
+    text("Trial", 400, 243);
+    textSize(32);
+    fill(200);
+    
+    playButton.draw();
+    if (playButton.action){
+        scene = 'game';   
+    }
+
+    
+    
+};
+draw = function() {
+    cursor(ARROW);
+    if (scene === 'menu'){
+        drawMenu();
+    }
+    if (scene === 'game'){
+        drawGame();
+    }
+    if (scene === 'you win'){
+        drawWin();
+    }
+    mouse = false;
+};

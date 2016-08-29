@@ -1,0 +1,76 @@
+background(219, 255, 255);
+
+// Ground
+noStroke();
+fill(57, 173, 61);
+rect(0, 300, 400, 100);
+
+var x = 60;
+var y = 350;
+var w = 280;
+var h = 203;
+
+// House
+noStroke();
+fill(214, 147, 97);
+rect(x + 1, y - h, w - 3, h);
+
+// Bricks
+var brickW = 16;
+var brickH = 5;
+
+fill(155, 85, 30);
+noStroke();
+
+// Bricks
+for (var j = y; j > y - h; j -= brickH) {
+    var startX = x - (brickW / 2) * (j % 2);
+    var by = j - brickH + 1;
+    
+    for (var i = startX; i < x + w; i += brickW) {
+        var bx = i;
+        var bw = brickW - 1;
+        if (i < x) {
+            bx = x;
+            bw = x - i - 1;
+        } else if (i + brickW > x + w > 0) {
+            bw = i + brickW - x - w - 1;
+        }
+        // Brick
+        noStroke();
+        rect(bx, by, bw, brickH - 1);
+        // Shading
+        stroke(80, 40, 10);
+        line(bx, by + brickH -2, bx + bw - 1, by + brickH -2);
+        line(bx + bw - 1, by, bx + bw - 1, by + brickH -2);
+    }
+}
+
+// Roof
+fill(174, 180, 214);
+triangle(200, y - h - 100, 350, y - h, 50, y - h);
+
+// Door
+var doorW = 40;
+var doorH = 70;
+
+noStroke();
+fill(230, 180, 130);
+rect(200 - doorW/2, y - doorH, doorW, doorH);
+
+// Outline Shading
+stroke(240, 200, 150);
+line(200 - doorW/2, y, 200 - doorW/2, y - doorH);
+line(200 - doorW/2, y - doorH, 200 + doorW/2, y - doorH);
+
+stroke(80, 30, 20);
+line(200 + doorW/2, y, 200 + doorW/2, y - doorH);
+line(200 - doorW/2, y, 200 + doorW/2, y);
+
+// Panels
+for (var i = 200 - doorW/2 + 8; i < 200 + doorW/2; i += 8) {
+    stroke(240, 200, 150);
+    line(i, y - 1, i, y - doorH);
+    stroke(220, 160, 120);
+    line(i+1, y - 1, i+1, y - doorH + 1);
+}

@@ -1,0 +1,1149 @@
+/**********************************************
+ *      Pinhole camera simulation
+ * 
+ * Run the simulation and see the result on
+ * the image plane.
+ * 
+ * Mouse over the image plane to see where
+ * on the tree rays hitting that point originate.
+ * 
+ * TODO:
+ * Move object?
+ * Click and drag point to show where light goes
+***********************************************/
+
+var BLACK = color(0, 0, 0);
+var PINK = color(255, 0, 175);
+var BLUE = color(64, 95, 237);
+var GREY = color(100, 100, 100);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var LIGHT = color(255, 255, 200);
+
+var speed = 8;
+var running = true;
+var SHOW_IMAGE = true;
+var tree;
+var treeX = width - 200;
+
+var sansFont = createFont("sans", 15);
+var showing = {
+    'Incoming light': true,
+    Pinhole: true,
+};
+
+// GUI
+{
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+    return this.selected;
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *      GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = color(230, 230, 230, 200);
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(20);
+    }
+    
+    textFont(sansFont, 14);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, {name: name});
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 13);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+
+var RadioButton = function(x, y, w, h, name, trigger) {
+    Button.call(this, x, y, w, h, {name: name, trigger: trigger});
+    this.r = this.h - 6;
+    this.cx = this.x + this.r;
+    this.cy = this.y + this.h / 2;
+    this.marked = false;
+};
+RadioButton.prototype = Object.create(Button.prototype);
+
+RadioButton.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(10);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.cx + this.r /2 + 4, this.cy + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    ellipse(this.cx, this.cy, this.r, this.r);
+    
+    if (this.marked) {
+        fill(10);
+        ellipse(this.cx, this.cy, this.r / 2, this.r / 2);
+    }
+};
+}
+/*******************************************************
+ *      GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    noStroke();
+    fill(255, 255, 255, 240);
+    rect(this.x, this.y, this.w, this.h, 8);
+    for (var i = this.components.length; i--;) {
+        this.components[i].draw();
+    }
+    
+    if (this.dragged) {
+        if (this.active) {
+            this.active.mouseDragged();
+        }
+        this.dragged = false;
+    }
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 1;
+        this.h += h + 1;
+    }
+    
+    this.h += 5;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    var i, component;
+    for (i = this.components.length; i--;) {
+        component = this.components[i];
+        if (component.mousePressed()) {
+            this.active = component;
+            break;
+        }
+    }
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    if (this.active) {
+        this.active.mouseReleased();
+    }
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.dragged = true;
+};
+}
+}
+/******************************************
+ *      DraggablePoint
+ *  A point that can be dragged
+*******************************************/
+{
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.r = 5;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+        cursor(MOVE);
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(250);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+DraggablePoint.prototype.constrainX = function(x) {
+    // Empty for overwriting
+    return x;
+};
+
+DraggablePoint.prototype.constrainY = function(y) {
+    // Empty for overwriting
+    return y;
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x = mouseX + dx;
+    this.y = mouseY + dy;
+};
+}
+/******************************************
+ *      Aperture
+ * Blocks light except for a hole.
+*******************************************/
+
+var Aperture = {
+    x: round(treeX * 0.72),
+    y: height * 0.5 + 20,
+    r: 10,      // Radius of aperture
+    
+    draw: function() {
+        stroke(100);
+        strokeWeight(5);
+        line(this.x, 0, this.x, this.y - this.r - 2);
+        line(this.x, height, this.x, this.y + this.r + 2);
+    }
+};
+
+/******************************************
+ *      Image plane
+*******************************************/
+
+var ImagePlane = {
+    // Position on the grid
+    x: 10,
+    y: 20,
+    height: height - 40,
+    y2: height - 20,
+    
+    // Size of pixel on 1D image plane
+    pixelSize: 8,
+    
+    // Film sensitivity (ISO)
+    sensitivity: 4,
+    
+    // How many exposures make an image
+    shutterSpeed: 48,
+    
+    // How far through exposure we are
+    // (Counting backwards)
+    exposures: 0,
+    
+    // Create a width * height * 3 1D array
+    // representing colours in the image
+    // Set all the values to 0
+    create2DImageArray: function(w, h) {
+        this.imgArr = [];
+        this.arrayWidth = w;
+        this.arrayHeight = h;
+        this.n = w * h * 3;
+
+        var n = this.n;
+        while (--n >= 0) {
+            this.imgArr[n] = 0;
+        }
+        this.hasImage = false;
+    },
+
+    update: function() {
+        if (!this.hasImage) {
+            for (var i = 0; i < 2; i++) {
+                if (this.exposures > 0) {
+                    this.exposeFilm();
+                }
+            }
+        }
+    },
+    
+    // Ray trace from each pixel to the tree
+    exposeFilm: function() {
+        this.exposures--;
+        var w = this.arrayWidth;
+        var w2 = w / 2;
+        var h = this.arrayHeight;
+        var _scale = this.height / h;
+
+        var ytop = tree.y1;
+        var yend = tree.y;
+        var yend2 = tree.y3;
+        var k = 1 / tree.grad;
+        var k2 = k * k;
+
+        var py = Aperture.y;
+        var pr = Aperture.r;
+
+        // Point on image plane in terms of diagram (not imageArray)
+        var iy, iy2, iz, ix = this.x - tree.x;
+        
+        // Distance from imagePlane to front of tree
+        var dtx2 = tree.x1 - this.x;
+        
+        // Tree trunk radius
+        var r = tree.tw * _scale;
+        
+        // Vector from pixel on image plane to point in pinhole
+        var hy, hz, hx = Aperture.x - this.x;
+        var hx2 = hx * hx;
+
+        // Distance from aperture to tree
+        var dx = -ix - hx;
+
+        var z, y, d, yk, t, p;
+        var A, B, C, D;
+
+        // Calculate proportion of light getting
+        // in the pinhole
+        // This is a simplifed version based on
+        // a pixel in the center of the screen
+        // And based on 2 dimensions
+        var angle = atan(Aperture.r / hx);
+        var proportion = angle / (2 * asin(1));
+
+        proportion *= this.sensitivity;
+
+        // Colours
+        var treeR = red(tree.col1) * proportion;
+        var treeG = green(tree.col1) * proportion;
+        var treeB = blue(tree.col1) * proportion;
+        var trunkR = red(tree.col2) * proportion;
+        var trunkG = green(tree.col2) * proportion;
+        var trunkB = blue(tree.col2) * proportion;
+        
+        for (y = 0; y < h; y++) {
+            // Point on image plane;
+            iy2 = this.y + y * _scale;
+
+            for (z = 0; z < w; z++) {
+                iy = iy2 + random() * _scale;
+                iz = (z - w2 + random()) * _scale;
+
+                // Generate random ray through pinhole
+                angle = random() * 360;
+                d = random() * pr;
+
+                // Ray vector is [hx, hy, hz]
+                // Vector from point on imagePlane to point in pinhole
+                hy = py + d * sin(angle) - iy;
+                hz = d * cos(angle) - iz;
+
+                // Over the top of the tree
+                if (iy - ix * hy / hx < ytop) {
+                    continue;
+                }
+                
+                // Above bottom of the tree
+                if (iy + dtx2 * hy / hx < yend) {
+                    // y relative to top of tree
+                    yk = iy - ytop;
+                    
+                    // Does vector intercept tree top
+                    A = hx2 + hz * hz - hy * hy * k2;
+                    //B = 2 * (hx * ix + hz * iz - hy * k2 * yk);
+                    B = hx * ix + hz * iz - hy * k2 * yk;
+                    C = ix * ix + iz * iz - yk * yk * k2;
+                    
+                    D = B * B - A * C;
+                    
+                    if (D > 0) {
+                        t = (-B - sqrt(D)) / A;
+                        // y-intersect
+                        iy += hy * t;
+                        
+                        if (iy < yend) {
+                            yk = 0.1 + iy - ytop;
+                            p = 1 - abs(hz * t) * k / yk;
+
+                        
+                            // Index for image array
+                            d = (y * w + z) * 3;
+                            
+                            this.imgArr[d++] += treeR * p;
+                            this.imgArr[d++] += treeG * p;
+                            this.imgArr[d] += treeB * p;
+                        }
+                    }
+                } else {
+                    // Test whether ray hits trunk
+                    
+                    A = hx2 + hz * hz;
+                    // B = 2 * (hx * ix + hz * iz);
+                    B = hx * ix + hz * iz;
+                    C = ix * ix + iz * iz - r;
+                    D = B * B - A * C;
+                    
+                    if (D > 0) {
+                        // Calculate y coordinate of intersection with trunk
+                        
+                        t = (-B - sqrt(D)) / A;
+                        
+                        if (iy + hy * t < yend2) {
+                            // Light intensity based on light hitting directly in front
+                            
+                            p = 1 - 0.8 * abs(hz * t) / r;
+                            
+                            d = (y * w + z) * 3;
+                            this.imgArr[d++] += trunkR * p;
+                            this.imgArr[d++] += trunkG * p;
+                            this.imgArr[d] += trunkB * p;
+                        }
+                    }
+                    //break;
+                }
+            }
+         
+        }
+    },
+
+    draw: function() {
+        stroke(225);
+        strokeWeight(5);
+        line(this.x, this.y, this.x, this.y2);
+    },
+    
+    showImage: function(px, py) {
+        var w = this.arrayWidth;
+        var h = this.arrayHeight;
+        
+        strokeWeight(2);
+        stroke(255);
+        fill(0);
+        rect(px - 1, py - 1, w + 2, h + 8);
+        strokeWeight(1);
+        line(px, py + h, px + w, py + h);
+        
+        // Show degree of exposure completed
+        noStroke();
+        fill(10, 200, 250);
+        rect(px, py + h + 1, (1 - this.exposures / this.shutterSpeed) * w, 5);
+        
+        if (this.hasImage) {
+            image(this.hasImage, px, py);
+            return;
+        }
+        
+        loadPixels();
+        var p = imageData.data;
+        var x, y, i2, i = 0;
+        
+        for (y = 0; y < h; y++) {
+            for (x = 0; x < w; x++) {
+                i2 = ((py + y) * width + px + x) << 2;
+                p[i2++] = this.imgArr[i++];
+                p[i2++] = this.imgArr[i++];
+                p[i2] = this.imgArr[i++];
+            }
+        }
+        
+        updatePixels();
+        
+        if (this.exposures === 0) {
+            this.hasImage = get(px, py, w, h);
+        }
+    },
+    
+    mouseOver: function() {
+        return abs(mouseX - this.x) < 10 &&
+               mouseY >= this.y &&
+               mouseY <= this.y2;
+    }
+};
+
+ImagePlane.create2DImageArray(128, 128);
+
+/********************************************
+ *  Ray of light
+ * Starts at a point and continues infinitely,
+ * fading in and out of view
+*********************************************/
+{
+var Ray = function(x, y, dx, dy, col, end) {
+    this.x = x;
+    this.y = y;
+    this.color = col;
+    
+    if (end) {
+        this.x2 = end.x;
+        this.y2 = end.y;
+    } else {
+        this.testForIntersection(dx, dy);
+    }
+    this.t = 255;
+};
+
+Ray.prototype.testForIntersection = function(dx, dy) {
+    if (dx < 0) {
+        // Test for intersection with aperture
+        var y = this.y + (this.x - Aperture.x) * dy / dx;
+        
+        if (abs(y - Aperture.y) > Aperture.r) {
+            this.x2 = Aperture.x;
+            this.y2 = y;
+            return;
+        }
+        
+        // Test for intersection with image plane
+        var y = this.y + (this.x - ImagePlane.x) * dy / dx;
+        
+        if (y > ImagePlane.y + 5 && y < ImagePlane.y2 - 5) {
+            this.x2 = ImagePlane.x;
+            this.y2 = y;
+            ImagePlane.hitByRay(this);
+            return;
+        }
+    }
+    
+    this.x2 = this.x + 2000 * dx;
+    this.y2 = this.y - 2000 * dy;
+};
+
+Ray.prototype.draw = function() {
+    if (this.t > 1) {
+        if (running) {
+            this.t -= speed;
+            if (this.t < 1) {
+                this.t = 0;
+                return;
+            }
+        }
+        strokeWeight(3);
+        stroke(this.color + (this.t << 24));
+        line(this.x, this.y, this.x2, this.y2);
+    }
+};
+}
+
+// Object to keep track of all rays
+var Rays = {
+    rays: [],
+    t: 0,
+    
+    draw: function() {
+        if (ImagePlane.mouseOver()) {
+            this.drawRayFromImagePlane();
+        } else if (tree.mouseOver()) {
+            this.drawRayFromTree();
+        } else {
+            this.drawRaysFromTreeEnds();
+        }
+    },
+    
+    drawRayFromImagePlane: function() {
+        var x = ImagePlane.x;
+        var y = mouseY;
+        
+        noFill();
+        strokeWeight(3);
+        stroke(255, 0, 0);
+        ellipse(x, y, 12, 12);
+        
+        // Gradient of ray through aperture
+        var dx = Aperture.x - x;
+        var dy1 = Aperture.y - Aperture.r - y;
+        var dy2 = Aperture.y + Aperture.r - y;
+
+        // Check for intersection with top of tree
+        var x1 = tree.x;
+        var x2 = tree.x;
+        
+        // Find where top and bottom ray hit
+        // center line of tree
+        var y1 = y + (x1 - x) * dy1 / dx;
+        var y2 = y + (x1 - x) * dy2 / dx;
+
+        if (y2 < tree.y1) {
+            // Lower ray missing top of tree
+            return;
+        } else {
+            // Intersect with tree edge
+            var rayGrad = dy2 / dx;
+            var ix = (y2 - tree.y1) / (tree.grad + rayGrad);
+            x2 -= ix;
+            y2 -= ix * rayGrad;
+        }
+
+        noStroke();
+        
+        // Limit top of ray to tree top
+        if (y1 < tree.y1) { y1 = tree.y1; }
+        
+        // Only hitting the tree top
+        if (y2 < tree.y) {
+            fill(tree.col1 + (160 << 24));
+            triangle(x, y, x1, y1, x2, y2);
+            return;
+        } else {
+            // Limit lower ray to bottom of tree top
+            y2 = tree.y;
+            x2 = tree.x1;
+        }
+
+        // Limit top ray to top of the tree
+        // Intersect top ray with tree edge
+        var rayGrad = dy1 / dx;
+        var ix = (y1 - tree.y1) / (tree.grad + rayGrad);
+        x1 -= ix;
+        y1 -= ix * rayGrad;
+        
+        // Draw rays to tree top
+        if (y1 < y2) {
+            fill(tree.col1 + (160 << 24));
+            triangle(x, y, x1, y1, x2, y2);
+        }
+        
+        // Calculate ray to tree trunk
+        x1 = tree.x3;
+        
+        y1 = y + max(
+            (x1 - x) * (y2 - y) / (x2 - x),
+            (x1 - x) * dy1 / dx
+        );
+        
+        y2 = y + (x1 - x) * dy2 / dx;
+        
+        // Limit rays to tree trunk bottom
+        if (y2 > tree.y2) { y2 = tree.y2; }
+        
+        // Rays to trunk
+        if (y1 < y2) {
+            fill(tree.col2 + (160 << 24));
+            triangle(x, y, x1, y1, x1, y2);
+        }
+    },
+    
+    drawRayFromTree: function() {
+        var x, y = mouseY;
+        var dy = y - tree.y;
+        
+        noStroke();
+        
+        if (dy < 0) {
+            // Tree top
+            x = tree.x - (y - tree.y1) / tree.grad;
+            fill(tree.col1);
+        } else {
+            // Trunk
+            x = tree.x3;
+            fill(tree.col2);
+        }
+        
+        // Gradient of ray through aperture
+        var x1 = ImagePlane.x;
+        var x2 = ImagePlane.x;
+        var dx = Aperture.x - x;
+        var dx2 = x1 - x;
+        var dy1 = Aperture.y - Aperture.r - y;
+        var dy2 = Aperture.y + Aperture.r - y;
+        
+        var y1 = y + dx2 * dy1 / dx;
+        var y2 = y + dx2 * dy2 / dx;
+        
+        if (y1 < ImagePlane.y) {
+            y1 = ImagePlane.y;
+        }
+        
+        if (y2 > ImagePlane.y2) {
+            y2 = ImagePlane.y2;
+        }
+        
+        // Is point on the trunk?
+        if (dy >= 0) {
+            var shaded = false;
+            // Check is lower rays shaded by tree
+            // If so, then the whole ray is blocked
+            if (dy2 < 0) {
+                var x3 = x - dy * dx / dy2;
+                if (x3 > tree.x1) {
+                    x1 = x3;
+                    x2 = x - dy * dx / dy1;
+                    y1 = tree.y;
+                    y2 = tree.y;
+                    shaded = true;
+                }
+            }
+            
+            // Check if the top of rays shaded by tree
+            if (!shaded && dy1 < 0) {
+                var x3 = x - dy * dx / dy1;
+                if (x3 > tree.x1) {
+                    //x1 = x3;
+                    //y1 = tree.y;
+                    //println(x3);
+                    y1 = max(y1, y + dx2 * dy / (x - tree.x1));
+                }
+            }
+            
+        }
+
+        if (y1 < y2) {
+            triangle(x, y, x1, y1, x2, y2);
+        }
+        
+        // Circle on tree
+        noFill();
+        strokeWeight(3);
+        stroke(255, 0, 0);
+        ellipse(x, y, 12, 12);
+    },
+    
+    drawRaysFromTreeEnds: function() {
+        strokeWeight(3);
+        // Ray from top of tree
+        
+        // Aperture edges
+        var ay = Aperture.y;
+        var a1 = ay - Aperture.r;
+        var a2 = ay + Aperture.r;
+        
+        // Ray from top of tree
+        //stroke(tree.col1 + (120 << 24));
+        //this.drawRay(tree.x, tree.y1, a1);
+        //this.drawRay(tree.x, tree.y1, a2);
+        stroke(tree.col1);
+        this.drawRay(tree.x, tree.y1, ay);
+        
+        stroke(tree.col2);
+        this.drawRay(tree.x3, tree.y2, ay);
+        
+    },
+    
+    drawRay: function(x, y, y1) {
+        var dx = Aperture.x - ImagePlane.x;
+        var dx1 = x - Aperture.x;
+        var dx2 = x - ImagePlane.x;
+        var dy = y - y1;
+        
+        var y2 = y - dx2 * dy / dx1;
+        
+        // Check ray is on imagePlane
+        if (y2 > ImagePlane.y2) {
+            y2 = ImagePlane.y2;
+            
+            // Shift y down the tree
+            y = y2 - dx2 * (y2 - y1) / dx;
+        } else if (y2 < ImagePlane.y) {
+            y2 = ImagePlane.y;
+            
+            // Shift y down the tree
+            y = y2 - dx2 * (y2 - y1) / dx;
+        }
+        
+        line(x - 1, y, ImagePlane.x, y2);
+    }
+};
+
+/******************************************
+ *  Tree object
+*******************************************/
+{
+var Tree = function(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    // Proportions
+    this.dx = w * 0.5;
+    this.dy = h * 0.75;
+    this.grad = this.dy / this.dx;
+    this.sideAngle = atan2(this.dy, this.dx);
+    
+    // Trunk parameters
+    this.tw = w * 0.2;
+    this.tx = x - this.tw * 0.5;
+    
+    this.x1 = x - this.dx;
+    this.x2 = x + this.dx;
+    this.x3 = x - this.tw * 0.5;
+    
+    // Tree top
+    this.y1 = y - this.dy;
+
+    // Tree top base
+    this.y2 = y + h - this.dy;
+    
+    // Tree trunk base
+    this.y3 = this.y + h * 0.25;
+    
+    // Colours
+    this.col1 = color(75, 185, 40);
+    this.col2 = color(190, 140, 65);
+};
+
+Tree.prototype.draw = function() {
+    strokeWeight(2);
+
+    // Trunk
+    stroke(115, 85, 40);
+    fill(190, 140, 65);
+    rect(this.x3, this.y, this.tw, this.h * 0.25);
+    
+    // Top
+    stroke(30, 175, 35);
+    stroke(25, 120, 30);
+    fill(this.col1);
+    triangle(this.x1, this.y, this.x2, this.y, this.x, this.y1);
+};
+
+Tree.prototype.mouseOver = function() {
+    return mouseX >= this.x1 && mouseX <= this.x2 && mouseY >= this.y1 && mouseY <= this.y2;
+};
+}
+/******************************************
+ *  Create objects
+*******************************************/
+
+tree = new Tree(treeX, height / 2 + 60, 100, 200);
+
+var toolbar = new Toolbar(width - 142, 2, 140);
+
+/*toolbar.add(Slider, {
+    name: "Amount of light",
+    min: 0,
+    max: 10,
+    now: 2,
+    trigger: function() {
+        speed = this.val;
+        ImagePlane.sensitivity = this.val;
+    }
+});*/
+toolbar.add(Slider, {
+    name: "Aperture",
+    min: 1,
+    max: 50,
+    now: Aperture.r,
+    trigger: function() {
+        Aperture.r = this.val;
+    }
+});
+toolbar.add(Slider, {
+    name: "Focal distance",
+    min: 50,
+    max: Aperture.x - 9,
+    now: Aperture.x - ImagePlane.x,
+    trigger: function() {
+        ImagePlane.x = Aperture.x - this.val;
+    }
+});
+/*toolbar.add(Button, {
+    name: "Clear 1D Image",
+    trigger: function() {
+        ImagePlane.create1DPixelArray();
+    }
+});*/
+toolbar.add(Button, {
+    name: "Capture 2D Image",
+    trigger: function() {
+        ImagePlane.exposures = ImagePlane.shutterSpeed;
+        // Clear image
+        ImagePlane.create2DImageArray(128, 128);
+    }
+});
+
+/*****************************************
+ *      Main loop
+*******************************************/
+
+draw = function() {
+    cursor('default');
+    background(0);
+    
+    Rays.draw();
+    ImagePlane.draw();
+    tree.draw();
+    Aperture.draw();
+    toolbar.draw();
+    
+    if (SHOW_IMAGE) {
+        ImagePlane.showImage(width - 132, height - 138);
+        ImagePlane.update();
+    }
+};
+
+/********************************************
+ *      Event handling
+*********************************************/
+{
+keyPressed = function() {
+    if (keyCode === 32) {
+        //running = !running;
+    }
+};
+    
+mousePressed = function() {
+    //tree.mousePressed();
+    toolbar.mousePressed();
+};
+
+mouseReleased = function() {
+    //tree.mouseReleased();
+    toolbar.mouseReleased();
+};
+
+mouseDragged = function() {
+    //tree.mouseDragged();
+    toolbar.mouseDragged();
+};
+
+mouseOut = mouseReleased;
+}

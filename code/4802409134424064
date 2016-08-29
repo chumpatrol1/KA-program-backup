@@ -1,0 +1,40 @@
+
+var n = 19;
+var tileSize = 2 * floor(min(width, height) / n / 2);
+
+var x1 = (width - n * tileSize) / 2;
+var y1 = (height - n * tileSize) / 2;
+var x2 = x1 + n * tileSize;
+var y2 = y1 + n * tileSize;
+
+var drawGrid = function() {
+    noFill();
+    stroke(100, 100, 140);
+    
+    for (var x = 0; x <= n; x++) {
+        var px = x1 + x * tileSize;
+        line(px, y1, px, y2);
+    }
+    
+    for (var y = 0; y <= n; y++) {
+        var py = y1 + y * tileSize;
+        line(x1, py, y2, py);
+    }
+};
+
+drawGrid();
+
+var specials = [3, 9, 15];
+
+strokeWeight(3);
+stroke(50, 100, 200);
+noFill();
+var r = tileSize * 0.75;
+
+for (var i = 0; i < 3; i++) {
+    var px = x1 + specials[i] * tileSize + tileSize / 2;
+    for (var j = 0; j < 3; j++) {
+        var py = y1 + specials[j] * tileSize + tileSize / 2;
+        ellipse(px, py, r, r);
+    }
+}

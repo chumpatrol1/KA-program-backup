@@ -1,0 +1,275 @@
+/*
+    Draw a 3D object with triangular or rectangular faces.
+    Faces are shaded based on their orientation to the light.
+    
+    *** The ordering of faces needs to be fixed ***
+    
+    Create basic shapes using:
+        createCuboid(width, height, depth)
+        createCylinder(radius, height, resolution)
+    
+    Move shapes using translate3D(x, y, z, shape)
+    Otherwise define faces counterclockwise.
+    
+    The object can be spun by clicking and dragging.
+*/
+
+// Move to centre of screen
+translate(200.5, 200.5);
+stroke(43, 148, 48);
+noStroke();
+var rotateAngle = 2;
+var faceColor = [20, 255, 40];
+var lightVector = [1,-0.8,-2];
+
+var translate3D = function(x, y, z, shape) {
+  var nodes= shape.nodes;
+  for (var i = 0; i < nodes.length; i+=1) {
+    nodes[i] = [nodes[i][0]+x, nodes[i][1]+y, nodes[i][2]+z];
+  }
+};
+
+var createGhost = function(n1, n2) {
+    var height = 150;
+    var theta1 = 360 / n1;
+    var theta2 = 90 / n2;
+    var nodes = [[0,-height,0]];
+    var faces = [];
+    var node, face;
+    var rx = 80;
+    var ry = 120;
+    
+    var i, j, r;
+    
+    for (j = 1; j < n2; j++) {
+        r = rx * sin(theta2 * j);
+        var y = -height + ry * (1 - cos(theta2 * j));
+        
+        for (i = 0; i < n1; i++) {
+            var x = r * cos(theta1 * i);
+            var z = r * sin(theta1 * i);
+            node = [x, y, z];
+            nodes.push(node);
+        }
+    }
+    
+    var s = nodes.length - n1;
+    for (i = 0; i < n1; i++) {    
+        // Nodes at bottom
+        nodes.push([r * cos(theta1 * i),
+                    100,
+                    r * sin(theta1 * i)]);
+        
+        // Triangular faces at top
+        faces.push([0, 1 + (i+1) % n1, i+1]);
+        
+        // Faces of vertical sides
+        faces.push([s+i, s+(i+1)%n1, s+n1+(i+1)%n1, s+i+n1]);   
+    }
+    
+    for (j = 0; j < n2-2; j++) {
+        for (i = 0; i < n1; i++) {
+            if (i < n1 - 1) {
+                face = [ j * n1  + 1 + i,
+                         j * n1  + 2 + i,
+                        (j+1)*n1 + 2 + i,
+                        (j+1)*n1 + 1 + i];
+            } else {
+                face = [ j * n1  + 1 + i,
+                         j * n1  + 1,
+                        (j+1)*n1 + 1,
+                        (j+1)*n1 + 1 + i];
+            }
+            faces.push(face);
+        }
+    }
+    
+    return {nodes: nodes, faces: faces};
+};
+
+/*******************************************************
+*                   Create Ghost Here
+********************************************************/
+var objects = [createGhost(20, 20)];
+
+var subtractVectors = function(v1, v2){
+    return [[v1[0] - v2[0]],
+            [v1[1] - v2[1]],
+            [v1[2] - v2[2]]];
+};
+
+var normaliseVector = function(v) {
+    var d = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var normalOfPlane = function(face, nodes) {
+    var n1 = nodes[face[0]];
+    var n2 = nodes[face[1]];
+    var n3 = nodes[face[2]];
+    
+    var v1 = subtractVectors(n1, n2);
+    var v2 = subtractVectors(n1, n3);
+    
+    var v3 = [[v1[1]*v2[2] - v1[2]*v2[1]],
+              [v1[2]*v2[0] - v1[0]*v2[2]],
+              [v1[0]*v2[1] - v1[1]*v2[0]]];
+              
+    return v3;
+};
+
+var dotProduct = function(v1, v2){
+    // Assume everything has 3 dimensions
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+var currentX = false;
+var currentY = false;
+
+var rotateY3D = function(theta, nodes) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+
+    for (var i = 0; i < nodes.length; i+=1) {
+        x = nodes[i][0];
+        y = nodes[i][1];
+        z = nodes[i][2];
+        nodes[i] = [ct*x + st*z, y, -st*x + ct*z];
+    }
+};
+
+var rotateX3D = function(theta, nodes){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+    var obj;
+    
+    for (var i = 0; i < nodes.length; i+=1) {
+        x = nodes[i][0];
+        y = nodes[i][1];
+        z = nodes[i][2];
+        nodes[i] = [x, ct*y - st*z, st*y + ct*z];
+    }
+};
+
+var sortFunction = function(a, b) {
+    return a[0] - b[0];
+};
+
+lightVector = normaliseVector(lightVector);
+
+var draw = function() {
+    var i, o, f;
+    var face;
+    var faces = [];
+    var nodes;
+    var node1;
+    var node2;
+    
+    background(255, 255, 255);
+
+    for (o in objects) {
+        var obj = objects[o];
+        nodes = obj.nodes;
+        
+        if ('faces' in obj) {
+            for (f in obj.faces) {
+                face = obj.faces[f];
+                var fnorm = normalOfPlane(face, nodes);
+                
+                if (fnorm[2] < 0) {
+                    // Find order in which to draw faces
+                    // by finding where it intersects the z-axis
+                    var pos = dotProduct(fnorm, nodes[face[0]]);
+                    
+                    var fnodes;
+                    if (face.length === 3) {
+                        fnodes = [nodes[face[0]], nodes[face[1]],
+                                  nodes[face[2]]];
+                    } else {
+                        fnodes = [nodes[face[0]], nodes[face[1]],
+                                  nodes[face[2]], nodes[face[3]]];
+                    }
+                    
+                    faces.push([pos / fnorm[2], fnorm, fnodes]);
+                }
+            }
+        }
+        
+        if ('edges' in obj) {
+            var edges = obj.edges;
+            for (i = 0; i < edges.length; i+=1) {
+                node1 = nodes[edges[i][0]];
+                node2 = nodes[edges[i][1]];
+                line(node1[0], node1[1], node2[0], node2[1]);
+            }     
+        }
+    }
+    
+    faces.sort(sortFunction);
+    
+    for (f in faces) {
+        face = faces[f];
+        nodes = face[2];
+        var l = dotProduct(lightVector, normaliseVector(face[1]));   
+        fill(l * faceColor[0], l * faceColor[1], l * faceColor[2]);
+        
+        if (face[2].length === 3) {
+            triangle(nodes[0][0], nodes[0][1],
+                     nodes[1][0], nodes[1][1],
+                     nodes[2][0], nodes[2][1]);
+        } else {
+            quad(nodes[0][0], nodes[0][1],
+                 nodes[1][0], nodes[1][1],
+                 nodes[2][0], nodes[2][1],
+                 nodes[3][0], nodes[3][1]);
+      }
+    }
+
+    if (mouseIsPressed) {
+        if (currentX !== false) {
+            var theta1 = -(currentX - mouseX) * PI / 10;
+            var theta2 = (currentY - mouseY) * PI / 10;
+            
+            for (o in objects) {
+                nodes = objects[o].nodes;
+                rotateY3D(theta1, nodes);
+                rotateX3D(theta2, nodes);    
+            }
+        }
+        currentX = mouseX;
+        currentY = mouseY;
+    } else {
+        currentX = false;
+    }
+};
+
+var mouseOut = function(){
+    mouseIsPressed = false;
+};
+
+var keyPressed = function() {
+    var f = 0;
+    var d = 0;
+    if (keyCode === LEFT) {
+        f = rotateY3D;
+        d = 2;
+    } else if (keyCode === RIGHT) {
+        f = rotateY3D;
+        d = -2;
+    } else if (keyCode === UP) {
+        f = rotateX3D;
+        d = -2;
+    } else if (keyCode === DOWN) {
+        f = rotateX3D;
+        d = 2;
+    }
+    
+    if (f !== 0) {
+        for (var obj in objects) {
+                f(d, objects[obj].nodes); 
+        }
+    }
+    
+};

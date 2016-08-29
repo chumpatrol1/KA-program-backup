@@ -1,0 +1,310 @@
+
+var BACKGROUND = color(255);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+/******************************************
+ * Generic GUI component from which other
+ * elements inherit
+ * The default object is basically a button
+*******************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+    this.cursor = HAND;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+        cursor(this.cursor);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/******************************************
+ *      GUI Slider
+*******************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = 18;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(16);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 20);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(13);
+    textAlign(CENTER, CENTER);
+    text(this.val + "%", this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+
+var lightness = 95;
+var drawNow = true;
+
+// Get array of pixelIndex, hue, saturation, intensity 
+var getAngleAndDist = function(circleX, circleY, circleR) {
+    var a = [];
+    
+    // Radius squared, calculate it now as we'll use it a lot
+    var circleR2 = circleR * circleR;
+    
+    // Radius minus 1, used for anti-aliasing
+    var circleR1 = circleR - 1;
+    var circleR12 = circleR1 * circleR1;
+    
+    // Difference between the square values, inverted
+    // Used for anti-aliasing
+    var circleRd = 1 / (circleR2 - circleR12);
+    
+    var i360 = 1 / 360;
+    var x, y, dx, intensity, pixelDist;
+    
+    for (y = -circleR; y < circleR; y++) {
+        dx = floor(sqrt(circleR2 - y * y));
+        
+        for (x = -dx; x <= dx; x++) {
+            intensity = 255;
+            // Distance from pixel to center at (0, 0)
+            pixelDist = x * x + y * y;
+            
+            // If pixel is further than radius - 1 from the center
+            // i.e. is on the edge of the circle
+            if (pixelDist > circleR12) {
+                // Scale intensity by the distance this pixel is from
+                // radius minus 1
+                intensity *= 1 - (pixelDist - circleR12) * circleRd;
+            }
+            
+            a.push(
+                // Pixel index
+                circleX + x + (circleY + y) * width << 2,
+                // Hue based on angle
+                180 + atan2(-y, x) * i360,
+                // Saturation based on distance
+                sqrt(pixelDist) / circleR,
+                intensity
+            );
+        }
+    }
+    
+    return a;
+};
+
+var third = 1 / 3;
+var sixth = 1 / 6;
+var third2 = third * 2;
+
+var hue2rgb = function(p, q, t) {
+    if (t < 0) { t++; }
+    else if (t > 1) { t--; }
+    if (t < sixth) { return p + (q - p) * 6 * t; }
+    if (t < 0.5) { return q; }
+    if (t < third2) { return p + (q - p) * (third2 - t) * 6; }
+    return p;
+};
+
+var drawCircle = function(a) {
+    var l = lightness * 0.01;
+    var n = a.length;
+    var i, r, g, b, hue, sat, index;
+    
+    var h, f, p, q, t;
+    
+    background(BACKGROUND);
+    loadPixels();
+    var pix = this.imageData.data;
+
+    for (i = 0; i < n; i += 4) {
+        index = a[i];
+        hue = a[i + 1];
+        sat = a[i + 2];
+        
+        // Calculate RGB
+
+        h = floor(hue * 6);
+        f = hue * 6 - h;
+        p = l * (1 - sat);
+        q = l * (1 - f * sat);
+        t = l * (1 - (1 - f) * sat);
+        switch (h % 6) {
+            case 0: r = l; g = t; b = p; break;
+            case 1: r = q; g = l; b = p; break;
+            case 2: r = p; g = l; b = t; break;
+            case 3: r = p; g = q; b = l; break;
+            case 4: r = t; g = p; b = l; break;
+            case 5: r = l; g = p; b = q; break;
+        }
+        
+        // Set the pixels 
+        pix[index++] = r * 0xFF | 0;
+        pix[index++] = g * 0xFF  | 0;
+        pix[index++] = b * 0xFF  | 0;
+        pix[index] = sat = a[i + 3];
+    }
+
+    updatePixels();
+};
+
+var slider = new Slider(120, 340, 160, 20, {
+    name: "Lightness",
+    now: lightness,
+    max: 100,
+    trigger: function() {
+        if (this.val !== lightness) {
+            lightness = this.val;
+            drawNow = true;
+        }
+    }
+});
+
+var a = getAngleAndDist(200, 160, 150);
+
+draw = function() {
+    if (drawNow) {
+        drawCircle(a);
+        drawNow = false;
+    }
+    
+    cursor('default');
+    
+    noStroke();
+    fill(BACKGROUND);
+    rect(0, 320, width, 80);
+    slider.draw();
+};
+
+/********************************************************
+ *      Event handling
+*********************************************************/
+
+mousePressed = function() {
+    slider.mousePressed();
+};
+
+mouseDragged = function() {
+    slider.mouseDragged();
+};
+
+mouseReleased = function() {
+    slider.mouseReleased();
+};
+
+mouseOut = mouseReleased;

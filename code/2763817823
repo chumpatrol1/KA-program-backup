@@ -1,0 +1,25 @@
+/************************************************************
+ * Based on a painting by Ad Reinhardt
+ * 
+ * https://www.khanacademy.org/humanities/art-history/art-history-1907-1960-age-of-global-conflict/American%20Modernism/v/moma-ad-reinhardt
+ * 
+ * More detail here:
+ * https://www.khanacademy.org/humanities/art-history/art-history-1907-1960-age-of-global-conflict/American%20Modernism/v/moma-painting-technique-reinhardt
+************************************************************/
+
+// Degree of colour (try changing this)
+var d = 2;
+
+noStroke();
+
+// Red background (ends up as just the corners)
+fill(d, 0, 0);
+rect(0, 0, width, height);
+
+// Vertical blue stripe (ends up as middle of top and bottom)
+fill(0, 0, d);
+rect(width/3, 0, width/3, height);
+
+// Horizontal green stripe (ends up as middle of top and bottom)
+fill(0, d, 0);
+rect(0, height/3, width, height/3);

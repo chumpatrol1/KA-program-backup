@@ -1,0 +1,523 @@
+/*********************************************************
+ * The orbit of Earth and Mars. How does the distance
+ * between the planets change over time?
+ * 
+ * Planet and sun sizes not to scale.
+ * 
+ * Spacebar: run/pause
+ * s: toggle show orbit shape and major axis
+*********************************************************/
+var speed = 2;          // Change in days per update
+var resolution = 20;    // How accurate orbit speed is
+
+var sunX = 215;
+var sunY = 192;
+var sunR = 28;
+
+var marsData = {
+    size: 8,
+    colour: color(212, 95, 17),
+    perihelion: 207,        // million km
+    aperihelion: 249,       // million km
+    longitude: 336,         // degrees
+    year: 686.98,           // earth days
+    mass: 0.64              // 10^24 kg
+};
+
+var earthData = {
+    size: 15,
+    colour: color(61, 100, 255),
+    perihelion: 147,        // million km
+    aperihelion: 152,       // million km
+    longitude: 102,         // degrees
+    year: 365.25,           // earth days
+    mass: 5.97              // 10^24 kg
+};
+
+// At 6pm 28th August 2003, Earth and Mars in opposition
+var _year = 2003;
+var _day = 239.75;
+var _time = 360 * 18 / 24;
+
+// Angles from ellipse centres, not sun (angle from sun = 335.0)
+var earthAngle = 335.6;
+var marsAngle = 335.1;
+
+// Other variables
+var scalingFactor = 0.76;
+var running = false;
+var showCycles = true;
+var showAxes = false;
+
+var Sun = function() {
+    this.x = sunX;
+    this.y = sunY;
+    this.mass = 330000;
+    this.previous_points = [];
+    
+    this.update = function(t) {
+    };
+    
+    this.draw = function() {
+        fill(255, 255, 0);
+        ellipse(this.x, this.y, sunR, sunR);
+        fill(255, 89, 0, 100);
+        ellipse(this.x, this.y, sunR + 3, sunR + 3);
+    };
+    
+    this.drawCenter = function(){
+        fill(255, 255, 255);
+        ellipse(this.x, this.y, 2, 2);
+    };
+};
+
+var Planet = function(data, angle) {
+    this.year = data.year;
+    
+    // Distance from ellipse centre to sun
+    var focusDist = scalingFactor * (data.aperihelion - data.perihelion) / 2;
+    
+    // Ellipse axes
+    var major = scalingFactor * data.aperihelion - focusDist;
+    var minor = sqrt(major * major - focusDist * focusDist);
+    
+    // Store these to save repeatedly calculating them
+    var phi = data.longitude;
+    var cosPhi = cos(phi);
+    var sinPhi = sin(phi);
+    
+    // Angle relative the perihelion
+    this.angle = angle - phi;
+    
+    // Center of ellipse
+    var cx = sunX - focusDist * cosPhi;
+    var cy = sunY + focusDist * sinPhi;
+    
+    // Handy properties for calculations
+    var eccentricity = focusDist / major;
+    var angleConstant = 360 * major * minor / this.year;
+    
+    // Add a numbers of days to the orbit
+    this.update = function(days) {        
+        var sign = days < 0 ? -1 / resolution : 1 / resolution;
+        var speed = 0;
+
+        for (var d = 0; d < abs(days) * resolution; d++) {
+            // Distance from sun
+            var r = major * (1 - eccentricity * eccentricity) /
+                            (1 + eccentricity * cos(this.angle));
+            
+            // Update angle around sun
+            this.angle += sign * angleConstant / (r * r);
+            speed += angleConstant / (r * r);
+        }
+        
+        var r = major * (1 - eccentricity * eccentricity) /
+                        (1 + eccentricity * cos(this.angle));
+                        
+        // Position based on non-rotated ellipse
+        var x = r * cos(this.angle) + focusDist;
+        var y = r * sin(this.angle);
+        
+        // Rotate based on ellipse rotation
+        this.x = cx + x * cosPhi - y * sinPhi;
+        this.y = cy - x * sinPhi - y * cosPhi;
+    };
+    this.update(0);
+    
+    this.display = function(x, y) {
+        fill(data.colour);
+        ellipse(this.x, this.y, data.size, data.size);
+    };
+    
+    this.drawCycle = function() {
+        translate(cx, cy);
+        rotate(data.longitude);
+        ellipse(0, 0, major*2, minor*2);
+        resetMatrix();
+    };
+    
+    this.drawCenter = function() {
+        stroke(255, 255, 255, 100);
+        var dx = major * cosPhi;
+        var dy = major * sinPhi;
+        line(cx + dx, cy - dy, cx - dx, cy + dy);
+        fill(data.colour);
+        ellipse(cx, cy, 2, 2);
+    };
+    
+    this.draw = function() {
+        fill(data.colour);
+        
+        for (var i in this.previous_points) {
+            var p = this.previous_points[i];
+            ellipse(p[0], p[1], 2, 2);
+        }
+        
+        this.display(this.x, this.y);
+    };
+};
+
+/********************************************************
+ *               Make planets here
+*********************************************************/
+var sun = new Sun();
+var mars = new Planet(marsData, marsAngle);
+var earth = new Planet(earthData, earthAngle);
+var bodies = [sun, earth, mars];
+
+/********************************************************
+ *               Date functions
+*********************************************************/
+
+var months = {
+    January: 31,
+    February: 28,
+    March: 31,
+    April: 30,
+    May: 31,
+    June: 30,
+    July: 31,
+    August: 31,
+    September: 30,
+    October: 31,
+    November: 30,
+    December: 31
+};
+
+var isLeapYear = function(y) {
+    return (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0));
+};
+
+var dayToDate = function(d, y) {
+    for (var m in months) {
+        var days = months[m];
+        if (m === 'February' && isLeapYear(y)) {
+            days++;
+        }
+        if (d <= days) {
+            return [d, m];
+        } else {
+            d -= days;
+        }
+    }
+};
+
+var convertDayToYear = function(days) {
+    var y = 0;
+    
+    if (days > 365) {
+        while (true) {
+            var n = 365 + isLeapYear(_year + y);
+            if (days > n) {
+                days -= n;
+                y++;
+            } else {
+                break;
+            }
+        }   
+    } else if (days < 0) {
+        while (true) {
+            if (days < 0) {
+                var n = 365 + isLeapYear(_year - 1 - y);
+                days += n;
+                y--;   
+            } else {
+                break;
+            }
+        }
+    }
+    
+    return [y, days];
+};
+
+var updateDate = function(days) {
+    _day += days;
+    var y = convertDayToYear(_day);
+    _day = y[1];
+    _year += y[0];
+};
+
+var changeDay = function(change) {
+    for (var i = 1; i < bodies.length; i++) {
+        if (change > 0) {
+            // A complete year doesn't affect the angle
+            var years = floor(change / bodies[i].year);
+            var days = change - bodies[i].year * years;
+            bodies[i].update(days);
+        } else {
+            var years = floor(-change / bodies[i].year);
+            var days = -change - bodies[i].year * years;
+
+            bodies[i].update(bodies[i].year - days); 
+        }
+    }
+    updateDate(change);
+};
+
+// Get to 1st Janurary 2010
+//changeDay(2318);
+
+var getKM = function(d) {
+    return round(10 * d / scalingFactor) / 10;
+};
+
+var getMiles = function(d) {
+    return round(10 * d / (scalingFactor * 1.6093)) / 10;
+};
+
+/********************************************************
+ *               GUI
+*********************************************************/
+var Slider = function(x, y, w, min_v, max_v, current_v, setF) {
+    this.x = x;
+    this.y = y;
+    this.width = w; 
+    this.held = false;
+
+    // Use when min and max (re)defined
+    this.calibrate = function(min_v, max_v) {
+        this.min = min_v;
+        this.max = max_v;
+        this.scale = (max_v - min_v) / w;
+        this.val = current_v === undefined ? min_v : current_v;
+        this.bx = this.x + (this.val - min_v) / this.scale;          
+    };
+    this.calibrate(min_v, max_v);
+
+    this.draw = function() {
+        noStroke();
+        fill(200);
+        rect(this.x, this.y-1, this.width+2, 3, 4);
+        
+        strokeWeight(1);
+        stroke(60);
+        line(this.x + 1, this.y-1, x + this.width, this.y);
+    
+        fill(180);
+        stroke(50);
+        rect(this.bx, this.y-8, 10, 16, 3);
+        
+        for (var i=0; i<3; i++) {
+            var y = this.y + i*3 - 3;
+            stroke(50);
+            line(this.bx + 3, y, this.bx + 7, y); 
+            stroke(200);
+            line(this.bx + 3, y+1, this.bx + 7, y+1); 
+        }
+    };
+    
+    this.selected = function() {
+        this.held = mouseX > this.bx - 1 && mouseX < this.bx + 11 && 
+                    mouseY > this.y - 9 && mouseY < this.y + 9;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + (x - this.x) * this.scale;
+            
+            if (setF) {
+                setF(this);
+            }
+        }
+    };
+    
+    this.update = function(d) {
+        this.val = constrain(this.val + d, this.min, this.max);
+        this.bx = (this.val - this.min) / this.scale + this.x;
+    };
+};
+
+var slider = false;
+
+var getYear = function() { return _year; };
+var getDate = function() { return _day; };
+var getTime = function() { return _time; };
+
+var setYear = function(self) {
+    changeDay((self.val - _year) * 365.25);
+};
+
+var setDate = function(self) {
+    changeDay(self.val - _day);
+};
+
+var setTime = function(self) {
+    _time = self.val;
+};
+
+var writeDate = function() {
+    var date = dayToDate(round(_day), _year);
+    return date[0] + " " + date[1].slice(0, 3);
+};
+
+var writeTime = function() {
+    //println(_time);
+    var _hour = floor(_time / 15);
+    var _min = (_time - _hour * 15) * 4;
+    if (_min < 10) { _min += "0"; }
+    return _hour + ":" + _min;
+};
+
+var OptionBox = function(x, y, w, h, name, getF, setF, writeF, range) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.selected = false;
+    
+    this.min = range[0];
+    this.max = range[1];
+    
+    this.draw = function() {
+        noStroke();
+        if (this.selected || this.mouseover()) {
+            fill(200, 200, 200, 250);
+        } else {
+            fill(200, 200, 200, 100);
+        }
+        rect(this.x, this.y, this.w, this.h, 5);
+        
+        fill(0);
+        textAlign(CENTER, BASELINE);
+        textSize(14);
+        text(this.name, this.x + this.w/2, this.y + this.h/2 - 1);
+        
+        textSize(11);
+        text(writeF(), this.x + this.w/2, this.y + this.h - 4);
+    };
+    
+    this.mouseover = function() {
+        return (mouseX >= this.x && mouseX <= this.x + this.w &&
+                mouseY >= this.y && mouseY <= this.y + this.h);
+    };
+    
+    this.addSlider = function()  {
+        var _max = this.max;
+        if (this.name === 'Year') {
+            _max += isLeapYear(_year);
+        }
+
+        var l = _max - this.min;
+        var x = (400 - l) / 2;
+        slider = new Slider(x, 388, l, this.min, _max, getF(), setF);
+    };
+};
+
+var createOptions = function() {
+    var options = [];
+    var names = ['Year', 'Date'];
+    var getFunc = [getYear, getDate, getTime];
+    var setFunc = [setYear, setDate, setTime];
+    var writeFunc = [getYear, writeDate, writeTime];
+    var ranges = [[1850, 2210], [1, 365], [0, 359]];
+    
+    var h = 30;
+    var y = 400 - names.length * (h + 4) - 20;
+    
+    for (var i = 0; i < names.length; i++) {
+        var b = new OptionBox(6, y, 48, h, names[i], getFunc[i],
+                              setFunc[i], writeFunc[i], ranges[i]);
+        options.push(b);
+        y += h + 4;
+    }
+    
+    return options;
+};
+
+var options = createOptions();
+
+/********************************************************
+ *               Display functions
+*********************************************************/
+
+var drawInfo = function() {
+    var x = 6;
+    var y = 6;
+    
+    noStroke();
+    fill(40, 40, 40, 100);
+    rect(x, y, 400 - 2 * x, 36, 4);
+    
+    var d = dist(mars.x, mars.y, earth.x, earth.y);
+    
+    fill(255);
+    textSize(13);
+    textAlign(LEFT, TOP);
+    //text(dayToDate(round(_day), _year), x + 4, y + 2);
+    text("Distance between Earth and Mars: " + getKM(d) +
+         " million km", x + 4, y + 18);
+};
+
+var draw = function() {    
+    if (running) {
+        changeDay(1);
+    }
+    
+    background(0);
+    
+    noFill();
+    strokeWeight(2);
+    if (showCycles) {
+        stroke(61, 100, 255, 60);
+        earth.drawCycle();
+        stroke(212, 95, 17, 36);
+        mars.drawCycle();
+    }
+    
+    noStroke();
+    for (var i in bodies) {
+        bodies[i].draw();
+    }
+    
+    if (showAxes) {
+        for (var i in bodies) {
+            bodies[i].drawCenter();
+        }
+    }
+    //drawInfo();
+    
+    for (var i in options) { options[i].draw(); }
+    if (slider) { slider.draw(); }
+};
+
+/********************************************************
+ *               Event handling
+*********************************************************/
+
+var mouseClicked = function() {
+    slider = false;
+};
+
+var mousePressed = function() {
+    if (slider) { slider.selected(); }
+};
+
+var mouseReleased = function() {
+    if (slider) { slider.held = false; }
+    for (var i in options) {
+        if (options[i].mouseover()) {
+            options[i].selected = true;
+            options[i].addSlider();
+        } else {
+            options[i].selected = false;
+        }
+    }
+};
+
+var mouseOut = function() {
+    if (slider) { slider.held = false; }
+};
+
+var mouseDragged = function() {
+    if (slider) { slider.drag(); }
+};
+
+var keyPressed = function() {
+    // Spacebar toggles animation
+    if (keyCode === 32) { running = !running; }
+    if (keyCode === 83) { showCycles = !showCycles; }
+};

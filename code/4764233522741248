@@ -1,0 +1,338 @@
+/**
+
+ * Escape™ is a game that you are in a lab and need to escape. There will be turrets with guns and other things to die on.  
+
+ */
+
+//Credit to Peter Collingridge for a lot of stuff
+
+var BACKGROUND = color(170, 170, 170);
+var WALLCOLOUR = color(90, 90, 90);
+var EXITCOLOUR = color(240, 90, 40);
+var PLAYERCOLOUR = color(0, 40, 220);
+
+var speed = 5;
+var downspeed = 0;
+
+var GRAVITY = 0.15;
+var bSize = 40;
+
+var bullets = [];
+
+var Bullet = function(x, y, speed, destX, destY) {
+    this.x = x;
+    this.y = y;
+
+    var d = speed / dist(x, y, destX, destY);
+    this.dx = d * (destX - x);
+    this.dy = d * (destY - y);
+};
+
+Bullet.prototype.move = function() {
+    this.x += this.dx;
+    this.y += this.dy;
+};
+
+Bullet.prototype.draw = function() {
+    ellipse(this.x, this.y, 10, 10);
+};
+
+var drawBullets = function() {
+    for (var i = 0; i < bullets.length; i++) {
+        bullets[i].draw();
+    }
+};
+
+var updateBullets = function() {
+    for (var i = 0; i < bullets.length; i++) {
+        bullets[i].move();
+    }
+};
+
+var levels = [
+    [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 4, 0, 0, 4, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [1, 0, 2, 0, 0, 4, 4, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+        [1, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0, 1, 0, 0, 3, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ],
+    [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+        [1, 2, 0, 0, 0, 0, 0, 0, 3, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ],
+    [
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 2, 1],
+        [1, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+        [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+        [1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
+        [1, 0, 0, 4, 0, 1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+        [1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+        [1, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    ]
+];
+
+// Set current level
+var levelcounter = 0;
+var level = levels[levelcounter];
+var refresh = false;
+
+var player = {
+    x: 0,
+    y: 0
+};
+
+var _exit = {
+    x: 0,
+    y: 0
+};
+
+// Adding a new bullet here, but you would want to add it from a turret presumably
+bullets.push(new Bullet(0, 0, 2, 400, 200));
+
+// Search map for first 2 and set player's x, y coordinates
+
+var findPlayerStart = function() {
+
+    for (var i = 0; i < level.length; i++) {
+
+        for (var j = 0; j < level[0].length; j++) {
+
+            if (level[i][j] === 2) {
+
+                player.x = j * bSize;
+
+                player.y = i * bSize;
+
+                level[i][j] = 0;
+
+            } else if (level[i][j] === 3) {
+
+                _exit.x = j;
+
+                _exit.y = i;
+
+            }
+
+        }
+
+    }
+
+};
+
+var counter = 0;
+
+var turret = function(x, y) {
+    this.countera = counter;
+    this.countera += 100;
+
+    fill(68, 250, 116);
+    rect(x, y, bSize, bSize, bSize / 4);
+    var angle = atan2(x - player.x - bSize / 2, player.y - y);
+    text(angle, 100, 100);
+    translate(x, y);
+    rotate(angle);
+    fill(107, 107, 107);
+
+    // rectMode(CENTER);
+
+    rect(0, 25, 10, 50, 50 / 4);
+    resetMatrix();
+    fill(255, 0, 0);
+    text(this.countera, x, y);
+};
+
+var drawMap = function(level) {
+    noStroke();
+
+    for (var i = 0; i < level.length; i++) {
+        for (var j = 0; j < level[0].length; j++) {
+            if (level[i][j] === 1) {
+                fill(WALLCOLOUR);
+                rectMode(LEFT);
+                rect(j * bSize, i * bSize, bSize, bSize, 10);
+            } else if (level[i][j] === 3) {
+                fill(EXITCOLOUR);
+                rectMode(LEFT);
+                rect(j * bSize, i * bSize, bSize, bSize, 10);
+            } else if (level[i][j] === 4) {
+                rectMode(CENTER);
+                turret(j * bSize, i * bSize);
+            }
+        }
+    }
+};
+
+var drawPlayer = function(level) {
+    noStroke();
+    rectMode(CENTER);
+    fill(PLAYERCOLOUR);
+    rect(player.x + bSize / 2, player.y + bSize / 2, bSize, bSize, bSize / 4);
+    resetMatrix();
+};
+
+
+
+// Check horizontal collisions
+
+var collideX = function(dx) {
+
+    var x = round(player.x / bSize + dx);
+
+    var y1 = round(player.y / bSize - 0.5);
+
+    var y2 = round(player.y / bSize + 0.49);
+
+    return level[y1][x] === 1 || level[y2][x] === 1;
+
+};
+
+
+
+// Check vertical collisions
+
+var collideY = function(dy) {
+
+    var y = round(player.y / bSize + dy);
+
+    var x1 = round(player.x / bSize - 0.5);
+
+    var x2 = round(player.x / bSize + 0.49);
+
+    return level[y][x1] === 1 || level[y][x2] === 1;
+
+};
+
+
+
+var overlap = function(x, y) {
+
+    var x1 = round(player.x / bSize - 0.5);
+
+    var x2 = round(player.x / bSize + 0.49);
+
+    var y1 = round(player.y / bSize - 0.5);
+
+    var y2 = round(player.y / bSize + 0.49);
+
+
+
+    return (x === x1 || x === x2) && (y === y1 || y === y2);
+
+};
+
+
+
+var keys = [];
+
+var keyPressed = function() {
+
+    keys[keyCode] = true;
+
+};
+
+var keyReleased = function() {
+
+    keys[keyCode] = false;
+
+};
+
+
+
+findPlayerStart();
+
+
+
+var movePlayer = function() {
+
+    if (keyIsPressed) {
+
+        if (keys[LEFT] && !collideX(-0.51)) {
+
+            player.x -= speed;
+
+        }
+
+        if (keys[RIGHT] && !collideX(0.51)) {
+
+            player.x += speed;
+
+        }
+
+        if (keys[UP] && !collideY(-0.51)) {
+
+            player.y -= speed;
+
+        }
+
+    }
+
+
+
+    // Gravity
+
+    downspeed += GRAVITY;
+
+    if (!collideY(0.51)) {
+
+        player.y += round(downspeed);
+
+    } else {
+
+        // Fix on ground
+
+        player.y = bSize * round(player.y / bSize - 0.49);
+
+        downspeed = 0;
+
+    }
+
+
+
+
+
+    // Have we made it to the exit?
+
+    if (overlap(_exit.x, _exit.y)) {
+
+        levelcounter++;
+
+        level = levels[levelcounter];
+
+        findPlayerStart();
+    }
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    drawMap(level);
+    drawPlayer();
+    movePlayer();
+
+    fill(255);
+    text("(" + player.x + ", " + player.y + ")  \n" + levelcounter + "\n", 10, 20); //  addBullets(10,0,90);
+
+    updateBullets();
+    drawBullets();
+
+    if (levelcounter === 0) {
+        fill(0, 60, 255);
+        text("Welcome to Escape\nUse the arrow keys to move\nYou want to get to the orange block\nThis is in BETA" + bullets[0] + "\n" + bullets.length, 100, 100);
+    }
+};

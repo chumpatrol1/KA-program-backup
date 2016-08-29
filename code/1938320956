@@ -1,0 +1,203 @@
+/*********************************************************
+ * Simulation of telescope on Earth looking at the night
+ * sky (ignoring the rotation of the Earth).
+*********************************************************/
+var telescopeAngle = 70;
+
+// Sizes
+var sun_size = 20;
+var mars_size = 7;
+var earth_size = 13;
+
+// Colours
+var SUN_COL = color(255, 255, 0);
+var MARS_COL = color(212, 95, 17);
+var EARTH_COL = color(61, 100, 255);
+
+// Earth days for orbit
+var mars_year = 687;
+var earth_year = 365;
+
+// Orbit ellipse radii in millions of km (x, y)
+var mars_orbit_r = [228, 227];
+var earth_orbit_r = [150, 150];
+
+// Other variables for the display
+var orbit_plots = 2;
+var previousPoints = [];
+
+var t = 0;
+var running = true;
+
+var Sun = function(r, colour) {
+    this.x = 0;
+    this.y = 0;
+    
+    this.update = function() {
+    };
+    
+    this.draw = function() {
+        var x = this.x;
+        var y = this.y;
+        
+        fill(colour);
+        ellipse(x, y, r, r);
+        fill(255, 89, 0, 100);
+        ellipse(x, y, r+3, r+3);
+        fill(colour);
+        //ellipse(x-2, y-2, r/5, r/5);
+    };
+};
+
+var Planet = function(cx, cy, major, minor, year, r, colour) {
+    this.x = 0;
+    this.y = 0;
+    this.r = r;
+    this.theta = 0;
+    
+    this.previous_points = [];
+    
+    this.update = function(t) {
+        this.theta = (this.theta + 360/year) % 360;
+        this.x = cx + major * cos(this.theta);
+        this.y = cy + minor * sin(this.theta);
+    };
+    
+    this.display = function(x, y) {
+        fill(colour);
+        ellipse(x, y, r, r);
+        
+        if (this.telescope) {
+            var t = 1200;
+            var a = telescopeAngle;
+            fill(200, 200, 200, 50);
+            var x1 = x + r * cos(this.theta)/2;
+            var y1 = y + r * sin(this.theta)/2;
+            var x2 = x + t * cos(this.theta + a)/2;
+            var y2 = y + t * sin(this.theta + a)/2;
+            var x3 = x + t * cos(this.theta - a)/2;
+            var y3 = y + t * sin(this.theta - a)/2;
+            triangle(x1, y1, x2, y2, x3, y3);
+        }
+    };
+    
+    this.draw = function() {
+        fill(colour);
+        this.display(this.x, this.y);
+    };
+};
+
+/********************************************************
+ *               Make planets here
+*********************************************************/
+var sun = new Sun(sun_size, SUN_COL);
+
+var mars = new Planet(21, 0,        // Centre of orbit (x, y)
+                      mars_orbit_r[0], mars_orbit_r[1],
+                      mars_year, mars_size, MARS_COL);
+
+var earth = new Planet(2.5, 0,       // Centre of orbit (x, y)
+                       earth_orbit_r[0], earth_orbit_r[1],
+                       earth_year, earth_size, EARTH_COL);
+                       
+var bodies = [sun, earth, mars];
+earth.telescope = true;
+mars.theta += 40;
+
+var createRandomStars = function(n) {
+    var stars = [];
+    for (var i=0; i<n; i++) {
+        var x = random() * 360;
+        var y = random() * 400;
+        var c = random() * random() * 240 + 15;
+        stars.push([x, y, c]);
+    }
+    return stars;
+};
+var stars = createRandomStars(1000);
+
+/********************************************************
+ *               Display functions
+*********************************************************/
+var drawView =function () {
+    // Stars
+    for (var i=0; i<stars.length; i++) {
+        var s = stars[i];
+        var x = (360 + s[0] - earth.theta) % 360;
+        if (x > 180) { x = x-360; }
+        
+        if (x < telescopeAngle) {
+            stroke(s[2]);
+            point(x * 200 / telescopeAngle+200, s[1]);
+        }
+    }
+
+    noStroke();
+    
+    // Previous Mars positions
+    for (var i=0; i<previousPoints.length; i++) {
+        var c = (i+1) / (previousPoints.length+1);
+        fill(lerpColor(color(212, 95, 17, 0), MARS_COL, c));
+        var p = previousPoints[i];
+        ellipse(p[0], p[1], 4, 4);
+    }
+
+    var tx = earth.x + earth.r/2 * cos(earth.theta);
+    var ty = earth.y + earth.r/2 * sin(earth.theta);
+    var dTheta = 180+atan2(ty-mars.y, tx-mars.x);
+    var d = (360 + earth.theta - dTheta) % 360;
+    
+    // Circles are annoying.
+    if (d > 180) { d = d-360; } 
+    
+    if (abs(d) <= telescopeAngle) {
+        var y = 200 + 200/ telescopeAngle * sin(mars.theta) * 1.85;
+        var x = 200 * (1 - d/telescopeAngle);
+        var maxPoints = 30;
+        
+        mars.display(x, y);
+        
+        if (t % orbit_plots === 0) {
+            previousPoints.push([x, y]);
+            if (previousPoints.length > maxPoints) {
+                previousPoints.shift();
+            }
+        }
+    } else {
+        if (previousPoints.length > 0 && t % orbit_plots === 0) {
+            previousPoints.shift();   
+        }
+    }
+    
+    textSize(14);
+    fill(255);
+    var year = floor (t / 365);
+    var day = t - year * 365;
+    text("Year: " + (year+1), 10, 20);
+    text("Day: " + day, 10, 40);
+};
+
+var draw = function() {    
+    if (running) {
+        t++;
+        for (var i in bodies) {
+            bodies[i].update(t);
+        }
+    }
+    
+    background(0, 0, 0);
+    drawView();
+    
+};
+
+/********************************************************
+ *               Event handling
+*********************************************************/
+
+var mousePressed = function() {
+};
+
+var keyPressed = function() {
+    // Spacebar toggles animation
+    if (keyCode === 32) { running = !running; }
+};

@@ -1,0 +1,104 @@
+ /****************************************************
+ * Graph based on this video:
+ * http://www.khanacademy.org/math/algebra/systems-of-eq-and-ineq/v/solving-the-troll-riddle-visually
+ *****************************************************/
+
+// Equation 1
+var constraint1 = function (tens) {
+    var fives = 900 - tens;
+    return fives;
+};
+
+// Equation 2
+var constraint2 = function (tens) {
+    var fives = (5500 - tens * 10) / 5;
+    return fives;
+};
+
+// Graph display parameters
+var originX = 68;
+var originY = 240;
+var graphWidth = 280;
+var graphHeight = 200;
+var maxX = 1000;
+var maxY = 1100;
+var dx = 100;
+var dy = 100;
+
+var plans = [{ cost: constraint1,
+               colour: color(235, 87, 61) },
+             { cost: constraint2,
+               colour: color(187, 132, 209) }];
+
+var draw = function() {
+    var x, y, x1, y1, x2, y2;
+    var scaleX = graphWidth / maxX;
+    var scaleY = graphHeight / maxY;
+    background(0, 0, 0);
+    
+    // gridlines
+    stroke(30, 30, 32);
+    for (x = 0; x <= maxX; x += dx) {
+        x1 = originX + scaleX * x;
+        line(x1, originY-graphHeight, x1, originY);
+    }
+    
+    for (y = 0; y <= maxY; y += dy) {
+        y1 = originY - scaleY * y;
+        line(originX, y1, originX+graphWidth, y1);
+    }
+    
+    // Draw series
+    strokeWeight(2);
+    for (var p in plans) {
+        stroke(plans[p].colour);
+        
+        for (x = 0; x < maxX; x += dx) {
+            x1 = originX + scaleX * x;
+            x2 = originX + scaleX * (x+dx);
+            y1 = originY - scaleY * plans[p].cost(x);
+            y2 = originY - scaleY * plans[p].cost(x+dx);
+            line(x1, y1, x2, y2);
+        }
+    }
+    
+    fill(0, 0, 0);
+    noStroke();
+    rect(0, originY+1, 400, 400); 
+    
+    // Axes
+    stroke(250, 250, 255);
+    strokeWeight(1);
+    line(originX, originY - graphHeight, originX, originY);
+    line(originX, originY, originX + graphWidth, originY);
+    
+    // Axis units
+    textSize(12);
+    textAlign(CENTER, 1);
+    fill(250, 250, 255);
+    
+    for (x = 0; x <= maxX; x += dx) {
+        x1 = originX + scaleX * x;
+        text(x, x1+1, originY + 17);
+        line(x1, originY, x1, originY + 4);
+    }
+    
+    textAlign(RIGHT, 1);
+    for (y = 0; y <= maxY; y += dy) {
+        y1 = originY - scaleY * y;
+        text(y, originX - 7, y1 + 4);
+        line(originX, y1, originX - 3, y1);
+    }
+    
+    // Axis labels
+    fill(201, 232, 0);
+    textAlign(CENTER, 1);
+    textSize(16);
+    text("Ten dollar bills", originX + graphWidth/2, originY + 40);
+    
+    fill(216, 20, 255);
+    translate(originX - 40, originY - graphHeight/2);
+    rotate(270);
+    text("Five dollar bills", 0, 0);
+    resetMatrix();
+};

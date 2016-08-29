@@ -1,0 +1,307 @@
+/**************************************
+ * Drag the circle around and see the
+ * shadows move. You can also drag the
+ * walls around.
+***************************************/
+
+var showVertices = false;
+var showNormals = false;
+var drawShadows = true;
+var player;
+
+/**************************************
+ *      MoveableElement
+ * An element that can be moved.
+ * Default shape is a circle, which
+ * requires an r parameter
+***************************************/
+
+var MoveableElement = function(x, y, params) {
+    this.x = x;
+    this.y = y;
+    this.vertices = [];
+    
+    for (var param in params) {
+        this[param] = params[param];
+    }
+};
+
+MoveableElement.prototype.draw = function() {
+    fill(this.fill);
+    stroke(this.stroke);
+    strokeWeight(2);
+    
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);
+};
+
+MoveableElement.prototype.drawVertices = function() {
+    for (var i = this.vertices.length; i--;) {
+        point(this.vertices[i][0], this.vertices[i][1]);
+    }
+};
+
+MoveableElement.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+    
+    for (var i = this.vertices.length; i--;) {
+        this.vertices[i][0] += dx;
+        this.vertices[i][1] += dy;
+    }
+};
+
+MoveableElement.prototype.mouseOver = function() {
+    return dist(this.x, this.y, mouseX, mouseY) <= this.r;
+};
+
+// A moveable polygon
+// Vertices should go anticlockwise
+var MoveablePoly = function(x, y, vertices, params) {
+    MoveableElement.call(this, x, y, params);
+    
+    for (var i = vertices.length; i--;) {
+        this.vertices.push([vertices[i][0] + x, vertices[i][1] + y]);
+    }
+    
+    this.calculateNormals();
+};
+MoveablePoly.prototype = Object.create(MoveableElement.prototype);
+
+MoveablePoly.prototype.calculateNormals = function() {
+    this.normals = [];
+    
+    var n = this.vertices.length;
+    var i, dx, dy, d, p2, p1 = this.vertices[n - 1];
+    
+    for (i = 0; i < n; i++) {
+        p2 = this.vertices[i];
+        dx = p2[0] - p1[0];
+        dy = p2[1] - p1[1];
+        d = sqrt(dx * dx + dy * dy);
+        this.normals.push([dy / d, -dx / d]);
+        p1 = p2;
+    }
+};
+
+MoveablePoly.prototype.draw = function() {
+    strokeWeight(2);
+    fill(this.fill);
+    stroke(this.stroke);
+    
+    beginShape();
+    for (var i = this.vertices.length; i--;) {
+        vertex(this.vertices[i][0], this.vertices[i][1]);
+    }
+    endShape(CLOSE);
+    
+    if (showNormals) { this.drawNormals(); }
+};
+
+MoveablePoly.prototype.drawNormals = function() {
+    strokeWeight(2);
+    stroke(200, 0, 0);
+
+    var n = this.vertices.length;
+    var i, x, y, p2, p1 = this.vertices[n - 1];
+    
+    for (i = 0; i < n; i++) {
+        p2 = this.vertices[i];
+        x = (p1[0] + p2[0]) * 0.5;
+        y = (p1[1] + p2[1]) * 0.5;
+        line(x, y, x + this.normals[i][0] * 10, y + this.normals[i][1] * 10);
+        p1 = p2;
+    }
+
+};
+
+MoveablePoly.prototype.mouseOver = function() {
+    var c = false;
+    var n = this.vertices.length;
+    var i, p2, p1 = this.vertices[n - 1];
+    
+    for (i = 0; i < n; i++) {
+        p2 = this.vertices[i];
+
+        if (((p1[1] > mouseY) !== (p2[1] > mouseY)) &&
+            (mouseX < (p2[0] - p1[0]) * (mouseY - p1[1]) / (p2[1] - p1[1]) + p1[0])) {
+           c = !c;
+        }
+        
+        p1 = p2;
+    }
+    return c;
+};
+
+// A moveable rectangle is a type of polygon but with
+// more efficient drawing and mouseover test
+var MoveableRect = function(x, y, w, h, params) {
+    MoveablePoly.call(this, x, y, [[0, 0], [0, h], [w, h], [w, 0]], params);
+    this.w = w;
+    this.h = h;
+};
+MoveableRect.prototype = Object.create(MoveablePoly.prototype);
+
+MoveableRect.prototype.draw = function() {
+    strokeWeight(2);
+    fill(this.fill);
+    stroke(this.stroke);
+    rect(this.x, this.y, this.w, this.h);
+    if (showNormals) { this.drawNormals(); }
+};
+
+MoveableRect.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+/**************************************
+ *      Scene object
+ * Handles the drawing and interaction
+ * of a set of moveable objects.
+***************************************/
+{
+var sortByAngle = function(a, b) {
+    return b[2] - a[2];
+};
+    
+var Scene = function() {
+    this.elements = [];
+};
+
+Scene.prototype.draw = function() {
+    for (var i = 0; i < this.elements.length; i++) {
+        this.elements[i].draw();
+        if (this.elements[i].mouseOver()) {
+            cursor(HAND);
+        }
+        
+        if (showVertices) {
+            strokeWeight(5);
+            stroke(255, 0, 0);
+            this.elements[i].drawVertices();
+        }
+    }
+    
+    if (drawShadows) {
+        this.drawShadows();
+    }
+    
+    if (this.selected) { cursor(MOVE); }
+};
+
+Scene.prototype.calculateLight = function() {
+    // Get all vertices
+    // Sort by angle
+};
+
+Scene.prototype.drawShadows = function() {
+    // Simplest attempt
+    // Would be good to try to find which elements are shaded first
+    
+    //fill(0, 0, 0, 200);
+    fill(10, 10, 30);
+    stroke(0);
+    strokeWeight(1);
+    
+    var i, j, element, vertices, n, x, y, p1, p2, angle, c1, s1, c2, s2;
+    
+    for (i = this.elements.length; i--;) {
+        element = this.elements[i];
+        vertices = element.vertices;
+        n = vertices.length;
+        
+        if (!n) { continue; }
+        
+        p1 = vertices[n - 1];
+        angle = atan2(p1[1] - player.y, p1[0] - player.x);
+        c1 = cos(angle);
+        s1 = sin(angle);
+        
+        for (j = 0; j < vertices.length; j++) {
+            p2 = vertices[j];
+            angle = atan2(p2[1] - player.y, p2[0] - player.x);
+            c2 = cos(angle);
+            s2 = sin(angle);
+            
+            quad(p1[0], p1[1], p2[0], p2[1],
+                 p2[0] + 1000 * c2, p2[1] + 1000 * s2,
+                 p1[0] + 1000 * c1, p1[1] + 1000 * s1);
+            
+            p1 = p2;
+            c1 = c2;
+            s1 = s2;
+        }
+        
+    }
+};
+
+Scene.prototype.mousePressed = function() {
+    for (var i = this.elements.length; i--;) {
+        if (this.elements[i].mouseOver()) {
+            this.selected = this.elements[i];
+            break;
+        }
+    }
+};
+
+Scene.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.selected.move(mouseX - pmouseX, mouseY - pmouseY);
+    }
+};
+
+Scene.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+}
+/**************************************
+ *      Setting up
+***************************************/
+
+var scene = new Scene();
+
+var player = new MoveableElement(200, 200, {
+    r: 12,
+    fill: color(60, 90, 240),
+    stroke: color(250)
+});
+
+var blockColours = { fill: color(160), stroke: color(80) };
+var poly1 = [[-40, 0], [-10, 50], [50, 30], [40, -40], [-10, -50]];
+var poly2 = [[-40, -20], [-50, -10], [-10, 30], [60, -10], [50, -20], [-10, 10]];
+
+scene.elements.push(new MoveablePoly(300, 165, poly1, blockColours));
+scene.elements.push(new MoveablePoly(220, 270, poly2, blockColours));
+scene.elements.push(new MoveableRect(20, 20, 280, 20, blockColours));
+scene.elements.push(new MoveableRect(120, 100, 20, 250, blockColours));
+scene.elements.push(new MoveableRect(20, 50, 20, 300, blockColours));
+scene.elements.push(player);
+
+/**************************************
+ *      Main loop
+***************************************/
+
+draw = function() {
+    background(200);
+    cursor('default');
+    scene.draw();
+};
+
+/**************************************
+ *      Event handling
+***************************************/
+{
+mousePressed = function() {
+    scene.mousePressed();
+};
+
+mouseDragged = function() {
+    scene.mouseDragged();
+};
+
+mouseReleased = function() {
+    scene.mouseReleased();
+};
+
+mouseOut = mouseReleased;
+}

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Women in history: Gertrude Bell</title>
+        <link href='https://fonts.googleapis.com/css?family=Playfair+Display+SC' rel='stylesheet' type='text/css'>
+        <style>
+            body {
+                background: rgb(250, 240, 190);
+                font-family: Arial, sans-serif;
+                border-left: solid black;
+                border-right: solid black;
+                margin: 0;
+                padding: 0 30px 15px 20px;
+                color: #222;
+            }
+            h1 {
+                font-family: 'Playfair Display SC', serif;
+                text-shadow: 2px 2px rgb(255, 250, 200);
+                font-size: 3.5em;
+                margin: 0;
+                text-align: center;
+            }
+            h2 {
+                font-family: 'Playfair Display SC', serif;
+                font-size: 1.6em;
+                margin-top: 0;
+                margin-bottom: 60px;
+                text-align: center;
+                color: rgb(255, 250, 200);
+                text-shadow: 2px 2px black;
+            }
+            h3 {
+                font-family: 'Playfair Display SC', serif;
+                margin-bottom: 5px;
+                font-size: 1.4em;
+                text-decoration: underline;
+            }
+            
+            p {
+                margin-top: 2px;
+                line-height: 20px;
+                text-align: justify;
+                color: #333;
+            }
+            a {
+                color: #333;
+            }
+            a {
+                background-color: rgb(225, 215, 180);
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            table { 
+                border-collapse: collapse;
+                margin: 12px 16px 24px 16px;
+            }
+            thead {
+                text-align: center;
+                font-weight: bold;
+            }
+            tr td:first-child {
+                font-style: italic;
+            }
+            tr.header td{
+                font-style: normal;
+            }
+            tr {
+                border-bottom: 1px solid #333;
+            }
+            tr.header {
+                border-bottom: 2px solid #333;
+            }
+            td {
+                padding: 4px 8px;
+                font-size: 0.9em;
+            }
+            li {
+                padding-right: 50px;
+                margin-bottom: 8px;
+            }
+            #dune-pic {
+                width: 100%;
+                height: 160px;
+                overflow: hidden;
+                position: absolute;
+                left: 0;
+                z-index: -2;
+            }
+            .quote {
+                margin: 5px 40px 5px 30px;
+                line-height: 22px;
+                display: inline-block;
+                position:relative;
+            }
+            .quote-mark {
+                font-family: "Times New Roman" serif;
+                position:absolute;
+                font-size: 52px;
+            }
+            .quote-left {
+                left: 2px;
+                top: 8px;
+            }
+            .quote-right {
+                right: 2px;
+                bottom: 10px;
+            }
+            .quote-text {
+                padding: 8px 24px 8px 24px;
+                background-color: rgb(235, 225, 200);
+                -moz-border-radius: 16px;
+                -webkit-border-radius: 16px;
+                border-radius: 16px; 
+                text-align: justify;
+                font-style: italic;
+            }
+            .quote-attribution {
+                float: right;
+            }
+            .first {
+                font-weight: bold;
+            }
+            .source {
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="dune-pic">
+        <img src="https://www.kasandbox.org/programming-images/landscapes/sand-dunes.png" />
+        </div>
+        
+    <h1>Gertrude Bell</h1>
+    
+    <h2>~ Queen of the Desert ~</h2>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">No Englishwoman of her distinction was ever so little known to the English-speaking public.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- Elizabeth Robins</div>
+    </div>
+    
+    <h3>Preface</h3>
+    <p>A couple of months ago I heard a <a href="#bbc-radio-link">radio program</a> about a remarkable woman I'd never heard of before. This contest seems like I good opportunity to learn more about her and share that information. In researching her, I discovered that this year a film will be released about her, with Nicole Kidmann playing the lead role. There was even a <a href="https://www.kickstarter.com/projects/lettersfrombaghdad/letters-from-baghdad-a-film-about-gertrude-bell">kickstarter campaign to make a film about her</a> (in progress). So maybe she will become better known.</p>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">No woman in recent time has combined her qualities – her taste for arduous and dangerous adventure with her scientific interest and knowledge, her competence in archaeology and art, her distinguished literary gift, her sympathy for all sorts and condition of men, her political insight and appreciation of human values, her masculine vigour, hard common sense and practical efficiency – all tempered by feminine charm and a most romantic spirit.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- D. G. Hogarth</div>
+    </div>
+    
+    <h3>Achievements</h3>
+    <p>Gertrude Bell was born in 19th century Britain, where women were expected to get married, stay at home and devote themselves to domestic chores. Bell instead travelled the world, finding new routes across deserts and up mountains, as well as unearthing new archaeological finds. Her writing and photographs opened up the middle east for the British public.</p>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">[Bell had the opinion that] what applied to other women didn't apply to her.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div style="float:right">-- Prof. Helen Berry</div>
+    </div>
+    
+    <p>She came to love Arabia and understand its politics better than any other Westerner. She spent time mixing with tribes and rulers in the middle East, where the freedoms of women were even more limited than in Victorian Britain. Yet she used this to her advantage, gaining political insight from informal conversations.</p>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">Until quite recently I've been wholly cut off from [the Shias] because their tenets forbid them to look upon an unveiled woman and my tenets don't permit me to veil.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- Gertrude Bell</div>
+    </div>
+    
+    <p>During the first world war, Britain made a series of contradictory promises to various parties in the middle East (as Sal describes <a href="https://www.khanacademy.org/humanities/history/euro-hist/middle-east-20th-century/v/sykes-picot-agreement-and-the-balfour-declaration">here</a> and <a href="https://www.khanacademy.org/humanities/history/euro-hist/middle-east-20th-century/v/arabia-after-world-war-i">here</a>).
+    Bell was one of the people tasked with sorting out the mess, and securing Britain's influence in the oil-rich region. This involved rigging an election to install a weak king loyal to Britain, and creating the modern state of Iraq.</p>
+
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">I'll never engage in creating kings again; it's too great a strain.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- Gertrude Bell</div>
+    </div>
+
+    <p>The borders of Iraq were set up with little regard to the exisiting religous and tribal boundaries. Much of the trouble in this region that persists to this day is a result of this meddling. So Bell's legacy is not unambiguously positive. However, she seems aware of the issues, and is likely to have done her best for the people there. To this day, she is spoken of fondly by many Iraqis.</p>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">We rushed into the business with our usual disregard for a comprehensive political scheme.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- Gertrude Bell</div>
+    </div>
+    
+    
+    <h3>Synopsis</h3>
+    <table>
+        <thead>
+            <tr class="header">
+                <td style="width:60px">Date</td>
+                <td style="width:140px">Event</td>
+                <td>Notes</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>14 July 1868</td>
+                <td>Born</td>
+                <td>Born into a wealthy family in County Durham, England.</td>
+            </tr>
+            <tr>
+                <td>1889 - 1892</td>
+                <td>Studied History at Oxford University</td>
+                <td><span class="first">First</span> woman to get a first in Modern History at Oxford. Not allowed to graduate because she was a woman.</td>
+            </tr>
+            <tr>
+                <td>1894</td>
+                <td><em>Persian Pictures</em> Published</td>
+                <td>Account of her journey to Tehran, Persia (now Iran).</td>
+            </tr>
+            <tr>
+                <td>1899 - 1904</td>
+                <td>Exploring and mountain climbing</td>
+                <td><span class="first">First</span> person to climb all the peaks of the Engelhörner range in the Swiss Alps, and discovered new routes up several mountains.</td>
+            </tr>
+            <tr>
+                <td>1907</td>
+                <td><em>Syria: The Desert and the Sown</em> Published</td>
+                <td>Account of her groundbreaking trip across the Syrian Desert.</td>
+            </tr>
+            <tr>
+                <td>1914 - 1918</td>
+                <td>Chief intelligence agent in Baghdad during World War I</td>
+                <td><span class="first">First</span> female officer to work for British military intelligence.</td>
+            </tr>
+            <tr>
+                <td>1914</td>
+                <td>Received the gold Founder’s Medal from the Royal Geographic Society</td>
+                <td>For a 1500 mile solo journey into uncharted Arabian desert. <span class="first">First</span> woman to make such a journey.</td>
+            </tr>
+            <tr>
+                <td>1920</td>
+                <td>Wrote <em>Review of the Civil Administration of Mesopotamia</em></td>
+                <td><span class="first">First</span> white paper to be written by woman (see quote below).</td>
+            </tr>
+            <tr>
+                <td>1921</td>
+                <td>Attended <em>Conference in Cairo</em></td>
+                <td>Where the borders and rule of Iraq were decided.</td>
+            </tr>
+            <tr>
+                <td>12 July 1926</td>
+                <td>Died</td>
+                <td>Overdose of sleeping pills. It is not known whether it was accidental or suicide.</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div id="white-paper-quote" class="quote-text">[T]here’s a fandango about my report. The general line taken by the press seems to be that it’s most remarkable that a dog should be able to stand up on its hind legs at all – i.e. a female write a white paper. I hope they’ll drop that source of wonder and pay attention to the report itself.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- Gertrude Bell</div>
+    </div>
+    
+    <h3>Assorted facts</h3>
+    <ul>
+        <li>She spoke eight languages (including French, German, Persian, Arabic and Turkish).</li>
+        <li>She once spent 53 hours at the end of a rope in the Alps after her climbing expedition was caught in a blizzard.</li>
+        <li>A mountain peak in Switzerland which she was the first to traverse is named Gertrudspitze after her.</li>
+        <li>When travelling across the desert she brought a bone china dinner service and a formal dinner dress.</li>
+        <li>Informally given the title "al-Khatun" (Lady of the Court)</li>
+        <li>A wing of the Iraqi Museum is named after her.</li>
+        <li>She is buried in Baghdad.</li>
+    </ul>
+    
+    <h3>Conclusion</h3>
+    <p>Gertrude Bell was the archetypal Victorian explorer, crossing uncharted deserts, climbing unclimbed mountains, and unearthing ancient treasures. She studied the languages, cultures and history of the places she visited, coming to love them, and be loved by their people. While her name is almost unknown in Britain and the English-speaking world, it is spoken with reverence and gratitude by many in the middle East.</p>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">No tigress could have safeguarded Iraq’s rights better.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div class="quote-attribution">-- Max Mallowan</div>
+    </div>
+    
+    <h3>Sources</h3>
+    <ol>
+        <li id="bbc-radio-link">Gertrude Bell - <a class="source" href="http://www.bbc.co.uk/programmes/b00xhh2q">BBC Great Lives</a></li>
+        <li>Gertrude Bell: The uncrowned Queen of the Desert - <a href="http://www.bbc.co.uk/news/uk-england-tyne-25775990" class="source">BBC News</a></li>
+        <li>Gertrude Bell, Al Khatun: Queen of the Desert - <a href="http://www.amazingwomeninhistory.com/gertrude-bell-queen-of-the-desert/" class="source">Amazing women in history</a></li>
+        <li>The Woman who made Iraq - <a href="http://www.theatlantic.com/magazine/archive/2007/06/the-woman-who-made-iraq/305893/" class="source">The Atlantic</a></li>
+        <li>Miss Bell's lines in the sand - <a href="http://www.theguardian.com/world/2003/mar/12/iraq.jamesbuchan" class="source">The Guardian</a></li>
+        <li>How Gertrude Bell caused a desert storm - <a href="http://www.telegraph.co.uk/culture/museums/10651309/How-Gertrude-Bell-caused-a-desert-storm.html" class="source">The Telegraph</a></li>
+        <li>Gertrude of Arabia: the woman who invented Iraq - <a href="http://www.thedailybeast.com/articles/2014/06/17/gertrude-of-arabia-the-woman-who-invented-iraq.html"class="source">The Daily Beast</a></li>
+        <li><a href="http://www.gerty.ncl.ac.uk/" class="source">The Gertrude Bell archive</a></li>
+        <li>Gertrude Bell - <a href="http://en.wikipedia.org/wiki/Gertrude_Bell" class="source">Wikipedia</a></li>
+        <li>Ideals of Womanhood in Victorian Britain - <a href="http://www.bbc.co.uk/history/trail/victorian_britain/women_home/ideals_womanhood_01.shtml" class="source">BBC History</a></li>
+        <li>Gender roles in the 19th century - <a href="http://www.bl.uk/romantics-and-victorians/articles/gender-roles-in-the-19th-century" class="source">British Library</a></li>
+        <li>Sykes Picot agreement and the balfour declaration - <a href="https://www.khanacademy.org/humanities/history/euro-hist/middle-east-20th-century/v/sykes-picot-agreement-and-the-balfour-declaration" class="source">Khan Academy</a></li>
+        <li>Arabia after WWI - <a href="https://www.khanacademy.org/humanities/history/euro-hist/middle-east-20th-century/v/arabia-after-world-war-i" class="source">Khan Academy</a></li>
+    </ol>
+    
+    <div class="quote">
+        <div class="quote-mark quote-left">&ldquo;</div>
+        <div class="quote-text">a silly chattering windbag, an infernal liar, a conceited, gushing, rump-wagging, blethering ass.</div>
+        <div class="quote-mark quote-right">&rdquo;</div>
+        <div style="float:right">-- Sir Mark Sykes, architect of the <a href="https://www.khanacademy.org/humanities/history/euro-hist/middle-east-20th-century/v/sykes-picot-agreement-and-the-balfour-declaration">Sykes-Picot agreement</a></div>
+    </div>
+    
+    <!-- https://en.wikipedia.org/wiki/Philippa_Fawcett -->
+    </body>
+</html>

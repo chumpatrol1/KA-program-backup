@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Space Trader</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Alegreya+Sans+SC:900,500' rel='stylesheet' type='text/css'>
+    <style>
+        body {
+            background-color: rgb(10, 10, 40);
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        h1 {
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 50px;
+            text-align: center;
+            padding-top: 4px;
+            margin: 0;
+        }
+        h2 {
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 2em;
+            text-decoration: underline;
+            margin-top: 0;
+            padding-top: 8px;
+            margin-bottom: 2px;
+        }
+        h3 {
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 1.8em;
+            margin-top: 0;
+            padding-top: 8px;
+            margin-bottom: 2px;
+        }
+        p {
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        
+        input {
+            background-color: rgb(10, 10, 40);
+            color: white;
+            line-height: 20px;
+            width: 88px;
+            margin: 3px;
+            padding-left: 5px;
+        }
+        
+        nav {
+            position: fixed;
+            left: 10px;
+            top: 40px;
+        }
+        nav ul {
+            list-style-type: none;
+            padding-left: 3px;
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 20px;
+            border-left: 2px solid white;
+        }
+        nav li {
+            border-left: 2px solid white;
+            padding-left: 4px;
+        }
+        nav li:hover {
+            cursor: pointer;
+            text-decoration:underline;
+        }
+        
+        .highlight {
+            color: #ffcc00;
+        }
+        
+        .sub-heading {
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 1.5em;
+        }
+        
+        #stats-bar {
+            position: fixed;
+            top: 0;
+            background-color: #000;
+            margin: 0;
+            width: 100%;
+            height: 28px;
+            line-height: 28px;
+            border-bottom: 1px solid #ddd;
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 1.2em;
+        }
+        #stats-bar>span{
+            margin-left: 20px;
+        }
+        
+        .content {
+            margin: 30px 15px 15px 100px;
+            padding-left: 20px;
+            /* border-left: 1px solid white; */
+        }
+        
+        .button {
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            color: #ffcc00;
+        }
+        .button:hover {
+            text-decoration: underline;
+        }
+        .option-table {
+            border: solid white 3px;
+            -moz-border-radius: 10px;
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            padding: 2px;
+        }
+        .option-table table {
+            font-family: 'Alegreya Sans SC', impact;
+            font-size: 1.1em;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        .option-table th {
+            border-bottom: solid white 2px;
+            font-size: 1.1em;
+        }
+        .option-table th {
+            padding: 4px 8px;
+        }
+        .option-table td {
+            padding: 2px 10px;
+        }
+        .option-table tr.unaffordable {
+            background-color: #333;
+            color: #888;
+        }
+        .option-table tr.unaffordable td.cost{
+            color: rgb(220, 0, 0);
+        }
+    </style>
+</head>
+    
+<!-- Game data (fun things to edit) -->
+<script>
+    // Array of different vessels and their properties
+    var vessels = {
+        "Moon hopper": {
+            mass: 1000,
+            vol: 120,
+            price: 3000,
+            desc: "A small, nippy craft, ideal for quick trips between satellites."
+        },
+        "Steller ranger": {
+            mass: 1600,
+            vol: 250,
+            price: 4500,
+            desc: "A good all-round vessel, with a large capacity and decent range."
+        },
+        "Galactic cruiser": {
+            mass: 4000,
+            vol: 500,
+            price: 10000,
+            desc: "A huge, lumbering vessel, a must when you have a lot to transport."
+        }
+    };
+    
+    // Prices and masses are per metre cubed
+    var goods = {
+        'Yarrow berries' : {
+            type: 'food',
+            price: 20,
+            mass: 6,
+        },
+        'Xerileaf' : {
+            type: 'food',
+            desc: "A tough cabbage-like vegetable adapted for dry climates. Tastes like old carpet.",
+            price: 8,
+            mass: 5,
+        },
+        'Niconium ore' : {
+            type: 'ore',
+            price: 125,
+            mass: 100,
+        },
+    };
+    
+    // To add: discriptions, price differences
+    var locations = {
+        Solteria: {
+            desc: "A modest planet with a temperate climate. Planet is fairly flat and genrally fertile, so is primarily used for argiculture.",
+            goods: ['Yarrow berries', 'Niconium ore']
+        },
+        'Soluna major': {
+            desc: "The larger moon of Solteria. It is rich in Niconium ore.",
+        },
+        'Soluna minor': {
+            desc: "A tiny moon around Solteria. There's not much here but thick, choking dust. A few intrepid pioneers have tried to scrape a living by mining Niconium ore from meteorite crash sites, but it's not an easy life.",
+            goods: ['Xerileaf', 'Niconium']
+        },
+        Noteromonda: {
+            desc: "A damp, swamp world. Most of the planet is mist and mud. It's not a great place to live, but there's a lot of life here. Most of it wants your blood."
+        },
+        Plutocria: {
+            desc: "A small, barren planet, but rich with precious ores which have made it lucritive for local miners and manufacturers. Well known across the galaxy for its cutting edge technology and its excesses."
+        }
+    };
+    
+    // TODO: Distances between locations
+    
+    var player = {
+        money: 5000,
+        vessel: 'None',
+        goods: {},
+        
+        buyVessel: function(vesselName) {
+            var vessel = vessels[vesselName];
+            if (vessel && vessel.price <= this.money) {
+                this.vessel = vesselName;
+                this.money -= vessel.price;
+            }
+        }
+    };
+    
+    // Stores the items for a sale of goods
+    var sale = {
+        items: [],
+        clear: function() {
+            this.items = {};
+        },
+        buy: function(name, amount, price) {
+            this.items[name] = {
+                price: price,
+                amount: amount || 0,
+                mass: goods[name].mass,
+                vol: 1
+            };
+        },
+        sum: function(type) {
+            type = type || 'vol';
+            var total = 0;
+            for (var good in this.items) {
+                var item = this.items[good];
+                total += item[type] * item.amount;
+            }
+            return total;
+        }
+    };
+</script>
+    
+<body>
+    <nav>
+        <ul>
+            <li id="nav-about">About</li>
+            <li id="nav-vessels">Vessels</li>
+            <li id="nav-market">Market</li>
+            <li id="nav-flights">Flights</li>
+        </ul>
+    </nav>
+    <div class="content">
+        <div class="content-page" id="about-page">
+            <h1>Space Trader</h1>
+            <h2>About</h2>
+            <p>I hope this page will eventually become a simple trading game. I'm experimenting with creating a game using HTML + JavaScript, but there's not much here at the moment.</p>
+            <p>The basic idea for the game play is:</p>
+            <ol>
+                <li class="highlight">Buy a space ship - done!</li>
+                <li>Fill it up with goods - in progress</li>
+                <li>Fly to somewhere else</li>
+                <li>Sell the goods there</li>
+                <li>Repeat steps 2 - 5</li>
+                <li>Profit...</li>
+            </ol>
+        </div>
+        
+        <div class="content-page" id="vessels-page">
+            <h2>Vessels</h2>
+            <p>Buy, sell and upgrade vessels here.</p>
+            <p>You currently own vessel <span class="player-vessel"></span>.</p>
+            <div class="option-table" id="vessel-buy-table">
+                <table>
+                    <thead>
+                        <th>NAME</th>
+                        <th>VOLUME</th>
+                        <th>MAX. LOAD</th>
+                        <th>PRICE</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="content-page" id="market-page">
+            <h2>Market</h2>
+            <p>This is the <span class="player-location"></span> market.</p>
+            <p>All goods are sold in 1 m<sup>3</sup> units. You cannot buy fractions of a unit.</p>
+            
+            <h3>For Sale</h3>
+            <div class="option-table" id="market-buy-table">
+                <table>
+                    <thead>
+                        <th>NAME</th>
+                        <th>MASS</th>
+                        <th>PRICE</th>
+                        <th>QUANTITY</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <p>
+                <span class="sub-heading">Total:</span>
+                <span id="sale-status"></span>
+            </p>
+            
+            <h3>To Sell</h3>
+            <div class="option-table" id="market-sell-table">
+                <table>
+                    <thead>
+                        <th>NAME</th>
+                        <th>PRICE</th>
+                        <th>QUANTITY</th>
+                        <th></th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="content-page" id="flights-page">
+            <h2>Flights</h2>
+            <p>Pick where you want to fly to.</p>
+            <p>Also show the prices of goods at various places.</p>
+            <p>You are currently on <span class="player-location"></span>.</p>
+        </div>
+    </div>
+    
+    <div id="stats-bar">
+        <span>Cash: <span class="highlight player-money">§0</span></span>
+        <span>Location: <span class="highlight player-location">Unknown</span></span>
+        <span>Vessel: <span class="highlight player-vessel">None</span></span>
+    </div>
+    
+    <!-- General functions -->
+    <script>
+        // Add commas to large numbers
+        var commafy = function(n) {
+            var str = n.toString().split(".");
+            
+            if (str[0].length > 3) {
+                return str[0].replace(/(\d)(?=(\d{3})+$)/g, "$1,");
+            }
+            
+            return Math.round(n);
+        };
+        
+        var getPositiveInteger = function(n) {
+            n = Math.round(Math.abs(parseFloat(n)));
+            
+            if (isNaN(n)) { 
+                return undefined;
+            } else {
+                return n;
+            }
+        };
+
+    </script>
+
+    <!-- 
+        Game play functions
+        Deal with the interface/display
+    -->
+    <script>
+        // Called when money or location changes
+        var updateToolbar = function() {
+            $(".player-money").text("§" + commafy(player.money));
+            $(".player-location").text(player.location);
+            $(".player-vessel").text(player.vessel);
+        };
+        
+        // Called when buying goods
+        var updateSaleStatus = function() {
+            var str = "§" + commafy(sale.sum('price'));
+            str += " for " + commafy(sale.sum()) + "m<sup>3</sup> of goods";
+            str += " with mass " +  commafy(sale.sum('mass')) + " kg.";
+            
+            $("#sale-status").html(str);
+        };
+        
+        // Open given page and hide the rest
+        var showPage = function(pageName) {
+            // Hide all pages and show the correct one
+            $('.content-page').hide();
+            $('#' + pageName + '-page').show();
+            
+            // Remove all highlights and add to the correct one
+            $('nav li').removeClass('highlight');
+            $('#nav-' + pageName).addClass('highlight');
+        };
+
+        // Create a button with the given name and function and put in container
+        var addButton = function(name, container, func) {
+            var button = $('<span class="button">' + name + '</span>');
+            button.click(func);
+            container.append(button);
+        };
+        
+        updateVesselPage = function() {
+            var rows = $("#vessel-buy-table tbody tr");
+            
+            rows.each(function(i, el) {
+                var vessel = vessels[el.children[0].textContent];
+                var $el = $(el);
+                var $button = $el.find(".button");
+
+                if (player.money < vessel.price) {
+                    $el.addClass("unaffordable");
+                    $button.hide();
+                } else {
+                    $el.removeClass("unaffordable");
+                    $button.show();
+                }
+                
+            });
+        };
+        
+        // Called at the start of the game
+        // Could recall if vessels change from planet to planet
+        var buildVesselsPage = function() {
+            var table = $('#vessel-buy-table table');
+            
+            for (var vesselName in vessels) {
+                var vessel = vessels[vesselName];
+
+                var tr = $("<tr></tr>");
+                var name = $("<td>" + vesselName + "</td>");
+                var vol = $('<td>§' + commafy(vessel.vol) + ' m<sup>3</sup></td>');
+                var mass = $('<td>§' + commafy(vessel.mass) + ' kg</td>');
+                var cost = $('<td class="cost">§' + commafy(vessel.price) + '</td>');
+                var button = $('<td></td>');
+                
+                if (vessel.desc) {
+                    tr.attr('title', vessel.desc);
+                }
+                
+                var getBuyFunction = function(name){
+                    return function() {
+                        player.buyVessel(name);
+                        updateToolbar();
+                        updateVesselPage();
+                    };
+                };
+                
+                addButton("Buy", button, getBuyFunction(vesselName));
+                
+                tr.append(name);
+                tr.append(vol);
+                tr.append(mass);
+                tr.append(cost);
+                tr.append(button);
+
+                table.append(tr);
+            }
+            updateVesselPage();
+        }
+        
+        // Called whenever you arrive at a new planet
+        var buildMarketPage = function() {
+            var table = $('#market-buy-table table');
+            var location = locations[player.location];
+            
+            if (!location) { return; }
+            
+            for (var i = 0; i < location.goods.length; i++) {
+                var goodsName = location.goods[i];
+                var good = goods[goodsName];
+
+                if (!good) { continue; }
+
+                var tr = $("<tr></tr>");
+                var name = $("<td>" + goodsName + "</td>");
+                var mass = $('<td>§' + commafy(good.mass) + ' kg</td>');
+                var cost = $('<td class="cost">§' + commafy(good.price) + '</td>');
+                var inputBox = $('<td></td>');
+                var input = $('<input placeholder="Amount to buy">');
+                
+                // Return a function to buy an amount of a good determined by input box
+                var getBuyGoodFunction = function(input, name, price) {
+                    var $this = $(input);
+                    
+                    return function() {
+                        var amount = getPositiveInteger($this.val());
+                    
+                        // TODO: don't update if unchanged, e.g. arrows pressed
+                        $this.val(amount);
+                        sale.buy(name, amount, price);
+                        updateSaleStatus();
+                    };
+                };
+
+                input.on('change keyup', getBuyGoodFunction(input, goodsName, good.price));
+                
+                /*
+                var button = $('<td></td>');
+                
+                var getBuyFunction = function(name){
+                    return function() {
+                        player.buyVessel(name);
+                        updateToolbar();
+                        updateVesselPage();
+                    };
+                };
+                
+                addButton("Buy", button, getBuyFunction(vesselName));
+                */
+                
+                tr.append(name);
+                tr.append(mass);
+                tr.append(cost);
+                inputBox.append(input);
+                tr.append(inputBox);
+                //tr.append(button);
+
+                table.append(tr);
+            }
+            updateVesselPage();
+        }
+        
+        // Add event listeners to the navigation elements
+        // Called at the start of the game
+        var addNavigationButtons = function() {
+            var navElements = $('nav li');
+            navElements.each(function(i, el) {
+                var name = el.id.slice(4);
+                $(el).on('click', function() {
+                    showPage(name);
+                });
+            });
+        }
+        
+        // Called at the start of the game
+        var initialiseGame = function() {
+            // Set-up game
+            player.location = "Solteria";
+            updateToolbar();
+            updateSaleStatus();
+            
+            // Build interface
+            addNavigationButtons();
+            showPage('about');
+            buildVesselsPage();
+            buildMarketPage();
+        };
+        
+        initialiseGame();
+    </script>
+
+    </body>
+</html>

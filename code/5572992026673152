@@ -1,0 +1,574 @@
+
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var PINK2 = color(255, 128, 215);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var POINT_SIZE = 8;
+
+var showing = {
+    'Minimum distance' : true,
+   // 'Maximum distance' : false,
+};
+
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *      GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, {name: name});
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 13);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+
+var RadioButton = function(x, y, w, h, name, trigger) {
+    Button.call(this, x, y, w, h, {name: name, trigger: trigger});
+    this.r = this.h - 6;
+    this.cx = this.x + this.r;
+    this.cy = this.y + this.h / 2;
+    this.marked = false;
+};
+RadioButton.prototype = Object.create(Button.prototype);
+
+RadioButton.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(10);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.cx + this.r /2 + 4, this.cy + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    ellipse(this.cx, this.cy, this.r, this.r);
+    
+    if (this.marked) {
+        fill(10);
+        ellipse(this.cx, this.cy, this.r / 2, this.r / 2);
+    }
+};
+}
+/*******************************************************
+ *      GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.addRadioButtons = function(options, trigger, defaultOption) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var radioButtons = [];
+    
+    var triggerFunction = function() {
+        if (!this.marked) {
+            this.marked = true;
+            
+            // Deselected other buttons
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i] !== this) {
+                    radioButtons[i].marked = false;
+                }
+            }
+        }
+        if (trigger) { trigger(this.name); }
+    };
+    
+    for (var i = 0; i < options.length; i++) {
+        var button = new RadioButton(x, y, w, 22, options[i], triggerFunction);
+        radioButtons.push(button);
+        y += 27;
+        this.h += 27;
+    }
+    
+    radioButtons[defaultOption || 0].trigger();
+    
+    this.components = this.components.concat(radioButtons);
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+/*******************************************************
+ *      Create points
+********************************************************/
+
+// http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
+// https://www.jasondavies.com/poisson-disc/
+var PoissonDiscSampling = function(minDist, maxDist) {
+    // How many points we try before rejecting a point
+    var k = 30;
+    
+    var minDist2 = minDist * minDist;
+    
+    var x, y, i, j, p, d;
+    // Final array of points that we'll return
+    var points = [];
+    
+    // Points that we use to find neighbours
+    var activePoints = [];
+    
+    // Start at a random point
+    x = (0.2 + random() * 0.6) * width;
+    y = (0.2 + random() * 0.6) * height;
+    points.push([x, y]);
+    activePoints.push([x, y]);
+    
+    var activeIndex, currentPoint, pointAdded, angle, collision;
+    
+    while (activePoints.length) {
+        // Pick a random active point
+        activeIndex = floor(random() * activePoints.length);
+        currentPoint = activePoints[activeIndex];
+        pointAdded = false;
+        
+        for (i = 0; i < k; i++) {
+            angle = random() * 360;
+            d = random(minDist, maxDist);
+            x = currentPoint[0] + cos(angle) * d;
+            y = currentPoint[1] + sin(angle) * d;
+            
+            if (x < 0 || x > width || y < 0 || y > height) {
+                continue;
+            }
+            
+            // Check distance from each other point is > minDist
+            collision = false;
+            for (j = points.length; j--;) {
+                p = points[j];
+                if ((x - p[0]) * (x - p[0]) + (y - p[1]) * (y - p[1]) < minDist2) {
+                    collision = true;
+                    break;
+                }
+            }
+            
+            if (!collision) {
+                points.push([x, y]);
+                activePoints.push([x, y]);
+                pointAdded = true;
+                break;
+            }
+        }
+        
+        // Failed to add point so remove it from the active list
+        if (!pointAdded) {
+            activePoints.splice(activeIndex, 1);
+        }
+    }
+    
+    return points;
+};
+
+var minDist = 40;
+var maxDist = 80;
+var points = [];
+var getNewDistribution = true;
+
+/*******************************************************
+ *      Create interface
+********************************************************/
+
+var toolbar = new Toolbar(5, 5, 140);
+toolbar.add(Slider, {
+    name: 'Minimum distance',
+    min: 30,
+    now: 40,
+    max: 120,
+    trigger: function() {
+        if (minDist !== this.val) {
+            minDist = this.val;
+            maxDist = minDist * 2;
+            getNewDistribution = true;
+        }
+    }
+});
+/*toolbar.add(Slider, {
+    name: 'Maximum distance',
+    min: 40,
+    now: 60,
+    max: 150,
+    trigger: function() {
+        if (maxDist !== this.val) {
+            maxDist = this.val;
+            if (maxDist < minDist + 10) {
+                toolbar.components[0].setValue(maxDist - 10);
+            }
+            getNewDistribution = true;
+        }
+    }
+});*/
+toolbar.addOptions(showing);
+
+/*******************************************************
+ *      Main loop
+********************************************************/
+
+var graphData;
+
+draw = function() {
+    if (getNewDistribution) {
+        points = PoissonDiscSampling(minDist, maxDist);
+        getNewDistribution = false;
+    }
+    
+    background(BACKGROUND);
+    
+    noFill();
+    for (var i = points.length; i--; ) {
+        if (showing['Minimum distance']) {
+            stroke(PINK + (180 << 24));
+            strokeWeight(2);
+            ellipse(points[i][0], points[i][1], minDist, minDist);
+        }
+        if (showing['Maximum distance']) {
+            stroke(GREEN + (180 << 24));
+            strokeWeight(2);
+            ellipse(points[i][0], points[i][1], maxDist, maxDist);
+        }
+        strokeWeight(POINT_SIZE);
+        stroke(BLUE);
+        point(points[i][0], points[i][1]);
+    }
+    
+    toolbar.draw();
+    
+    noStroke();
+    fill(BACKGROUND + (225 << 24));
+    var txt = points.length + " points";
+    rect(0, height - 22, textWidth(txt) + 10, 30);
+    fill(20);
+    text(txt, 5, height - 10);
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    toolbar.mouseReleased();
+};

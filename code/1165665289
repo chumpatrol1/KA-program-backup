@@ -1,0 +1,321 @@
+var populationSize = 8;
+var minValue = 0;
+var maxValue = 20;
+var sampleSize = 3;
+
+// Display variables
+var titleFont = createFont("Times", 16);
+var labelFont = createFont("Arial", 10);
+
+var popGraphX = 50;
+var popGraphY = 40;
+var barWidth = 7;
+var popGraphHeight = barWidth * (maxValue - minValue + 1);
+var areaGraphWidth = 100;
+var popGraphWidth = 400 - popGraphX - areaGraphWidth - 20;
+var areaGraphX = popGraphX + popGraphWidth;
+
+var cross = 3;  // Size of cross
+var dy = 4;  // distance between y values on graph
+var sliderX = 12;
+var sliderWidth = 9;
+
+var titleY = popGraphY - 16;
+var title1X = 0.5* (2 * popGraphX + popGraphWidth);
+
+var createPopulation = function(N) {
+    var population = [];
+    var popRange = maxValue - minValue;
+    
+    for (var i=0; i<N; i++) {
+        population.push(minValue + floor(random()*popRange));
+    }
+    
+    return population;
+};
+
+var calculateParameters = function(pop) {
+    var i;
+    var mean = 0;
+    
+    for (i=0; i<pop.length; i++) { 
+        mean += pop[i];
+    }    
+    mean /= pop.length;
+    
+    // Total difference from mean
+    var difference = 0;
+    var variance = 0;
+    for (i=0; i<pop.length; i++) {
+        var delta = abs(pop[i] - mean);
+        difference += delta;
+        variance += delta * delta;
+    } 
+
+    variance /= pop.length;
+    return [mean, variance, difference];
+};
+
+var getRandomSample = function(population, size) {
+    if (size >= population.length) {
+        return population;
+    }
+    
+    var sample = [];
+    var i;
+    
+    var populationCopy = [];
+    for (i=0; i<population.length; i++) {
+        populationCopy.push(i);
+    }
+    
+    for (i=0; i<size; i++) {
+        var x = floor(random() * populationCopy.length);
+        sample.push(populationCopy[x]);
+        populationCopy.splice(x, 1);
+    }
+
+    return sample;
+};
+
+// Find mean area for squares between each point and x
+var findMeanArea = function(x, population) {
+    var area = 0;
+    for (var i=0; i<population.length; i++) {
+        var d = population[i] - x;
+        area += d * d;
+    }
+    return area / population.length;
+};
+
+// Find total areas for different values of x
+var findAllAreas = function(population) {
+    var areas = [];
+    var maxArea = 1;
+    for (var i=minValue; i<=maxValue; i++) {
+        var area = findMeanArea(i, population);
+        areas.push(area);
+        if (area > maxArea)  {
+            maxArea = area;
+        }
+    }
+    areas.push(maxArea);
+    return areas;
+};
+
+var getSampleHistogram = function() {
+    var allSamples = [];
+    for (var i=0; i<sampleSize; i++){
+        
+    }
+};
+
+var population = createPopulation(populationSize);
+var popStats = calculateParameters(population);
+var popMean = popStats[0];
+var popVar = popStats[1];
+var popScale = popGraphHeight / maxValue;
+var buffer = 0.8 * maxValue * popScale + 4;
+var gap = (popGraphWidth - buffer) / (populationSize+1);
+
+var arrowY = popGraphY + popGraphHeight - popScale * popMean;
+var arrowSelected = false;
+var currentMean = popMean;
+var currentVar = popVar;
+
+var areas = findAllAreas(population);
+var maxArea = areas.pop();
+var areaScale = areaGraphWidth / maxArea;
+
+// Create Sample
+var sampleHistogram = getSampleHistogram();
+var sample = getRandomSample(population, 3);
+var sampleStats = calculateParameters(sample);
+var sampleMean = sampleStats[0];
+var sampleVar = sampleStats[1];
+
+var drawData = function (x, data, size, mean, graphY) {
+    var meanLine = graphY - mean * popScale;
+    var value = data * popScale;
+    
+    stroke(0, 150, 0);
+    fill(0, 150, 0, 80);
+    if (data > mean) {
+        rect(x - size/2, meanLine - size, size, size);  
+    } else {
+        rect(x - size/2, meanLine + 1, size, size);
+    }
+    
+    // Cross
+    stroke(20, 20, 20);
+    line(x-cross, graphY-value-cross,
+         x+cross, graphY-value+cross);
+    line(x+cross, graphY-value-cross,
+         x-cross, graphY-value+cross);  
+};
+
+var drawMeanLine = function (mean, graphX, graphY) {
+    var dashSize = 4;
+    var meanLine = graphY - mean * popScale;
+    
+    stroke(120, 120, 120);
+    var x = graphX;
+    var x2 = graphX + popGraphWidth + areaGraphWidth;
+    while (x < x2) {
+        line(x, meanLine, x + dashSize, meanLine);
+         x += dashSize * 2;
+    }
+    
+    x = areaGraphX + popVar * areaScale + 1;
+    var y = meanLine;
+    while (y < graphY + 25) {
+        line(x, y, x, y + dashSize);
+         y += dashSize * 2;
+    }
+
+    textFont(labelFont, 10);
+    textAlign(RIGHT, BASELINE);
+    text ("Mean", x2, meanLine - 3);
+    text ("" + round(mean*10)/10, x2, meanLine+12);
+    textAlign(LEFT, BASELINE);
+    text ("Variance", x + 5, graphY + 14);
+    text ("" + round(popVar*10)/10, x + 5, graphY + 25);
+};
+
+var graphPopulation = function(pop, gx, gy) {
+    var x = gx + buffer * 0.5;
+
+    for (var i=0; i<pop.length; i++) {
+        var size = abs(pop[i] - currentMean) * popScale;
+        drawData(x, pop[i], size, currentMean, gy);
+        x += gap;
+    }
+
+    // Axes
+    stroke(20, 20, 20);
+    //line(gx, gy, gx + graphWidth, gy);
+    line(gx, gy, gx, gy - popGraphHeight);
+    
+    // Current x-value
+    stroke(212, 12, 12);
+    var currentY = gy - currentMean * popScale;
+    var lineX = areaGraphX + areaGraphWidth;
+    line(sliderX + sliderWidth + 3, currentY, lineX, currentY);
+    
+/*  // Current mean area line
+    lineX = areaGraphX + currentVar * areaScale+1;
+    line(lineX, currentY,
+         lineX, popGraphY + popGraphHeight + 25);
+*/
+
+    // Axis units
+    fill(20, 20, 40);
+    stroke(20, 20, 20);
+    textAlign(RIGHT, CENTER);
+    textFont(labelFont, 10);
+    for (var y=0; y <= maxValue; y += dy) {
+        var thisY = gy - y*popScale;
+        text(y, gx - 3, thisY);
+        line(gx, thisY, gx - 2, thisY);
+    }
+};
+
+var drawAreaHistogram = function(areas, gx, gy, gWidth, gHeight) {
+    var y = gy;
+    
+    stroke(0, 150, 0);
+    fill(0, 150, 0, 80);
+
+    for (var i=areas.length-1; i>=0; i--) {
+        var width = areaScale * areas[i];
+        rect(gx, y, width, barWidth);
+        y += barWidth;
+    }
+    
+    // Axis
+    stroke(20, 20, 20);
+    line(gx, gy-1, gx,  gy + gHeight+2);
+};
+
+var drawSlider = function() {
+    var h = sliderWidth/2-1;
+    stroke(120, 120, 120);
+    fill(160, 160, 160);
+    triangle(sliderX, popGraphY,
+             sliderX + sliderWidth/2, popGraphY - 13,
+             sliderX  + sliderWidth+1, popGraphY);
+    triangle(sliderX, popGraphY + popGraphHeight + 3,
+             sliderX + sliderWidth/2, popGraphY + popGraphHeight + 16,
+             sliderX  + sliderWidth+1, popGraphY + popGraphHeight +3);
+    fill(220, 220, 220);
+    rect(sliderX-1, popGraphY - h,
+         sliderWidth+2, popGraphHeight+sliderWidth, 12);
+    
+    if (arrowSelected) {
+        fill(6, 3, 227); 
+    } else {
+        fill(116, 114, 224);   
+    }
+    stroke(12, 19, 156);
+    rect(sliderX, arrowY - h, sliderWidth, sliderWidth, 6);
+};
+
+// Graph titles and labels
+var drawLabels = function(){
+    fill(20, 20, 40);
+    textFont(titleFont, 14);
+    textAlign(CENTER, CENTER);
+    
+    text("Draw squares between population", title1X, titleY - 8);
+    text("of values and X", title1X, titleY + 8);
+    
+    textAlign(RIGHT, CENTER);
+    text("X", popGraphX - 12, popGraphY + popGraphHeight/2);
+    
+    textAlign(LEFT, CENTER);
+    text("Mean area of squares", areaGraphX -4, titleY);
+    
+    textFont(labelFont, 11);
+    text("Mean area of squares is " + round(10*currentVar)/10 + " when x is " + round(10*currentMean)/10,
+         popGraphX + 5, popGraphX + popGraphHeight + 2);
+};
+
+var draw = function() {
+    background(245, 245, 255);
+    
+    drawMeanLine(popMean, popGraphX, popGraphY+popGraphHeight);
+    graphPopulation(population,
+                    popGraphX, popGraphY + popGraphHeight);
+
+    drawAreaHistogram(areas, areaGraphX, popGraphY,
+                      areaGraphWidth, popGraphHeight);
+
+    drawSlider();
+    drawLabels();
+         
+    if (mouseIsPressed) {
+        if (abs(mouseX - sliderX) <= sliderWidth*2 &&
+            abs(mouseY - arrowY) <= sliderWidth*2) {
+            arrowSelected = true;
+        }
+    } else {
+        arrowSelected = false;
+    }
+};
+
+var mouseDragged = function() {
+    if (arrowSelected) {
+        arrowY = mouseY;
+        if (arrowY > popGraphY + popGraphHeight) {
+            arrowY = popGraphY + popGraphHeight;
+        } else if (arrowY < popGraphY) {
+            arrowY = popGraphY;
+        }
+        currentMean = maxValue - maxValue * (arrowY - popGraphY) / popGraphHeight;
+        currentVar = findMeanArea(currentMean, population);
+    }
+};
+
+var mouseOut = function(){
+    mouseIsPressed = false;
+};

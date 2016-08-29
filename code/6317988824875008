@@ -1,0 +1,35 @@
+/**
+Here's an example of animated water!
+*/
+
+var WATER_RED = 92;
+var WATER_GREEN = 126;
+var WATER_BLUE = 84;
+var n, p, d, nx, x1;
+var initialised = false;
+
+noiseSeed(14);
+draw = function() {
+    if (!initialised) {
+        initialised = true;
+        this.loadPixels();
+        p = this.imageData.data;
+        return;
+    }
+    
+    var m = millis() * 0.0005;
+    
+    for (var x = 0; x < 400; x += 4) {
+        d = x * 400;
+        x1 = x * 0.03;
+        nx = noise(x) * (x - 280) << 1;
+        
+        for (var y = 0; y < 400; y += 4) {
+            n = nx * noise(x1, y * 0.01, m);
+            p[d + y] = WATER_RED - n;
+            p[d + y + 1] = WATER_GREEN - n;
+            p[d + y + 2] = WATER_BLUE - n;
+        }
+    }
+    this.updatePixels();
+};

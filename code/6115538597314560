@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Navigation and Drop-Down Menus</title>
+        <style>
+            body{
+                background-color:rgb(92, 131, 230);
+            }
+            #sidebar{
+                background-color:rgb(60, 91, 171);
+                width:10em;
+                font-family:Verdana;
+                position:fixed;
+                text-align:center;
+            }
+            #sidebar p{
+                background-color:rgb(59, 169, 184);
+                width:10em;
+                transition:width 0.5s linear;
+            }
+            #sidebar p:hover{
+                width:11em;
+            }
+            #sidebar a{
+                text-decoration:none;
+                color:rgb(154, 210, 227);
+            }
+            #sidebar h2{
+                color:rgb(16, 55, 102);
+            }
+            #drop-down-container{
+                background-color:rgb(0, 102, 255);
+                text-align:center;
+                font-family:Verdana;
+                position:fixed;
+                width: 400px;
+                left:12em;
+                height:4em;
+            }
+            #drop-down-container h2{
+                margin-bottom:0.3em;
+                margin-top:0.3em;
+            }
+            
+            .drop-down {
+                width:33%;
+                text-align: centrr;
+                float: left;
+                transition:height linear 0.5s;
+                overflow:hidden;
+                height:1.5em;
+                display:block;
+            }
+            
+            .drop-down:hover{
+                height:10em;
+            }
+            
+            .drop-down table {
+                width: 100%;
+            }
+            
+            .drop-down tbody td{
+                background-color:rgb(99, 198, 201);
+                height:1em;
+            }
+            .drop-down a{
+                text-decoration:none;
+                color:rgb(49, 122, 148);
+            }
+            .drop-down tbody td:hover{
+                background-color:rgb(0, 255, 221);
+            }
+        </style>
+    </head>
+    <body>
+        <div id="sidebar">
+            <h2>Navigation</h2>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+            <p>
+                <a href="#bottom">Link</a>
+            </p>
+        </div> <!--Sidebar-->
+        <div id="drop-down-container">
+            <h2>Title</h2>
+            <div class="drop-down">
+                <table>
+                <thead>
+                    <tr>
+                        <td><strong>Tab</strong></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="drop-down">
+                <table>
+                <thead>
+                    <tr>
+                        <td><strong>Tab</strong></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                </tbody>
+            </table>
+            </div>
+            <div class="drop-down">
+                <table>
+                <thead>
+                    <tr>
+                        <td><strong>Tab</strong></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                    <tr><td><a href="#test">Link</a></td></tr>
+                </tbody>
+            </table>
+            </div>
+        </div> <!--Drop-Down Menu-->
+    </body>
+</html>

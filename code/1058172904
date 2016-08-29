@@ -1,0 +1,139 @@
+ /*****************************************************
+ * Tests the speed of Primality Tests by finding 
+ * the mean number of steps they take to find the 
+ * prime each number in a group.
+ * There are groupN groups of groupSize 
+ * consecutive numbers, starting at startN.
+ * Then graphs the results
+ * 
+ * Try seting groupSize = 1 and sliding startN or groupSize up 
+ ***********************************************/
+
+// Start at number startN and test groupN groups of groupSize
+var startN = 2;
+var groupN = 50;
+var groupSize = 5000;
+
+// Trial Division Primality Test (slow method)
+var isPrimeA = function(inputNum) {
+    var steps = 1;
+    var primeCheck = true;
+    var upperBound = floor(sqrt(inputNum));
+
+    for(var test = 2; test <= upperBound; test++) {
+        steps++;
+        if (inputNum % test === 0) {
+            primeCheck = false;
+        }
+    }
+    return steps;
+ };
+ 
+ // Improved Trial Division (smarter method)
+ var isPrimeB = function(inputNum) {
+    var steps = 1;
+    var primeCheck = true;
+
+    if (inputNum % 2 === 0) {
+        return (inputNum === 2);
+    }
+    var upperBound = floor(sqrt(inputNum));
+
+    for(var test = 3; test <= upperBound; test += 2) {
+        steps++;
+        if (inputNum % test === 0) {
+            return steps;
+        }
+    }
+    return steps;
+ };
+
+var testFunction = function(testFunc, startN, endN) {
+    var totalSteps = 0;
+    
+    for (var n = startN; n < endN; n++) {
+        totalSteps += testFunc(n);
+    }
+    return totalSteps / (endN - startN);
+};
+
+var drawGraph = function(data1, data2, xValues) {
+    var originX = 55.5;
+    var originY = 350;
+    var width = 320;
+    var height = 320;
+    
+    var x1, x2, y1, y2;
+    var nData = data1.length - 1;
+    var minX = floor(log(xValues[0]));
+    var maxX = ceil(log(xValues[xValues.length-1]));
+    var scaleX = (width - 2) / (maxX - minX);
+    var maxY = max(data1[nData], data2[nData]);
+    var scaleY = (height - 2) / maxY;
+
+    strokeWeight(2);
+    for (var x = 0; x < nData; x++) {
+        x1 = originX+scaleX*(log(xValues[x]) - minX);
+        x2 = originX+scaleX*(log(xValues[x+1])-minX);
+        
+        // Series A
+        y1 = originY - scaleY * data1[x];
+        y2 = originY - scaleY * data1[x+1];
+        stroke(0, 94, 0);
+        line(x1, y1, x2, y2);
+        
+        // Series B
+        y1 = originY - scaleY * data2[x];
+        y2 = originY - scaleY * data2[x+1];
+        stroke(33, 41, 204);
+        line(x1, y1, x2, y2);
+    }
+    
+    // axes
+    stroke(20, 20, 20);
+    strokeWeight(1);
+    line(originX, originY - height, originX, originY);
+    line(originX, originY, originX + width, originY);
+    
+    // Axis labels
+    fill(20, 20, 20);
+    textSize(10);
+    textAlign(CENTER, 1);
+    
+    for (x = minX; x <= maxX; x++) {
+        x1 = originX + scaleX * (x - minX);
+        text(x, x1+1, originY + 14);
+        line(x1, originY, x1, originY+3);
+    }
+    
+    textAlign(RIGHT, 1);
+    for (var y = 0; y <= 5; y ++) {
+        y1 = originY - y * (height / 5);
+        var unit = "" + round(y * maxY / 5);
+        text(unit, originX - 6, y1+3);
+        line(originX, y1, originX-3, y1);
+    }
+    
+    textAlign(CENTER, 1);
+    textSize(14);
+    text("log(Input number)", originX + width/2, originY + 36);
+    
+    translate(originX - 34, originY - height/2);
+    rotate(270);
+    text("Mean number of steps", 0, 0);
+};
+
+// *********** Start Tests ***************** 
+
+var speedA = [];
+var speedB = [];
+var means = [];
+
+for (var i=0; i<groupN; i++) {
+    speedA.push(testFunction(isPrimeA, startN, startN + groupSize));
+    speedB.push(testFunction(isPrimeB, startN, startN + groupSize));
+    means.push(0.5 * (2 * startN + groupSize));
+    startN += groupSize;
+}
+
+drawGraph(speedA, speedB, means);

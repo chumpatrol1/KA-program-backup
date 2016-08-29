@@ -1,0 +1,463 @@
+/***************************************************
+ * 3D molecule viewer - Single stranded DNA
+ * Single strand of sequence ACCGACGTCGGT
+ * 
+ * Red: Oxygen atoms
+ * Blue: Nitrogen atoms
+ * Dark Grey: Carbon atoms
+ * 
+ * Need to add double bonds
+ * 
+ * Coordinates from:
+ * http://oca.weizmann.ac.il/oca-bin/send-pdb?id=1bna
+ * 
+ * Use the mouse or keyboard to rotate the molecule
+ ***************************************************/
+
+var atomSize = 3;
+var bondThickness = 3;
+var bondColour = color(64, 61, 64, 160);
+
+var backgroundColour = color(250, 250, 255);
+var scaleValue = 8;
+
+var atoms;
+
+var Atom = function(element, x, y, z) {
+    this.element = element;
+    this.x = x;
+    this.y = y;
+    this.z = z;
+    
+    if (element === "H") {
+        this.colour = color(180, 180, 180, 220);
+        this.size = atomSize * 1.2;
+    } else if (element === "C") {
+        this.colour = color(64, 61, 64, 220);
+        this.size = atomSize * 1.7;
+    } else if (element === "N") {
+        this.colour = color(68, 75, 219, 220);
+        this.size = atomSize * 1.55;
+    } else if (element === "O") {
+        this.colour = color(250, 15, 15, 220);
+        this.size = atomSize * 1.52;
+    } else if (element === "P") {
+        this.colour = color(237, 107, 7, 220);
+        this.size = atomSize * 1.8;
+    }
+    
+    this.draw = function() {
+        var fade = 1 - (this.z + 300) / 600;
+    //fill(lerpColor(this.colour, backgroundColour, fade));
+        fill(this.colour);
+        ellipse(this.x, this.y, this.size, this.size);
+    };
+};
+
+var Bond = function(a, b) {
+    this.atom1 = atoms[a];
+    this.atom2 = atoms[b];
+    
+    this.draw = function() {
+        var atom1 = this.atom1;
+        var atom2 = this.atom2;
+                
+        var dx = atom1.x - atom2.x;
+        var dy = atom1.y - atom2.y;
+        var theta = atan2(dx, dy);
+
+        var x1 = atom1.x - 0.5 * atom1.size * sin(theta);
+        var y1 = atom1.y - 0.5 * atom1.size * cos(theta);
+        var x2 = atom2.x + 0.5 * atom2.size * sin(theta);
+        var y2 = atom2.y + 0.5 * atom2.size * cos(theta);
+        line(x1, y1, x2, y2);
+    };
+};
+
+// Coordinates for molecule from http://www.rcsb.org/pdb
+var atoms = [
+    new Atom("O", 1.440, 67.674, 10.147),
+    new Atom("C", 0.178, 67.371, 9.545),
+    new Atom("C", 0.390, 67.200, 8.054),
+    new Atom("O", 1.355, 66.152, 7.837),
+    new Atom("C", -0.824, 66.777, 7.247),
+    new Atom("O", -0.814, 67.518, 6.036),
+    new Atom("C", -0.685, 65.302, 7.011),
+    new Atom("C", 0.814, 65.128, 7.001),
+    new Atom("P", -1.908, 67.112, 4.930),
+    new Atom("O", -2.236, 68.343, 4.176),
+    new Atom("O", -2.953, 66.275, 5.562),
+    new Atom("O", -1.078, 66.144, 3.953),
+    new Atom("C", 0.057, 66.730, 3.314),
+    new Atom("C", 0.530, 65.771, 2.242),
+    new Atom("O", 1.035, 64.575, 2.870),
+    new Atom("C", -0.533, 65.284, 1.264),
+    new Atom("O", 0.051, 65.279, -0.029),
+    new Atom("C", -0.935, 63.924, 1.764),
+    new Atom("C", 0.382, 63.425, 2.331),
+    new Atom("P", -0.797, 65.134, -1.372),
+    new Atom("O", -0.056, 65.821, -2.475),
+    new Atom("O", -2.218, 65.453, -1.151),
+    new Atom("O", -0.702, 63.565, -1.718),
+    new Atom("C", 0.623, 63.016, -1.773),
+    new Atom("C", 0.526, 61.521, -1.927),
+    new Atom("O", 0.330, 60.907, -0.629),
+    new Atom("C", -0.641, 61.011, -2.767),
+    new Atom("O", -0.091, 60.279, -3.856),
+    new Atom("C", -1.486, 60.167, -1.858),
+    new Atom("C", -0.514, 59.751, -0.793),
+    new Atom("P", -1.069, 59.672, -4.979),
+    new Atom("O", -0.303, 59.590, -6.258),
+    new Atom("O", -2.361, 60.413, -4.938),
+    new Atom("O", -1.355, 58.203, -4.466),
+    new Atom("C", -0.268, 57.293, -4.298),
+    new Atom("C", -0.817, 56.036, -3.686),
+    new Atom("O", -1.239, 56.316, -2.323),
+    new Atom("C", -2.039, 55.462, -4.384),
+    new Atom("O", -1.897, 54.069, -4.482),
+    new Atom("C", -3.208, 55.857, -3.508),
+    new Atom("C", -2.527, 55.717, -2.153),
+    new Atom("P", -2.491, 53.169, -5.667),
+    new Atom("O", -1.688, 53.368, -6.887),
+    new Atom("O", -3.966, 53.424, -5.721),
+    new Atom("O", -2.260, 51.700, -5.101),
+    new Atom("C", -0.956, 51.404, -4.578),
+    new Atom("C", -1.131, 50.374, -3.484),
+    new Atom("O", -1.753, 51.046, -2.355),
+    new Atom("C", -2.029, 49.179, -3.760),
+    new Atom("O", -1.428, 48.037, -3.146),
+    new Atom("C", -3.368, 49.548, -3.184),
+    new Atom("C", -2.976, 50.393, -1.993),
+    new Atom("P", -1.999, 46.548, -3.380),
+    new Atom("O", -0.957, 45.565, -2.990),
+    new Atom("O", -2.673, 46.485, -4.686),
+    new Atom("O", -3.144, 46.444, -2.252),
+    new Atom("C", -2.679, 46.518, -0.892),
+    new Atom("C", -3.886, 46.518, 0.017),
+    new Atom("O", -4.582, 47.780, -0.099),
+    new Atom("C", -4.944, 45.467, -0.287),
+    new Atom("O", -4.883, 44.541, 0.789),
+    new Atom("C", -6.258, 46.192, -0.402),
+    new Atom("C", -5.963, 47.525, 0.245),
+    new Atom("P", -5.731, 43.195, 0.848),
+    new Atom("O", -5.102, 42.273, 1.836),
+    new Atom("O", -6.026, 42.730, -0.537),
+    new Atom("O", -7.143, 43.636, 1.463),
+    new Atom("C", -7.163, 44.196, 2.782),
+    new Atom("C", -8.588, 44.673, 2.999),
+    new Atom("O", -8.796, 45.838, 2.167),
+    new Atom("C", -9.708, 43.730, 2.612),
+    new Atom("O", -10.348, 43.327, 3.824),
+    new Atom("C", -10.626, 44.484, 1.665),
+    new Atom("C", -10.204, 45.909, 1.882),
+    new Atom("P", -11.631, 42.383, 3.833),
+    new Atom("O", -11.669, 41.648, 5.133),
+    new Atom("O", -11.688, 41.594, 2.571),
+    new Atom("O", -12.874, 43.378, 3.817),
+    new Atom("C", -12.876, 44.358, 4.878),
+    new Atom("C", -14.071, 45.243, 4.628),
+    new Atom("O", -13.766, 46.086, 3.484),
+    new Atom("C", -15.369, 44.546, 4.278),
+    new Atom("O", -16.292, 44.818, 5.336),
+    new Atom("C", -15.827, 45.101, 2.965),
+    new Atom("C", -14.983, 46.353, 2.810),
+    new Atom("P", -17.803, 44.320, 5.383),
+    new Atom("O", -18.197, 44.219, 6.817),
+    new Atom("O", -17.978, 43.101, 4.525),
+    new Atom("O", -18.668, 45.474, 4.688),
+    new Atom("C", -18.527, 46.798, 5.182),
+    new Atom("C", -19.048, 47.829, 4.223),
+    new Atom("O", -18.187, 47.857, 3.043),
+    new Atom("C", -20.419, 47.615, 3.618),
+    new Atom("O", -21.416, 48.136, 4.486),
+    new Atom("C", -20.417, 48.354, 2.304),
+    new Atom("C", -18.955, 48.516, 2.002),
+    new Atom("P", -22.942, 47.712, 4.188),
+    new Atom("O", -23.718, 47.977, 5.442),
+    new Atom("O", -22.986, 46.336, 3.625),
+    new Atom("O", -23.418, 48.731, 3.070),
+    new Atom("C", -23.358, 50.144, 3.273),
+    new Atom("C", -23.818, 50.848, 2.024),
+    new Atom("O", -22.945, 50.489, 0.920),
+    new Atom("C", -25.220, 50.500, 1.532),
+    new Atom("O", -25.805, 51.707, 1.090),
+    new Atom("C", -25.025, 49.481, 0.442),
+    new Atom("C", -23.710, 49.947, -0.156),
+    new Atom("P", -27.313, 51.693, 0.526),
+    new Atom("O", -27.904, 53.031, 0.764),
+    new Atom("O", -28.008, 50.480, 1.013),
+    new Atom("O", -27.063, 51.511, -1.046),
+    new Atom("C", -26.451, 52.629, -1.747),
+    new Atom("C", -26.455, 52.215, -3.207),
+    new Atom("O", -25.501, 51.142, -3.369),
+    new Atom("C", -27.770, 51.684, -3.744),
+    new Atom("O", -28.188, 52.544, -4.800),
+    new Atom("C", -27.503, 50.278, -4.207),
+    new Atom("C", -25.995, 50.216, -4.329),
+    new Atom("P", -29.519, 52.311, -5.654),
+    new Atom("O", -29.964, 53.578, -6.284),
+    new Atom("O", -30.477, 51.509, -4.843),
+    new Atom("O", -29.033, 51.337, -6.848),
+    new Atom("C", -28.214, 51.776, -7.921),
+    new Atom("C", -27.793, 50.631, -8.800),
+    new Atom("O", -27.090, 49.623, -8.013),
+    new Atom("C", -28.884, 49.795, -9.459),
+    new Atom("O", -29.276, 50.436, -10.662),
+    new Atom("C", -28.272, 48.442, -9.686),
+    new Atom("C", -27.025, 48.444, -8.837)
+];
+
+var bonds = [
+    new Bond(0,1),
+    new Bond(1,2),
+    new Bond(2,3),
+    new Bond(2,4),
+    new Bond(4,5),
+    new Bond(4,6),
+    new Bond(6,7),
+    new Bond(3,7),
+    new Bond(5,8),
+    new Bond(8,9),
+    new Bond(8,10),
+    new Bond(10,11),
+    new Bond(11,12),
+    new Bond(12,13),
+    new Bond(13,14),
+    new Bond(13,15),
+    new Bond(15,16),
+    new Bond(15,17),
+    new Bond(17,18),
+    new Bond(14,18),
+    new Bond(16,19),
+    new Bond(19,20),
+    new Bond(19,21),
+    new Bond(21,22),
+    new Bond(22,23),
+    new Bond(23,24),
+    new Bond(24,25),
+    new Bond(24,26),
+    new Bond(26,27),
+    new Bond(26,28),
+    new Bond(28,29),
+    new Bond(25,29),
+    new Bond(27,30),
+    new Bond(30,31),
+    new Bond(30,32),
+    new Bond(32,33),
+    new Bond(33,34),
+    new Bond(34,35),
+    new Bond(35,36),
+    new Bond(35,37),
+    new Bond(37,38),
+    new Bond(37,39),
+    new Bond(39,40),
+    new Bond(36,40),
+    new Bond(38,41),
+    new Bond(41,42),
+    new Bond(41,43),
+    new Bond(43,44),
+    new Bond(44,45),
+    new Bond(45,46),
+    new Bond(46,47),
+    new Bond(46,48),
+    new Bond(48,49),
+    new Bond(48,50),
+    new Bond(50,51),
+    new Bond(47,51),
+    new Bond(49,52),
+    new Bond(52,53),
+    new Bond(52,54),
+    new Bond(54,55),
+    new Bond(55,56),
+    new Bond(56,57),
+    new Bond(57,58),
+    new Bond(57,59),
+    new Bond(59,60),
+    new Bond(59,61),
+    new Bond(61,62),
+    new Bond(58,62),
+    new Bond(60,63),
+    new Bond(63,64),
+    new Bond(63,65),
+    new Bond(65,66),
+    new Bond(66,67),
+    new Bond(67,68),
+    new Bond(68,69),
+    new Bond(68,70),
+    new Bond(70,71),
+    new Bond(70,72),
+    new Bond(72,73),
+    new Bond(69,73),
+    new Bond(71,74),
+    new Bond(74,75),
+    new Bond(74,76),
+    new Bond(76,77),
+    new Bond(77,78),
+    new Bond(78,79),
+    new Bond(79,80),
+    new Bond(79,81),
+    new Bond(81,82),
+    new Bond(81,83),
+    new Bond(83,84),
+    new Bond(80,84),
+    new Bond(82,85),
+    new Bond(85,86),
+    new Bond(85,87),
+    new Bond(87,88),
+    new Bond(88,89),
+    new Bond(89,90),
+    new Bond(90,91),
+    new Bond(90,92),
+    new Bond(92,93),
+    new Bond(92,94),
+    new Bond(94,95),
+    new Bond(91,95),
+    new Bond(93,96),
+    new Bond(96,97),
+    new Bond(96,98),
+    new Bond(98,99),
+    new Bond(99,100),
+    new Bond(100,101),
+    new Bond(101,102),
+    new Bond(101,103),
+    new Bond(103,104),
+    new Bond(103,105),
+    new Bond(105,106),
+    new Bond(102,106),
+    new Bond(104,107),
+    new Bond(107,108),
+    new Bond(107,109),
+    new Bond(109,110),
+    new Bond(110,111),
+    new Bond(111,112),
+    new Bond(112,113),
+    new Bond(112,114),
+    new Bond(114,115),
+    new Bond(114,116),
+    new Bond(116,117),
+    new Bond(113,117),
+    new Bond(115,118),
+    new Bond(118,119),
+    new Bond(118,120),
+    new Bond(120,121),
+    new Bond(121,122),
+    new Bond(122,123),
+    new Bond(123,124),
+    new Bond(123,125),
+    new Bond(125,126),
+    new Bond(125,127),
+    new Bond(127,128),
+    new Bond(124,128)
+];
+
+var currentX = false;
+var currentY = false;
+
+var moveObjectToCentre = function(atoms) {
+    // Find range of x values and scale to fill screen
+    var minValue = atoms[0].y;
+    var maxValue = atoms[0].y;
+    var i;
+    
+    // Scale and shift everything
+    var dims = ['x', 'y', 'z'];
+    for (var d = 0; d<3; d++) {
+        // Find mean values for each dimension
+        var meanValue = 0;
+        var dimension = dims[d];
+        for (i=0; i<atoms.length; i++) {
+            meanValue += atoms[i][dimension];
+        }
+        meanValue /= atoms.length;
+        
+        for (i=0; i<atoms.length; i++) {
+            atoms[i][dimension] = scaleValue * (atoms[i][dimension] - meanValue);
+        }
+    }
+};
+
+moveObjectToCentre(atoms);
+
+var rotateY3D = function(theta) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, z;
+
+    for (var i = 0; i < atoms.length; i+=1) {
+        x = atoms[i].x;
+        z = atoms[i].z;
+        atoms[i].x = ct*x + st*z;
+        atoms[i].z = -st*x + ct*z;
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var y, z;
+    
+    for (var i = 0; i < atoms.length; i+=1) {
+        y = atoms[i].y;
+        z = atoms[i].z;
+        atoms[i].y = ct*y - st*z;
+        atoms[i].z = st*y + ct*z;
+    }
+};
+
+// Return the difference of the z-coordinate
+var sortByZ = function(a, b) {
+    return a.z - b.z;
+};
+
+// Move to centre of screen
+translate(200, 200);
+
+var draw = function() {
+    var i;
+    atoms.sort(sortByZ);
+    background(backgroundColour);
+
+    // Draw bonds
+    stroke(bondColour);
+    strokeWeight(bondThickness);
+    for (i = 0; i < bonds.length; i+=1) {
+        bonds[i].draw();
+    }
+    
+    // Draw atoms
+    noStroke();
+    for (i = 0; i < atoms.length; i+=1) {
+        atoms[i].draw();
+    }
+
+    if (mouseIsPressed) {
+        if (currentX !== false) {
+            rotateY3D(-(currentX - mouseX)*PI/10);
+            rotateX3D((currentY - mouseY)*PI/10);
+        }
+        currentX = mouseX;
+        currentY = mouseY;
+    } else {
+        currentX = false;
+    }  
+};
+
+var keyPressed = function() { 
+    if (keyCode === LEFT) {
+        rotateY3D(-3);
+    } else if (keyCode === RIGHT) {
+        rotateY3D(3);
+    } else if (keyCode === UP) {
+        rotateX3D(-3);
+    } else if (keyCode === DOWN) {
+        rotateX3D(3);
+    }
+};
+
+// Let go when mouse leaves canvas
+var mouseOut = function(){
+    mouseIsPressed = false;
+};
+
+// Initial rotations
+rotateX3D(142);

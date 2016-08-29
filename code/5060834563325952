@@ -1,0 +1,1193 @@
+/*******************************************************
+ * Text editor for Eswag's Enclose
+ * 
+ * For more detail of how the language works, see:
+ * https://www.khanacademy.org/computer-programming/_/4746318238711808
+********************************************************/
+
+// Code we want to display
+var code = [
+    "{ edit: canvas; color: green; size: 100; }",
+    "{ text:\"hello\", 20, 20; }",
+    "",
+    "{",
+    "    create: x;",
+    "    shape: ellipse;",
+    "    color: red;",
+    "    x: 30;",
+    "    y: 35;",
+    "    width: 20;",
+    "    height: 10;",
+    "}"
+];
+
+// Colour scheme for different styles of highlighting
+var colorSchemes = {
+    standard: {
+        background: color(255),
+        header: color(52, 106, 41),
+        headerStroke: color(202, 194, 159),
+        gutter: color(240),
+        gutterHighlight: color(220),
+        gutterText: color(0),
+        cursorActive: color(10),
+        cursorPassive: color(180),
+        selection: color(181, 213, 255),
+        default: color(0),
+        number: color(0, 0, 180),
+        operator: color(104, 118, 135),
+        boolean: color(88, 92, 246),
+        comment: color(76, 136, 107),
+        string: color(3, 106, 7),
+        keyword: color(0, 0, 255),
+        _function: color(0, 0, 255),
+        parameter: color(49, 132, 149),
+        _this: color(49, 132, 149),
+        attribute: color(6, 150, 14),
+        multilineComment: color(0, 102, 255),
+        _document: color(128, 159, 191),
+        functionName: color(0, 0, 162)
+    },
+    sublime: {
+        background: color(29, 30, 25),
+        header: color(18, 19, 16),
+        headerStroke: color(47, 46, 43),
+        gutter: color(29, 30, 25),
+        gutterHighlight: color(38, 38, 31),
+        gutterText: color(124, 126, 119),
+        cursorActive: color(255),
+        cursorPassive: color(180),
+        selection: color(40, 40, 33),
+        default: color(255),
+        number: color(157, 96, 255),
+        operator: color(245, 0, 93),
+        boolean: color(157, 96, 255),
+        string: color(224, 215, 90),
+        _function: color(80, 209, 237),
+        keyword: color(245, 0, 93),
+        parameter: color(253, 133, 0),
+        _this: color(255),
+        attribute: color(80, 209, 237),
+        comment: color(90, 98, 75),
+        multilineComment: color(90, 98, 75),
+        _document: color(90, 98, 75),
+        functionName: color(150, 227, 9)
+    }
+};
+
+// How we tokenise the code
+var patterns = [
+    { regex: /^\s*\/\//, tokens: ['comment'] },
+    { regex: /^\s*\/\*/, tokens: ['multilineComment'] },
+    { regex: /^\s*\*\//, tokens: ['multilineCommentEnd'] },
+    { regex: /^\s*(?:-?\d+(?:\.\d+)?)\b/, tokens: ['number'] },
+    { regex: /^\s*(?:\+|-|\*|\/|&|\||\=|<|>)/, tokens: ['operator'] },
+    { regex: /^(?:true|false|null|undefined|Infinity)/, tokens: ['boolean'] },
+    { regex: /^\s*(?:"[^"]*")|^(?:'[^']*')/, tokens: ['string'] },
+    { regex: /^(\s*\w+)(\s*:\s*)/, tokens: ['_function', 'default',] },
+    { regex: /^\s*\b(?:if|else|for|in|continue|break|while|function|return|switch|delete|case|default)\b/, tokens: ['keyword'] },
+    { regex: /^(\s*\.)(length|x|y|push|pop|splice|slice|shift|split|unshift|lineHeight)\b/, tokens: ['default', 'attribute'] },
+    { regex: /^\s*(?:canvas)\b/, tokens: ['_this'] },
+    { regex: /^\s*\w+/, tokens: ['default'] },
+];
+
+// Given a line of code return an array of arrays 
+// In the form [text, token]
+var parseCode = function(code) {
+    var coloredCode = [];
+    var index = 0;
+    
+    var regexMatch, chars, i, pattern, result;
+    var n = patterns.length;
+    
+    while (index < code.length) {
+        regexMatch = false;
+        chars = code.slice(index);
+        
+        // TODO: don't parse multiline comment content
+        if (patterns[0].regex.exec(chars)) {
+            // Test for comment
+            index += chars.length;
+            coloredCode.push([chars, 'comment']);
+            regexMatch = true;
+        } else {
+            // Test remaining code with each regex
+            for (i = 1; i < n; i++) {
+                pattern = patterns[i];
+                result = pattern.regex.exec(chars);
+                if (result) {
+                    index += result[0].length;
+                    if (result.length === 1) {
+                        coloredCode.push([result[0], pattern.tokens[0]]);
+                    } else {
+                        for (var j = 1; j < result.length; j++) {
+                            coloredCode.push([result[j], pattern.tokens[j - 1]]);
+                        }
+                    }
+                    regexMatch = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!regexMatch) {
+            index++;
+            coloredCode.push([chars[0], 'default']);
+        }
+    }
+    
+    return coloredCode;
+};
+
+// Given an array of arrays in the form [text, token],
+// and an object mapping tokens to colors,
+// write the text in those colors, starting at position, (x, y)
+// Assume the text is monospace and the character width is given by w
+var writeColoredCode = function(code, colors, x, y, w) {
+    for (var i = 0; i < code.length; i++) {
+        var c = code[i];
+        fill(colors[c[1]] || colors.default);
+        text(c[0], x, y);
+        //println(c[0]);
+        x += w * c[0].length;
+    }
+};
+
+// Get a monospace font, Monaco or fallback
+/*
+var myFont = loadFont('impact', 13);
+myFont.family = '"Monaco", monospace';
+myFont.css = 'normal normal normal 13px/15px "Monaco", monospace';
+
+println(myFont.css);
+*/
+var myFont = createFont('Monaco', 13);
+textFont(myFont);
+if (textWidth('lllll') !== textWidth('mmmmm')) {
+    myFont = createFont('monospace', 14);
+}
+
+
+/*******************************************************
+ *      Enclose language functions
+********************************************************/
+var ifs = [];
+var texts = [];
+var loops = [];
+var colors = {
+    red:color(255, 0, 0),
+    blue:color(0,0,255),
+    green:color(0,255,0),
+    white:color(255),
+    yellow:color(255,255,0),
+    pink:color(255, 189, 189),
+    black:color(0),
+    transparent:color(255,255,255,0),
+    aqua:color(0,255,255),
+    navy:color(0,0,128),
+    teal:color(0,128,128),
+    indigo:color(75,0,130),
+    maroon:color(128,0,0),
+    purple:color(128,0,128),
+    lightgreen:color(144,238,144),
+    brown:color(165,42,42),
+    darkred:color(139,0,0),
+    lightblue:color(135,206,250),
+    silver:color(192,192,192),
+    lightgray:color(211,211,211),
+    lightgrey:color(211,211,211),
+    gray:color(100),
+    grey:color(100),
+    lavender:color(230,230,250),
+    beige:color(245,245,220),
+    magenta:color(255,0,255),
+    fuchsia:color(255,0,255),
+    orange:color(255,165,0)
+};
+var shapes = {
+    rect:rect,
+    ellipse:ellipse,
+};
+var bOperators=["!=","<=","<",">=",">","?="];
+var variables = {};
+
+var defaultValues = function(){
+    this.x=200;
+    this.y=200;
+    this.width=100;
+    this.height=50;
+    this.color=colors.green;
+    this.speed={
+        x:0,
+        y:0,
+    };
+    this.shape=shapes.rect;
+    this.stroke=colors.black;
+    this.strokeSize=1;
+};
+defaultValues.prototype.draw = function() {
+    pushStyle();
+    fill(this.color);
+    stroke(this.stroke);
+    strokeWeight(this.strokeSize);
+    this.shape(this.x,this.y,this.width,this.height);
+    popStyle();
+    strokeWeight(1);
+};
+defaultValues.prototype.update = function(){
+    this.x+=parseFloat(this.speed.x);
+    this.y+=parseFloat(this.speed.y);
+};
+defaultValues.prototype.run = function(){
+    this.draw();
+    this.update();
+};
+
+var canvas = {
+    color:colors.white,
+    size:400
+};
+
+var objects = {
+    canvas:canvas
+};
+
+String.prototype.numOf=function(t){
+    var num=0;
+    for(var i=0;i<=this.length-t.length;i++){
+        if(this.slice(i,t.length)===t){
+            num++;
+        }    
+    } 
+    return num;
+};
+String.prototype.insert = function (index, string) {
+  if (index > 0){
+    return this.substring(0, index) + string + this.substring(index, this.length);
+  } else if(index===this.length-1){
+    return this+string;    
+  }  
+  else{
+    return string + this;
+  }
+};
+String.prototype.remove=function(index,amount){amount=amount||1;return this.slice(0,index)+this.slice(index+amount)||"";};
+
+var create=function(name){
+    objects[name]=new defaultValues();
+};
+var createVar=function(name,value,getValue){
+    variables[name]=getValue(value);
+};
+var concatText=function(t,getValue){
+    var a=t.split("+");
+    var NEW="";
+    for(var i=0;i<a.length;i++){
+        var quotePos=a[i].indexOf("\"");
+        var quotePos2=a[i].lastIndexOf("\"");
+        if(quotePos!==-1){
+            NEW+=a[i].slice(quotePos+1,quotePos2);
+        } else{
+            NEW+=getValue(a[i].trim());
+        }
+    }
+    return NEW;
+};
+var getObjectValue=function(b){
+    try{
+        var dotPos=b.indexOf(".");
+        var dotPos2=b.lastIndexOf(".");
+        var quotePos=b.indexOf("\"");
+        var quotePos2=b.lastIndexOf("\"");
+        if(typeof parseFloat(b)!=="undefined"&&!isNaN(parseFloat(b))){
+            return parseFloat(b);
+        }
+        if(quotePos!==-1){
+            return concatText(b,getObjectValue);
+        }
+        
+        if(dotPos===-1){
+            if(b==="true"){return true;}
+            else if(b==="false"){return false;}
+            else if(typeof colors[b]!=="undefined"){
+                return colors[b];    
+            } else if(typeof shapes[b]!=="undefined"){
+               return shapes[b];     
+            } else if(typeof objects[b]!=="undefined"){
+                return objects[b];
+            } else if(typeof variables[b]!=="undefined"){
+                return variables[b];
+            }
+            
+        }
+        var o=objects[b.slice(0,dotPos)];
+        if(dotPos2!==dotPos){
+            return o[b.slice(dotPos+1,dotPos2)][b.slice(dotPos2+1)];
+        }
+        return o[b.slice(dotPos+1)];
+    } catch(err){
+        println(err.message);
+    }
+};
+var setObject=function(o,value){
+    var v=getObjectValue(value);
+    var dotPos=o.indexOf(".");
+    var dotPos2=o.lastIndexOf(".");
+    if(dotPos===-1){
+        return;
+    }
+    var ob=objects[o.slice(0,dotPos)];
+    if(dotPos2!==dotPos){
+        var ob2=ob[o.slice(dotPos+1,dotPos2)];
+        ob2[o.slice(dotPos2+1)]=v;
+    } else{
+        ob[o.slice(dotPos+1)]=v;
+    }
+    
+};
+var increase=function(o,a){
+    var oValue=getObjectValue(o);
+    var amount=parseFloat(a);
+    var dotPos=o.indexOf(".");
+    var dotPos2=o.lastIndexOf(".");
+    if(dotPos===-1){
+        return;
+    }
+    var ob=objects[o.slice(0,dotPos)];
+    if(dotPos2!==dotPos){
+        var ob2=ob[o.slice(dotPos+1,dotPos2)];
+        ob2[o.slice(dotPos2+1)]=oValue+amount;
+    } else{
+        ob[o.slice(dotPos+1)]=oValue+amount;
+    }
+};
+var obLen=function(ob){
+    var len=0;
+    for(var i in ob){
+        len++;
+    }
+    return len;
+};
+var printObject=function(o,indent,name){
+    indent|=0;
+    var length=obLen(o);
+    var append="";
+    for(var i=0;i<indent;i++){
+        append+=" ";
+    }
+    println((typeof name==="undefined"?append:append+name+": ")+"{");
+    var count=0;
+    for(var i in o){
+        if(obLen(o[i])>0&&!(o[i] instanceof Array)&&!(o[i] instanceof String)){
+            printObject(o[i],indent+3,i);
+        } else{
+            println(append+"   "+i+": "+o[i]+(count<length-1?",":""));
+        }
+        count++;
+    }
+    println(append+"}");
+};
+var evalPrintln=function(p,getValue){
+    if(typeof objects[p]!=="undefined"){
+        printObject(objects[p]);
+        return;
+    }
+    println(getValue(p));
+};
+var evalBoolean=function(b){
+    var operatorPos;
+    var operator;
+    if(b==="true"||b==="false"){return getObjectValue(b);}
+    for(var i=0;i<bOperators.length;i++){
+        operatorPos=b.indexOf(bOperators[i]);
+        if(operatorPos!==-1){
+            operator=bOperators[i];
+            break;
+        }
+        if(i===bOperators.length-1){
+            return false;
+        }
+    }
+    var beforeO=b.slice(0,operatorPos);
+    var afterO=b.slice(operatorPos+operator.length);
+    var check=getObjectValue(beforeO);
+    var check2=getObjectValue(afterO);
+    switch(operator){
+        case "?=":
+            return (check===check2);
+        case "!=":
+            return (check!==check2);
+        case "<":
+            return (check<check2);
+        case "<=":
+            return (check<=check2);
+        case ">":
+            return (check>check2);
+        case ">=":
+            return (check>=check2);
+    }
+    
+};
+var evalIf=function(condition,SET,evalObject){
+    var c=evalBoolean(condition);
+    if(!c){
+        return;
+    }
+    var newArray=SET.split(",");
+    for(var i=0;i<newArray.length;i++){
+        var p=newArray[i];
+        evalObject(p);
+    }
+};
+
+var evalIfsArray=function(array,evalObject){
+    try{
+        for(var i=0;i<array.length;i++){
+            var src=array[i];
+            src=src.trim();
+            var colonPos=src.indexOf(":");
+            evalIf(src.slice(0,colonPos),src.slice(colonPos+1),evalObject);
+        }  
+    } catch(err){
+        println(err.message);
+    }
+};
+
+var evalTextArray=function(array){
+    try{
+        for(var i=0;i<array.length;i++){
+            var src=array[i].split(",");
+            if(src[4]){
+                fill(getObjectValue(src[4]));
+            } else{
+                fill(colors.black);
+            }
+            if(src[3]){
+                textSize(getObjectValue(src[3]));
+            } else{
+                textSize(12);
+            }
+            text(concatText(src[0],getObjectValue),getObjectValue(src[1]),getObjectValue(src[2]));
+        }
+    } catch(err){
+        println(err.message);
+    }
+};
+
+var evalFor=function(a,b,evalObject){
+    var array=a.trim().split("#");
+    var brray=b.trim().split("NEXT");
+    var equalPos=array[0].indexOf("=");
+    createVar(array[0].slice(0,equalPos),array[0].slice(equalPos+1),getObjectValue);
+    var increasePos=array[2].indexOf("+=");
+    var theVar=array[2].slice(0,increasePos);
+    while(evalBoolean(array[1])){
+        for(var i=0;i<brray.length;i++){
+            evalObject(brray[i]);
+        }
+        setObject(theVar,getObjectValue(theVar)+getObjectValue(array[2].slice(increasePos+2)));
+    }
+};
+var execLoops=function(a,evalObject){
+    for(var i=0;i<a.length;i++){
+        var b=a[i].split(",");
+        for(var j=0;j<b.length;j++){
+            evalObject(b[j]);
+        }
+    }
+};
+
+var edit;
+var currentIfPos=0;
+var currentTextPos=0;
+var currentLoopPos=0;
+var evalObject=function(src){
+    src=src.trim();
+    if(src.length===0){
+        return;
+    }
+    var colonPos=src.indexOf(":");
+    if(colonPos<0){
+        var equalPos=src.indexOf("=");
+        var beforeEqual=src.slice(0,equalPos);
+        var afterEqual=src.slice(equalPos+1);
+        var varPos=beforeEqual.indexOf("var");
+        if(varPos!==-1){
+            createVar(beforeEqual.slice(varPos+4).trim(),afterEqual,getObjectValue);
+        } else{
+            setObject(src.slice(0,equalPos),src.slice(equalPos+1));
+        }
+        return;
+    }    
+    var beforeColon=src.slice(0,colonPos);
+    beforeColon=beforeColon.trim();
+    var afterColon=src.slice(colonPos+1);
+    afterColon=afterColon.trim();
+    var ifPos=beforeColon.indexOf("if");
+    var dotPos=beforeColon.indexOf(".");
+    var forPos=beforeColon.indexOf("for");
+    var increasePos=beforeColon.indexOf("increase");
+    var beforeDot;
+    var afterDot;
+    if(dotPos>0){
+        beforeDot=beforeColon.slice(0,dotPos);
+        beforeDot=beforeDot.trim();
+        afterDot=beforeColon.slice(dotPos+1);
+        afterDot=afterDot.trim();
+    }
+    try{
+        if(beforeColon==="comment"){
+            return;
+        } else if(beforeColon==="loop"){
+            loops[currentLoopPos]=afterColon;
+            currentLoopPos++;
+        } /*else if(forPos!==-1){
+            evalFor(beforeColon.slice(forPos+4),afterColon,evalObject);
+        }*/ else if(increasePos!==-1){
+            increase(beforeColon.slice(increasePos+"increase".length+1).trim(),afterColon.trim());
+        } else if(ifPos!==-1){
+            var afterIf=beforeColon.slice(ifPos+3);
+            evalIf(afterIf,afterColon,evalObject);
+        } else if(beforeColon==="delete"){
+            if(afterColon==="all"){
+                for(var del in objects){
+                    if(del!=="canvas"){
+                        delete objects[del];     
+                    }    
+                }    
+            } else{
+                delete objects[afterColon];
+            }    
+            
+        } else if(beforeColon==="edit"){
+            edit=objects[afterColon];
+        } else if(beforeColon==="create"){
+            create(afterColon);
+            edit=objects[afterColon];
+        } else if(beforeColon==="text"){
+            texts[currentTextPos]=afterColon;
+            currentTextPos++;
+        } else if(dotPos!==-1){
+            var o=edit[beforeDot];
+            o[afterDot]=getObjectValue(afterColon);
+            //println(beforeDot+"."+afterDot+": "+edit[beforeDot][afterDot]);
+        }  else if(beforeColon==="print"){
+            evalPrintln(afterColon,getObjectValue);
+        } else{
+            edit[beforeColon]=getObjectValue(afterColon);
+            //println(edit[beforeColon]);
+        }
+    } catch(err){
+            println(err.message);
+    }
+};
+
+var evalCode=function(c){
+    if(c.length===0){
+        return;
+    }
+    currentTextPos=0;
+    currentLoopPos=0;
+    var n=c.remove("\n");
+    n=n.split("{");
+    for(var i=0;i<n.length;i++){
+        var endPos=n[i].indexOf("}");
+        if(endPos!==-1){
+            n[i]=n[i].slice(0,endPos);
+        } else{
+            continue;
+        }
+        if(n[i].length===0){
+            continue;
+        }
+        n[i]=n[i].trim();
+        var q=n[i];
+        var newArray=q.split(";");
+        
+        for(var j=0;j<newArray.length;j++){
+            var src=newArray[j].trim();
+            evalObject(src);
+        }
+    }
+    execLoops(loops,evalObject);    
+};
+
+/*******************************************************
+ *      Button object
+********************************************************/
+{
+var Button = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.font = createFont("sans", 15);
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.textColor = color(255);
+    this.selected = false;
+    this.transition = 0;
+};
+
+Button.prototype.draw = function() {
+    fill(this.textColor);
+    textFont(this.font, 15);
+    textAlign(CENTER, CENTER);
+    this.w = textWidth(this.name);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+    
+    if (this.mouseOver()) {
+        cursor(HAND);
+        strokeWeight(1);
+        stroke(this.textColor);
+        line(this.x -1, this.y + this.h, this.x + this.w + 2, this.y + this.h);
+    }
+};
+
+Button.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+Button.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+Button.prototype.mouseDragged = function() {};
+
+Button.prototype.mouseReleased = function() {
+    if (this.selected && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+Button.prototype.trigger = function() {
+    // To be over-written
+};
+
+Button.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/**********************************************
+ *      Page object
+ * Main object - deals with keypresses and 
+ * mouse events, also displaying text
+***********************************************/
+
+var Page = function(title, code) {
+    this.title = title;
+    this.code = code || [];
+    this.cursorX = 0;
+    this.cursorY = 0;
+    this.cursorT = 0;   // Controls blinking
+    this.mouseIsOut = true;
+    
+    this.codeX = 30;
+    this.codeY = 24;
+    this.lineHeight = 18;
+    
+    this.font = myFont;
+    textFont(this.font);
+    var testText = " abcdefghijklmnopqrstuvwxyz0123456789[]{};.,";
+    this.charWidth = textWidth(testText) / testText.length;
+    
+    this.colorScheme = 'standard';
+    this.getColoredCode();
+    
+    this.clipboard = [];
+    
+    var buttonY = this.codeY - 22;
+    this.buttons = [
+        new Button(10, buttonY, 80, 17, "Cut", this.cut.bind(this)),
+        new Button(50, buttonY, 80, 17, "Copy", this.copy.bind(this)),
+        new Button(100, buttonY, 80, 17, "Paste", this.paste.bind(this)),
+        new Button(150, buttonY, 80, 17, "Colors", this.changeColorScheme.bind(this)),
+        new Button(205, buttonY, 80, 17, "Print", this.print.bind(this)),
+        new Button(250, buttonY, 80, 17, "Run", this.run.bind(this)),
+    ];
+    
+    evalCode(this.code.join("\n"));
+};
+
+Page.prototype.getColoredCode = function() {
+    var colorScheme = colorSchemes[this.colorScheme];
+    this.coloredCode = [];
+    
+    for (var i = 0; i < this.code.length; i++) {
+        this.coloredCode.push(parseCode(this.code[i]));
+    }
+};
+
+Page.prototype.draw = function() {
+    if (mouseX < this.codeX || mouseY < this.codeY) {
+        cursor(ARROW);
+    } else {
+        cursor(TEXT);
+    }
+    
+    var colorScheme = colorSchemes[this.colorScheme];
+
+    background(colorScheme.background);
+    
+    this.drawCode(colorScheme);
+    this.drawCursor(this.codeX + 5, this.codeY, colorScheme);
+    this.drawGutter(this.codeX, this.codeY, colorScheme);
+    this.drawHeader(this.codeX, this.codeY, colorScheme);
+    
+    this.buttons.forEach(function(el) { el.draw(); });
+};
+
+Page.prototype.drawHeader = function(x, y, colors) {
+    fill(colors.header);
+    if (colors.headerStroke) {
+        strokeWeight(1);
+        stroke(colors.headerStroke);
+    } else {
+        noStroke();
+    }
+    rect(0, 0, width + 1, this.codeY);
+};
+
+Page.prototype.drawGutter = function(x, y, colors) {
+    noStroke();
+    fill(colors.gutter);
+    rect(0, y + 1, x, height);
+    
+    textAlign(RIGHT, CENTER);
+    textFont(this.font);
+    y += this.lineHeight * 0.75;
+    
+    for (var i = 0; i < this.code.length; i++) {
+        // Highlight current line
+        if (i === this.cursorY) {
+            fill(colors.gutterHighlight);
+            noStroke();
+            rect(0, y - this.lineHeight / 2, x, this.lineHeight);
+        }
+
+        fill(colors.gutterText);
+        text(i + 1, x - 3, y);
+        y += this.lineHeight;
+    }
+};
+
+Page.prototype.drawTextSelection = function() {
+    fill(colorSchemes[this.colorScheme].selection);
+    
+    var x = this.codeX + 5;
+    var y = this.codeY + (this.startY + 0.25) * this.lineHeight;
+    var startY = this.startY;
+    
+    if (startY <= this.cursorY) {
+        // Downward selection
+        var x1 = x + this.startX * this.charWidth;
+        while (startY <= this.cursorY) {
+            var x2 = startY === this.cursorY ? x + this.cursorX * this.charWidth : width;
+            rect(x1, y, x2 - x1, this.lineHeight);
+            x1 = x;
+            startY++;
+            y += this.lineHeight;
+        }
+    } else {
+        // Upward selection
+        var x2 = x + this.startX * this.charWidth;
+        while (startY >= this.cursorY) {
+            var x1 = startY === this.cursorY ? x + this.cursorX * this.charWidth : x;
+            rect(x1, y, x2 - x1, this.lineHeight);
+            x2 = width;
+            startY--;
+            y -= this.lineHeight;
+        }
+    }
+};
+
+Page.prototype.drawCode = function(colors) {
+    noStroke();
+    textAlign(LEFT, CENTER);
+    textFont(this.font);
+    
+    var multilineComment = false;
+    var y = this.codeY + this.lineHeight * 0.75;
+    
+    // Draw text selection
+    if (this.startX !== false) {
+        this.drawTextSelection();
+    }
+
+    for (var i = 0; i < this.coloredCode.length; i++) {
+        var code = this.coloredCode[i];
+        var x = this.codeX + 5;
+        
+        for (var j = 0; j < code.length; j++) {
+            var token = code[j];
+            if (multilineComment) {
+                if (token[1] !== '_document') {
+                    fill(colors.multilineComment || colors.default);
+                } else {
+                    fill(colors[token[1]] || colors.default);
+                }
+                multilineComment = token[1] !== 'multilineCommentEnd';
+            } else {
+                fill(colors[token[1]] || colors.default);
+                multilineComment = token[1] === 'multilineComment';
+            }
+            text(token[0], x, y);
+            //println(token[0]);
+            x += this.charWidth * token[0].length;
+        }
+        y += this.lineHeight;
+    }
+
+};
+
+Page.prototype.drawCursor = function(x, y, colors) {
+    x += this.cursorX * this.charWidth;
+    y += (this.cursorY + 0.25) * this.lineHeight;
+
+    strokeWeight(2);
+    this.cursorT++;
+
+    if (this.mouseIsOut) {
+        stroke(colors.cursorPassive);
+        line(x, y + 2, x, y + 16);
+    } else if (floor((this.cursorT % 80) / 40) === 0) {
+        stroke(colors.cursorActive);
+        line(x, y + 2, x, y + 16);
+    }
+
+};
+
+Page.prototype.startSelection = function() {
+    if (this.startX === false) {
+        this.startX = this.cursorX;
+        this.startY = this.cursorY;
+    }
+};
+
+Page.prototype.mouseToCharacter = function() {
+    var x = mouseX - this.codeX;
+    var y = mouseY - this.codeY;
+    
+    if (y < 0) { return; }
+    return [floor(max(0, x / this.charWidth)), floor(y / this.lineHeight)];
+};
+
+Page.prototype.changeColorScheme = function() {
+    if (this.colorScheme === 'standard') {
+        this.colorScheme = 'sublime';
+    } else {
+        this.colorScheme = 'standard';
+    }
+};
+
+Page.prototype.mousePressed = function() {
+    // Click to position mouse
+    var position = this.mouseToCharacter();
+    if (position) {
+        this.cursorY = min(position[1], this.code.length - 1);
+        this.cursorX = min(position[0], this.code[this.cursorY].length);
+        this.startX = false;
+        this.startY = false;
+    } else {
+        this.buttons.forEach(function(el) { el.mousePressed(); });
+    }
+    this.mouseIsOut = false;
+    this.cursorT = 0;
+};
+
+Page.prototype.mouseDragged = function() {
+    // Get mouse position
+    var position = this.mouseToCharacter();
+    if (position) {
+        this.startSelection();
+        this.cursorY = min(position[1], this.code.length);
+        this.cursorX = min(position[0], this.code[this.cursorY].length);
+    }
+    this.cursorT = 0;
+};
+
+Page.prototype.mouseReleased = function() {
+    this.buttons.forEach(function(el) { el.mouseReleased(); });
+};
+
+Page.prototype.mouseOut = function() {
+    // Click to position mouse
+    this.mouseIsOut = true;
+};
+
+Page.prototype.getSelection = function() {
+    var x1 = this.startX;
+    var y1 = this.startY;
+    var x2 = this.cursorX;
+    var y2 = this.cursorY;
+    
+    // If selection is backwards, flip everything
+    if (y1 === y2) {
+        if (x1 > x2) {
+            x1 = this.cursorX;
+            x2 = this.startX;
+        }
+    } else if (this.startY > this.cursorY) {
+        x1 = this.cursorX;
+        y1 = this.cursorY;
+        x2 = this.startX;
+        y2 = this.startY;
+    }
+    
+    return { x1: x1, y1: y1, x2: x2, y2: y2 };
+};
+
+Page.prototype.deleteSelection = function() {
+    if (this.startX === false) { return; }
+    
+    var sel = this.getSelection();
+    
+    // Delete the second half of the first line and
+    // add to start of final line
+    
+    this.code[sel.y1] = this.code[sel.y1].slice(0, sel.x1) + this.code[sel.y2].slice(sel.x2);
+    
+    // Completely delete middle lines
+    if (sel.y2 !== sel.y1) {
+        var lines = this.code.splice(sel.y1 + 1, sel.y2 - sel.y1);
+    }
+    
+    // Move cursor to beginning of selection
+    this.cursorY = sel.y1;
+    this.cursorX = sel.x1;
+    
+    // Mark that we are not selecting anything now
+    this.startX = false;
+    this.startY = false;
+    
+    this.cursorT = 0;
+    this.getColoredCode();
+};
+
+Page.prototype.cut = function() {
+    this.copy();
+    this.deleteSelection();
+};
+
+Page.prototype.copy = function() {
+    if (this.startX === false) { return; }
+    
+    var sel = this.getSelection();
+    
+    if (sel.y1 === sel.y2) {
+        this.clipboard = [this.code[sel.y1].slice(sel.x1, sel.x2)];
+    } else {
+        this.clipboard = [this.code[sel.y1].slice(sel.x1)];
+        
+        // Add full lines to clipboard
+        var lines = this.code.slice(sel.y1 + 1, sel.y2 - sel.y1);
+        this.clipboard = this.clipboard.concat(lines);
+        
+        // Reduce the length of the final line
+        this.clipboard.push(this.code[sel.y2].slice(0, sel.x2));
+    }
+};
+
+Page.prototype.paste = function() {
+    this.deleteSelection();
+    if (!this.clipboard.length) { return; }
+    
+    var endOfLine = this.code[this.cursorY].slice(this.cursorX);
+    this.code[this.cursorY] = this.code[this.cursorY].slice(0, this.cursorX) + this.clipboard[0];
+    
+    // Add additional lines
+    for (var i = 1; i < this.clipboard.length; i++) {
+        this.code.splice(this.cursorY + i, 0, this.clipboard[i]);
+    }
+
+    this.cursorY += this.clipboard.length - 1;
+    this.cursorX = this.code[this.cursorY].length;
+    this.code[this.cursorY] += endOfLine;
+    this.getColoredCode();
+};
+
+Page.prototype.print = function() {
+    println(this.code.join("\n"));
+};
+
+Page.prototype.run = function() {
+    evalCode(this.code.join("\n"));
+};
+
+Page.prototype.keyPressed = function() {
+    //println(keyCode);
+    var codeLine = this.code[this.cursorY];
+    var x = this.cursorX;
+    var y = this.cursorY;
+    
+    if (keyCode >= 37 && keyCode <= 40) {
+        // Either select text or unselect it
+        if (this.shiftIsPressed) {
+            this.startSelection();
+        } else {
+            this.startX = false;
+        }
+        
+        if (keyCode === DOWN) {
+            if (this.controlIsPressed) {
+                y = this.code.length - 1;
+                x = this.code[y].length;
+            } else {
+                y++;
+            }
+        } else if (keyCode === UP) {
+            if (this.controlIsPressed) {
+                y = 0;
+                x = 0;
+            } else {
+                y--;
+            }
+        } else if (keyCode === LEFT) {
+            x = this.controlIsPressed ? 0 : x - 1;
+            if (x < 0) {
+                y--;
+                x = y ? this.code[y].length : 0;
+            }
+        } else if (keyCode === RIGHT) {
+            x = this.controlIsPressed ? codeLine.length : x + 1;
+            if (x > codeLine.length) {
+                y++;
+                if (y <= this.code.length) {
+                    x = 0;
+                }
+            }
+        }
+        
+        this.cursorY = constrain(y, 0, this.code.length);
+        this.cursorX = min(x, this.code[this.cursorY].length);
+    } else if (keyCode === 32 || (keyCode > 47 && keyCode < 91) || (keyCode > 185 && keyCode < 223)) {
+        if (this.controlIsPressed) {
+            if (key.toString() === 'd') {
+                // Delete line - doesn't work as browser takes control.
+                // this.code.splice(y, 1);
+            }
+        } else {
+            if (this.startX !== false) {
+                this.deleteSelection();
+                codeLine = this.code[this.cursorY];
+            }
+            // Add character
+            this.code[this.cursorY] = codeLine.slice(0, this.cursorX) + key.toString() + codeLine.slice(this.cursorX);
+            this.cursorX++;
+        }
+    } else if (keyCode === DELETE || keyCode === BACKSPACE) {
+        if (this.startX !== false) {
+            this.deleteSelection();
+        } else if (x) {
+            // Delete back on this line
+            if (this.controlIsPressed) {
+                this.code[y] = codeLine.slice(x);
+                this.cursorX = 0;
+            } else {
+                this.code[y] = codeLine.slice(0, x - 1) + codeLine.slice(x);
+                this.cursorX--;
+            }
+        } else if (y) {
+            // Combine this line with the previous one
+            x = this.code[y - 1].length;
+            this.code[y - 1] += codeLine;
+            this.code.splice(y, 1);
+            this.cursorY--;
+            this.cursorX = min(x, this.code[this.cursorY].length);
+        }
+    } else if (keyCode === CONTROL || keyCode === 157) {
+        this.controlIsPressed = true;
+    } else if (keyCode === SHIFT) {
+        this.shiftIsPressed = true;
+    } else if (keyCode === ENTER || keyCode === RETURN) {
+        // Find intention level
+        var indentation = codeLine.match(/^\s*/)[0];
+        // Get text from here to the end of the line
+        var endOfLine = codeLine.slice(x);
+        // Add a new line containing this text
+        this.code.splice(y + 1, 0, indentation + endOfLine);
+        // Set of the only to only be equal to the text before that point
+        this.code[y] = codeLine.slice(0, x);
+        this.cursorY++;
+        this.cursorX = indentation.length;
+    }
+
+    this.cursorT = 0;
+    this.getColoredCode();
+};
+
+Page.prototype.keyReleased = function() {
+    if (keyCode === CONTROL || keyCode === 157) {
+        this.controlIsPressed = false;
+    } else if (keyCode === SHIFT) {
+        this.shiftIsPressed = false;
+    }
+};
+
+/**********************************************
+ *      Make page here
+***********************************************/
+
+var page = new Page("Test Program", code);
+
+/**********************************************
+ *      Main loop
+***********************************************/
+
+draw = function() {
+    page.draw();
+    
+    // Draw canvas
+    pushMatrix();
+    var s = 160;
+    stroke(0);
+    fill(canvas.color);
+    translate(width - s, height - s);
+    rect(0, 0, s, s);
+    scale(s/canvas.size);
+    evalTextArray(texts);
+    for(var i in objects){
+        if(i!=="canvas"){
+            objects[i].draw();
+        }
+    }
+    popMatrix();
+};
+
+/**********************************************
+ *      Event handling
+***********************************************/
+
+mousePressed = function() {
+    page.mousePressed();
+};
+
+mouseDragged = function() {
+    page.mouseDragged();
+};
+
+mouseReleased = function() {
+    page.mouseReleased();
+};
+
+mouseOut = function() {
+    page.mouseOut();
+};
+
+keyPressed = function() {
+    page.keyPressed();
+};
+
+keyReleased = function() {
+    page.keyReleased();
+};

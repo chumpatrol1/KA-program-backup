@@ -1,0 +1,193 @@
+// Starting positions
+var enemy = [5, 5];
+var players = [[1, 0], [9, 9]];
+
+// Grid drawing things
+{
+var gridWidth = 11;
+var gridHeight = 11;
+var border = 20;
+
+var gridSize = floor(min((width - border) / gridWidth, (height - border) / gridHeight));
+var gridX = (width - gridWidth * gridSize) / 2;
+var gridY = (height - gridHeight * gridSize) / 2;
+}
+
+var drawAgent = function(position) {
+    /*
+    rect(gridX + position[0] * gridSize + 1,
+         gridY + position[1] * gridSize + 1,
+         gridSize - 1, gridSize - 1);
+    */
+    ellipse(gridX + (position[0] + 0.5) * gridSize,
+            gridY + (position[1] + 0.5) * gridSize,
+            gridSize * 0.8, gridSize * 0.8);
+};
+
+var moveAgent = function(agent) {
+    agent[0] = agent[2];
+    agent[1] = agent[3];
+};
+
+// Calculate the value of tile (x, y) for enemy
+var enemyMoveFunction = function(x, y) {
+    var value = 0;
+    
+    // Avoid the edges
+    var dx = min(x, gridWidth - x - 1);
+    var dy = min(y, gridHeight - y - 1);
+    value = 30 / (dx + dy + 3);
+    
+    var n = players.length;
+    
+    for (var i = 0; i < n; i++) {
+        var player = players[i];
+        var dx = abs(player[0] - x);
+        var dy = abs(player[1] - y);
+        value += 50 / (dx + dy + 2);
+    }
+    
+    value += random();
+    
+    return value;
+};
+
+// Calculate the value of tile (x, y) for a player
+// (Simply minimise distance to enemy)
+var playerMoveFunction = function(x, y) {
+    var value = random();
+    var dx = abs(enemy[0] - x);
+    var dy = abs(enemy[1] - y);
+    var distanceToEnemy = pow(dx, 1.5) + pow(dy, 1.5);
+    value += distanceToEnemy;
+    
+    return value;
+};
+
+// Calculate which of the surrounding squares an agent should move to
+var calculateTileValues = function(agent, col, movementFunction, e) {
+    // Squares around the agent
+    var d = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]];
+    
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(13);
+    
+    var bestMove;
+    var bestMoveValue;
+    
+    // Compare each square the agent can move to
+    for (var i = 0; i < d.length; i++) {
+        var x = agent[0] + d[i][0];
+        var y = agent[1] + d[i][1];
+        
+        // Check the square is on the board
+        if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
+            var value = movementFunction(x, y);
+            if (e) {
+                text("" + round(10 * value) / 10, gridX + (x + 0.5) * gridSize, gridY + (y + 0.5) * gridSize);
+            }
+            fill(col);
+            if (!bestMove || value < bestMoveValue) {
+                bestMove = [x, y];
+                bestMoveValue = value;
+            }
+        }
+    }
+    
+    // Tell the agent where to move
+    agent[2] = bestMove[0];
+    agent[3] = bestMove[1];
+    
+    // Draw direction
+    if (e) {
+        fill(col + (100 << 24));
+        noStroke();
+        drawAgent(bestMove);
+    }
+};
+
+var drawGrid = function() {
+    noFill();
+    stroke(40);
+    strokeWeight(1);
+    textAlign(CENTER, CENTER);
+    textSize(13);
+    
+    var c1 = color(0, 255, 0);
+    var c2 = color(255, 0, 0);
+    var c3 = color(255, 255, 255);
+    
+    // Find range of values
+    var minValue = Infinity;
+    var maxValue = 0;
+    
+    var values = [];
+    
+    for (var i = 0; i < gridWidth; i++) {
+        var row = [];
+        for (var j = 0; j < gridHeight; j++) {
+            var value = enemyMoveFunction(i, j);
+            minValue = min(minValue, value);
+            maxValue = max(maxValue, value);
+            row.push(value);
+        }
+        values.push(row);
+    }
+    
+    //println(minValue + " " + maxValue);
+    
+    for (var i = 0; i < values.length; i++) {
+        for (var j = 0; j < values[0].length; j++) {
+            var cValue = norm(values[i][j], minValue, maxValue);
+            if (cValue < 0.5) {
+                fill(lerpColor(c1, c3, 2 * cValue));
+            } else {
+                fill(lerpColor(c3, c2, 2 * cValue - 1));
+            }
+            rect(gridX + i * gridSize, gridY + j * gridSize, gridSize, gridSize);
+            if (abs(values[i][j] - minValue) < 0.01) {
+                fill(255, 255, 0);
+                ellipse(gridX + (i + 0.5) * gridSize, gridY + (j + 0.5) * gridSize, gridSize, gridSize);
+            }
+            fill(0);
+            text("" + round(10 * values[i][j]) / 10, gridX + (i + 0.5) * gridSize, gridY + (j + 0.5) * gridSize);
+        }
+    }
+    
+    // Draw border
+    noFill();
+    stroke(20);
+    strokeWeight(2);
+    rect(gridX, gridY, gridWidth * gridSize, gridHeight * gridSize);
+};
+
+var drawEverything = function() {
+    background(255);
+    drawGrid();
+    
+    // Draw enemy
+    noStroke();
+    fill(200, 0, 0);
+    drawAgent(enemy);
+    
+    // Draw players
+    fill(80, 80, 240);
+    for (var i = 0; i < players.length; i++) {
+        drawAgent(players[i]);
+    }
+    calculateTileValues(enemy, color(200, 0, 0), enemyMoveFunction, true);
+    calculateTileValues(players[0], color(80, 80, 240), playerMoveFunction);
+    calculateTileValues(players[1], color(80, 80, 240), playerMoveFunction);
+};
+drawEverything();
+
+mouseClicked = function() {
+    // Move agents
+    moveAgent(enemy);
+    for (var i = 0; i < players.length; i++) {
+        moveAgent(players[i]);
+    }
+    drawEverything();
+};
+

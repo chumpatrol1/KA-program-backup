@@ -1,0 +1,92 @@
+/*******************************************************
+ * Based on http://mathgifs.blogspot.co.uk/2013/09/any-point-emanating-from-one-focus.html
+********************************************************/
+var nPoints = 16;
+
+var speed = 1;
+var running = true;
+
+var a = 170;    // Major axis
+var b = 120;    // Minor axis
+
+// Calculating ellipse properties
+var major = max(a, b);
+var minor = min(a, b);
+var focus = sqrt(major*major - minor*minor);
+var e = focus / major;
+var area = 2*PI*a*b;
+var sector = area / 720;
+
+var Point = function(x, y, angle) {
+    this.x = x;
+    this.y = y;
+    this.angle = angle;
+    
+    this.update = function() {
+        this.x += speed * cos(this.angle);
+        this.y += speed * sin(this.angle);
+        
+        if (this.angle !== 0) {
+            var d = dist(this.x, this.y, -focus, 0);
+            var r = major * (1 - e*e) / (1 - cos(this.angle));
+            if (d > r) {
+                this.angle = atan2(-this.y, focus - this.x);
+            }
+        } else {
+            
+        }
+    };
+};
+
+// Initialise points at a focus
+var points = [];
+for (var i=0; i<nPoints; i++) {
+    var angle = 360 * i / nPoints;
+    points.push(new Point(-focus, 0, angle));
+}
+
+// Move the origin to the centre of the screen
+translate(200.5, 200.5);
+
+// Colours
+var BACKGROUND = color(0, 0, 0);
+var ORBITER = color(120, 80, 255, 255);
+var ORBITER_T = color(120, 80, 255, 0);
+
+var draw = function() {
+    if (running) {
+       for (var p in points) {
+            points[p].update();
+        }
+    }
+    
+    background(BACKGROUND);
+    
+    // Axes
+    stroke(50);
+    strokeWeight(1);
+    line(-200, 0, 200, 0);
+    line(0, -200, 0, 200);
+    
+    // Background ellipse
+    strokeWeight(2);
+    fill(lerpColor(ORBITER, ORBITER_T, 0.8));
+    ellipse(0, 0, a*2, b*2);
+    
+    fill(200, 40, 40);
+    noStroke();
+    for (var p in points) {
+        ellipse(points[p].x, points[p].y, 4, 4);
+    }
+    
+    // Foci
+    fill(160);
+    noStroke();
+    ellipse(focus, 0, 10, 10);
+    ellipse(-focus, 0, 10, 10);
+    
+};
+
+var keyPressed = function() {
+    if (keyCode === 32) { running = !running; }
+};

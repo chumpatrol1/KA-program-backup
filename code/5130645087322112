@@ -1,0 +1,70 @@
+/**************************************
+ * TODO: Simplify frameSets since we
+ *  only ever have one
+ * All keyframes to be fixed
+**************************************/
+
+// Display constants
+{
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(140, 140, 140);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var sansFont = createFont("sans", 24);
+var serifFont = createFont("serif", 24);
+}
+
+var getCameraAngle = function(cameraX, actorX, targetField) {
+    var d = actorX - cameraX;
+    return atan(targetField / d);
+};
+
+var y = height / 2;
+var actorX = width - 80;
+var cameraX = actorX - 20;
+
+// How wide we want the field of view to be were the actor is
+var targetField = 60;
+var cameraAngle = getCameraAngle(cameraX, actorX, targetField);
+
+draw = function() {
+    background(BACKGROUND);
+
+    // Field of view
+    noStroke();
+    fill(PINK + (50 << 24));
+    var w = width - cameraX;
+    var h = tan(cameraAngle) * w;
+    triangle(cameraX, y, width, y - h, width, y + h);
+
+    // Width indicator
+    strokeWeight(2);
+    stroke(160);
+    line(actorX, y - targetField, actorX, y + targetField);
+
+    // Actor
+    strokeWeight(1);
+    stroke(255);
+    fill(BLUE);
+    ellipse(actorX, y, 20, 20);
+    
+    // Camera
+    rect(cameraX - 12, y - 6, 12, 12);
+    
+    fill(10);
+    textAlign(LEFT, TOP);
+    textSize(16);
+    text("Camera distance: " + (actorX - cameraX), 10, 5);
+    text("Camera angle: " + round(20 * cameraAngle) / 10 + "°", 10, 25);
+};
+
+mouseMoved = function() {
+    cameraX = constrain(mouseX, 12, actorX - 20);
+    cameraAngle = getCameraAngle(cameraX, actorX, targetField);
+};

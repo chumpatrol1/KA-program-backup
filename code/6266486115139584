@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Answer Counter</title>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    </head>
+    
+    <body>
+        <button>Click me</button>
+    </body>
+    
+    <script>
+    var username = "peterwcollingridge";
+    
+    function writeData(page, data) {
+        console.log("write page " + page);
+        
+        document.write("<h4> Page " + (page + 1) + "</h4>");
+        for (var j = 0; j < data.length; j++) {
+            document.write(data[j].sumVotesIncremented+"<br>");
+        }
+    }
+    
+    function getAnswersPage(page, maxPages) {
+        console.log("get page " + page);
+        
+        $.getJSON("https://www.khanacademy.org/api/internal/user/answers?casing=camel&username=" + username + "&sort=1&page=" + page + "&lang=en&callback=?",
+            function(data) {
+                writeData(page, data);
+                page++;
+                if (page < maxPages) {
+                    getAnswersPage(page, maxPages);
+                }
+            }
+        );
+    };
+    
+    function findAnswers(numOfAnswers) {
+        var maxPages = Math.ceil(numOfAnswers / 10);
+        maxPages = 5;  // Limited to 5 for debugging
+        getAnswersPage(0, maxPages);
+    }
+    
+    
+    $('button').click(function() {
+        $.getJSON("https://www.khanacademy.org/api/internal/user/discussion/statistics?casing=camel&username=" + username + "&lang=en&callback=?",
+            function(data) {
+                findAnswers(data.answers);
+            }
+        );
+    });
+    
+    
+    </script>
+</html>

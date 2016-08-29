@@ -1,0 +1,51 @@
+
+var Shape = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+    this.points = [[x1, y1], [x2, y2], [x3, y3], [x4, y4]];
+    this.labels = ["ONE", "TWO", "THREE", "FOUR"];
+};
+
+Shape.prototype.draw = function() {
+    fill(3, 3, 3, 100);
+    quad(this.points[0][0], this.points[0][1],
+         this.points[1][0], this.points[1][1],
+         this.points[2][0], this.points[2][1],
+         this.points[3][0], this.points[3][1]
+    );
+    
+    // Draw points
+    for (var i = 0; i < this.points.length; i++) {
+        var x = this.points[i][0];
+        var y = this.points[i][1];
+        
+        fill(3, 3, 3, 100);
+        ellipse(x, y, 10, 10);
+        text(this.labels[i], x + 15, y);
+        
+        if (dist(x, y, mouseX, mouseY) < 25) {
+            fill(255, 0, 0, 100);
+            ellipse(x, y,15,15);
+        }
+    }
+};
+
+var myShape = new Shape(320, 340, 160, 80, 100, 220, 140, 360);
+
+var draw = function() {
+    background(148, 132, 132);
+
+    myShape.draw();
+    
+    textSize(18);
+    fill(107, 103, 103);
+    text('CLICK ON POINTS TO TO DRAG AND DROP ', 0, 20);
+};
+
+mouseDragged = function() {
+    for (var i = 0; i < myShape.points.length; i++) {
+        var p = myShape.points[i]; 
+        
+        if (dist(p[0], p[1], mouseX, mouseY) < 25) {
+            myShape.points[i] = [mouseX, mouseY];
+        }
+    }
+};

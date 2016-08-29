@@ -1,0 +1,169 @@
+
+var Debug = 0;
+var drawBackbone = false;
+
+var genome = {
+    length: 591,
+    width: 50,
+    frequency: 140,       // 0 - 255
+    phase: 28,
+    curveAngle1: 65,     // 0 - 128
+    curveAngle2: 60,
+    color: 75,
+};
+
+var Cell = function(genome) {
+    // Cell parameters
+    this.len = (genome.length || 0) * 0.25;
+    this.width = (genome.width || 64);
+    this.freq = (genome.frequency || 0);
+    this.phase = (genome.phase || 0);
+    this.ang1 = (genome.curveAngle1 === undefined ?  64 : genome.curveAngle1) - 64;
+    this.ang2 = (genome.curveAngle2 === undefined ?  64 : genome.curveAngle2) - 64;
+    
+    colorMode(HSB);
+    this.color = color(genome.color === undefined ? 128 : genome.color, 80, 212);
+    colorMode(RGB);
+
+    this.calculateOutline(30);
+};
+
+Cell.prototype.calculateOutline = function(steps) {
+    var len = this.len;
+    var len1 = this.len * 0.5;
+    var len2 = this.len * 0.5;
+    var ang1 = this.ang1;
+    var ang2 = this.ang2;
+    
+    // End points
+    var x1 = -len;
+    var x2 =  len;
+    
+    // Control points
+    var cx1 = x1 + len1 * cos(ang1);
+    var cy1 = len1 * sin(ang1);
+    var cx2 = x2 - len2 * cos(ang2);
+    var cy2 = len2 * sin(ang2);
+    
+    this.backbone = [x1, 0, cx1, cy1, cx2, cy2, x2, 0];
+    
+    // Points along the backbone
+    this.vertebrae = [];
+    this.outline1 = [];
+    this.outline2 = [];
+    
+    var dt = 1 / steps;
+    var n = steps / 5;
+    var i, t, x, y, oldX, oldY, a, h, tx, ty, dAngle1, dAngle2;
+    
+    for (i = 0; i < steps; i++) {
+        t = i * dt;
+
+        x = bezierPoint(x1, cx1, cx2, x2, t);
+        y = bezierPoint(0, cy1, cy2, 0, t);
+        
+        tx = bezierTangent(x1, cx1, cx2, x2, t);
+        ty = bezierTangent(0, cy1, cy2, 0, t);
+        a = atan2(ty, tx);
+        h = this.width * (sin(this.phase + t * this.freq) * 0.5 + 0.5) + 5;
+        
+        if (i <= n) {
+            // Front end
+            dAngle1 = 90 * (i / n - 2);
+            dAngle2 = 90 * (2 - i / n);
+        } else if (i > steps - n) {
+            dAngle1 = -90 * (steps - i) / n;
+            dAngle2 =  90 * (steps - i) / n;
+        } else if (i && dist(oldX, oldY, x, y) < 5) {
+            // If points are too close together, skip them
+            continue;
+        }
+        oldX = x;
+        oldY = y;
+        
+        this.vertebrae.push([x, y]);
+        
+        this.outline1.push([
+            x + h * cos(a + dAngle1),
+            y + h * sin(a + dAngle1)
+        ]);
+        
+        this.outline2.push([
+                x + h * cos(a + dAngle2),
+                y + h * sin(a + dAngle2)
+            ]);
+  
+    }
+    
+    // Add second side to first side, but reversed
+    this.outline2 = this.outline2.reverse();
+};
+
+Cell.prototype.draw = function(x, y) {
+    pushMatrix();
+    translate(x, y);
+    
+    stroke(95, 52, 56);
+    
+    // Draw membrane
+    strokeWeight(3);
+    //fill(160, 212, 145);
+    fill(this.color);
+    beginShape();
+    var n = this.outline2.length - 1;
+    curveVertex(this.outline2[n][0], this.outline2[n][1]);
+    this.outline1.forEach(function(p) { curveVertex(p[0], p[1]); });
+    this.outline2.forEach(function(p) { curveVertex(p[0], p[1]); });
+    curveVertex(this.outline1[0][0], this.outline1[0][1]);
+    endShape();
+    
+    // Draw backbone
+    noFill();
+    strokeWeight(2);
+
+    if (drawBackbone) {
+        bezier(
+            this.backbone[0], this.backbone[1], this.backbone[2], this.backbone[3],
+            this.backbone[4], this.backbone[5], this.backbone[6], this.backbone[7]
+        );
+    }
+
+    if (Debug) {
+        stroke(255);
+        
+        ellipse(this.backbone[2], this.backbone[3], 10, 10);
+        ellipse(this.backbone[4], this.backbone[5], 10, 10);
+        
+        fill(0);
+        textAlign(CENTER, BASELINE);
+        this.outline1.forEach(function(p, i) { text(i, p[0], p[1]); });
+        textAlign(CENTER, TOP);
+        this.outline2.forEach(function(p, i) { text(i, p[0], p[1]); });
+        
+    }
+    
+    // Draw skeleton
+    strokeWeight(1);
+    var n = this.vertebrae.length;
+
+    for (var i = 0; i < n; i++) {
+        //ellipse(this.vertebrae[i][0], this.vertebrae[i][1], 3, 3);
+        /*
+        line(this.vertebrae[i][0], this.vertebrae[i][1],
+             this.outline1[i][0],  this.outline1[i][1]);
+        line(this.vertebrae[i][0], this.vertebrae[i][1],
+             this.outline2[n - i - 1][0],  this.outline2[n  - i - 1][1]);
+            */
+        line(this.outline1[i][0],  this.outline1[i][1],
+             this.outline2[n - i - 1][0],  this.outline2[n  - i - 1][1]);
+        
+    }
+ 
+    popMatrix();
+};
+
+var cell = new Cell(genome);
+
+// Draw
+background(143, 166, 230);
+cell.draw(200, 200);

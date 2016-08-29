@@ -1,0 +1,77 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var POINT_SIZE = 8;
+
+var factorial = function(n) {
+    var f = 1;
+    for (var i = 2; i <= n; i++) {
+        f *= i;
+    }
+    return f;
+};
+
+var plotPoints = function(x, y, w, h, lambda, k) {
+    strokeWeight(1);
+    stroke(20);
+    noFill();
+    rect(x, y, w, h, 3);
+    
+    var e = exp(-lambda);
+    var probabilities = [];
+    
+    for (var i = 0; i <= k; i++) {
+        probabilities.push(pow(lambda, i) * e / factorial(i));
+    }
+    
+    var maxProb = max.apply(null, probabilities) * 1.1;
+    
+    stroke(BLUE);
+    strokeWeight(10);
+    for (var i = 0; i <= k; i++) {
+        var px = map(i, 0, k, x, x + w);
+        var py = map(probabilities[i], 0, maxProb, y + h, y);
+        point(px, py);
+    }
+    
+};
+
+/*******************************************************
+ *      Main loop
+********************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    plotPoints(40, 40, 320, 200, 6, 20);
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    //toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    //toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    //toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    //toolbar.mouseReleased();
+};

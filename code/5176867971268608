@@ -1,0 +1,582 @@
+// TODO:
+// Make points draggable ?
+// Put distributions in dropdown
+// Truncate lines at intersections
+
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var POINT_SIZE = 8;
+
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*******************************************************
+ *      GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+}
+/*******************************************************
+ *      GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+/*******************************************************
+ *      Distribution functions
+********************************************************/
+var getUniformPoints = function(d) {
+    var maxX = width + POINT_SIZE / 2;
+    var maxY = height + POINT_SIZE / 2;
+    
+    var x, y;
+    var startX = (width - d * floor(width / d)) / 2;
+    var startY = (height - d * floor(height / d)) / 2;
+    
+    var points = [];
+    for (x = startX; x < maxX; x += d) {
+        for (y = startY; y < maxY; y += d) {
+            points.push([x, y]);
+        }
+    }
+    
+    return points;
+};
+
+var getRandomPoints = function(d) {
+    var points = [];
+    var n = width * height / d / d;
+    for (var i = 0; i < n; i++) {
+        points.push([random() * width, random() * height]);
+    }
+    return points;
+};
+
+// http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
+// https://www.jasondavies.com/poisson-disc/
+var possionDiscSampling = function(meanDistance) {
+    // How many points we try before rejecting a point
+    var k = 30;
+    
+    var minDist = meanDistance * 0.75;
+    
+    // Build grid of samples for quick look
+    var cellSize = floor(minDist / Math.SQRT2);
+    var gridWidth = width / cellSize;
+    var gridHeight = height / cellSize;
+    
+    var x, y;
+    /*
+    var sampleGrid = [];
+    for (x = 0; x < gridWidth; x++) {
+        var row = [];
+        for (y = 0; y < gridWidth; y++) {
+            row.push([]);
+        }
+        sampleGrid.push(row);
+    }
+    */
+    
+    // Final array of points that we'll return
+    var points = [];
+    
+    // Points that we use to find neighbours
+    var activePoints = [];
+    
+    var addPoint = function(x, y) {
+        points.push([x, y]);
+        activePoints.push([x, y]);
+        //var gridX = floor(x / cellSize);
+        //var gridY = floor(y / cellSize);
+        //sampleGrid[gridX][gridY] = [x, y];
+    };
+    
+    // Start at a random point not too close to the edge
+    addPoint((0.2 + random() * 0.6) * width, (0.2 + random() * 0.6) * height);
+    
+    while (activePoints.length) {
+        // Pick a random active point
+        var activeIndex = floor(random() * activePoints.length);
+        var currentPoint = activePoints[activeIndex];
+        
+        var pointAdded = false;
+        
+        for (var i = 0; i < k; i++) {
+            var angle = random() * 360;
+            var d = minDist + random() * minDist;
+            x = currentPoint[0] + cos(angle) * d;
+            y = currentPoint[1] + sin(angle) * d;
+            
+            if (x < 0 || x > width || y < 0 || y > height) {
+                continue;
+            }
+            
+            // Check distance from each other point is > minDist
+            // TODO make this more efficient using the sampleGrid
+            var collision = false;
+            for (var j = 0; j < points.length; j++) {
+                if (dist(x, y, points[j][0], points[j][1]) < minDist) {
+                    collision = true;
+                    break;
+                }
+            }
+            
+            if (!collision) {
+                addPoint(x, y);
+                pointAdded = true;
+                break;
+            }
+        }
+        
+        // Failed to add point so remove it from the active list
+        if (!pointAdded) {
+            activePoints.splice(activeIndex, 1);
+        }
+    }
+    
+    return points;
+};
+/*******************************************************
+ *      Create points
+********************************************************/
+
+var points, intersections, distances, midPoints;
+var distanceBetweenPoints = 160;
+var pointRadius = 20;
+var distribution = possionDiscSampling;
+
+// Find the distance between every pair of points
+// And the mid-point and angle between points
+var calculateDistanceMatrix = function(points) {
+    distances = [];
+    midPoints = [];
+    
+    var n = points.length;
+    var i, j, p1, p2;
+    
+    for (i = 0; i < n - 1; i++) {
+        p1 = points[i];
+        for (j = i + 1; j < n; j++) {
+            p2 = points[j];
+            // Maybe calculate squared distance instead
+            distances.push(dist(p1[0], p1[1], p2[0], p2[1]));
+            midPoints.push([
+                (p1[0] + p2[0]) / 2,
+                (p1[1] + p2[1]) / 2,
+                atan2(p1[1] - p2[1], p1[0] - p2[0]) + 90
+            ]);
+        }
+    }
+};
+
+// Calculate which circles defined by the points and radius intersect
+var calculateIntersections = function(points, distances, radius) {
+    var intersections = [];
+    var n = points.length;
+    var i, j, p1, p2, d;
+    
+    for (i = 0; i < n; i++) {
+        points[i][2] = false;
+    }
+    
+    var count = 0;
+    var r2 = radius * radius;
+    
+    for (i = 0; i < n - 1; i++) {
+        p1 = points[i];
+        for (j = i + 1; j < n; j++) {
+            p2 = points[j];
+            if (distances[count] < radius) {
+                p1[2] = true;
+                p2[2] = true;
+                d = sqrt(r2 - distances[count] * distances[count]) /2;
+                intersections.push(midPoints[count].concat([d]));
+            }
+            count++;
+        }
+    }
+    
+    return intersections;
+};
+
+var updatePoints = function() {
+    points = distribution(distanceBetweenPoints);
+    calculateDistanceMatrix(points);
+    intersections = calculateIntersections(points, distances, pointRadius);
+};
+
+updatePoints();
+
+/*******************************************************
+ *      Create interface
+********************************************************/
+
+var toolbar = new Toolbar(10, 10, 120);
+toolbar.add(Slider, {
+    name: 'Radius',
+    min: 10,
+    now: 20,
+    max: 300,
+    trigger: function() {
+        pointRadius = this.val;
+        intersections = calculateIntersections(points, distances, pointRadius);
+        //points = distribution(distanceBetweenPoints);
+    }
+});
+
+toolbar.add(Button, {
+    name: 'Uniform',
+    trigger: function() {
+        distribution = getUniformPoints;
+        updatePoints();
+    }
+});
+
+toolbar.add(Button, {
+    name: 'Random',
+    trigger: function() {
+        distribution = getRandomPoints;
+        updatePoints();
+    }
+});
+
+toolbar.add(Button, {
+    name: 'Poission',
+    trigger: function() {
+        distribution = possionDiscSampling;
+        updatePoints();
+    }
+});
+
+/*******************************************************
+ *      Draw functions
+********************************************************/
+
+var drawPoints = function(points, radius) {
+    var p;
+    for (var i = 0; i < points.length; i++) {
+        p = points[i];
+        
+       // if (p[2]) {
+    //        fill(GREEN + (20 << 24));
+     //       stroke(GREEN);
+       // } else {
+            fill(BLUE + (20 << 24));
+            stroke(BLUE);
+        //}
+        
+        strokeWeight(1);
+        ellipse(p[0], p[1], radius, radius);
+        
+        strokeWeight(POINT_SIZE);
+        point(p[0], p[1]);
+    }
+};
+
+var drawIntersections = function(intersections) {
+    //strokeWeight(6);
+    strokeWeight(1);
+    stroke(GREEN);
+    
+    var p, dx, dy;
+    var d = 30;
+    for (var i = 0; i < intersections.length; i++) {
+        p = intersections[i];
+        dx = p[3] * cos(p[2]);
+        dy = p[3] * sin(p[2]);
+        //point(p[0], p[1]);
+        line(p[0] + dx, p[1] + dy, p[0] - dx, p[1] - dy);
+    }
+};
+
+/*******************************************************
+ *      Main loop
+********************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    drawPoints(points, pointRadius);
+    drawIntersections(intersections);
+    toolbar.draw();
+    
+    fill(20);
+    text(points.length, 10, height - 10);
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    toolbar.mouseReleased();
+};

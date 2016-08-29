@@ -1,0 +1,29 @@
+/*********************************************************
+ * 
+**********************************************************/
+var sunX = 200;
+var sunY = 200;
+var sunR = 200;
+var flare = 10;
+var flareA = 5;
+
+var draw = function() {
+    background(0, 0, 0);
+    
+    noStroke();
+    fill(255, 204, 0);
+    ellipse(sunX, sunY, sunR, sunR);
+    fill(255, 151, 33, 200);
+    
+    beginShape();
+        curveVertex(sunX + sunR/2 + flare, sunY);
+        var up = true;
+        for (var i = 0; i <= 360; i += flareA) {
+            var r = up ? sunR/2 + flare : sunR/2;
+            curveVertex(sunX + r * cos(i),
+                        sunY + r * sin(i));
+            up = !up;
+        }
+        curveVertex(sunX + sunR/2, sunY);
+    endShape();
+};

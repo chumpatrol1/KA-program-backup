@@ -1,0 +1,101 @@
+
+var BinaryButton = function(x, y, on) {
+    this.x = x;
+    this.y = y;
+    this.on = on || false;
+    this.r = 6;
+};
+
+BinaryButton.prototype.draw = function() {
+    noFill();
+    stroke(0);
+    strokeWeight(2);
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);
+    
+    if (this.on) {
+        noStroke();
+        fill(0);
+        ellipse(this.x, this.y, this.r * 2 - 4, this.r * 2 - 4);
+    }
+};
+
+BinaryButton.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+
+var createButtons = function(y) {
+    var buttons = [];
+    var x = 8;
+    var dx = 16;
+    
+    for (var i = 0; i < 24; i++) {
+        if (i % 8 === 0) {
+            x += 4;
+        }
+        buttons.push(new BinaryButton(x, y, true));
+        x += dx;
+    }
+    
+    return buttons;
+};
+
+var buttons = createButtons(50);
+
+var buttonsToDecimal = function(n1, n2) {
+    var value = 0;
+    var base = 1;
+    
+    for (var i = n2 - 1; i >= n1; i--) {
+        if (buttons[i].on) {
+            value += base;
+        }
+        base <<= 1;
+    }
+    
+    return value;
+};
+
+var getColour = function() {
+    return buttonsToDecimal(0, 24) - 16777216;
+};
+
+var colorToRGB = function(col) {
+    println(col);
+    col += 16777216;
+    var a = (col >> 24 & 255) - 1;
+    var r = col >> 16 & 255;
+    var g = col >> 8 & 255;
+    var b = col & 255;
+    println(r + " " + g + " " + b + " " + a);
+};
+
+var c = color(100, 15, 200);
+colorToRGB(c);
+
+var draw = function() {
+    background(getColour());
+    
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+    
+    textAlign(CENTER, BASELINE);
+    var labels = ["R", "G", "B"];
+    var y = buttons[0].y - buttons[0].r - 5;
+    
+    for (var i = 0; i < labels.length; i++) {
+        var n1 = i * 8;
+        var n2 = i * 8 + 8;
+        var v = buttonsToDecimal(n1, n2);
+        text(labels[i] + " = " + v, (buttons[n1].x + buttons[n2 - 1].x) / 2, y);
+        
+    }
+};
+
+mouseClicked = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        if (buttons[i].mouseOver()) {
+            buttons[i].on = !buttons[i].on;
+        }
+    }
+};

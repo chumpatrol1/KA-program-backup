@@ -1,0 +1,275 @@
+var mode = 'edgeWeighting';
+//var mode = 'random';
+var mode = 'playerWeighting';
+//var mode = 'targetValue';
+//var mode = 'movementValue';
+
+var edgeWeighting = 30;
+var playerWeighting = 80;
+
+var c1 = color(0, 220, 30);
+var c2 = color(255, 0, 0);
+var c3 = color(255, 255, 255);
+
+var enemy = [4, 7];
+var players = [[0, 0], [8, 12]];
+var targetPosition = enemy.splice();
+var targetPosition = [-1, -1];
+
+// Create a (w by h) board
+var getBoard = function(w, h) {
+    var board = [];
+    
+    for (var y = 0; y < h; y++) {
+        var row = [];
+        for (var x = 0; x < w - (y % 2); x++) {
+            // Add a tile object
+            row.push({ x: x, y: y, random: random() });
+        }
+        board.push(row);
+    }
+    
+    return board;
+};
+
+// For each tile on the board, add a value for its distance from the edge
+// The higher the value, the closer it is to the edge
+var findEdgeDistanceWeighting = function(board) {
+    for (var i = 0; i < board.length; i++) {
+        var row = board[i];
+        for (var j = 0; j < row.length; j++) {
+            var tile = row[j];
+            
+            var dx = min(tile.x, row.length - tile.x - 1);
+            var dy = min(tile.y, board.length - tile.y - 1);
+            tile.edgeWeighting = edgeWeighting / (dx + dy + 3);
+        }
+    }
+};
+
+// For each tile on the board, add a value for its distance from each player
+// The higher the value, the greater the danger from a player
+var findPlayerDistanceWeighting = function(board) {
+    for (var i = 0; i < board.length; i++) {
+        var row = board[i];
+        for (var j = 0; j < row.length; j++) {
+            var tile = row[j];
+            var value = 0;
+            
+            for (var k = 0; k < players.length; k++) {
+                var player = players[k];
+                var dx = abs(player[0] - tile.x);
+                var dy = abs(player[1] - tile.y);
+                value += playerWeighting / (dx + dy + 5);
+            }
+
+            tile.playerWeighting = value;
+        }
+    }
+};
+
+var findPositionWeighting = function(board) {
+    for (var i = 0; i < board.length; i++) {
+        var row = board[i];
+        for (var j = 0; j < row.length; j++) {
+            var tile = row[j];
+            tile.targetValue = tile.edgeWeighting + tile.random + tile.playerWeighting;
+        }
+    }
+};
+
+var findRangeForParam = function(board, param) {
+    var minValue = Infinity;
+    var maxValue = 0;
+    
+    for (var i = 0; i < board.length; i++) {
+        for (var j = 0; j < board[i].length; j++) {
+            var value = board[i][j][param];
+            minValue = min(minValue, value);
+            maxValue = max(maxValue, value);
+        }
+    }
+    
+    return [minValue, maxValue];
+};
+
+var findDistance = function(position1, position2) {
+    return abs(position1[0] - position2[0]) + abs(position1[1] - position2[1]);
+};
+
+var findTargetPosition = function(board) {
+    /*
+    var minValue = findRangeForParam(board, 'targetValue')[0];
+    
+    for (var i = 0; i < board.length; i++) {
+        for (var j = 0; j < board[i].length; j++) {
+            if (board[i][j].targetValue === minValue) {
+                targetPosition = [j, i];
+            }
+        }
+    }
+    */
+    
+    var picked = true;
+    while (findDistance(targetPosition, enemy) < 1 ||
+           findDistance(targetPosition, players[0]) < 4 ||
+           findDistance(targetPosition, players[1]) < 4) {
+        picked = false;
+        var y = floor(random() * board.length);
+        var x = floor(random() * board[y].length);
+        
+        targetPosition = [x, y];
+    }
+};
+
+// For each tile, find the distance to the targetPosition
+// minus a weighting for the enemy position
+// Don't actually need to calculate this for each tile
+var findMovementValues = function(board) {
+    for (var i = 0; i < board.length; i++) {
+        var row = board[i];
+        for (var j = 0; j < row.length; j++) {
+            var tile = row[j];
+            
+            var dx = abs(tile.x - targetPosition[0]);
+            var dy = abs(tile.y - targetPosition[1]);
+            tile.movementValue = dx + dy + tile.playerWeighting;
+        }
+    }
+};
+
+var drawTile = function(x, y, d, tile, param, minValue, maxValue) {
+    var tileValue = tile[param];
+    
+    if (minValue !== undefined) {
+        var normValue = norm(tileValue, minValue, maxValue);
+        if (normValue < 0.5) {
+            fill(lerpColor(c1, c3, 2 * normValue));
+        } else {
+            fill(lerpColor(c3, c2, 2 * normValue - 1));
+        }
+    } else {
+        fill(255);
+    }
+    
+    stroke(20);
+    strokeWeight(1);
+    quad(x, y - d, x + d, y, x, y + d, x - d, y);
+    
+    if (tile.x === targetPosition[0] && tile.y === targetPosition[1]) {
+        fill(255, 255, 0);
+        ellipse(x, y, d * 1.5, d * 1.5);
+    }
+    
+    fill(0);
+    if (tile.x === enemy[0] && tile.y === enemy[1]) {
+        fill(200, 0, 0);
+        noStroke();
+        ellipse(x, y, d * 1.3, d * 1.3);
+        fill(255);
+    } else {
+        for (var i = 0; i < players.length; i++) {
+            var player = players[i];
+            if (tile.x === player[0] && tile.y === player[1]) {
+                fill(0, 0, 200);
+                noStroke();
+                ellipse(x, y, d * 1.3, d * 1.3);
+                fill(255);
+                break;
+            }
+        }
+    }
+    
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    
+    if (tileValue !== undefined) {
+        text("" + round(100 * tileValue) / 100, x, y);
+    } else {
+        text(tile.x + ", " + tile.y, x, y);
+    }
+    
+};
+
+var drawBoard = function(board, size, param) {
+    background(240, 203, 110);
+    
+    var gap = 5;
+    var d = size * Math.SQRT2;
+    var y = 25;
+    
+    var minValue, maxValue;
+    
+    if (param) {
+        var values = findRangeForParam(board, param);
+        minValue = values[0];
+        maxValue = values[1];
+    }
+    
+    for (var i = 0; i < board.length; i++) {
+        var row = board[i];
+        var startX = 15 + (i % 2 + 1) * d;
+        for (var j = 0; j < row.length; j++) {
+            var x = startX + j * d * 2;
+            drawTile(x, y, d, row[j], param, minValue, maxValue);
+        }
+        y += d + gap;
+    }
+};
+
+var board = getBoard(10, 16);
+findEdgeDistanceWeighting(board);
+
+var newTurn = function() {
+    findPlayerDistanceWeighting(board);
+    findPositionWeighting(board);
+    findTargetPosition(board);
+    findMovementValues(board);
+    drawBoard(board, 13, mode);
+};
+newTurn();
+
+mouseClicked = function() {
+    // Move enemy
+    var allowMoves = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]];
+    
+    var minMove = Infinity;
+    var moveTo = enemy.splice();
+    
+    for (var i = 0; i < allowMoves.length; i++) {
+        var x = enemy[0] + allowMoves[i][0];
+        var y = enemy[1] + allowMoves[i][1];
+        if (y >= 0 && y < board.length && x >= 0 && x < board[y].length) {
+            var value = board[y][x].movementValue;
+            if (value < minMove) {
+                minMove = value;
+                moveTo = [x, y];
+            }
+        }
+    }
+    
+    // Move players
+    for (var p = 0; p < players.length; p++) {
+        var player = players[p];
+        var moveTo2, minMove = Infinity;
+    
+        for (var i = 0; i < allowMoves.length; i++) {
+            var x = player[0] + allowMoves[i][0];
+            var y = player[1] + allowMoves[i][1];
+            if (y >= 0 && y < board.length && x >= 0 && x < board[y].length) {
+                var dx = abs(enemy[0] - x);
+                var dy = abs(enemy[1] - y);
+                var value = pow(dx, 1.5) + pow(dy, 1.5);
+                
+                if (value < minMove) {
+                    minMove = value;
+                    moveTo2 = [x, y];
+                }
+            }
+        }
+        players[p] = moveTo2;
+    }
+    
+    enemy = moveTo;
+    newTurn();
+};

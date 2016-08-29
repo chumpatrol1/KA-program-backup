@@ -1,0 +1,57 @@
+// Parameters of the box
+var boxX = 100;
+var boxY = 100;
+var boxW = 80;
+var boxH = 60;
+
+// Are we dragging anything?
+var dragging = false;
+
+draw = function() {
+    background(255);
+
+    // Draw the box    
+    strokeWeight(2);
+    stroke(30);
+    fill(100, 120, 255);
+    rect(boxX, boxY, boxW, boxH);
+};
+
+// If we press the mouse inside the box, then we start dragging it
+mousePressed = function() {
+    if (mouseX >= boxX && mouseX <= boxX + boxW &&
+        mouseY >= boxY && mouseY <= boxY + boxH) {
+            dragging = true;
+    }
+};
+
+// Change how the cursor appears
+mouseMoved = function() {
+    if (mouseX >= boxX && mouseX <= boxX + boxW &&
+        mouseY >= boxY && mouseY <= boxY + boxH) {
+            this.cursor(MOVE);
+        } else {
+            this.cursor(ARROW);
+        }
+};
+
+// If we release the mouse, we are no longer dragging anything
+mouseReleased = function() {
+    dragging = false;
+};
+
+// If the mouse leaves the scratchpad, we are no longer dragging
+mouseOut = function() {
+    dragging = false;
+};
+
+// If the mouse is dragged (moved with the button depressed),
+// then move the box.
+// The amount the box moves is equal to the mouse's current position
+// (mouseX, mouseY) minus its previous position (pmouseX, pmouseY).
+mouseDragged = function() {
+    if (dragging) {
+        boxX += mouseX - pmouseX;
+        boxY += mouseY - pmouseY;
+    }
+};

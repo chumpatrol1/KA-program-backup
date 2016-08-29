@@ -1,0 +1,204 @@
+/*************************************************
+ * Ray-tracing with a textured plane.
+ * 
+ * Credit to jocopa3 (https://www.khanacademy.org/profile/Jocopa3)
+ * for the wooden texture, which I've edited somewhat.
+ * https://www.khanacademy.org/computer-programming/wip/6211859819659264
+*************************************************/
+
+var ROTATE_RATE = 0.5;
+
+frameRate(20);
+
+var BLACK = color(0, 0, 0);
+var faceColor = color(80, 80, 250);
+
+// Lighting parameters
+var backgroundLight = 0.1;
+var lightVector = new PVector(0.5, -0.2, -2);
+lightVector.normalize();
+
+// Create shape
+var nodes = [
+    new PVector(-100, -100, -100),
+    new PVector(100, -100, -100),
+    new PVector(100, 100, -100),
+    new PVector(-100, 100, -100)
+];
+
+var subtractVectors = function(v1, v2){
+    return [[v1[0] - v2[0]],
+            [v1[1] - v2[1]],
+            [v1[2] - v2[2]]];
+};
+
+var normaliseVector = function(v) {
+    var d = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var normalOfPlane = function(nodes) {
+    var edge1 = PVector.sub(nodes[1], nodes[0]);
+    var edge2 = PVector.sub(nodes[2], nodes[0]);
+    return edge1.cross(edge2);
+};
+
+var dotProduct = function(v1, v2){
+    // Assume everything has 3 dimensions
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+var rotateX3D = function(theta, nodes){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+    
+    for (var i = nodes.length; i--;) {
+        y = nodes[i].y;
+        z = nodes[i].z;
+        nodes[i].y = ct * y - st * z;
+        nodes[i].z = st * y + ct * z;
+    }
+};
+
+var rotateY3D = function(theta, nodes) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+
+    for (var i = nodes.length; i--;) {
+        x = nodes[i].x;
+        z = nodes[i].z;
+        nodes[i].x =  ct * x + st * z;
+        nodes[i].z = -st * x + ct * z;
+    }
+};
+
+// Ray trace the plane using orthogonal rays
+var rayTrace = function() {
+    // Save some time by finding extent of the shape
+    var minX = width;
+    var maxX = -width;
+    var minY = height;
+    var maxY = -height;
+    
+    for (var i = nodes.length; i--;) {
+        var x = nodes[i].x;
+        if (x < minX) { minX = floor(x); }
+        if (x > maxX) { maxX = ceil(x); }
+        
+        var y = nodes[i].y;
+        if (y < minY) { minY = floor(y); }
+        if (y > maxY) { maxY = ceil(y); }
+    }
+    
+    // Find normal of face
+    var edge1 = PVector.sub(nodes[1], nodes[0]);
+    var edge2 = PVector.sub(nodes[3], nodes[0]);
+    var length1 = edge1.mag();
+    var length2 = edge2.mag();
+    var length1I = 1 / length1;
+    var length2I = 1 / length2;
+    
+    var normalOfFace = edge1.cross(edge2);
+    normalOfFace.normalize();
+    var normX = normalOfFace.x;
+    var normY = normalOfFace.y;
+    var normZ = normalOfFace.z;
+    
+    // If the face is parallel with the ray, then quit now
+    if (abs(normZ) < 1e-5) { return; }
+    
+    var point1 = nodes[0];
+    var originZ = 100;
+    
+    loadPixels();
+    var pix = imageData.data;
+    var x, y, z, t, dx, dy, dz, d, u, v, n, m, index;
+    
+    var r = 170;
+    var g = 130;
+    var b = 80;
+    
+    for (x = minX; x <= maxX; x++) {
+        dx = x - point1.x;
+        
+        for (y = minY; y <= maxY; y++) {
+            // Difference from ray origin to point on plane
+            dy = y - point1.y;
+            dz = originZ - point1.z;
+            
+            // How many ray lengths along to we intersection with the plane;
+            t = (dx * normX + dy * normY + dz * normZ) / normZ;
+            
+            // Vector from intersection point to corner on face
+            dz = originZ - t - point1.z;
+            
+            // Find out how far along one edge we are
+            u = (edge1.x * dx + edge1.y * dy + edge1.z * dz) * length1I;
+            
+            if (u >= 0 && u <= length1) {
+                // Find out how far along one edge we are
+                v = (edge2.x * dx + edge2.y * dy + edge2.z * dz) * length2I;
+                if (v >= 0 && v <= length2) {
+                    // Shading
+                    // Wooden texture based on 
+                    // https://www.khanacademy.org/computer-programming/wip/6211859819659264
+                    noiseDetail(4, 0.5);
+                    n = noise(u * 0.012, v * 0.002) * 20;
+                    n = (1 - (n - floor(n))) * 0.5;
+                    n += noise(u * 0.2, v * 0.2) + 0.5;
+                    
+                    noiseDetail(1, 1);
+                    m = noise(u * 0.9, v * 0.02) * 1.2;
+                    n -= m * m * m * m;
+                    n = (n * 0.5 + 1.7) * 0.5;
+                    
+                    index = 200 + x + (y + 200) * width << 2;
+                    pix[index++] = n * r;
+                    pix[index++] = n * g;
+                    pix[index] = n * b;
+                }
+            }
+
+        }
+    }
+    
+    updatePixels();
+    
+    //println(minX + " " + maxX);
+    //println(minY + " " + maxY);
+};
+
+// Main loop
+var display = function() {
+    background(0);
+
+    rayTrace();    
+
+    // Outline
+    pushMatrix();
+    translate(200, 200);
+    
+    stroke(255);
+    noFill();
+    quad(nodes[0].x, nodes[0].y, nodes[1].x, nodes[1].y,
+         nodes[2].x, nodes[2].y, nodes[3].x, nodes[3].y);
+    
+    popMatrix();
+};
+
+draw = function() {
+    display();
+    noLoop();
+};
+
+// Event handling
+var mouseDragged = function() {
+    var dx = (mouseX - pmouseX) * ROTATE_RATE;
+    var dy = (mouseY - pmouseY) * ROTATE_RATE;
+    
+    rotateY3D(-dx, nodes);
+    rotateX3D(dy, nodes);
+    display();
+};

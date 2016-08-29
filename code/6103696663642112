@@ -1,0 +1,1056 @@
+/*************************************
+ * Add the images to the scene and
+ * position them using translations.
+ * 
+ * Once an item is on the grid,
+ * you can select it by click on it.
+**************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(60, 60, 70);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var sansFont = createFont("sans", 14);
+var serifFont = createFont("serif", 14);
+
+// Objects
+var grid, itemSelector;
+
+var scales = [0.25, 0.5, 1, 1.5, 2, 3];
+
+var images = [
+    getImage("avatars/mr-pink"),
+    getImage("avatars/piceratops-ultimate"),
+    getImage("avatars/leafers-tree"),
+    getImage("avatars/leafers-seed")
+];
+
+/*************************************
+ *      Helper functions
+**************************************/
+
+// Write a array of text with values
+// for size and dy
+// Returns the x value of the end of
+// the text
+var writeText = function(txtArray, x, y) {
+    for (var i = 0; i < txtArray.length; i++) {
+        var t = txtArray[i];
+        var txt = t.txt;
+        var ty = y + (t.dy || 0);
+        
+        if (t.size) {
+            textSize(t.size);    
+        }
+        
+        text(t.txt, x, ty);
+        x += textWidth(txt);
+    }
+    return x;
+};
+
+var multiplyMatrices = function(m1, m2) {
+    var newMatrix = [];
+
+    for (var i = 0; i < 3; i++) {
+        var row = [];
+        
+        for (var j = 0; j < 3; j++) {
+            var v = 0;
+            
+            for (var k = 0; k < 3; k++) {
+                v += m1[i][k] * m2[k][j];
+            }
+            
+            row.push(round(v * 1000) / 1000);
+        }
+        
+        newMatrix.push(row);
+    }
+    
+    return newMatrix;
+};
+
+// Assume everything has 2 dimensions
+var dotProduct = function(v1, v2){
+    return v1[0] * v2[0] + v1[1] * v2[1];
+};
+
+var subtractVectors = function(v1, v2) {
+    return [v1[0] - v2[0], v1[1] - v2[1]];
+};
+
+var pointInQuadrilateral = function(point, quadPoints) {
+    var v1 = subtractVectors(quadPoints[1], quadPoints[0]);
+    var v2 = subtractVectors(quadPoints[2], quadPoints[0]);
+    var v3 = subtractVectors(quadPoints[3], quadPoints[0]);
+    var vp = subtractVectors(point, quadPoints[0]);
+    
+    // Calculate dot products
+    var dot11 = dotProduct(v1, v1);
+    var dot12 = dotProduct(v1, v2);
+    
+    var dot22 = dotProduct(v2, v2);
+    
+    var dot33 = dotProduct(v3, v3);
+    var dot32 = dotProduct(v3, v2);
+    
+    var dot1p = dotProduct(v1, vp);
+    var dot2p = dotProduct(v2, vp);
+    var dot3p = dotProduct(v3, vp);
+    
+    // Calculate barycentric coordinates of two triangles
+    var d = 1 / (dot11 * dot22 - dot12 * dot12);
+    var u = (dot22 * dot1p - dot12 * dot2p) * d;
+    var v = (dot11 * dot2p - dot12 * dot1p) * d;
+    
+    var d2 = 1 / (dot33 * dot22 - dot32 * dot32);
+    var u2 = (dot22 * dot3p - dot32 * dot2p) * d2;
+    var v2 = (dot33 * dot2p - dot32 * dot3p) * d2;
+    
+    return (u >= 0 && v >= 0 && u + v < 1) || (u2 >= 0 && v2 >= 0 && u2 + v2 < 1);
+};
+
+var _applyMatrix = function(m, x, y) {
+    return [
+    x * m[0][0] + y * m[0][1] + m[0][2],
+    x * m[1][0] + y * m[1][1] + m[1][2]];
+};
+
+/*************************************
+ *  GUI Button
+**************************************/
+
+var Button = function(x, y, w, h, name, clickFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultColor = color(BACKGROUND);
+    this.strokeColor = color(200, 200, 200);
+    this.highlightColor = color(TOOLBAR);
+    this.clickFunction = clickFunction;
+    
+    this.showing = true;
+    this.disabled = false;
+};
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    fill(this.defaultColor);
+    if (this.disabled) {
+        fill(this.highlightColor);
+    } else if (this.mouseOver() || this.selected) {
+        fill(200);
+    }
+    
+    strokeWeight(1);
+    stroke(this.strokeColor);
+    rect(this.x, this.y - 1, this.w, this.h + 3, 8);
+    
+    fill(0);
+    if (this.disabled) {
+        fill(100);
+    }
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.click = function() {
+    if (this.clickFunction) {
+        this.clickFunction();
+    }
+};
+
+Button.prototype.mouseReleased = function() {
+    if (this.showing && this.mouseOver()) {
+        this.click();
+        return true;
+    }
+};
+
+Button.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+/*************************************
+ *      Number scrubber object
+ * Shows a number with up and down
+ * arrow buttons to change the value
+**************************************/
+
+var Scrubber = function(x, y, w, h, nowValue, values, updateF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.font = createFont("serif", h);
+    this.fontSize = h * 0.8;
+    
+    this.index = nowValue;
+    if (Array.isArray(values)) {
+        this.mapping = values;
+        this.value = this.mapping[this.index];
+        this.maxValue = this.mapping.length - 1;
+    } else {
+        this.maxValue = values;
+        this.value = this.index;
+    }
+    
+    this.updateFunction = updateF;
+    this.selected = false;
+};
+
+Scrubber.prototype.draw = function(x, y) {
+    if (x) { this.x = x; }
+    if (y) { this.y = y; }
+    
+    // Box
+    stroke(200);
+    noFill();
+    strokeWeight(1);
+    rect(this.x, this.y - 1, this.w - 1, this.h + 1, 8);
+    
+    // Text
+    textFont(this.font, this.fontSize);
+    textAlign(CENTER, BASELINE);
+    fill(20);
+    
+    var ty = this.y + textAscent() + 4;
+    text("" + this.value, this.x + this.w / 2, ty);
+    
+    // Arrow buttons
+    var mouseover = this.mouseOver();
+    if (this.selected === 1 || mouseover === 1) {
+        fill(200);
+        stroke(160);
+    } else {
+        noFill();
+        stroke(200);
+    }
+    
+    triangle(this.x + 3, this.y - 3,
+             this.x + this.w - 3, this.y - 3,
+             this.x + this.w / 2, this.y - 12);
+    
+    if (this.selected === 2 || mouseover === 2) {
+        fill(200);
+        stroke(160);
+    } else {
+        noFill();
+        stroke(200);
+    }
+    
+    triangle(this.x + 3, this.y + this.h + 3,
+             this.x + this.w - 3, this.y + this.h + 3,
+             this.x + this.w / 2, this.y + this.h + 12);
+};
+
+Scrubber.prototype.updateValue = function() {
+    if (this.selected && this.t % 5 === 0) {
+        if (this.selected === 1) {
+            this.index = min(this.index + 1, this.maxValue);
+        } else if (this.selected === 2) {
+            this.index = max(this.index - 1, 0);
+        }
+
+        this.mapValue();
+        this.update();
+    }
+    this.t++;
+};
+
+Scrubber.prototype.mapValue = function() {
+    if (this.mapping) {
+        this.value = this.mapping[this.index];
+    } else {
+        this.value = this.index;
+    }
+};
+
+Scrubber.prototype.setValue = function(n) {
+    this.value = n;
+    if (this.mapping) {
+        this.index = this.mapping.indexOf(this.value);
+    } else {
+        this.index = this.value;
+    }
+};
+
+// Return 1 or 2 if mouse over top or bottom
+// arrow respectively. Otherwise return null
+Scrubber.prototype.mouseOver = function() {
+    if (mouseX >= this.x + 3 && mouseX <= this.x + this.w - 3) {
+        if (mouseY >= this.y - 12 && mouseY <= this.y) {
+            return 1;
+        } else if (mouseY >= this.y + this.h && mouseY <= this.y + this.h + 12) {
+            return 2;
+        }
+    }
+};
+
+Scrubber.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+    this.t = 0;
+};
+
+Scrubber.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+
+Scrubber.prototype.update = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.value);
+    }
+};
+
+/*********************************************
+ *      Transformation object
+ * A transformation applied to an item.
+ * Displayed as a box with number scrubbers.
+**********************************************/
+
+var Transformation = function(item) {
+    this.item = item;
+    this.w = 148;
+    this.h = 105;
+    this.scrubbers = [];
+};
+
+Transformation.prototype.draw = function(x, y, n, values) {
+    this.x = x;
+    this.y = y;
+    
+    // Outline
+    strokeWeight(1);
+    stroke(200);
+    fill(BACKGROUND);
+    rect(this.x, this.y, this.w, this.h, 8);
+    
+    // Equations
+    this.drawText(n, values);
+    
+    // Close button
+    var x = this.x + 10;
+    var y = this.y + 10;
+    
+    if (dist(mouseX, mouseY, x, y) <= 7) {
+        fill(200);
+    } else {
+        fill(BACKGROUND);
+    }
+    ellipse(x, y, 14, 14);
+    
+    stroke(100);
+    strokeWeight(2);
+    var d = 3;
+    line(x - d, y - d, x + d, y + d);
+    line(x - d, y + d, x + d, y - d);
+    
+    // Update number scrubbers
+    for (var i = 0; i < this.scrubbers.length; i++) {
+        this.scrubbers[i].updateValue();
+    }
+};
+
+// To be overwritten
+Transformation.prototype.drawText = function(n) {};
+
+Transformation.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+Transformation.prototype.mousePressed = function() {
+    for (var i = 0; i < this.scrubbers.length; i++) {
+        this.scrubbers[i].mousePressed();
+    }
+};
+
+Transformation.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.scrubbers.length; i++) {
+        this.scrubbers[i].mouseReleased();
+    }
+    
+    if (dist(mouseX, mouseY, this.x + 10, this.y + 10) <= 7) {
+        this.item.removeTransformation(this);
+    }
+};
+
+var Translation = function(item) {
+    this.type = 'translate';
+    Transformation.call(this, item);
+    
+    var translateX = function(value) {
+        item.coordX = value;
+    };
+    
+    var translateY = function(value) {
+        item.coordY = value;
+    };
+    
+    this.scrubbers = [
+        new Scrubber(0, 0, 35, 20, 0, 40, translateX),
+        new Scrubber(0, 0, 35, 20, 0, 40, translateY)
+    ];
+};
+
+Translation.prototype = Object.create(Transformation.prototype);
+
+Translation.prototype.drawText = function(n, values) {
+    var y = this.y + 35;
+    var labels = ["x", "y"];
+    
+    for (var i = 0; i < labels.length; i++) {
+        var x = this.x;
+        
+        fill(20);
+        textAlign(LEFT, BASELINE);
+        textFont(serifFont, 18);
+        var txt = [
+            { txt: labels[i], size: 20 },
+            { txt: n + 1, size: 13, dy: 5 },
+            { txt: " = ", size: 16, dy: 1 },
+            { txt: labels[i], size: 20 },
+            { txt: n, size: 13, dy: 5 },
+            { txt: " + ", size: 16, dy: 1 }
+        ];
+        
+        x = writeText(txt, x + 8, y);
+        this.scrubbers[i].draw(x, y - 16);
+        
+        x += 26;
+        fill(20);
+        textAlign(LEFT, BASELINE);
+        var txt = [
+            { txt: " = " + values[i], size: 16, dy: 1 },
+        ];
+        
+        x = writeText(txt, x + 8, y);
+        
+        
+        y += 48;
+    }
+};
+
+var Scale = function(item) {
+    this.type = 'scale';
+    Transformation.call(this, item);
+    
+    this.scrubbers = [
+        new Scrubber(0, 0, 35, 20, 2, scales),
+        new Scrubber(0, 0, 35, 20, 2, scales)
+    ];
+};
+
+Scale.prototype = Object.create(Transformation.prototype);
+
+Scale.prototype.drawText = function(n, values) {
+    var y = this.y + 35;
+    var labels = ["x", "y"];
+    
+    for (var i = 0; i < labels.length; i++) {
+        var x = this.x;
+        
+        fill(20);
+        textAlign(LEFT, BASELINE);
+        textFont(serifFont, 18);
+        var txt = [
+            { txt: labels[i], size: 20 },
+            { txt: n + 1, size: 13, dy: 5 },
+            { txt: " = ", size: 16, dy: 1 },
+        ];
+        
+        x = writeText(txt, x + 8, y);
+        this.scrubbers[i].draw(x, y - 16);
+        x += this.scrubbers[i].w;
+        
+        fill(20);
+        textAlign(LEFT, BASELINE);
+        textFont(serifFont, 18);
+        txt = [
+            { txt: labels[i], size: 20 },
+            { txt: n, size: 13, dy: 5 },
+            { txt: " = " + values[i], size: 16, dy: 1 },
+        ];
+        writeText(txt, x + 8, y);
+        
+        y += 48;
+    }
+};
+
+/*************************************
+ *      Item
+ *  Items are images which can appear on the grid
+**************************************/
+
+var Item = function(img, x, y, w, grid) {
+    this.image = img;
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = w * img.height / img.width;
+    this.grid = grid;
+    
+    this.coordX = 0;
+    this.coordY = 0;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    this.transformations = [];
+    this.calculateMatrix();
+};
+
+Item.prototype.draw = function(selected) {
+    if (selected) {
+        noStroke();
+        fill(0, 0, 40, 30);
+        rect(this.x, this.y - this.h, this.w, this.h, 8);
+    }
+    
+    if (this.mouseOver()) {
+        noFill();
+        stroke(0, 0, 40, 60);
+        strokeWeight(2);
+        rect(this.x, this.y - this.h, this.w, this.h, 8);
+    }
+    
+    image(this.image, this.x, this.y - this.h, this.w, this.h);
+};
+
+Item.prototype.drawOnGrid = function(selected) {
+    var dx = grid.dx;
+    var dy = -grid.dy;
+    
+    pushMatrix();
+    translate(grid.x, grid.y);
+    
+    for (var i = this.transformations.length - 1; i >= 0; i--) {
+        var t = this.transformations[i];
+        var s = t.scrubbers;
+        if (t.type === 'translate') {
+            translate(
+                s[0].value * dx,
+                s[1].value * dy);
+        } if (t.type === 'scale') {
+            scale(
+                s[0].value,
+                s[1].value);
+        }
+    }
+    
+    if (selected) {
+        noStroke();
+        fill(0, 0, 40, 30);
+        rect(0, -this.h, this.w, this.h, 8);
+    }
+    
+    if (this.mouseOver()) {
+        noFill();
+        stroke(0, 0, 40, 60);
+        strokeWeight(2);
+        rect(0, -this.h, this.w, this.h, 8);
+    }
+    
+    image(this.image, 0, -this.h, this.w, this.h);
+    
+    popMatrix();
+    
+    // Ellipse at origin point
+    if (selected) {
+        noStroke();
+        noFill();
+        stroke(10, 10, 250);
+        strokeWeight(1);
+        ellipse(this.points[0][0], this.points[0][1], 5, 5);
+    }
+};
+
+Item.prototype.drawTransformations = function() {
+    var x = grid.x2 + grid.dx * 4 + 16;
+    var y = grid.y2;
+    
+    this.drawCoordinates(x, y);
+    y += 58;
+    
+    var n = this.transformations.length;
+    for (var i = 0; i < n; i++) {
+        this.transformations[i].draw(x, y, i, this.values[i + 1]);
+        y += this.transformations[i].h + 5;
+    }
+};
+
+Item.prototype.drawCoordinates = function(x, y) {
+    // Outline
+    strokeWeight(1);
+    stroke(200);
+    fill(BACKGROUND);
+    rect(x, y, 60, 53, 8);
+    
+    x += 10;
+    y += 19;
+    
+    var labels = ["x", "y"];
+    
+    fill(20);
+    textAlign(LEFT, BASELINE);
+    textFont(serifFont, 18);
+    
+    for (var i = 0; i < labels.length; i++) {
+        var txt = [
+            { txt: labels[i], size: 20 },
+            { txt: 0, size: 13, dy: 5 },
+            { txt: " = " + 0, size: 16, dy: 1 }
+        ];
+        
+        writeText(txt, x, y);
+        y += 22;
+    }
+};
+
+Item.prototype.mouseOver = function(d) {
+    d = d || 0;
+
+    if (this.transformations.length === 0) {
+        return (mouseX >= this.x - d &&
+                mouseX <= this.x + this.w + d &&
+                mouseY <= this.y + d &&
+                mouseY >= this.y - this.h - d);    
+    } else {
+        return pointInQuadrilateral([mouseX, mouseY], this.points);
+    }
+    
+};
+
+Item.prototype.mousePressed = function() {
+    for (var i = 0; i < this.transformations.length; i++) {
+        if (this.transformations[i].mouseOver()) {
+            this.transformations[i].mousePressed();
+        }
+    }
+};
+
+Item.prototype.mouseReleased = function() {
+    for (var i = 0; i < this.transformations.length; i++) {
+        if (this.transformations[i].mouseOver()) {
+            this.transformations[i].mouseReleased();
+            this.calculateMatrix();
+        }
+    }
+};
+
+Item.prototype.addTransformation = function(type) {
+    if (this.transformations.length >= 4) {
+        return;
+    }
+    
+    if (type === 'translate') {
+        this.transformations.push(new Translation(this));    
+    } else if (type === 'scale') {
+        this.transformations.push(new Scale(this));    
+    }
+    
+    this.calculateMatrix();
+};
+
+Item.prototype.removeTransformation = function(transformation) {
+    var index = this.transformations.indexOf(transformation);
+    if (index > -1) {
+        this.transformations.splice(index, 1);
+        this.calculateMatrix();
+    }
+};
+
+Item.prototype.calculateMatrix = function() {
+    if (!grid) { return; }
+    
+    this.points = [
+        [0, 0],
+        [this.w, 0],
+        [this.w, -this.h],
+        [0, -this.h]
+    ];
+    
+    this.matrix = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ];
+    this.values = [[0, 0]];
+    var x = 0;
+    var y = 0;
+    
+    // Multiply matrices to get result
+    for (var i = 0; i < this.transformations.length; i++) {
+        var t = this.transformations[i];
+        var s = t.scrubbers;
+        var tMatrix;
+        
+        if (t.type === 'translate') {
+            tMatrix = [
+                [1, 0, s[0].value],
+                [0, 1, s[1].value],
+                [0, 0, 1]];
+        } else if (t.type === 'scale') {
+            tMatrix = [
+                [s[0].value, 0, 0],
+                [0, s[1].value, 0],
+                [0, 0, 1]];
+        }
+        
+        this.matrix = multiplyMatrices(tMatrix, this.matrix);
+        var v = _applyMatrix(tMatrix, x, y);
+        this.values.push(v);
+        x = v[0];
+        y = v[1];
+    }
+    
+    // Calculate the position of the corners
+    
+    for (var i = 0; i < this.points.length; i++) {
+        var p = this.points[i];
+        var x = p[0];
+        var y = p[1];
+        this.points[i] = [
+            grid.x + (x * this.matrix[0][0] + y * this.matrix[0][1] + this.matrix[0][2]) * grid.dx,
+            grid.y + (x * this.matrix[1][0] + y * this.matrix[1][1] + this.matrix[1][2]) * -grid.dy];
+    }
+};
+
+/*************************************
+ *      Item selector
+ *  A column of images, which can be selected
+ *  Drawn at position (x, y), with images
+ *  given a width, w and drawn d apart.
+**************************************/
+
+var ItemSelector = function(x, y, images, w, d) {
+    this.x = x;
+    this.y = y;
+    this.d = d;
+    this.w = w;
+    this.h = d + 15;
+    
+    this.items = [];
+    this.selected = -1;
+    
+    // Calculate height
+    var x = this.x + this.d;
+    for (var i = 0; i < images.length; i++) {
+        var item = new Item(images[i], x, this.y + this.h, this.w);
+        item.y += item.h;
+        this.items.push(item);
+        this.h += item.h / item.w * this.w + this.d;
+    }
+};
+
+ItemSelector.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0, 10);
+    //rect(this.x, this.y, this.w + this.d * 2, this.h);
+    
+    textAlign(CENTER, TOP);
+    textFont(sansFont, 12);
+    fill(20);
+    text("Select an item", this.x +  this.d + this.w / 2, this.y + 2);
+    
+    for (var i = 0; i < this.items.length; i++) {
+        this.items[i].draw(i === this.selected);
+    }
+};
+
+ItemSelector.prototype.mouseReleased = function() {
+    // Check mouse is over the item selector
+    if (mouseX < this.x || mouseX > this.x + this.w ||
+        mouseY < this.y || mouseY > this.y + this.h) {
+        return;
+    }
+    
+    // Deselect items
+    itemSelector.selected = -1;
+    grid.selected = -1;
+    
+    for (var i = 0; i < this.items.length; i++) {
+        if (this.items[i].mouseOver()) {
+            this.selected = i;
+            break;
+        }
+    }
+};
+
+/*************************************
+ *          Grid object
+ * Cartesian grid on which items are displayed
+**************************************/
+
+var Grid = function(x, y, w, h, dx, dy) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.dx = dx;
+    this.dy = dy || dx;
+    
+    this.x2 = this.x + this.w * this.dx;
+    this.y2 = this.y - this.h * this.dy;
+    
+    this.items = [];
+    this.icons = [];
+    this.selected = -1;
+};
+
+Grid.prototype.draw = function() {
+    // X-axis
+    stroke(GRIDGREY);
+    for (var i = 1; i <= this.w; i++) {
+        var x = this.x + i * this.dx;
+        line(x, this.y2, x, this.y + 1);
+    }
+    
+    // Y-axis
+    for (var i = 1; i <= this.h; i++) {
+        var y = this.y - i * this.dy;
+        line(this.x + 1, y, this.x2, y);
+    }
+    
+    this.drawItems();
+    
+    // Draw clipping rectangles
+    noStroke();
+    fill(BACKGROUND);
+    rect(0, 0, width, this.y2);
+    rect(0, 0, grid.x, height);
+    rect(0, grid.y + 1, width, height - grid.y);
+    rect(this.x2 + 1, 0, width - this.x2, height);
+
+    // Axes
+    fill(GREY);
+    stroke(GREY);
+    strokeWeight(1);
+    textFont(sansFont, 12);
+    textSize(12);
+
+    // X axis
+    textAlign(CENTER, TOP);
+    line(this.x + 1, this.y, this.x2, this.y);
+    
+    for (var i = 0; i <= this.w; i++) {
+        var x = this.x + i * this.dx;
+        if (i % 2 === 0) {
+            line(x, this.y, x, this.y + 3);
+            text(i, x, this.y + 6);            
+        }
+    }
+    
+    // Y-axis
+    textAlign(RIGHT, CENTER);
+    line(this.x, this.y2, this.x, this.y + 1);
+    
+    for (var i = 0; i <= this.h; i++) {
+        var y = this.y - i * this.dy;
+        if (i % 2 === 0) {
+            stroke(GREY);
+            line(this.x - 3, y, this.x, y);
+            text(i,  this.x - 5, y);
+        }
+    }
+    
+    this.drawTransformations();
+};
+
+Grid.prototype.drawItems = function() {
+    for (var i = 0; i < this.items.length; i++) {
+        this.items[i].drawOnGrid(this.selected === i);
+    }
+};
+
+Grid.prototype.drawTransformations = function() {
+    for (var i = 0; i < this.icons.length; i++) {
+        this.icons[i].draw(this.selected === i);
+    }
+    
+    if (this.selected > -1) {
+        this.items[this.selected].drawTransformations();
+    }
+};
+
+Grid.prototype.addItem = function(index) {
+    if (index > -1) {
+        this.items.push(new Item(images[index], this.x, this.y, this.dx * 4));
+        
+        var x = this.x2 + 16;
+        var y = this.y2 + (this.icons.length + 1) * (this.dx * 3 + 10) - 10;
+        this.icons.push(new Item(images[index], x, y, this.dx * 3));
+        
+        this.selected = this.items.length - 1;
+    }
+};
+
+Grid.prototype.mouseReleased = function() {
+    // Check transformations
+    if (this.selected !== -1) {
+        this.items[this.selected].mouseReleased();
+    }
+    
+    // Check mouse is over this
+    if (mouseX < this.x || mouseX > this.x2 +  this.dx * 5 ||
+        mouseY > this.y || mouseY < this.y2) {
+        return;
+    }
+
+    // Deselect items
+    itemSelector.selected = -1;
+    this.selected = -1;
+    
+    for (var i = 0; i < this.items.length; i++) {
+        if (this.items[i].mouseOver()) {
+            this.selected = i;
+            return;
+        }
+    }
+    
+    for (var i = 0; i < this.icons.length; i++) {
+        if (this.icons[i].mouseOver()) {
+            this.selected = i;
+            return;
+        }
+    }
+};
+
+Grid.prototype.mousePressed = function() {
+    if (this.selected !== -1) {
+        this.items[this.selected].mousePressed();
+    }
+};
+
+/*********************************************
+ *      Button functions
+**********************************************/
+
+// Function for "Add to Grid" button
+// Adds an image to the grid if it isn't already there
+var addItemToGrid = function() {
+    if (itemSelector.selected > -1) {
+        grid.addItem(itemSelector.selected);
+        itemSelector.selected = -1;
+    }
+};
+
+var removeItemFromGrid = function() {
+    if (grid.selected > -1) {
+        grid.items.splice(grid.selected, 1);
+        grid.icons.splice(grid.selected, 1);
+        grid.selected = -1;
+    }
+};
+
+var addTranslation = function() {
+    if (grid.selected > -1) {
+        grid.items[grid.selected].addTransformation('translate');
+    }
+};
+
+var addScale = function() {
+    if (grid.selected > -1) {
+        grid.items[grid.selected].addTransformation('scale');
+    }
+};
+
+/*************************************
+ *      Create objects
+**************************************/
+
+var createGrid = function(x, y) {
+    var tickSize = 16;
+    var w = 2 * floor(0.5 * (width - x - 240) / tickSize);
+    var h = 2 * floor(0.5 * (y - 15) / tickSize);
+    grid = new Grid(x, y, w, h, tickSize);
+};
+createGrid(160, height - 40);
+
+itemSelector = new ItemSelector(28, 12, images, 64, 10);
+
+var createButtons = function() {
+    var x = 15;
+    var y = height - 132;
+    var w = 116;
+    var h = 24;
+    
+    var labels = ["Add to scene", "Remove", "Translate", "Scale"];
+    var funcs = [addItemToGrid, removeItemFromGrid, addTranslation, addScale];
+    var buttons = [];
+
+    for (var i = 0; i < labels.length; i++) {
+        var b = new Button(x, y, w, h, labels[i], funcs[i]);
+        b.disabled = true;
+        buttons.push(b);
+        y += 32;
+    }
+    
+    return buttons;
+};
+var buttons = createButtons();
+
+/*************************************
+ *      Main loop
+**************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    grid.draw();
+    
+    itemSelector.draw();
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+
+mousePressed = function() {
+    grid.mousePressed();
+};
+
+mouseDragged = function() {};
+
+mouseReleased = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].mouseReleased();
+    }
+    
+    itemSelector.mouseReleased();
+    
+    // Deselect item on grid unless we're
+    // clicking on the toolbar area.
+    if (mouseY < grid.y + 10) {
+        grid.mouseReleased();
+    }
+    
+    // Add to Scene button active if itemSelector selected
+    buttons[0].disabled = itemSelector.selected === -1;
+    
+    // Other buttons active only if grid item selected
+    for (var i = 1; i < buttons.length; i++) {
+        buttons[i].disabled = grid.selected === -1;
+    }
+
+};
+
+mouseOut = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        //buttons[i].mouseReleased();
+    }
+};

@@ -1,0 +1,402 @@
+/***************************************************
+ * Looking at Earth's orbit in 3D
+ * 
+ * To do:
+ *  - Sunlight on Earth
+***************************************************/
+
+// Move to centre of screen
+translate(200.5, 200.5);
+
+// Colours
+var BLACK = color(0, 0, 0);
+var WHITE = color(255, 255, 255, 100);
+var SUNCOL1 = color(255, 255, 0);
+var SUNCOL2 = color(255, 89, 0, 100);
+var EARTHCOL = color(60, 100, 255);
+var ORBITCOL = color(120, 120, 120);
+
+// Sizes
+var sunX = 0;
+var sunY = 0;
+var sunR = 35;
+var earthTilt = 23.4;         // degrees
+
+var scalingFactor = 1;
+var resolution = 20;    // How accurate orbit speed is
+var running = true;
+var speed = 20;
+
+var earthData = {
+    name: "Earth",
+    size: 20,
+    colour: color(61, 100, 255),
+    perihelion: 147,        // million km
+    aperihelion: 152,       // million km
+    peri_longitude: 102,    // degrees
+    asc_longitude: 348.7,   // degrees
+    inclination: 0,         // degrees (by defintion)
+    year: 365.25,           // earth days
+    mass: 5.97              // 10^24 kg
+};
+
+/*******************************************
+ * Camera set-up
+********************************************/
+
+var _camera = {
+    nodes: [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+};
+
+var objects = [_camera];
+
+// Return the position of an object at position (x, y)
+// given the current camera
+var applyCamera = function(x, y, z) {
+    var m = _camera.nodes;
+    return [x * m[0][0] + y * m[1][0] + z * m[2][0],
+            x * m[0][1] + y * m[1][1] + z * m[2][1],
+            x * m[0][2] + y * m[1][2] + z * m[2][2]];
+};
+
+/*******************************************
+ * Astronomical objects
+********************************************/
+
+var Planet = function(data, angle) {
+    this.name = data.name;
+    this.year = data.year;
+    this.r = data.size;
+    this.colour = data.colour;
+    
+    // Distance from ellipse centre to sun
+    var focusDist = scalingFactor * (data.aperihelion - data.perihelion) / 2;
+    
+    // Ellipse axes
+    var major = scalingFactor * data.aperihelion - focusDist;
+    var minor = sqrt(major * major - focusDist * focusDist);
+    
+    // Store these to save repeatedly calculating them
+    var phi = data.peri_longitude;
+    var cosPhi = cos(phi);
+    var sinPhi = sin(phi);
+    
+    // Center of ellipse
+    var cx = sunX - focusDist * cosPhi;
+    var cy = sunY + focusDist * sinPhi;
+    
+    // Handy properties for calculations
+    var eccentricity = focusDist / major;
+    var angleConstant = 360 * major * minor / data.year;
+    
+    // Set planet's position using its angle
+    this.setPosition = function(angle) {
+        if (angle !== undefined) {
+            // Angle relative the perihelion
+            this.angle = angle - phi;
+        }
+        
+        // Radius of ellipse at this angle
+        var r = major * (1 - eccentricity * eccentricity) /
+                        (1 + eccentricity * cos(this.angle));
+        
+        // Position based on non-rotated ellipse
+        var x = r * cos(this.angle) + focusDist;
+        var y = r * sin(this.angle);
+        
+        // Rotate based on ellipse rotation
+        this.x = cx + x * cosPhi - y * sinPhi;
+        this.y = cy - x * sinPhi - y * cosPhi;
+    };
+    this.setPosition(angle);
+    
+    // Add a numbers of days to the orbit
+    this.update = function(hours) {        
+        var sign = 1 / (resolution * 24);
+
+        for (var d = 0; d < abs(hours) * resolution; d++) {
+            // Distance from sun
+            var r = major * (1 - eccentricity * eccentricity) /
+                            (1 + eccentricity * cos(this.angle));
+            
+            // Update angle around sun
+            this.angle += sign * angleConstant / (r * r);
+        }
+        this.setPosition();
+    };
+    
+    this.draw = function() {
+        var m = _camera.nodes;
+        var x = this.x * m[0][0] + this.y * m[1][0];
+        var y = this.x * m[0][1] + this.y * m[1][1];
+        
+        noStroke();
+        fill(this.colour);
+        ellipse(x, y, this.r, this.r);
+    };
+    
+    this.findOrbit = function() {
+        var res = 5;
+        this.orbit = [];
+        
+        for (var angle = 0; angle <= 360; angle += res) {
+            // Radius of ellipse at this angle
+            var r = major * (1 - eccentricity * eccentricity) /
+                            (1 + eccentricity * cos(angle));
+            
+            // Position based on non-rotated ellipse
+            var x = r * cos(angle) + focusDist;
+            var y = r * sin(angle);
+            
+            // Rotate based on ellipse rotation
+            this.orbit.push([
+                this.x = cx + x * cosPhi - y * sinPhi,
+                this.y = cy - x * sinPhi - y * cosPhi
+            ]);
+        }
+    };
+    this.findOrbit();
+};
+
+var earth = new Planet(earthData, 0);
+
+/*******************************************
+ * Astronomical functions
+********************************************/
+var earthAngle = 0;
+
+var update = function() {
+    earthAngle++;
+    
+};
+
+/*******************************************
+ * Linear algebra functions
+ * All assume vector has 3 dimensions
+********************************************/
+var addVectors = function(v1, v2) {
+    return [v1[0] + v2[0], v1[1] + v2[1], v1[2] + v2[2]];
+};
+
+var subtractVectors = function(v1, v2) {
+    return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]];
+};
+
+var vectorTimesScalar = function(v, s) {
+    return [v[0] * s, v[1] * s, v[2] * s];
+};
+
+var vectorLength = function(v) {
+    return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+};
+
+var normaliseVector = function(v) {
+    var d = vectorLength(v);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var dotProduct = function(v1, v2) {
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+var normalOfPlane = function(face, nodes) {
+    var n1 = nodes[face[0]];
+    var n2 = nodes[face[1]];
+    var n3 = nodes[face[2]];
+    
+    var v1 = subtractVectors(n1, n2);
+    var v2 = subtractVectors(n1, n3);
+    
+    var v3 = [[v1[1]*v2[2] - v1[2]*v2[1]],
+              [v1[2]*v2[0] - v1[0]*v2[2]],
+              [v1[0]*v2[1] - v1[1]*v2[0]]];
+              
+    return v3;
+};
+
+/*******************************************
+ * Transformations
+********************************************/
+
+var translate3D = function(x, y, z, nodes) {
+    for (var i = 0; i < nodes.length; i+=1) {
+        nodes[i] = [nodes[i][0]+x, nodes[i][1]+y, nodes[i][2]+z];
+    }
+};
+
+var rotateY3D = function(theta, nodes) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+
+    for (var i = 0; i < nodes.length; i+=1) {
+        x = nodes[i][0];
+        y = nodes[i][1];
+        z = nodes[i][2];
+        nodes[i] = [ct*x + st*z, y, -st*x + ct*z];
+    }
+};
+
+var rotateX3D = function(theta, nodes) {
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x, y, z;
+    
+    for (var i = 0; i < nodes.length; i+=1) {
+        x = nodes[i][0];
+        y = nodes[i][1];
+        z = nodes[i][2];
+        nodes[i] = [x, ct*y - st*z, st*y + ct*z];
+    }
+};
+
+/*******************************************
+ * Display
+********************************************/
+
+var drawSun = function() {
+    noStroke();
+    fill(SUNCOL1);
+    ellipse(sunX, sunY, sunR, sunR);
+    fill(SUNCOL2);
+    ellipse(sunX, sunY, sunR + 3, sunR + 3);
+};
+
+var drawAxis = function(nodes) {
+    strokeWeight(1);
+    stroke(200);
+    line(nodes[0][0], nodes[0][1], nodes[1][0], nodes[1][1]);
+};
+
+var drawEarth = function(x, y) {
+    noStroke();
+    fill(earth.colour);
+    ellipse(x, y, earth.r, earth.r);
+};
+
+var drawOrbit = function(nodes) {
+    strokeWeight(2);
+    stroke(ORBITCOL);
+    line(nodes[0][0], nodes[0][1], nodes[1][0], nodes[1][1]);
+};
+
+var findMeanZ = function(nodes) {
+    var meanZ = 0;
+    for (var i = 0; i < nodes.length; i++) {
+        meanZ = nodes[i][2];
+    }
+    return meanZ / nodes.length;
+};
+
+var sortByZ = function(a, b) {
+    return a.z - b.z;
+};
+
+var drawObjects = function(objs) {
+    for (var i = 0; i < objs.length; i++) {
+        var o = objs[i];
+        switch (o.name) {
+            case 'sun':
+                drawSun();
+                break;
+            case 'earth':
+                drawEarth(o.nodes[0], o.nodes[1]);
+                break;
+            case 'orbit':
+                drawOrbit(o.nodes);
+                break;
+            case 'axis':
+                drawAxis(o.nodes);
+                break;
+        }
+    }
+};
+
+// Draw things in the correct order based on the z position
+var drawObjectsInOrder = function() {
+    var objs = [
+        { name: 'sun', z: 0 },
+    ];
+    
+    // Add earth
+    var nodes = applyCamera(earth.x, earth.y, 0);
+    objs.push({ name: 'earth',
+                nodes: nodes,
+                z: findMeanZ([nodes])});
+    
+    // Add earth axes
+    var length = 10;
+    var ct = cos(earthTilt);
+    var st = sin(earthTilt);
+    var cx = earth.x;
+    var cy = earth.y;
+    var dy1 = earth.r/2 * st;
+    var dy2 = (earth.r/2 + length) * st;
+    var dz1 = earth.r/2 * ct;
+    var dz2 = (earth.r/2 + length) * ct;
+    
+    nodes = [applyCamera(cx, cy + dy1, dz1),
+             applyCamera(cx, cy + dy2, dz2)];
+    objs.push({ name: 'axis', nodes: nodes, z: findMeanZ(nodes)});
+    nodes = [applyCamera(cx, cy - dy1, -dz1),
+             applyCamera(cx, cy - dy2, -dz2)];
+    objs.push({ name: 'axis', nodes: nodes, z: findMeanZ(nodes)});
+    
+    // Add sun axes
+    nodes = [applyCamera(sunR/2, 0, 0), applyCamera(50, 0, 0)];
+    objs.push({ name: 'axis', nodes: nodes, z: findMeanZ(nodes)});
+    
+    nodes = [applyCamera(0, sunR/2, 0), applyCamera(0, 50, 0)];
+    objs.push({ name: 'axis', nodes: nodes, z: findMeanZ(nodes)});
+    
+    nodes = [applyCamera(0, 0, -sunR/2), applyCamera(0, 0, -50)];
+    objs.push({ name: 'axis', nodes: nodes, z: findMeanZ(nodes)});
+    
+    var n = earth.orbit.length - 1;
+    for (var i = 0; i < earth.orbit.length - 1; i++) {
+        var x1 = earth.orbit[i][0];
+        var y1 = earth.orbit[i][1];
+        var x2 = earth.orbit[(i + 1) % n][0];
+        var y2 = earth.orbit[(i + 1) % n][1];
+        nodes = [applyCamera(x1, y1, 0),
+                 applyCamera(x2, y2, 0)];
+        objs.push({ name: 'orbit',
+                    nodes: nodes,
+                    z: findMeanZ(nodes) + earth.r * 3});
+    }
+    
+    objs.sort(sortByZ);
+    drawObjects(objs);
+};
+
+
+var draw = function() {
+    if (running) {
+        for (var i = 0; i < speed; i++) {
+            earth.update(1);
+        }
+    }
+    
+    background(BLACK);
+    drawObjectsInOrder();
+};
+
+/*******************************************
+ * Event handling
+********************************************/
+
+var mouseDragged = function() {
+    var theta1 = -(pmouseX - mouseX) * PI / 10;
+    var theta2 = (pmouseY - mouseY) * PI / 10;
+    
+    for (var o in objects) {
+        var nodes = objects[o].nodes;
+        rotateY3D(theta1, nodes);
+        rotateX3D(theta2, nodes);    
+    }
+};
+
+// Spacebar toggles animation
+var keyPressed = function() {
+    if (keyCode === 32) { running = !running; }
+};

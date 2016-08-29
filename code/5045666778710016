@@ -1,0 +1,316 @@
+/*********************************************************
+ * Simulation of telescope on Earth aimed at a fixed
+ * point in the sky.
+ * 
+ * How do the relative position of the planets appear
+ * to change as Earth rotates?
+ * 
+ * Drag the telescope to change its angle.
+ * Click and drag planets to move them.
+ * 
+ * Note that the diameter of the Earth relative to the
+ * distance of the planets is much smaller in reality.
+ * 
+ * To Do:
+ *  - Controls to change Earth's radius
+*********************************************************/
+// Position
+var telescope_r = 160;
+var tele_x = telescope_r/2 + 20;
+var tele_y = telescope_r/2 + 20;
+var tele_h = 18;
+
+var TELE_FILL = color(128, 115, 86);
+var TELE_STROKE = color(153, 144, 103);
+
+var earth_r = 12;
+var earth_x = earth_r + 10;
+var earth_y = 240;
+var EARTH_COL = color(61, 100, 255);
+
+var Planet = function(x, y, r, col) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.col = col;
+    this.held = false;
+    
+    this.draw = function() {
+        fill(this.col);
+        if (this.held) {
+            stroke(this.col);
+            strokeWeight(3);
+        } else {
+            noStroke();   
+        }
+        ellipse(this.x, this.y, this.r, this.r);  
+    };
+    
+    this.selected = function() {
+        if (dist(this.x, this.y, mouseX, mouseY) <= this.r/2) {
+            this.held = true;   
+        }
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            this.x = mouseX;
+            this.y = mouseY;
+        }
+    };
+};
+
+var planets = [
+    new Planet (width -20, 240, 12, color(212, 95, 17)),
+    new Planet (width/2 - 50, 240, 6, color(167, 184, 183))
+];
+
+
+var planet_sort = function(a, b) {
+    return b.x - a.x;  
+};
+
+/*****************************************************
+ *        Stars
+*****************************************************/
+
+var createRandomStars = function(n) {
+    var stars = [];
+    var max_r = telescope_r * telescope_r * 1.2;
+    for (var i=0; i<n; i++) {
+        var a = random() * 360;
+        var r = sqrt(random() * max_r);
+        var c = random() * random() * 180;
+        stars.push([r * cos(a), r * sin(a), c]);
+    }
+    return stars;
+};
+var stars = createRandomStars(1000);
+
+/*****************************************************
+ *        Telescope
+*****************************************************/
+
+// Angles for zoom
+var tele_max_a = 70;
+var tele_min_a = 10;
+var telescope_a = 30;
+var tele_s = 90 / (tele_max_a - tele_min_a);
+var tele_a = tele_s * (telescope_a - tele_min_a);
+
+var tele_selected = false;
+
+var drawTelescope = function(tx, ty) {
+    // Controls
+    var x = tele_x;
+    var y = tele_y;
+    var r = telescope_r;
+    var r2 = r / 2;
+    
+    // Controller
+    strokeWeight(1);
+    fill(TELE_FILL);
+    stroke(TELE_STROKE);
+    translate(tele_x, tele_y);
+    rotate(tele_a);
+    rect(r2, 0, tele_h, 9);
+    
+    stroke(80);
+    line(r2, 2, r2 + tele_h, 2);
+    line(r2, 5, r2 + tele_h, 5);
+    line(r2, 8, r2 + tele_h, 8);
+    
+    noStroke();
+    fill(100);
+    triangle(r2 + 5, -2, r2 + 11, -10, r2 + 17, -2);
+    triangle(r2 + 5, 12, r2 + 11, 20, r2 + 17, 12);
+    resetMatrix();
+    
+    // Outline
+    stroke(TELE_STROKE);
+    ellipse(x, y, r+4, r+4);
+    fill(0);
+    ellipse(x, y, r, r);
+    
+    // Stars
+    var field = r / (500 * tan(telescope_a/2));
+    
+    for (var i=0; i<stars.length; i++) {
+        var s = stars[i];
+        var d = (s[0]*s[0] + s[1]*s[1]) * field*field;
+        if (d < (r - 4)*(r - 4)/4) {
+            var c = floor(s[2]*field);
+            if (c > 255) {
+                strokeWeight(2);
+                stroke(constrain(c-120, 0, 255));
+            } else {
+                stroke(round(c));
+                strokeWeight(1);
+            }
+            point(x + s[0]*field, y + s[1]*field);   
+        }
+    }
+
+    // Draw planets    
+    planets.sort(planet_sort);
+    strokeWeight(1);
+    
+    for (var i in planets) {
+        var p = planets[i];
+        
+        var theta = atan2(ty - p.y, tx - p.x);
+        var field = r / (2 * (p.x - tx) * tan(telescope_a/2));
+        var d = (p.x - tx) * tan(theta) * field;
+        
+        if (abs(d) < r/2 - p.r*field/2) {
+            fill(0, 0, 0, 80);
+            noStroke();
+            ellipse(x + d, y, p.r*field+2, p.r*field+2);
+            fill(p.col);
+            ellipse(x + d, y, p.r*field, p.r*field);
+            stroke(255, 255, 255, 50);
+            line(tx, ty, p.x, p.y); 
+        }
+    }
+};
+
+var drawTime = function(x, y, t) {
+    fill(255);
+    textAlign(LEFT, BASELINE);
+    textSize(14);
+
+    var h = (floor(t / 15) + 6) % 12;
+    var m = round((t % 15) * 4);
+    var pm = t < 90 ? "PM" : "AM";
+    if (m < 10) { m = "0" + m; }
+    text("Time: " + h + ":" + m + " " + pm, x, y);
+};
+
+/*****************************************************
+ *        Slider
+*****************************************************/
+
+var Slider = function(x, y, width, min_v, max_v, current_v) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) * this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        noStroke();
+        fill(200);
+        rect(this.x, this.y - 1, this.width + 2, 3, 4);
+        
+        strokeWeight(1);
+        stroke(60);
+        line(this.x + 1, this.y-1, x + this.width, this.y);
+    
+        fill(180);
+        stroke(50);
+        rect(this.bx - 1, this.y - 9, 12, 18, 3);
+        
+        for (var i=0; i<3; i++) {
+            var y = this.y + i * 4 - 4;
+            stroke(50);
+            line(this.bx + 2, y, this.bx + 8, y); 
+            stroke(200);
+            line(this.bx + 2, y + 1, this.bx + 8, y + 1); 
+        }
+    };
+    
+    this.selected = function() {
+        this.held = mouseX > this.bx - 2 && mouseX < this.bx + 12 && 
+                    mouseY > this.y - 10 && mouseY < this.y + 10;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + (x - this.x) * this.scale;
+        }
+    };
+};
+
+var slider = new Slider(20, 320, 120, 0, 180);
+
+/*****************************************************
+ *        Main loop
+*****************************************************/
+
+var draw = function() {
+    background(0, 0, 0);
+    
+    // Earth
+    noStroke();
+    fill(EARTH_COL);
+    ellipse(earth_x, earth_y, earth_r*2, earth_r*2);
+    fill(0, 0, 0, 160);
+    arc(earth_x, earth_y+1, earth_r*2+2, earth_r*2+2, -90, 90);
+    
+    // Telescope position
+    var position = constrain(slider.val, 0, 179);
+    var tx = earth_x + earth_r * sin(position);
+    var ty = earth_y - earth_r * cos(position);
+    
+    // Field of view
+    noStroke();
+    fill(255, 255, 255, 32);
+    var td = tan(telescope_a/2) * (400-earth_x);
+    triangle(tx, ty, width, ty - td, width, ty + td);
+    
+    // Telescope on Earth
+    fill(255, 0, 0);
+    ellipse(tx, ty, 4, 4);
+    
+    // Planets
+    for (var i in planets) { planets[i].draw(); }
+    
+    drawTelescope(tx, ty);
+    
+    slider.draw();
+    drawTime(slider.x + 10, slider.y + 30, slider.val);
+};
+
+/*****************************************************
+ *        Event Handling
+*****************************************************/
+
+var mousePressed = function() {
+    slider.selected();
+    for (var i in planets) { planets[i].selected(); }
+    
+    var tx = tele_x + telescope_r / 2 * cos(tele_a);
+    var ty = tele_y + telescope_r / 2 * sin(tele_a);
+    if (dist(mouseX, mouseY, tx, ty) < tele_h) {
+        tele_selected = true;
+    }
+};
+
+var mouseDragged = function() {
+    slider.drag();
+    for (var i in planets) { planets[i].drag(); }
+    if (tele_selected) {
+        var dx = mouseX - tele_x;
+        var dy = mouseY - tele_y;
+        var theta = constrain(atan2(dy, dx), 0, 90);
+        telescope_a = tele_min_a + theta / tele_s;
+        tele_a = tele_s * (telescope_a - tele_min_a);
+    }
+};
+
+var mouseReleased = function() {
+    slider.held = false;
+    tele_selected = false;
+    for (var i in planets) { planets[i].held = false; }
+};
+
+var mouseOut = function() {
+    mouseReleased();
+};

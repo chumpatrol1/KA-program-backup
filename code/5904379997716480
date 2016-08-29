@@ -1,0 +1,140 @@
+var sky = getImage("space/background");
+var grass = getImage("cute/GrassBlock");
+
+/**************************************************
+ *  Creature object
+***************************************************/
+
+var statTypes = ['agility', 'attack', 'defence', 'strength', 'toughness', 'life'];
+
+var Creature = function(name, img, stats) {
+    this.name = name;
+    this.image = img;
+    
+    // Create stats
+    for (var i = 0; i < statTypes.length; i++) {
+        var statName = statTypes[i];
+        this[statName] = stats[statName] || 1;
+    }
+    
+    this.health = this.life;
+};
+
+Creature.prototype.writeStats = function() {
+    for (var i = 0; i < statTypes.length; i++) {
+        var statName = statTypes[i];
+        println(statName +": " + this[statName]);
+    }
+};
+
+/**************************************************
+ *  Combat object
+***************************************************/
+
+var Combat = function(creature1, creature2) {
+    this.creatures = [creature1, creature2];
+};
+
+Combat.prototype.draw = function() {
+    // Draw arena
+    image(sky, 0, 0);
+    for (var i = 0; i < 8; i++) {
+        image(grass, i * 50, 322, 50, 80);
+    }
+
+    // Combatant 1
+    var c1 = this.creatures[0].image;
+    var y1 = 395 - c1.height + 2 * sin(frameCount * 8);
+    image(c1, 50, y1);
+    
+    // Combatant 2
+    var c2 = this.creatures[1].image;
+    var y2 = 395 - c2.height + 2 * cos(frameCount * 8);
+    fill(255, 0, 0, 100);
+    //rect(350 - c2.width, 395 - c2.height, c2.width, c2.height);
+    image(c2, 350 - c2.width, y2);
+};
+
+Combat.prototype.update = function() {
+    // Who attacks first?
+    var agilityTest = this.compareStats(this.creatures[0].agility, this.creatures[1].agility);
+    var attackOrder = agilityTest ? this.creatures : [this.creatures[1], this.creatures[0]];
+    
+    // First creature attacks
+    this.attack(attackOrder[0], attackOrder[1]);
+    if (attackOrder[1].health === 0) {
+        println(attackOrder[1].name + " dies");
+        return;
+    }
+
+    this.attack(attackOrder[1], attackOrder[0]);
+    if (attackOrder[0].health === 0) {
+        println(attackOrder[0].name + " dies");
+    }
+
+};
+
+// P1 attacks P2
+Combat.prototype.attack = function(p1, p2) {
+    println(p1.name + " attacks");
+    var attackTest = this.compareStats(p1.attack, p2.defence);
+    
+    if (!attackTest) {
+        println(p2.name + " parrys");
+        return;
+    }
+    
+    println(p1.name + " hits " + p2.name);
+    
+    var hits = max(0, floor(random(0, p1.strength + p2.toughness) - p2.toughness));
+
+    if (hits) {
+        println(p2.name + " wounded (" + hits +")");
+        p2.health = max(0, p2.health - hits);
+    } else {
+        println(p2.name + " unharmed");
+    }
+    
+};
+
+// Does stat1 beat stat2
+// Is a random number less than the proportion of s1 : (s1 + s2)
+Combat.prototype.compareStats = function(s1, s2) {
+    return random(0, s1 + s2) < s1;
+};
+
+/**************************************************
+ *  Create Creatures
+***************************************************/
+
+var player = new Creature('Human', 
+    getImage("cute/CharacterHornGirl"),
+    {
+        agility: 16,
+        attack: 16,
+        defence: 16,
+        strength: 16,
+        toughness: 16,
+        life: 160,
+    }
+);
+
+var leafSprite = new Creature('Leaf sprite',
+    getImage("avatars/leafers-seed"),
+    {
+        agility: 8,
+        attack: 4,
+        defence: 4,
+        strength: 4,
+        toughness: 8,
+        life: 4,
+    }
+);
+
+
+var combat = new Combat(player, leafSprite);
+combat.update();
+
+var draw = function() {
+    combat.draw();
+};

@@ -1,0 +1,508 @@
+/*********************************************
+ *  How the position of light and the camera
+ * effect how a point on a circle appears.
+ * 
+ * Click and drag the light, camera or and point
+ * to move them.
+ * 
+ * TODO:
+ *  Different intensities for components
+ *  Options to control material properties
+ *  Improve cylinder
+ *  Restrict movement of light and camera to
+ *   outside of ball
+ *  Options to select which factors effect
+ *   point colour
+ *  Try shape other than circle
+**********************************************/
+
+var BACKGROUND = color(0, 0, 0);
+var GREEN = color(0, 200, 0);
+var BLUE = color(64, 95, 237);
+var WHITE = color(255, 255, 255);
+var ORANGE = color(255, 165, 0);
+
+var CONTROL_POINT_SIZE = 15;
+
+var selected = false;
+var ambientIntensity = 0.15;
+textSize(13);
+
+/*********************************************
+ *      Linear algebra
+**********************************************/
+// Assume everything has 2 dimensions
+var dotProduct = function(v1, v2){
+    return v1.x * v2.x + v1.y * v2.y;
+};
+
+var vectorLength = function(v) {
+    return sqrt(v.x * v.x + v.y * v.y);
+};
+
+var normaliseVector = function(v) {
+    var d = sqrt(v.x * v.x + v.y * v.y);
+    return { x: v.x / d, y: v.y / d };
+};
+
+var subtractVectors = function(v1, v2){
+    return { x: v1.x - v2.x, y: v1.y - v2.y };
+};
+
+/*********************************************
+ *      Draw functions
+**********************************************/
+
+var drawLineWithArrow = function(x1, y1, x2, y2, d, c) {
+    stroke(c);
+    line(x1, y1, x2, y2);
+    
+    var angle = atan2(y1 - y2, x1 - x2);
+    var rake = 25;
+    
+    var x3 = x2 + d * cos(angle + rake);
+    var y3 = y2 + d * sin(angle + rake);
+    var x4 = x2 + d * cos(angle - rake);
+    var y4 = y2 + d * sin(angle - rake);
+    x2 -= 4 * cos(angle);
+    y2 -= 4 * sin(angle);
+    
+    noStroke();
+    fill(c);
+    triangle(x2, y2, x3, y3, x4, y4);
+};
+
+/*********************************************
+ *      Ball object
+**********************************************/
+
+var Ball = function(x, y, r, light, camera) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    
+    this.light = light;
+    this.camera = camera;
+    
+    // Material properties
+    this.baseColor = BLUE;
+    this.shininess = 20;
+    this.ambient = lerpColor(BACKGROUND, this.baseColor, ambientIntensity);
+    
+    // Point properties
+    this.angle = -90;
+    this.sr = 8;
+    this.properties = {};
+    this.getSelectedPoint();
+    this.updateProperties();
+    this.getColors();
+};
+
+Ball.prototype.draw = function() {
+    // Normal of selected point
+    strokeWeight(2);
+    drawLineWithArrow(this.px, this.py, this.nx, this.ny, 10, this.baseColor);
+    
+    // Ray from camera
+    strokeWeight(2);
+    stroke(this.properties.Visible ? this.camera.color : 100);
+    line(this.camera.x, this.camera.y, this.px, this.py);
+    
+    // Ray from light
+    strokeWeight(2);
+    stroke(this.properties.shadow ? 100 : this.light.color);
+    line(this.light.x, this.light.y, this.px, this.py);
+    
+    // Reflection line
+    if (this.properties.reflection) {
+        var r = 100;
+        var x = this.px + r * this.properties.reflection.x;
+        var y = this.py + r * this.properties.reflection.y;
+        
+        drawLineWithArrow(this.px, this.py, x, y, 10, this.light.color);
+    }
+    
+    // Skeleton
+    fill(BACKGROUND);
+    strokeWeight(1);
+    stroke(200);
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);
+    
+    // Show colour at each point
+    strokeWeight(6);
+    var colors = [[], []];
+    var i = 0;
+    
+    for (var angle = 0; angle < 360; angle++) {
+        var col = this.colors[angle];
+        if (col) {
+            var c = cos(angle);
+            var s = sin(angle);
+            stroke(col);
+            point(this.x + this.r * c, this.y + this.r * s);
+            colors[i].push(col);
+        } else {
+            i = 1;
+        }
+    }
+    
+    // Draw cylinder
+    colors = colors[1].concat(colors[0]);
+    strokeWeight(1);
+    var y = 200;
+    for (var i = 0; i < colors.length; i++) {
+        stroke(colors[i]);
+        line(10, y + i, 120, y + i);
+    }
+    
+    
+    // Selected point
+    strokeWeight(1);
+    stroke(255);
+    if (this.properties.color) {
+        fill(this.properties.color);
+    } else {
+        noFill();
+    }
+    
+    ellipse(this.px, this.py, this.sr * 2, this.sr * 2);
+};
+
+Ball.prototype.showInfo = function(x, y) {
+    textAlign(LEFT, TOP);
+    fill(255);
+    
+    for (var i in this.properties) {
+        if (i !== 'reflection' && i !== 'color') {
+            text(i + ":", x, y);
+            text(this.properties[i], x + 90, y);
+            y += 16;    
+        }
+    }
+};
+
+Ball.prototype.getSelectedPoint = function() {
+    var c = cos(this.angle);
+    var s = sin(this.angle);
+    
+    // Coordinates of selected point
+    this.px = this.x + this.r * c;
+    this.py = this.y + this.r * s;
+    
+    // End points for normal at selected point
+    this.nx = this.x + (this.r + this.sr + 40) * c;
+    this.ny = this.y + (this.r + this.sr + 40) * s;
+    
+    this.normal = { x: c, y: s };
+};
+
+Ball.prototype.getPointProperties = function(angle, properties) {
+    var c = cos(angle);
+    var s = sin(angle);
+    var colour = false;
+    
+    // Vector for point
+    var point = {
+        x: this.x + this.r * c,
+        y: this.y + this.r * s
+    };
+    
+    // Normal vector for point
+    var normal = { x: c, y: s };
+    
+    // Vectors to light and viewer
+    var ray = normaliseVector(subtractVectors(this.light, point));
+    var eye = normaliseVector(subtractVectors(this.camera, point));
+
+    var diffuseIntensity = dotProduct(normal, ray);
+    var specularIntensity = 0;
+    var specularFactor = 0.75;
+    
+    var visible = dotProduct(normal, eye) >= 0;
+    var shadow = diffuseIntensity < 0;
+    var reflection = false;
+    
+    if (!shadow) {
+        // Reflection vector
+        var d = 2 * diffuseIntensity; 
+        reflection = {
+            x: d * normal.x - ray.x,
+            y: d * normal.y - ray.y,
+        };
+    }
+
+    if (!visible) {
+        if (properties) {
+            this.properties = {
+                Visible: false
+            };
+        }
+        return;
+    }
+
+    if (shadow) {
+        colour = this.ambient;
+    } else {
+        diffuseIntensity *= (1 - ambientIntensity);
+        var d = dist(this.px, this.py, this.light.x, this.light.y) / 100;
+        diffuseIntensity /= d;
+        diffuseIntensity = min(1, diffuseIntensity );
+        
+        specularIntensity = max(0, dotProduct(reflection, eye));
+        
+        if (specularIntensity > 0) {
+            specularIntensity = pow(specularIntensity, this.shininess);
+            specularIntensity *= specularFactor;
+            specularIntensity /= d;
+            specularIntensity = min(1, specularIntensity);
+        }
+        
+        var diffuse = lerpColor(BACKGROUND, this.baseColor, diffuseIntensity);
+        var specular = lerpColor(BACKGROUND, WHITE, specularIntensity);
+
+        colour = blendColor(this.ambient, diffuse, ADD);
+        colour = blendColor(colour, specular, ADD);
+    }
+
+    if (properties) {
+        this.properties = {
+            Visible: visible,
+            'In the light ': !shadow,
+            "Ambient light": round(1000 * ambientIntensity) / 10 + "%",
+            reflection: reflection,
+            color: colour
+        };
+        
+        if (!shadow) {
+            this.properties['Diffuse light'] = round(1000 * diffuseIntensity) / 10 + "%";
+            this.properties['Specular light'] = round(1000 * specularIntensity / specularFactor) / 10 + "%";
+        }
+        
+    } else {
+        return colour;
+    }
+};
+
+Ball.prototype.updateProperties = function() {
+    this.getPointProperties(this.angle, true);
+};
+
+Ball.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.px, this.py) <= this.sr;
+};
+
+Ball.prototype.move = function() {
+    this.angle = atan2(mouseY - this.y, mouseX - this.x);
+    this.getSelectedPoint();
+};
+
+Ball.prototype.getColors = function() {
+    this.colors = [];
+    
+    for (var angle = 0; angle < 360; angle++) {
+        this.colors.push(this.getPointProperties(angle));
+    }
+};
+
+/*********************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+**********************************************/
+
+var DraggablePoint = function(x, y, color, name) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.name = name;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (selected === this || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+    
+    if (this.name) {
+        textAlign(CENTER, BASELINE);
+        text(this.name, this.x, this.y - r / 2 - 5);
+    }
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+/*********************************************
+ *      Create objects
+**********************************************/
+
+var light = new DraggablePoint(width - 60, 120, WHITE, "Light");
+var viewer = new DraggablePoint(200, 160, ORANGE, "Camera");
+
+var ball = new Ball(width - 160, height - 120, 70, light, viewer);
+
+var selectables = [ball, light, viewer];
+
+
+var drawLightToPoint = function() {
+    var ray = normaliseVector({
+        x: light.x - ball.px,
+        y: light.y - ball.py
+    });
+    
+    var eye = normaliseVector({
+        x: viewer.x - ball.px,
+        y: viewer.y - ball.py
+    });
+    
+    strokeWeight(2);
+    textAlign(LEFT, TOP);
+    
+    var visibility = dotProduct(ball.normal, eye);
+    
+    if (visibility >= 0) {
+        var r = 100;
+        var x = ball.px + r * eye.x;
+        var y = ball.py + r * eye.y;
+        
+        drawLineWithArrow(ball.px, ball.py, x, y, 10, WHITE);
+    }
+    
+    // Angle between normal and light
+    var diffuseComponent = dotProduct(ball.normal, ray);
+    var angle = acos(diffuseComponent);
+    var intensity = ambientIntensity;
+    var specularComponent = 0;
+    
+    if (diffuseComponent >= 0) {
+        // Ray from light source to point
+        stroke(ORANGE);
+        line(ball.px, ball.py, light.x, light.y);
+        
+        // Reflection
+        var reflection = {
+            x: 2 * diffuseComponent * ball.normal.x - ray.x,
+            y: 2 * diffuseComponent * ball.normal.y - ray.y,
+        };
+
+        var r = 100;
+        var x = ball.px + r * reflection.x;
+        var y = ball.py + r * reflection.y;
+        
+        drawLineWithArrow(ball.px, ball.py, x, y, 10, ORANGE);
+        
+        var lightIncidence = 90 - angle;
+        
+        fill(255);
+        text("Incidence of light: " + round(lightIncidence * 10) / 10, 10, 8);
+        
+        text("Diffuse component: " + round(diffuseComponent * 1000) / 10 + "%", 10, 24);
+        
+        if (visibility >= 0) {
+            specularComponent = max(0, dotProduct(reflection, eye));
+            text("Specular component: " + round(specularComponent * 1000) / 10 + "%", 10, 40);
+            
+            specularComponent = pow(specularComponent, ball.shininess);
+            text("Specular component: " + round(specularComponent * 1000) / 10 + "%", 10, 56);
+            
+        } else {
+            text("Not visible", 10, 40);
+        }
+        
+        intensity += diffuseComponent * (1 - ambientIntensity);
+
+    } else if (diffuseComponent < 0) {
+        // Angle between tangent and light
+        angle -= 90;
+        
+        // Length of chord
+        var chord = 2 * ball.r * sin(angle);
+        
+        // Coordinates of intersection
+        var ix = ball.px + ray.x * chord;
+        var iy = ball.py + ray.y * chord;
+        
+        stroke(100);
+        line(ball.px, ball.py, ix, iy);
+        stroke(ORANGE);
+        line(light.x, light.y, ix, iy);
+        
+        fill(255);
+        if (visibility >= 0) {
+            text("Point in shadow", 10, 10);
+        } else {
+            text("Not visible", 10, 10);
+        }
+        
+    }
+    
+    if (visibility >= 0) {
+        var diffuse = lerpColor(BACKGROUND, ball.baseColor, intensity);
+        var specular = lerpColor(BACKGROUND, WHITE, specularComponent);
+        ball.pointColor = blendColor(diffuse, specular, ADD);
+        
+    } else {
+    }
+};
+
+
+/*********************************************
+ *      Main loop
+**********************************************/
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].draw();    
+    }
+    
+    ball.showInfo(10, 10);
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseOver()) {
+            selected = selectables[i];
+        }
+        selectables[i].draw();    
+    }
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move();
+        if (selected !== ball) {
+            ball.getColors();
+        }
+        ball.updateProperties();
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseOut = function() {
+    mouseReleased();
+};

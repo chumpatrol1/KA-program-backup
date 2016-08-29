@@ -1,0 +1,219 @@
+/**************************************
+***************************************/
+
+
+var ORANGE = color(255, 165, 0);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var PINK = color(255, 0, 175);
+var BLACK = color(0, 0, 0);
+var BACKGROUND = (250);
+imageMode(CENTER);
+strokeCap(ROUND);
+
+var showing = {
+    "Ball": true,
+    "Velocity": true,
+    "Forces": true,
+};
+
+var callForEach = function(arr, func) {
+    for (var i = 0; i < arr.length; i++) {
+        arr[i][func]();
+    }
+};
+
+/**************************************
+ *  Vectors are arrows with a base and
+ * an end.
+ * The end can be selected to move it
+***************************************/
+{
+var Vector = function(base, x, y, col) {
+    this.base = base;
+    this.dx = x;
+    this.dy = y;
+    this.length = sqrt(x * x + y * y);
+    this.x = base.x + x;
+    this.y = base.y + y;
+    this.end = { x: this.x, y: this.y };
+    this.color = col || PINK;
+    this.fade = lerpColor(this.color, BACKGROUND, 0.5);
+    this.getAngle();
+};
+
+Vector.prototype.draw = function() {
+    if (abs(this.x) < 0.1 && abs(this.y) < 0.1) { return; }
+    
+    var col = this.color;
+    
+    strokeWeight(3);
+    stroke(col);
+    line(this.base.x, this.base.y, this.x - this.dx * 0.1, this.y - this.dy * 0.1);
+    
+    noStroke();
+    fill(col);
+    pushMatrix();
+    translate(this.x, this.y);
+    rotate(this.angle);
+    triangle(0, 0, -16, -5, -16, 5);
+    popMatrix();
+};
+
+Vector.prototype.writeName = function(name, dir) {
+    fill(this.color);
+    textFont(createFont('Times', 16), 16);
+    textAlign(CENTER, CENTER);
+    
+    var dx = this.dx / this.length;
+    var dy = this.dy / this.length;
+    
+    var x = this.base.x + this.dx * 0.5 - dx * 4;
+    var y = this.base.y + this.dy * 0.5 - dy * 4;
+    
+    if (dir) {
+        x -= dy * 8;
+        y += dx * 8;
+    } else {
+        x += dy * 10;
+        y -= dx * 10;
+    }
+    
+    text(name, x, y);
+    var ay = y - 8;
+    
+    strokeWeight(1);
+    stroke(this.color);
+    line(x - 3, ay, x + 3, ay);
+    noStroke();
+    triangle(x + 5, ay, x + 2, ay + 3, x + 2, ay - 2);
+    //line(x + 1, y - 1, x + 3, y);
+    //line(x + 1, y + 2, x + 3, y + 1);
+};
+
+Vector.prototype.getAngle = function() {
+    this.angle = atan2(this.dy, this.dx);
+    this.length = mag(this.dx, this.dy);
+};
+
+Vector.prototype.mouseOver = function() {
+    var L = this.length - 4;
+    var x = this.base.x + cos(this.angle) * L;
+    var y = this.base.y + sin(this.angle) * L;
+    return dist(mouseX, mouseY, x, y) < 11;
+};
+
+Vector.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+    this.getAngle();
+};
+}
+/**************************************
+ *      Set-up
+***************************************/
+
+var BASE = { x: 100, y: 200 };
+
+// Correct
+var V1 = new Vector(BASE, 64, -48, BLUE);
+var V2 = new Vector(V1, 48, 80, GREEN);
+var V3 = new Vector(BASE, V1.dx + V2.dx, V1.dy + V2.dy, PINK);
+
+// Same BASE
+var V1 = new Vector(BASE, 64, -48, BLUE);
+var V2 = new Vector(BASE, 48, 80, GREEN);
+var V3 = new Vector(V2.end, V1.dx - V2.dx, V1.dy - V2.dy, PINK);
+
+// Same BASE
+var V1 = new Vector(BASE, 64, -48, BLUE);
+var V2 = new Vector({x: V1.end.x - 48, y: V1.end.y - 80}, 48, 80, GREEN);
+var V3 = new Vector(V2.base, -(V1.dx - V2.dx), -(V1.dy - V2.dy), PINK);
+
+var BALL1 = { x: 100, y: 100 };
+var BALL2 = { x: 240, y: 160 };
+var V1 = new Vector(BALL1, 80, -40, GREEN);
+var V2 = new Vector(BALL2, -60, -100, GREEN);
+
+var BALL1 = { x: 200, y: 160 };
+var BALL2 = { x: 240, y: 160 };
+var V1 = new Vector(BALL1, 0, -40, GREEN);
+var V2 = new Vector(BALL2, 0, -100, GREEN);
+
+/*
+var BALL1 = { x: 100, y: 152 };
+var BALL2 = { x: 250, y: 152 };
+var V1 = new Vector(BALL1, 100, 0, GREEN);
+var V2 = new Vector(BALL2, 64, 0, GREEN);
+
+
+var BALL1 = { x: 100, y: 100 };
+var BALL2 = { x: 220, y: 221 };
+var BALL1 = { x: 220, y: 100 };
+var BALL2 = { x: 220, y: 140 };
+var V1 = new Vector(BALL1, 0, -60, GREEN);
+var V2 = new Vector(BALL2, -100, 0, GREEN);
+var V1 = new Vector(BALL1, 100, -60, GREEN);
+var V2 = new Vector(BALL2, 0, 0, GREEN);
+var V1 = new Vector(BALL1, 100, 0, GREEN);
+var V2 = new Vector(BALL2, 0, 60, GREEN);
+var V1 = new Vector(BALL1, 0, 0, GREEN);
+var V2 = new Vector(BALL2, 100, 60, GREEN);
+*/
+
+var drawBall = function(x, y, d) {
+    noStroke();
+    fill(0, 0, 0, 120);
+    ellipse(x + 1, y + 1, d, d);
+    
+    // Ball
+    fill(BLUE);
+    ellipse(x, y, d, d);
+};
+
+
+/**************************************
+ *      Main loop
+***************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    noFill();
+    strokeWeight(2);
+    stroke(180);
+    //ellipse(V1.x + 20, V1.y, 40, 40);
+    //ellipse(V2.x, V2.y - 20, 40, 40);
+    
+    V1.draw();
+    V2.draw();
+    //V3.draw();
+    
+    drawBall(BALL1.x, BALL1.y, 40);
+    drawBall(BALL2.x, BALL2.y, 40);
+    
+    fill(10);
+    textFont(createFont('Times', 20));
+    textAlign(CENTER, TOP);
+    //text("A", BALL1.x, BALL1.y + 23);
+    //text("B", BALL2.x, BALL2.y + 23);
+    
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("A", BALL1.x, BALL1.y);
+    text("B", BALL2.x, BALL2.y);
+    
+    strokeWeight(1);
+    stroke(10);
+    //line(V1.x, V1.y - 40, V1.x, V1.y + 40);
+    
+    line(BALL1.x + 20, BALL1.y + 40, BALL1.x + 20, BALL1.y - 40);
+    
+    //V1.writeName('a');
+    //V2.writeName('b');
+    //V3.writeName('c', 1);
+};
+
+/**************************************
+ *      Event handling
+***************************************/

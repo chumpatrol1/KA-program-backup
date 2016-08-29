@@ -1,0 +1,508 @@
+frameRate(30);
+
+// Simulation parameters
+var flowRate = 0.35;
+var pulmonaryVeinPressure = 10;
+var LAElastance = 0.1;
+var LVElastance = 0.09;
+var aortaElastance = 0.6;
+var aortaVolume = 100 / aortaElastance;
+var heart;
+
+// Time scale
+var beatTimeMax = 100;
+var heartRate = 60;     // beats per minute
+
+// Timed events
+var LAContractionStart = 45;
+var LAContractionStop = 55;
+var LAStrength = 1.8;
+var LVContractionStart = 60;
+var LVContractionStop = 85;
+var LVStrength = 5;
+
+// Display variables
+
+// Layout
+var graphX = 40;
+var graphY = 68;
+var graphWidth = 300;
+var graphHeight = 180;
+
+// Colors
+var backgroundColor = color(250, 250, 255);
+var heartColour = color(144, 12, 4);
+var valveColour = color(166, 113, 7);
+var LAColour = color(40, 140, 20);
+var LVColour = color(38, 38, 255);
+var aortaColour = color(255, 153, 0);
+var soundColour1 = color(144, 12, 4, 255);
+var soundColour2 = color(144, 12, 4, 0);
+
+// Stroke sizes
+var vesselStrokeWidth = 4;
+var valveStrokeWidth = 2;
+
+// Diagram sizes
+var heartX = 125;
+var heartY = 335;
+var LVLength = 120;
+var LALength = 60;
+var aortaLength = 80;
+var valveSize = 16;     // Length of one valve flap
+
+var maxDataLength = 200;    // Num of points saved for graph
+var Yaxis = { pressure: "Pressure (mmHg)",
+              volume:   "Volume (mL)" };
+var maxValues = {pressure: 120, volume: 150 };
+
+// Container for blood, such as a ventricle or artery
+var Vessel = function(volume, elastance, strength) {
+    this.volume = volume;                   // mL
+    this.contraction = 0;
+    this.elastance = elastance;
+    this.strength = strength;
+    this.pressure = 0;
+    
+    this.getPressure = function() {
+        // Set pressure in mmHg
+        var elastance = this.elastance;
+        
+        if (this.contraction) {
+            elastance += this.strength * this.contraction / (this.contraction + 4);
+        }
+
+        this.pressure = this.volume * elastance;
+    };
+    
+    this.contract = function() {
+        this.contraction += 0.15;
+    };
+    
+    this.relax = function() {
+        if (this.contraction > 0) {
+            this.contraction -= 0.15;
+        }
+        if (this.contraction < 0) {
+            this.contraction = 0;
+        }
+    };
+};
+
+var Valve = function(vessel1, vessel2, sound) {
+    this.v1 = vessel1;
+    this.v2 = vessel2;
+    this.sound = sound;
+    this.soundCount = 0;
+    this.isOpen = false;
+    this.flow = 0;
+    
+    this.update = function() {
+        if (this.v1.pressure >= this.v2.pressure) {
+            this.isOpen = true;
+            this.flow = (this.v1.pressure-this.v2.pressure)*flowRate;
+            this.v1.volume -= this.flow;
+            this.v2.volume += this.flow;
+        } else if (this.isOpen) {
+            // Make sound
+            this.isOpen = false;
+            this.soundCount = 16;
+        }
+        if (this.soundCount > 0) {this.soundCount--; }
+    };
+    
+    this.draw = function(x, y) {
+        stroke(valveColour);
+        strokeWeight(valveStrokeWidth);
+        
+        if (this.isOpen) {
+            line(x, y - valveSize+1, x + valveSize, y - valveSize);
+            line(x, y + valveSize-1, x + valveSize, y + valveSize);
+            
+            //Flow arrow
+            fill(heartColour);
+            noStroke();
+            var rootFlow = sqrt(this.flow);
+            var length = 5 * rootFlow;
+            var height = round(rootFlow + 1);
+            var y1 = y-height;
+            var y2 = y+2*height+1;
+            rect(x-length, y1, length*2+1, 2*height+1);
+            triangle(x+length, y1-height, x+length+height*3, y, x+length, y2);
+            
+        } else {
+            line(x, y - valveSize, x + 1, y - 1);
+            line(x, y + valveSize, x + 1, y + 1);   
+        }
+        if (this.soundCount) {
+            textAlign(CENTER, CENTER);
+            var p = 1 - this.soundCount / 16;
+            fill(lerpColor(soundColour1, soundColour2, p));
+            textSize(25 - this.soundCount);
+            translate(x, y);
+            rotate(-10);
+            text(this.sound, 0, 0);
+            resetMatrix();
+        }
+    };
+};
+
+var Heart = function() {
+    this.leftAtrium = new Vessel(22, LAElastance, LAStrength);
+    this.leftVentricle = new Vessel(50, LVElastance, LVStrength);
+    this.aorta = new Vessel(aortaVolume, aortaElastance);
+    
+    // Pulmonary vein has constant pressure & volume
+    this.pulmonaryVein = new Vessel(0, 0);
+    
+    this.valves = [
+    // Not a proper valve, just joining vein to atrium
+      new Valve(this.pulmonaryVein, this.leftAtrium),
+    // Mitral valve
+      new Valve(this.leftAtrium, this.leftVentricle, "Lub"),
+    // Aortic valve  
+      new Valve(this.leftVentricle, this.aorta, "Dub")
+    ];    
+    
+    this.beatTimer = 0;
+    
+    this.update = function() {
+        this.pulmonaryVein.pressure = pulmonaryVeinPressure;
+        this.leftAtrium.getPressure();
+        this.leftVentricle.getPressure();
+        this.aorta.getPressure();
+        this.aorta.volume -= pow(this.aorta.pressure-78, 1.5) / 30;
+        
+        // Timed events
+        this.beatTimer++;
+        if (this.beatTimer >= beatTimeMax) {
+            this.beatTimer = 0;
+        }
+        
+        if (this.beatTimer > LAContractionStart &&
+            this.beatTimer < LAContractionStop) {
+            this.leftAtrium.contract();
+        } else {
+            this.leftAtrium.relax();
+        }
+        if (this.beatTimer > LVContractionStart &&
+            this.beatTimer < LVContractionStop) {
+            this.leftVentricle.contract();
+        } else {
+            this.leftVentricle.relax();
+        }
+        
+        // Blood flow
+        for(var i=0; i<this.valves.length; i++) {
+            this.valves[i].update();
+        }
+    };
+    
+    this.draw = function(x, y) {
+        var LVheight = 30 + 3 * pow(this.leftVentricle.volume, 2/3);
+        var wallHeight = (LVheight - 2 * valveSize) / 2;
+        var aortaDiameter = this.aorta.volume/5 - 5;
+        
+        var wallX = x + LVLength;
+        var wallY1 = y - LVheight/2;
+        var wallY2 = y + LVheight/2;
+        var valveY1 = y - valveSize;
+        var valveY2 = y + valveSize;
+        
+        // Mitral valve
+        this.valves[1].draw(x - 1, y);
+        // Aortic valve
+        this.valves[2].draw(wallX + 1, y);
+        
+        // Labels
+        textAlign(CENTER, BASELINE);
+        textSize(12);
+
+        fill(LAColour);
+        text("Left atrium", x - LALength/2, wallY1 - 8);
+        fill(LVColour);
+        text("Left ventricle", x + LVLength/2, wallY1 - 8);
+        fill(aortaColour);
+        text("Aorta", wallX + aortaLength/2, y - aortaDiameter - 5);
+        
+        /*
+        fill(0, 0, 0);
+        text(this.leftAtrium.volume, x - LALength/2, y);
+        text(this.leftVentricle.volume, x + LVLength/2, y);
+        text(this.aorta.volume, x+LVLength+aortaLength/2, y);
+        */
+        
+        // Left Ventricle
+        stroke(heartColour);
+        strokeWeight(vesselStrokeWidth);
+        line(x, wallY1 - 1, wallX, wallY1 - 1);
+        line(x, wallY2 + 1, wallX, wallY2 + 1);
+        line(x - 1, wallY1, x - 1, valveY1);
+        line(x - 1, wallY2, x - 1, valveY2);
+        line(wallX + 1, wallY1, wallX + 1, valveY1);
+        line(wallX + 1, wallY2, wallX + 1, valveY2);
+        
+        // Left Atrium
+        LALength = 30 + 20 * this.leftAtrium.volume / (valveSize +  LVheight);
+        line(x - LALength, valveY1, x - 2, wallY1);
+        line(x - LALength, valveY2, x - 2, wallY2);
+        
+        // Aorta
+        noFill();
+        bezier(wallX + 1, valveY1 - 4,
+               wallX + 20, y - aortaDiameter,
+               wallX + aortaLength - 20, y - aortaDiameter,
+               wallX + aortaLength, valveY1 - 4);
+        bezier(wallX + 1, valveY2 + 4,
+               wallX + 20, y + aortaDiameter,
+               wallX + aortaLength - 20, y + aortaDiameter,
+               wallX + aortaLength, valveY2 + 4);
+    };
+};
+
+var TabControls = function(x, y, tabs) {
+    this.x = x;
+    this.y = y;
+    this.tabs = tabs;
+    this.selected = 0;
+    
+    this.draw = function() {
+        // Background
+        noStroke();
+        fill(120, 120, 120);
+        rect(0, 0, 400, this.y);
+        
+        var x = this.x;
+        textSize(12);
+        fill(20, 20, 20);
+        textAlign(LEFT, BASELINE);
+        
+        for (var i=0; i<tabs.length; i++) {
+            var s = this.tabs[i];
+            
+            if (i === this.selected) {
+                fill(backgroundColor);
+                rect(x, y-18, textWidth(s) + 8, 18);
+            } else {
+                fill(180, 180, 180);
+                rect(x, y-18, textWidth(s) + 8, 17);
+            }
+            
+            fill(20, 20, 20);
+            text(s, x+4, this.y-5);
+            x += textWidth(s) + 9;
+        }
+    };
+    
+    this.click = function() {
+        if (mouseY < this.y) {
+            textSize(12);
+            var x = this.x;
+            
+            for (var i=0; i<tabs.length; i++) {
+                var width = textWidth(this.tabs[i]) + 8;
+                if (mouseX >= x && mouseX <= x + width) {
+                    this.selected = i;
+                }
+                x += width;
+            }
+        }
+    };
+};
+
+var vesselData = function(name, vessel, colour) {
+    this.name = name;
+    this.vessel = vessel;
+    this.data = {pressure: [], volume: [] };
+    this.colour = colour;
+    
+    this.update = function(x) {
+        this.data.pressure.push(this.vessel.pressure);
+        this.data.volume.push(this.vessel.volume);
+        if (this.data.pressure.length > maxDataLength) {
+            this.data.pressure.shift();
+            this.data.volume.shift();
+        }
+    };
+    
+    this.draw = function(x, y, scaleX, scaleY, type) {
+        stroke(this.colour);
+        strokeWeight(1);
+        
+        var i;
+        if (type === "pressure" || type === "volume") {
+            var data = this.data[type];
+            for (i=1; i<data.length; i++) {
+                line(x + scaleX * (i-1), y - scaleY * data[i-1],
+                x + scaleX * i, y - scaleY * data[i]);
+            }   
+        } else {
+            var p = this.data.pressure;
+            var v = this.data.volume;
+            
+            for (i=1; i<p.length; i++) {
+                line(x + scaleX * v[i-1], y - scaleY * p[i-1],
+                     x + scaleX * v[i], y - scaleY * p[i]);
+            }
+            
+            i = p.length - 1;
+            noFill();
+            stroke(100, 100, 100);
+            ellipse(x + scaleX * v[i], y - scaleY * p[i], 6, 6);
+        }
+    };
+};
+
+
+var drawGraph = function(x, y, width, height, series, graphType) {
+    var maxY = maxValues[graphType];
+    var scaleX = (width - 30) / maxDataLength;
+    var scaleY = (height - 20) / maxY;
+    var originX = x + 30;
+    var originY = y + height - 40;
+    var i;
+    
+    // Axis
+    strokeWeight(1);
+    stroke(10, 10, 20);
+    line(originX, originY, x+width, originY);
+    textSize(10);
+
+    // X-axis units
+    fill(0, 0, 0);
+    textAlign(CENTER, CENTER);
+    for (i=0; i < maxDataLength; i+=20) {
+        var n = maxDataLength;
+        if (series[0].data[graphType].length === maxDataLength) {
+            n -= (i + frameCount) % maxDataLength;   
+        } else {
+            n -= i;
+        }
+        var ux = originX + n * scaleX;
+        line(ux, originY, ux, originY+3);
+        var t = (maxDataLength - i - 20) % 100;
+        text(t*10, ux, originY+10);
+    }
+
+    // Y-axis gridline
+    textAlign(RIGHT, CENTER);
+    stroke(210, 220, 210);
+    for (i=0; i<=maxY; i+=maxY / 4) {
+        y = originY - i * scaleY;
+        text(round(i), originX - 2, y);
+        if (i>0) { line(originX, y, x+width, y); }
+    }
+    
+    // X-axis label
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    text("Time (ms)", x + width/2 + 20, originY + 28);
+    
+    // Y-axis label
+    translate(x-4, originY - height/2 + 10);
+    rotate(270);
+    text(Yaxis[graphType], 0, 0);
+    resetMatrix();
+    
+    // Draw series
+    for (i=0; i<series.length; i++) {
+        series[i].draw(originX, originY, scaleX, scaleY, graphType);
+    }
+};
+
+var drawPVLoop = function(x, y, width, height, series) {
+    var maxX = maxValues.volume;
+    var maxY = maxValues.pressure;
+    var scaleX = (width - 30) / maxX;
+    var scaleY = (height - 20) / maxY;
+    var originX = x + 30;
+    var originY = y + height - 40;
+    var i;
+    
+    // Axis
+    strokeWeight(1);
+    stroke(10, 10, 20);
+    line(originX, originY, x+width, originY);
+    textSize(10);
+    
+    // X-axis units
+    fill(0, 0, 0);
+    textAlign(CENTER, CENTER);
+    for (i=0; i <= maxX; i+=maxX / 5) {
+        var ux = originX + i * scaleX;
+        line(ux, originY, ux, originY+3);
+        text(i, ux, originY+10);
+    }
+    
+    // Y-axis gridline
+    textAlign(RIGHT, CENTER);
+    stroke(210, 220, 210);
+    for (i=0; i<=maxY; i+=maxY / 4) {
+        y = originY - i * scaleY;
+        text(round(i), originX - 2, y);
+        if (i>0) { line(originX, y, x+width, y); }
+    }
+    
+    // X-axis label
+    textAlign(CENTER, CENTER);
+    textSize(14);
+    text(Yaxis.volume, x + width/2 + 20, originY + 28);
+    
+    // Y-axis label
+    translate(x-4, originY - height/2 + 10);
+    rotate(270);
+    text(Yaxis.pressure, 0, 0);
+    resetMatrix();
+    
+    // Draw PV-loop for LV
+    series[2].draw(originX, originY, scaleX, scaleY, "PV-loop");
+};
+
+/***************************************************
+ *  Create objects
+****************************************************/
+
+var simHeart = new Heart();
+var graphSeries = [
+    new vesselData("Left Atrium", simHeart.leftAtrium, LAColour),
+    new vesselData("Aorta", simHeart.aorta, aortaColour),
+    new vesselData("Left ventricle", simHeart.leftVentricle,
+                    LVColour)
+];
+
+var tabText = ["Pressure graph", "Volume graph", "PV-loop"];
+var tabs = new TabControls(8, 24, tabText);
+
+var draw = function() {
+    simHeart.update();
+    for (var i=0; i<graphSeries.length; i++) {
+        graphSeries[i].update(simHeart);
+    }
+    
+    // Drawing things
+    background(backgroundColor);
+    simHeart.draw(heartX, heartY);
+    tabs.draw();
+    
+    switch (tabs.selected) {
+        case 0:
+            drawGraph(graphX, graphY,
+                      graphWidth, graphHeight,
+                      graphSeries, "pressure");
+            break;
+        case 1:
+            drawGraph(graphX, graphY,
+                      graphWidth, graphHeight,
+                      graphSeries, "volume");
+            break;
+        case 2:
+            drawPVLoop(graphX, graphY,
+                       graphWidth, graphHeight,
+                       graphSeries);
+            break;
+    }
+};
+
+var mouseClicked = function() {
+    tabs.click();
+};

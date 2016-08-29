@@ -1,0 +1,54 @@
+var mode = 'page1';
+
+var drawPage1 = function() {
+    background(211, 205, 250);
+    
+    fill(10);
+    textSize(40);
+    text("Page 1",30, 50);
+    
+    //play button
+    fill(237, 245, 120);
+    rect(20,160,80,40);
+    fill(255, 255, 0);
+    rect(30,150,80,40);
+    fill(69, 235, 3);
+    textSize(26);
+    text("PLAY!",34,180);
+    
+    //The whole "if you don't have an account" thingy
+    fill(255, 0, 0);
+    textSize(10);
+    text("If you have no account,\nI will make it for you soon",15,220);
+
+};
+
+var drawPage2 = function() {
+    background(72, 247, 148);
+    
+    
+    fill(10);
+    textSize(40);
+    text("Page 1",30, 50);
+    // Other stuff here
+};
+
+var draw = function() {
+    noStroke();
+    
+
+    
+    if (mode==="page1") {
+        drawPage1();
+    } else if (mode==="page2") {
+        drawPage2();
+    }
+    
+    
+};
+
+var mousePressed = function() {
+    if (mode === 'page1' && mouseX > 30 && mouseX < 110 && mouseY > 150 && mouseY < 190){
+        mode = 'page2';
+    }
+};

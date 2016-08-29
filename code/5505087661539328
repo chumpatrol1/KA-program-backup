@@ -1,0 +1,81 @@
+
+// Coordinates for points
+var ax = 100;
+var ay = 80;
+var bx = 260;
+var by = 360;
+var cx = 320;
+var cy = 60;
+var dx = 150;
+var dy = 290;
+
+// Lines are AB and CD
+// Get lines as vectors
+var dx1 = bx - ax;
+var dy1 = by - ay;
+var dx2 = dx - cx;
+var dy2 = dy - cy;
+
+/*******************************************
+ *  Do the calculations
+********************************************/
+
+// Get vector from start of one line to start of the other
+// Or you can view this as shifting the vectors so that point A is at (0, 0)
+var dx3 = cx - ax;
+var dy3 = cy - ay;
+
+// Cross product of the two lines
+// Gets a value proportional to the sine of the angle between the lines.
+var cross = dx2 * dy1 - dy2 * dx1;
+
+var ix, iy;
+
+// Make sure lines are not parallel
+if (cross !== 0) {
+    // Find proportion along line 2
+    var s = (dx1 * dy3 - dy1 * dx3) / cross;
+    
+    // Check point is on line 2
+    if (s >= 0 && s <= 1) {
+        
+        // Find proportion along line 1
+        var t = dx1 !== 0 ? (cx - ax + dx2 * s) / dx1 : (cy - ay + dy2 * s) / dy1;
+
+        // Check point is on line 1
+        if (t >= 0 && t <= 1) {
+            // Calculate intersection
+            ix = cx + dx2 * s;
+            iy = cy + dy2 * s;
+        }
+    }
+}
+
+/*******************************************
+ *  Draw the lines and points
+********************************************/
+
+// Draw Lines
+strokeWeight(3);
+stroke(150);
+line(ax, ay, bx, by);
+line(cx, cy, dx, dy);
+
+// Draw points
+fill(50, 100, 200);
+stroke(255);
+strokeWeight(1);
+var r = 10;
+
+ellipse(ax, ay, r, r);
+ellipse(bx, by, r, r);
+ellipse(cx, cy, r, r);
+ellipse(dx, dy, r, r);
+
+// Draw intersection point
+if (cross !== 0) {
+    fill(200, 50, 50);
+    ellipse(ix, iy, r, r);
+}
+
+

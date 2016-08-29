@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Programs of interest</title>
+        
+        <style>
+            body {
+                margin: 1px;
+                font-family: sans-serif;
+                color: #222;
+            }
+            
+            h1 {
+                background-color: #699c52;
+                margin: 0;
+                padding: 12px;
+                color: #fff;
+                font-size: 32px;
+                font-weight: 600;
+                height: 40px;
+            }
+            
+            h2 {
+                font-size: 28px;
+                font-weight: 500;
+                color: #444;
+                margin-top: 8px;
+                margin-right: 10px;
+                margin-bottom: 4px;
+                padding-bottom: 0;
+                border-bottom: 1px solid #444;
+            }
+            
+            #avatar {
+                position: absolute;
+                top: 5px;
+                right: 10px;
+                width: 50px;
+                
+            }
+            
+            p {
+                margin: 8px 4px 4px 4px;
+                font-size: 15px;
+            }
+            
+            nav {
+                float: left;
+                background-color: #eee;
+                margin: 8px 20px 5px 3px;
+                width: 100px;
+            }
+            
+            ul {
+                list-style-type: none;
+                padding: 0;
+                margin: 0 0 10px 0;
+            }
+            
+            a {
+                text-decoration: none;
+                color: #111;
+            }
+            
+            a:hover {
+                text-decoration: underline;
+            }
+            
+            nav div {
+                text-align: center;
+                font-weight: bold;
+                border-bottom: 1px solid #bbb;
+                line-height: 24px;
+                margin-bottom: 4px;
+                padding-top: 3px;
+            }
+            
+            nav a {
+                line-height: 24px;
+                padding: 8px 12px 8px 8px;
+                font-size: 14px;
+            }
+            
+            nav li:hover {
+                background-color: #aaa;
+            }
+            
+            .content {
+                border-left: 1px solid #ddd;
+                margin-left: 120px;
+                padding-left: 8px;
+            }
+            
+            .program {
+                width: 122px;
+                height: 147px;
+                display: inline-block;
+                margin: 4px;
+            }
+            
+            .program img {
+                border: 1px solid #ccc;
+                width: 120px;
+                background-color: #699c52;
+            }
+            
+            .program:hover {
+                background-color: rgb(235, 241, 223);
+            }
+            
+            .program-name {
+                width: 100%;
+                display: inline-block;
+                text-align: center;
+                font-size: 14px;
+            }
+        </style>
+    </head>
+    
+    <body>
+
+    <h1>Programs of interest</h1>
+
+    <img id="avatar" src="https://www.kasandbox.org/programming-images/avatars/leafers-sapling.png">
+    
+    <nav>
+        <div>Contents</div>
+        <ul>
+            <li><a href="#games">Games</a></li>
+            <li><a href="#other">Other</a></li>
+        </ul>
+    </nav>
+    
+    <div class="content">
+        <p>A place to keep track of programs I like.</p>
+    
+<h2 id="games">Games</h2>
+<ul>
+    <li><a href="https://www.khanacademy.org/computer-programming/3d-chubby-cat/5902397477486592">Chubby cat</a></li>
+    <li><a href="https://www.khanacademy.org/computer-programming/i-saw-her-standing-there/5402049524269056">I saw her standing there</a></li>
+    <li><a href="https://www.khanacademy.org/computer-programming/text-adventure-framework/6612499739443200">Text adventure</a></li>
+    
+    
+</ul>
+
+<h2 id="other">Other</h2>
+ <ul>
+    <li><a href="https://www.khanacademy.org/computer-programming/interactive-flying-buttress/5301148522119168">Interactive flying buttress</a></li>
+    <li><a href="https://www.khanacademy.org/computer-programming/blox-20-programming-language/5601201503338496">Blox programming language</a></li>
+    
+</ul>
+    </div>
+
+
+
+    </body>
+</html>

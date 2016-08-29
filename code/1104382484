@@ -1,0 +1,302 @@
+/*********************************************************
+    View in 3D the surface described in the video:
+http://www.khanacademy.org/math/calculus/integral-calculus/v/ap-calculus-bc-exams--2008-1-c-d
+*********************************************************/
+
+var xRange = [0, 2];
+var zRange = [-3.2, 1.2];
+var originX = -120;
+var originY = 0;
+var axisWidth = 260;
+var axisHeight = 120;
+var axisDepth = 150;
+var lightVector =[0.5,0.1,-0.8];
+var showSurface = false;
+
+translate(200,200);
+
+var axis = {
+    edges: [[0,1], [0,2], [0,3], [0,4]],
+    nodes: [[originX, originY, 0],
+            [originX, originY, axisDepth],
+            [originX, originY, -axisDepth],
+            [originX + axisWidth, originY, 0],
+            [originX, originY - axisHeight, 0]],
+    stroke: color(0, 0, 0)
+};
+
+var createSurface = function(xres) {
+    var dx = (xRange[1] - xRange[0]) / xres;
+    var scaleX = axisWidth / (xRange[1] - xRange[0]);
+    var scaleZ = axisDepth / (zRange[1] - zRange[0]);
+    var x, y, z1, z2;
+    
+    var nodes = [[originX, originY, 0]];
+    // Triangular faces at point
+    var faces = [[0,1,2],[0,3,1],[0,2,4],[0,4,3]];
+    var edges = [[1,2],[2,4],[3,4],[3,1]];
+    
+    for (var i=1; i<=xres-1; i++) {
+        x = i * dx;
+        z1 = scaleZ * sin(180 * x);
+        z2 = scaleZ * (pow(x, 3) - 4 * x);
+        y = z1 - z2;
+        
+        nodes.push([originX + scaleX * x, originY, z1]);
+        nodes.push([originX + scaleX * x, originY, z2]);
+        nodes.push([originX + scaleX * x, originY-y, z1]);
+        nodes.push([originX + scaleX * x, originY-y, z2]);
+        edges.push([i*4-2, i*4]);
+        edges.push([i*4-3, i*4-2]);
+        edges.push([i*4-3, i*4-1]);
+        edges.push([i*4-1, i*4]);
+        
+        if (i < xres-1) {
+            faces.push([4*i-3, 4*i+1, 4*i+2, 4*i-2]);
+            faces.push([4*i-3, 4*i-1, 4*i+3, 4*i+1]);
+            faces.push([4*i-2, 4*i+2, 4*i+4, 4*i]);
+            faces.push([4*i-1, 4*i,   4*i+4, 4*i+3]);
+        }
+    }
+    
+    // Create end point
+    var n = nodes.length;
+    nodes.push([originX+axisWidth, originY, 0]);
+    faces.push([n,n-2,n-1]);
+    faces.push([n,n-1,n-3]);
+    faces.push([n,n-4,n-2]);
+    faces.push([n,n-3,n-4]);
+    
+    // Return object
+    return {
+        nodes: nodes,
+        edges: edges,
+        faces: faces,
+        stroke: color(40, 40, 40),
+        dark_color: color(0, 0, 15),
+        light_color: color(48, 45, 240)
+    };
+};
+
+var objects = [axis, createSurface(40)];
+
+var subtractVectors = function(v1, v2){
+    return [[v1[0] - v2[0]],
+            [v1[1] - v2[1]],
+            [v1[2] - v2[2]]];
+};
+
+var normaliseVector = function(v) {
+    var d = sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    return [v[0]/d, v[1]/d, v[2]/d];
+};
+
+var normalOfPlane = function(face, nodes) {
+    var n1 = nodes[face[0]];
+    var n2 = nodes[face[1]];
+    var n3 = nodes[face[2]];
+    
+    var v1 = subtractVectors(n1, n2);
+    var v2 = subtractVectors(n1, n3);
+    
+    var v3 = [[v1[1]*v2[2] - v1[2]*v2[1]],
+              [v1[2]*v2[0] - v1[0]*v2[2]],
+              [v1[0]*v2[1] - v1[1]*v2[0]]];
+              
+    return v3;
+};
+
+var dotProduct = function(v1, v2){
+    // Assume everything has 3 dimensions
+    return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+};
+
+// Given a list of nodes, return the centre point
+var findCentre = function(nodes) {
+    var cx = 0;
+    var cy = 0;
+    var cz = 0;
+    
+    for (var i = 0; i < nodes.length; i++) {
+        cx += nodes[i][0];
+        cy += nodes[i][1];
+        cz += nodes[i][2];
+    }
+    
+    cx /= nodes.length;
+    cy /= nodes.length;
+    cz /= nodes.length;
+    
+    return [cx, cy, cz];
+};
+
+// Translate in three dimensions
+var translate3D = function(x, y, z, nodes) {
+    for (var i = 0; i < nodes.length; i++) {
+        nodes[i] = [nodes[i][0]+x, nodes[i][1]+y, nodes[i][2]+z];
+    }
+};
+
+var rotateY3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x;
+    var y;
+    var z;
+    
+    for (var obj in objects) {
+        var nodes = objects[obj].nodes;
+        for (var i = 0; i < nodes.length; i+=1) {
+            x = nodes[i][0];
+            y = nodes[i][1];
+            z = nodes[i][2];
+            nodes[i] = [ct*x + st*z, y, -st*x + ct*z];
+        }
+    }
+};
+
+var rotateX3D = function(theta){
+    var ct = cos(theta);
+    var st = sin(theta);
+    var x;
+    var y;
+    var z;
+    
+    for (var obj in objects) {
+        var nodes = objects[obj].nodes;
+        for (var i = 0; i < nodes.length; i+=1) {
+            x = nodes[i][0];
+            y = nodes[i][1];
+            z = nodes[i][2];
+            nodes[i] = [x, ct*y - st*z, st*y + ct*z];
+        }
+    }
+};
+
+var sortFunction = function(a, b) { return a[0] - b[0]; };
+
+lightVector = normaliseVector(lightVector);
+var currentX = false;
+var currentY = false;
+
+var draw = function() {
+    var i, o, f;
+    var face;
+    var faces = [];
+    var nodes, node1, node2;
+    
+    background(255, 255, 255);
+
+    for (o in objects) {
+        var obj = objects[o];
+        nodes = obj.nodes;
+        
+        if (showSurface && 'faces' in obj) {
+            for (f in obj.faces) {
+                face = obj.faces[f];
+                var fnorm = normalOfPlane(face, nodes);
+                
+                if (fnorm[2] < 0) {
+                    // Find order in which to draw faces
+                    // by finding where it intersects the z-axis
+                    var pos = dotProduct(fnorm, nodes[face[0]]);
+                    
+                    var fnodes;
+                    if (face.length === 3) {
+                        fnodes = [nodes[face[0]], nodes[face[1]],
+                                  nodes[face[2]]];
+                    } else {
+                        fnodes = [nodes[face[0]], nodes[face[1]],
+                                  nodes[face[2]], nodes[face[3]]];
+                    }
+                    
+                    faces.push([pos / fnorm[2], fnorm, fnodes]);
+                }
+            }
+        faces.sort(sortFunction);
+    
+        for (f in faces) {
+            face = faces[f];
+            nodes = face[2];
+            
+            // Calculate face colour
+            var l = dotProduct(lightVector, normaliseVector(face[1]));   
+            if (l < 0) { l = 0; }
+            var c = lerpColor(obj.dark_color, obj.light_color, l);
+            if (obj.stroke === 'none') { stroke(c); }
+            fill(c);
+
+            if (face[2].length === 3) {
+                triangle(nodes[0][0], nodes[0][1],
+                         nodes[1][0], nodes[1][1],
+                         nodes[2][0], nodes[2][1]);
+            } else {
+                quad(nodes[0][0], nodes[0][1],
+                     nodes[1][0], nodes[1][1],
+                     nodes[2][0], nodes[2][1],
+                     nodes[3][0], nodes[3][1]);
+            }
+          }
+        }
+        
+        if ('edges' in obj) {
+            var edges = obj.edges;
+            nodes = obj.nodes;
+            stroke(obj.stroke);
+            strokeWeight(2);
+
+            for (i = 0; i < edges.length; i+=1) {
+                node1 = nodes[edges[i][0]];
+                node2 = nodes[edges[i][1]];
+                line(node1[0], node1[1], node2[0], node2[1]);
+            }
+        }
+    }
+
+    if (mouseIsPressed) {
+        if (currentX !== false) {
+            var theta1 = -(currentX - mouseX) * PI / 10;
+            var theta2 = (currentY - mouseY) * PI / 10;
+            
+            for (o in objects) {
+                rotateY3D(theta1,
+                          findCentre(objects[o].nodes),
+                          objects[o].nodes);
+                rotateX3D(theta2,
+                          findCentre(objects[o].nodes),
+                          objects[o].nodes);    
+            }
+        }
+        currentX = mouseX;
+        currentY = mouseY;
+    } else {
+        currentX = false;
+    }
+};
+
+var mouseOut = function(){
+    mouseIsPressed = false;
+};
+
+var keyPressed = function() {
+    var f = 0;
+    var d = 0;
+    if (keyCode === LEFT) {
+        f = rotateY3D;
+        d = 2;
+    } else if (keyCode === RIGHT) {
+        f = rotateY3D;
+        d = -2;
+    } else if (keyCode === UP) {
+        f = rotateX3D;
+        d = -2;
+    } else if (keyCode === DOWN) {
+        f = rotateX3D;
+        d = 2;
+    }
+    
+    if (f !== 0) { f(d); }
+};
+
+rotateY3D(10);
+rotateX3D(60);

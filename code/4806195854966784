@@ -1,0 +1,708 @@
+/*******************************************************
+ * Fill the holes exactly - overfilled holes lose points.
+ * 
+ * Use the left and right arrow keys to pick a hole.
+ * The down arrow sends the block to its current hole.
+ * 
+ * To do:
+ *  Improve overfilled holes
+ *  Explain rightward progression
+ *  Improve equation explanations
+ *  Improve equation spacing
+ *  Add mouse control
+ *  Numerator bonus?
+ *  Different difficulty levels
+ *  Different size holes
+*******************************************************/
+
+var BACKGROUND = color(12, 12, 25);
+var GROUNDCOL = color(240, 240, 255);
+
+var COLOURS = {
+    2: color(240, 140, 140),
+    3: color(140, 240, 100),
+    4: color(255, 40, 20),
+    6: color(240, 100, 240),
+    12: color(150, 150, 250)
+};
+
+var ALPHACOLS = {
+    2: color(240, 100, 100, 255),
+    3: color(140, 240, 100, 255),
+    4: color(255, 40, 20, 255),
+    6: color(240, 100, 240, 255),
+    12: color(150, 150, 250, 255)
+};
+
+var DENOMINATORS = [2, 3, 4, 6, 12];
+
+var easyFractions = [
+    [1, 2], [1, 2], [1, 2],
+    [1, 3], [1, 3], [2, 3],
+    [1, 6], [1, 6], [2, 6], [3, 6]
+];
+
+var showSimplified = false;
+var avoidOverfill = false;
+
+// Display parameters
+var scoreBarHeight = 24;
+var groundY = 268;
+textFont(createFont("sans", 16));
+
+var numHoles = 5;
+var holeWidth = 50;
+var holeHeight = 96;
+var holeX = (width - numHoles * holeWidth) / numHoles;
+
+// Animation parameter
+var fallSpeed = 2;
+var maxAnimation = 10;
+
+// States
+var running = true;
+var mode = 'intro';
+var currentPosition = 0;
+//var mode = 'falling';
+
+// Scoring
+var score = 0;
+var holesFilled = 0;
+var holeOverfilled = 0;
+var blockScore = 2;
+var overFillScore = 240;
+var consecutive = 0;
+var materialFallen = 0;
+
+// Gobal objects
+var introblocks = [];
+var fallingBlock;
+var holes = [];
+var filledHole = false;
+
+var getGCD = function(arr) {
+    if (arr.length > 2) {
+        return getGCD(arr[0], getGCD(arr.slice(1)));
+    } else {
+        var a = arr[0];
+        var b = arr[1];
+
+        while (b) {
+            var mod = a % b;
+            a = b;
+            b = mod;
+        }
+
+        return a;
+    }
+};
+
+var getLCM = function(arr) {
+    if (arr.length === 1) {
+        return arr[0];
+    } else if (arr.length ===  2) {
+        var a = arr[0];
+        var b = arr[1];
+        return a * b / getGCD([a, b]);
+    } else {
+        return getLCM(arr[0], getLCM(arr.slice(1)));
+    }
+};
+
+var holeToPosition = function(n) {
+    return holeX * 0.5 + (n - currentPosition) * (holeX + holeWidth);
+};
+
+var writeFraction = function(x, y, num, den, left) {
+    var w = max(textWidth(num), textWidth(den)) / 2 + 2;
+    if (left) {
+        x += w;
+    }
+    textAlign(CENTER, BASELINE);
+    text(num, x, y - 4);
+    textAlign(CENTER, TOP);
+    text(den, x, y + 1);
+    line(x - w, y, x + w, y);
+};
+
+// Find how much space in the emptiest hole
+var findMaxEmpty = function() {
+    var emptiest = 0;
+    
+    for (var i = 0; i < holes.length; i++) {
+        var e = holeHeight - holes[i].material;
+        if (e > emptiest) {
+            emptiest = e;
+            if (e === holeHeight) {
+                break;
+            }
+        }
+    }
+    
+    return emptiest;
+};
+
+var Block = function(n, d) {
+    this.hole = currentPosition + 1;
+    this.fraction = [n, d];
+    
+    this.x = (width - holeWidth) / 2;
+    this.y = scoreBarHeight;
+    this.bar = holeHeight / d;
+    this.height = this.bar * n - 1;
+    this.r = 4;
+    
+    this.color = COLOURS[d];
+    this.stroke = lerpColor(color(255, 255, 255), this.color, 0.5);
+    this.color2 = ALPHACOLS[d];
+    this.falling = true;
+    this.animation = 0;
+};
+
+Block.prototype.draw = function() {
+    var x = holeToPosition(this.hole);
+    var midX = x + holeWidth / 2;
+    var midY = this.y - this.height / 2;
+    
+    noStroke();
+    fill(this.color);
+    rect(x, this.y - this.height + 1, holeWidth, this.height, this.r);
+    
+    strokeWeight(1);
+    stroke(this.stroke);
+    for (var i = 1; i < this.fraction[0]; i++) {
+        line(x, this.y - this.bar * i, x + holeWidth, this.y - this.bar * i);
+    }
+    
+    // Fraction
+    fill(0);
+    textSize(11);
+    stroke(0);
+    
+    if (this.height > 24) {
+        textAlign(CENTER, BASELINE);
+        text(this.fraction[0], midX, midY - 2); 
+        textAlign(CENTER, TOP);
+        text(this.fraction[1], midX, midY + 1);
+        line(midX - 5, midY, midX + 5, midY);
+    } else {
+        textAlign(RIGHT, CENTER);
+        text(this.fraction[0], midX - 3, midY - 1); 
+        textAlign(LEFT, CENTER);
+        text(this.fraction[1], midX + 3, midY + 1);
+        line(midX - 2, midY + 5, midX + 2, midY - 4);
+    }
+    
+    if (this.animation < maxAnimation) {
+        noFill();
+        strokeWeight(3 + this.animation);
+        stroke(lerpColor(this.stroke, this.color2, this.animation / maxAnimation));
+        
+        var d = this.animation * 5;
+        var w = holeWidth + d * 2;
+        var h = holeHeight + d * 2;
+        rect(x - d, this.y - holeHeight + 1 - d, w, h, this.r * w / holeWidth);
+        
+        if (!this.falling) {
+            this.animation++;
+        }
+    }
+};
+
+Block.prototype.update = function(ignoreHole) {
+    this.y += fallSpeed;
+    
+    if (ignoreHole) {
+        if (this.y > height + holeHeight + 20) {
+            this.y -= 1000;
+        }
+    } else if (this.y >= groundY + holeHeight - holes[this.hole].material) {
+        holes[this.hole].addBlock(this);
+    }
+};
+
+var getFraction = function() {
+    var d = floor(random(DENOMINATORS.length));
+    var denominator = DENOMINATORS[d];
+    var numerator;
+    
+    // Make higher numerators less likely unless they are nice
+    while(true) {
+        numerator = floor(random(denominator - 1)) + 1;
+        if (random() > numerator / denominator / (2 * getGCD([numerator, denominator]))) {
+            return [numerator, denominator];
+        }
+    }
+};
+
+var getFallingBlock = function() {
+    var fraction = getFraction();
+    var maxSize = findMaxEmpty();
+    
+    while (avoidOverfill && maxSize) {
+        fraction = getFraction();
+        if (fraction[0] * holeHeight / fraction[1] <= maxSize) {
+            break;
+        }
+    }
+    
+    return new Block(fraction[0], fraction[1]);
+};
+
+var Hole = function(n) {
+    this.n = n;
+    this.empty();
+};
+
+Hole.prototype.draw = function() {
+    var x = holeToPosition(this.n);
+    
+    fill(BACKGROUND);
+    strokeWeight(3);
+    stroke(GROUNDCOL);
+    rect(x - 2, groundY, holeWidth + 3, holeHeight + 1, 5);
+    
+    noStroke();
+    rect(x, groundY - 2, holeWidth, 10);
+    
+    for (var i = 0; i < this.blocks.length; i++) {
+        this.blocks[i].draw();
+    }
+    
+    if (this.lcm && showSimplified) {
+        var midX = x + holeWidth / 2;
+        var midY = groundY + holeHeight + 20;
+        
+        var factor = getGCD([this.lcm, this.sum]);
+        var numer = this.sum / factor;
+        var denom = this.lcm / factor;
+        
+        textSize(11);
+        fill(255);
+        strokeWeight(1);
+        stroke(255);
+        writeFraction(midX, midY, numer, denom);
+    } 
+};
+
+Hole.prototype.calculateFraction = function() {
+    this.lcm = 1;
+    for (var i = 0; i < this.blocks.length; i++) {
+        this.lcm = getLCM([this.blocks[i].fraction[1], this.lcm]);
+    }
+    
+    this.sum = 0;
+    for (var i = 0; i < this.blocks.length; i++) {
+        this.sum += this.blocks[i].fraction[0] * this.lcm / this.blocks[i].fraction[1];
+    }
+};
+
+Hole.prototype.addBlock = function(block) {
+    block.falling = false;
+    block.y = groundY + holeHeight - this.material;
+    
+    this.blocks.push(block);
+    this.material += block.height + 1;
+    
+    this.calculateFraction();
+
+    if (this.material === holeHeight) {
+        this.filled();
+    } else {
+        consecutive = 0;
+        if (this.material > holeHeight) {
+            this.overfilled();
+        }    
+    }
+
+    materialFallen += fallingBlock.height + 1;
+    fallingBlock = getFallingBlock();
+};
+
+Hole.prototype.empty = function() {
+    this.material = 0;
+    this.blocks = [];
+    this.lcm = false;
+};
+
+Hole.prototype.completed = function() {
+    holes.push(new Hole(holes.length));
+    currentPosition = holes.length - numHoles;
+};
+
+Hole.prototype.filled = function() {
+    filledHole = this;
+    mode = 'filled';
+    holesFilled++;
+    
+    // Scoring
+    var countDenoms = {};
+    var countValues = {};
+    
+    this.uniqueDenominators = 0;
+    this.uniqueValues = 0;
+    
+    for (var i = 0; i < this.blocks.length; i++) {
+        var block = this.blocks[i];
+        var numer = block.fraction[0];
+        var denom = block.fraction[1];
+        var gcd = getGCD([numer, denom]);
+        var value = round(numer / gcd) + ":" + round(denom / gcd);
+        
+        if (!countDenoms[denom]) {
+            countDenoms[denom] = 1;
+            this.uniqueDenominators++;
+        }
+        if (!countValues[value]) {
+            countValues[value] = 1;
+            this.uniqueValues++;
+        }
+    }
+    
+    this.points = blockScore * this.blocks.length * this.uniqueValues;
+    this.points += this.lcm * this.uniqueDenominators;
+    
+    consecutive++;
+    this.points *= consecutive;
+    
+    score += this.points;
+};
+
+Hole.prototype.overfilled = function() {
+    filledHole = this;
+    mode = 'over-filled';
+    holeOverfilled++;
+    score += round(overFillScore * (1 - this.sum / this.lcm));
+};
+
+/*******************************************************
+ *      Setup object
+*******************************************************/
+
+var setup = function() {
+    // Random intro blocks
+    for (var j = 0; j < numHoles; j++) {
+        var y = floor(random(400));
+        for (var i = 0; i < 4; i++) {
+            var block = getFallingBlock();
+            block.y = y;
+            block.hole = j;
+            introblocks.push(block);
+            y += 2 * holeHeight + floor(random(80));
+        }
+    }
+    
+    // Holes
+    for (var i = 0; i < numHoles - 1; i++) {
+        holes.push(new Hole(i));
+    }
+    
+    // Falling block
+    fallingBlock = getFallingBlock();
+};
+
+setup();
+
+/*******************************************************
+ *      Draw functions
+*******************************************************/
+
+var drawIntro = function() {
+    for (var i = 0; i < introblocks.length; i++) {
+        introblocks[i].update(true);   
+        introblocks[i].draw();
+    }
+    
+    strokeWeight(2);
+    stroke(250, 250, 250, 250);
+    fill(12, 12, 25, 245);
+    
+    var dx = 40;
+    var dy = 32;
+    rect(dx, dy, width - dx * 2, height - dy * 2, 20);
+    
+    fill(250);
+    textSize(40);
+    textAlign(CENTER, TOP);
+    text("Whole Holes", width/2,  dy + 5);
+    
+    textSize(15);
+    textAlign(LEFT, TOP);
+    var ty = dy + 55;
+    
+    text("The ground is full of holes that need to be filled.", dx + 10, ty, width - dx * 2 - 20, 100);
+    
+    ty += 44;
+    text("Luckily, bags of colored sand are falling from the sky.", dx + 10, ty, width - dx * 2 - 20, 100);
+    
+    ty += 44;
+    text("Use the left and right arrow keys to move the falling sand bags.", dx + 10, ty, width - dx * 2 - 20, 100);
+    
+    ty += 44;
+    text("A full bag of sand completely fills a hole, but none of the bags are full.", dx + 10, ty, width - dx * 2 - 20, 100);
+    
+    ty += 44;
+    text("You must not overfill the holes.", dx + 10, ty, width - dx * 2 - 20, 100);
+    
+    ty += 24;
+    text("You score more points for more complex combinations of blocks.", dx + 10, ty, width - dx * 2 - 20, 100);
+    
+    textSize(20);
+    textAlign(RIGHT, CENTER);
+    text("Press any key to start", width - dx - 20, height - dy - 20);
+};
+
+var drawScore = function() {
+    noStroke();
+    fill(BACKGROUND);
+    rect(0, 0, width, scoreBarHeight);
+    stroke(GROUNDCOL);
+    strokeWeight(1);
+    line(0, scoreBarHeight, width, scoreBarHeight);
+
+    fill(255);
+    textSize(13);
+    textAlign(LEFT, CENTER);
+    text("Score: " + score, 8, 12);
+    text("Holes filled: " + holesFilled, 100, 12);
+    
+    var wholes = floor(materialFallen / holeHeight);
+    var numerator = materialFallen - wholes * holeHeight;
+    var gcd = getGCD([numerator, holeHeight]);
+    var s = wholes;
+    if (numerator) {
+        s += " and " + (numerator / gcd) + "/" + (holeHeight / gcd);
+    }
+    
+    text("Material fallen: " + s , 220, 12);
+};
+
+var drawGround = function() {
+    strokeWeight(3);
+    stroke(240, 240, 255);
+    fill(40, 40, 36);
+    rect (-5, groundY + 1, width + 10, height);
+    
+    // TODO: only draw the holes on screen
+    for (var i = 0; i < holes.length; i++) {
+        holes[i].draw();
+    }
+};
+
+var drawEquation = function(x, y, gap) {
+    var numerators = [];
+    
+    for (var i = 0; i < filledHole.blocks.length; i++) {
+        var block = filledHole.blocks[i];
+        block.draw();
+    
+        numerators.push(block.fraction[0] * filledHole.lcm / block.fraction[1]);
+        
+        fill(block.color);
+        stroke(block.color);
+        textSize(18);
+        strokeWeight(2);
+        writeFraction(x, y, block.fraction[0], block.fraction[1]);
+
+        fill(255);
+        textAlign(CENTER, CENTER);
+        var op = (i === filledHole.blocks.length - 1) ? "=" : "+";
+        text(op, x + gap, y);
+        x += gap * 2;
+    }
+    
+    stroke(255);
+    writeFraction(x, y, numerators.join(" + "), filledHole.lcm, true);
+    
+    return x;
+};
+
+var drawFilledHole = function() {
+    var x = 32;
+    var y = 60;
+    var gap = 22;
+
+    x = drawEquation(x, y, gap);
+    
+    noFill();
+    strokeWeight(3);
+    stroke(GROUNDCOL);
+    rect(holeToPosition(filledHole.n) - 2, groundY, holeWidth + 3, holeHeight + 1, 5);
+    
+    textAlign(LEFT, CENTER);
+    y += 40;
+    text("= 1 Whole Hole", x - gap - 6, y);
+    
+    textSize(16);
+    textAlign(LEFT, CENTER);
+    x = 100;
+    y += 30;
+    
+    var points = blockScore * filledHole.blocks.length;
+    text("+ " + points + " points for " + filledHole.blocks.length + " blocks", x, y);
+    
+    if (filledHole.uniqueValues > 1) {
+        y += 25;
+        points *= filledHole.uniqueValues - 1;
+        text("+ " + points + " for different size blocks", x, y);
+    }
+    
+    y += 25;
+    text("+ " + filledHole.lcm + " denominator bonus", x, y);
+    
+    if (filledHole.uniqueDenominators > 1) {
+        y += 25;
+        var points = (filledHole.uniqueDenominators - 1) * filledHole.lcm;
+        text("+ " + points + " for different denominators", x, y);
+    }
+
+    if (consecutive > 1) {
+        y += 25;
+        text("x " + consecutive + " for consecutive fills", x, y);
+    }
+
+    y += 25;
+    text("= " + filledHole.points + " points", x, y);     
+    
+    textSize(20);
+    textAlign(RIGHT, CENTER);
+    text("Press any key to continue", width - 10, height - 16);
+    drawScore();  
+};
+
+var drawOverFilledHole = function() {
+    var x = 32;
+    var y = 60;
+    var gap = 25;
+    
+    x = drawEquation(x, y, gap);
+    
+    noFill();
+    strokeWeight(3);
+    stroke(GROUNDCOL);
+    rect(holeToPosition(filledHole.n) - 2, groundY, holeWidth + 3, holeHeight + 1, 5);
+    
+    // Fraction
+    var fracWidth = max(textWidth(filledHole.sum), textWidth(filledHole.lcm));
+    x += fracWidth / 2 - 5;
+    y += 55;
+    stroke(255);
+    strokeWeight(2);
+    writeFraction(x, y, filledHole.sum, filledHole.lcm);
+    
+    y += 55;
+    writeFraction(x, y, filledHole.sum - filledHole.lcm, filledHole.lcm);
+    textAlign(LEFT, CENTER);
+    text("too much!", x + fracWidth + 2, y);
+    
+    textSize(16);
+    textAlign(LEFT, CENTER);
+    y += 45;
+    
+    var points = round(overFillScore * (1 - filledHole.sum / filledHole.lcm));
+    text(points + " points", x - 20, y);  
+    
+    textAlign(RIGHT, CENTER);
+    text("Press any key to continue", width - 10, height - 16);
+    drawScore();
+};
+
+var drawGame = function() {
+    if (running) { 
+        fallingBlock.update();   
+    }
+    
+    drawGround(); 
+    fallingBlock.draw();
+    drawScore();
+};
+
+/*******************************************************
+ *      Main loop
+*******************************************************/
+
+var draw = function() {
+    background(BACKGROUND);
+
+    switch (mode) {
+        case 'intro':
+            drawIntro();
+            break;
+            
+        case 'falling':
+            drawGame();
+            break;
+            
+        case 'filled':
+            drawFilledHole();
+            break;
+            
+        case 'over-filled':
+            drawOverFilledHole();
+            break;
+    }
+};
+
+/*******************************************************
+ *      Event handling
+*******************************************************/
+
+var startGame = function() {
+    currentPosition = -1;
+    mode = 'falling';
+};
+
+var mousePressed = function() {
+    if (mode === 'intro') {
+        startGame();
+        return;
+    }
+    
+    if (filledHole) {
+        //filledHole.empty();
+        filledHole.completed();
+        filledHole = false;
+        mode = 'falling';
+    }
+};
+
+var keyPressed = function() {
+    if (mode === 'intro') {
+        startGame();
+        return;
+    }
+    
+    if (filledHole) {
+        //filledHole.empty();
+        filledHole.completed();
+        filledHole = false;
+        mode = 'falling';
+        return;
+    }
+    
+    switch (keyCode) {
+        case LEFT:
+            if (fallingBlock.y < groundY) {
+                fallingBlock.hole = max(0, fallingBlock.hole - 1);
+                if (fallingBlock.hole <= currentPosition) {
+                    currentPosition--;
+                }
+            }
+            break;
+        case RIGHT:
+            if (fallingBlock.y < groundY) {
+                fallingBlock.hole = min(fallingBlock.hole + 1, holes.length - 1);
+                if (fallingBlock.hole >= numHoles + currentPosition) {
+                    currentPosition++;
+                }
+            }
+            break;
+        case DOWN:
+            holes[fallingBlock.hole].addBlock(fallingBlock);
+            break;
+        case 32:
+            running = !running;
+            break;
+    }
+    
+};

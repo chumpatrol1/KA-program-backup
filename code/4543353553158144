@@ -1,0 +1,162 @@
+var BACKGROUND = color(250, 250, 250);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+
+textSize(14);
+var pointR = 10;
+var gridSize = 20;
+
+var directrixY = 30;
+var focusX = width/2;
+var focusY = 80;
+var selected = false;
+
+var DraggablePoint = function(x, y) {
+    this.x = x;
+    this.y = y;
+    
+    this.draw = function() {
+        noStroke();
+        fill(ORANGE);
+        ellipse(this.x, this.y, pointR, pointR);
+    };
+    
+    this.mouseover = function() {
+        return dist(mouseX, mouseY, this.x, this.y) <= pointR / 2;
+    };
+    
+    this.move = function() {
+        this.x += mouseX - pmouseX;
+        this.y += mouseY - pmouseY;
+    };
+};
+
+var DraggableLine = function(y) {
+    this.y = y;
+    
+    this.draw = function() {
+        strokeWeight(3);
+        stroke(ORANGE);
+        line(0, this.y, width, this.y);
+    };
+    
+    this.mouseover = function() {
+        return abs(mouseY - this.y) <= 4;
+    };
+    
+    this.move = function() {
+        this.y += mouseY - pmouseY;
+    };
+};
+
+var Parabola = function(focus, directrix) {
+    this.update = function() {
+        var x1 = focus.x;
+        var y1 = directrix.y + 0.5 * (focus.y - directrix.y);
+        var a = 0.5 / (focus.y - directrix.y);
+    
+        this.getY = function(x) {
+            return a * (x - x1) * (x - x1) + y1;
+        };
+    };
+    this.update();
+};
+
+var focus = new DraggablePoint(focusX, focusY);
+var directrix = new DraggableLine(directrixY);
+var selectables = [focus, directrix];
+
+var parabola = new Parabola(focus, directrix);
+
+var drawParabola = function() {
+    strokeWeight(2);
+    stroke(GREEN);
+    
+    var dx = 5;
+    beginShape();
+    for (var x = 0; x < width; x += dx) {
+        var y = parabola.getY(x);
+        vertex(x, y);
+    }
+    endShape();
+};
+
+var drawConnection = function() {
+    var distDirectrix = abs(mouseY  - directrix.y);
+    var distFocus = dist(mouseX, mouseY, focus.x, focus.y);
+    
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    var x, y;
+    if (distDirectrix < distFocus || mouseX === focus.x) {
+        x = mouseX;
+        y = parabola.getY(x);
+    } else {
+        var dy = focus.y - directrix.y;
+        var a = 0.5 / dy;
+        var b = (focus.y - mouseY) / (focus.x - mouseX);
+        var c = 0.5 * dy;
+        
+        if ((mouseX - focus.x) * (directrix.y - focus.y) < 0) {
+            x = (b + sqrt(b * b + 1)) / (2 * a);   
+        } else {
+            x = (b - sqrt(b * b + 1)) / (2 * a);   
+        }
+        y = focus.y + x * b;
+        x += focus.x;
+    }
+    
+    var d = 2 * abs(y - directrix.y);
+    ellipse(x, y, d, d);
+    line(x, y, x, directrix.y);
+    line(x, y, focus.x, focus.y);
+    
+};
+
+var drawGrid = function() {
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    for (var x = 1; x < width / gridSize; x++) {
+        line(x * gridSize, 0, x * gridSize, height);
+    }
+    for (var y = 1; y < height / gridSize; y++) {
+        line(0, y * gridSize, width, y * gridSize);
+    }
+};
+
+var draw = function() {
+    background(BACKGROUND);
+    
+    drawGrid();
+    drawConnection();
+    drawParabola();
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].draw();
+    }
+};
+
+var mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseover()) {
+            selected = selectables[i];
+        }
+    }
+};
+
+var mouseReleased = function() {
+    selected = false;
+};
+
+var mouseDragged = function() {
+    if (selected) {
+        selected.move();
+    }
+    parabola.update();
+};

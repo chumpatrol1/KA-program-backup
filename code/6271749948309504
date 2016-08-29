@@ -1,0 +1,458 @@
+
+//Riskards, by Aidabaida
+var scene = 'menu';
+var enemyFade = 0;
+//Begun at 2:54 Eastern Time:10/11/15
+textFont(createFont('Segoe UI Light'));
+frameRate(max);
+ellipseMode(CENTER);
+
+// AI personality parameters
+var edgeWeight = 30;      // How much the enemy avoids the edges (not currently used)
+var playerWeight = 80;    // How much the enemy avoids the players
+var playerWeightDropOff = 4;
+var strategy = 'moveToTarget';
+//var strategy = 'playerWeight';
+//var strategy = 'avoidEdgesAndPlayers';
+var showValues = false;
+
+//sing with joy for arrays with strings!
+var board = [
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+    'aaaaaaaaaa',
+    'bbbbbbbbb',
+];
+
+var turns = 0;
+var revealTurn = 0;
+var revealed = false;
+
+var playerTurn = 0; // Which player is due to move
+var playerPos = [[0, 0], [8, 13]];
+var playerColors = [color(0, 0, 255), color(255, 255, 0)]; 
+var enemyPosition = [4, 4];
+var targetPosition = [4, 4];    // Where the enemy plans to move
+
+var widthGlobal = width / board[0].length;
+var heightGlobal = height / board.length;
+var noiseSize = (widthGlobal + heightGlobal) / 18;
+
+var mouseIsClicked = false;
+var mouseIsOut = false;
+var mouseIsDragged = false;
+var mouseIsReleased = false;
+var keyBePressed = false;
+
+var mouseOn = function(x, y, w, h){
+    return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+};
+
+var button = function(x, y, label){
+    this.x = x;
+    this.y = y;
+    this.label=label;
+    this.buttonColor = color(66, 107, 110, 100);
+    this.textColor = color(255, 255, 255);
+    this.action = false;
+    this.width = 90;
+    this.height = 40;
+};
+button.prototype.draw = function() {
+    stroke(255, 255, 255);
+    strokeWeight(2);
+    fill(this.buttonColor);
+    textSize(12);
+    rect(this.x, this.y, this.width, this.height, 10);
+    fill(this.textColor);
+    text(this.label, this.x+this.width/2, this.y+this.height/2+2);
+    
+    if (mouseOn(this.x, this.y, this.width, this.height)) {
+        cursor(HAND);
+        this.action = mouseIsClicked;
+        this.textColor = color(74, 67, 47);
+        this.buttonColor = color(45, 203, 214, 100);
+    } else {
+        this.textColor = color(255);
+        this.buttonColor = color(66, 107, 110, 100);
+    }
+  
+};
+var menuButton = new button(150, 300, 'P l a y');
+
+var block = function(x, y, size, col){
+    this.x = x;
+    this.y = y;
+    this.size = 2 * size / Math.SQRT2;
+    this.drawX = (x * 2 + 1 + y % 2) * size;
+    this.drawY = y * (size + 7.4);
+    
+    this.col = col;
+};
+
+block.prototype.draw = function() {
+    var thisPlayersTurn = false;
+    fill(this.col);
+    
+    // Color based on player on block
+    if (enemyFade && this.x === enemyPosition[0] && this.y === enemyPosition[1]) {
+        fill(255, 0, 0, enemyFade);
+    } else if (this.x === targetPosition[0] && this.y === targetPosition[1]) {
+        // For debugging purposes only
+        // fill(255, 255, 0);
+    } else {
+        // Check whether any player is on the block
+        for (var i = 0; i < playerPos.length; i++) {
+            var player = playerPos[i];
+            if (this.x === player[0] && this.y === player[1]) {
+                fill(playerColors[i]);
+                thisPlayersTurn = playerTurn === i;
+                break;
+            }
+        }
+    }
+    
+    pushMatrix();
+    translate(this.drawX, this.drawY);
+    rotate(45);
+    noStroke();
+    rect(0, 0, this.size, this.size);
+    
+    // Indicate whose turn it is
+    if (thisPlayersTurn) {
+        noFill();
+        strokeWeight(3);
+        stroke(0, 0, 0, 210);
+        var r = this.size * 0.5;
+        ellipse(r, r, r, r);
+    }
+    
+    popMatrix();
+    
+    fill(0);
+    textSize(12);
+    textAlign(CENTER, CENTER);
+    var y = this.drawY + this.size * 0.6;
+    //text("" + round(100 * this.tileValue) / 100, this.drawX, y);
+    //text("" + round(100 * this.playerWeight) / 100, this.drawX, y);
+    //text("" + round(100 * this.movementValue) / 100, this.drawX, y);
+    if (showValues) {
+        text("" + round(100 * this[strategy]) / 100, this.drawX, y);
+    }
+};
+
+// Create an array of blocks
+var createBlock = function(w, h) {
+    var blocks = [];
+    
+    for (var y = 0; y < h; y++) {
+        var rowLength = w - y % 2;
+        var row = [];
+        
+        for (var x = 0; x < rowLength; x++) {
+            var col = color(random(0, 61), random(0, 135), random(0, 148), 100);
+            var b = new block(x, y, 20, col);
+
+            // Calculate a weight for tile based on how close to the edge
+            // it is so the AI can avoid the edges
+            var dx = min(x, rowLength - x - 1);
+            var dy = min(y, board.length - y - 1);
+            b.tileValue = edgeWeight / (dx + dy + 3);
+            
+            row.push(b);
+        }
+        blocks.push(row);
+    }
+    
+    return blocks;
+};
+
+var blocks = createBlock(10, 14);
+
+//cache the noise background using techniques pioneered by Kaadmy and perfected by Peter Collingridge
+var noiseBackground = function(c, w, h) {
+    var x, y;
+    var c1 = color(82, 71, 25);
+    var c2 = color(170, 130, 100);
+    
+    for (x = 0; x <= w; x++) {
+        for (y = 0; y <= h; y++) {
+            c.stroke(lerpColor(c1, c2, noise(x * 0.01, y * 0.05) * 3 - 0.2));
+            c.point(x, y);
+        }
+    }
+    
+    return c;
+};
+var cachedimage;
+var c;
+var tileWidth = 50;
+var tileHeight = 50;
+var timetaken = 0;
+var cacheimage = function(imgFunction) {
+    //draw a separate canvas for the tiles
+    c = createGraphics(tileWidth * 2, tileHeight * 2, JAVA2D);
+    if (!c) { return; }
+    
+    timetaken = millis();
+    
+    //Create tile
+    c = imgFunction(c, tileWidth, tileHeight);
+    var tile = c.get(0, 0, tileWidth, tileHeight);
+    
+    //Flip tile in x
+    c.pushMatrix();
+    c.scale(-1, 1);
+    c.image(tile, -2 * tileWidth, 0);
+    c.popMatrix();
+    
+    //Get the two tiles
+    tile = c.get(0, 0, tileWidth * 2, tileHeight);
+    
+    //Flip tile in y
+    c.pushMatrix();
+    c.scale(1, -1);
+    c.image(tile, 0, -2 * tileHeight);
+    c.popMatrix();
+    
+    timetaken = millis() - timetaken;
+    return c.get();
+};
+//create an image!
+cachedimage = cacheimage(noiseBackground);
+//draw the image as a noise based background!
+var drawNoise = function(){
+    background(130, 245, 143);
+    
+    for (var x = 0; x <= width; x += tileWidth * 2) {
+        for (var y = 0; y <= height; y += tileHeight * 2) {
+            image(cachedimage, x, y);
+        }
+    }
+};
+
+var updateReveal = function() {
+    if (!revealTurn){
+        enemyFade += 5;
+    } else if (revealTurn === -1){
+        revealTurn = floor(random(3, 5));
+        enemyFade = 0;
+    }
+};
+
+/***************
+ * AI code here
+****************/
+// AI personality
+var findDistance = function(position1, position2) {
+    return abs(position1[0] - position2[0]) + abs(position1[1] - position2[1]);
+};
+
+// This is the block the enemy is trying to reach
+var getEnemyTargetLocation = function() {
+    var searching = true;
+    while (searching) {
+        // Stop searching the targetPosition hasn't been reach and is more
+        // than 4 spaces from the any player
+        if (findDistance(targetPosition, enemyPosition) > 0) {
+            searching = false;
+            
+            for (var i = 0; i < playerPos.length; i++) {
+                if (findDistance(targetPosition, playerPos[i]) < 4) {
+                    searching = true;
+                    break;
+                }
+            }
+        }
+        
+        if (searching) {
+            var y = floor(random() * board.length);
+            var x = floor(random() * board[y].length);
+            targetPosition = [x, y];
+        }
+    }
+};
+
+// For each block on the board, add a value for its distance from each player
+// The higher the value, the greater the danger from a player
+var findPlayerDistanceWeights = function() {
+    for (var i = 0; i < blocks.length; i++) {
+        var row = blocks[i];
+        
+        for (var j = 0; j < row.length; j++) {
+            var tile = row[j];
+            var value = 0;
+            
+            for (var k = 0; k < playerPos.length; k++) {
+                var player = playerPos[k];
+                var dx = abs(player[0] - tile.x);
+                var dy = abs(player[1] - tile.y);
+                value += playerWeight / (dx + dy + playerWeightDropOff);
+            }
+    
+            tile.playerWeight = value;
+            tile.avoidEdgesAndPlayers = value + tile.tileValue;
+        }
+    }
+};
+
+// For each tile, find the distance to the targetPosition
+// minus a weighting for the enemy position
+// Don't actually need to calculate this for each tile
+var findMovementValues = function() {
+    for (var i = 0; i < blocks.length; i++) {
+        var row = blocks[i];
+        for (var j = 0; j < row.length; j++) {
+            var tile = row[j];
+            var dx = abs(tile.x - targetPosition[0]);
+            var dy = abs(tile.y - targetPosition[1]);
+            tile.moveToTarget = dx + dy + tile.playerWeight;
+        }
+    }
+};
+
+var moveEnemy = function() {
+    // Update values for tiles
+    getEnemyTargetLocation();
+    findPlayerDistanceWeights();
+    findMovementValues();
+    
+    // Find favoured tile in the vicinity
+    var allowMoves = [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]];
+    
+    var minMove = Infinity;
+    var moveTo;
+    
+    for (var i = 0; i < allowMoves.length; i++) {
+        var x = enemyPosition[0] + allowMoves[i][0];
+        var y = enemyPosition[1] + allowMoves[i][1];
+        if (y >= 0 && y < board.length && x >= 0 && x < board[y].length) {
+            var value = blocks[y][x][strategy];
+            if (value < minMove) {
+                minMove = value;
+                moveTo = [x, y];
+            }
+        }
+    }
+    
+    enemyPosition = moveTo;
+};
+
+// Call now to get initial values
+moveEnemy();
+
+/***************
+ * AI code end
+****************/
+
+var updateTurn = function() {
+    turns++;
+    revealTurn--;
+    playerTurn++;
+    
+    if (playerTurn === playerPos.length) {
+        playerTurn = 0;
+        // Move AI after the last player has moved
+        moveEnemy();
+    }
+};
+
+var menu = function() {
+    drawNoise();
+    fill(139, 186, 183, 40);
+    rect(0, 0, 400, 400);
+    
+    textAlign(CENTER);
+    menuButton.draw();
+    textSize(60);
+    fill(151, 222, 211);
+    text("R i s k a r d s", 200, 200);
+    
+    if (menuButton.action) {
+        scene = 'map';
+    }
+};
+
+var drawMap = function(){
+    background(130, 245, 143);
+
+    // Draw blocks
+    for (var i = 0; i < blocks.length; i++) {
+        for (var j = 0; j < blocks[i].length; j++){
+            blocks[i][j].draw();
+        }
+    }
+};
+
+draw = function() {
+    cursor(ARROW);
+    
+    if (scene ==='map') {
+        drawMap();
+        updateReveal();
+    } else if (scene==='menu'){
+        menu();
+    }
+    
+    // reseteth the booleans
+    mouseIsClicked = false;
+    mouseIsDragged = false;
+    mouseIsReleased = false;
+    keyBePressed = false;
+};
+
+keyPressed = function(){
+    var player = playerPos[playerTurn];
+    var moveX = player[0];
+    var moveY = player[1];
+    var moved = true;
+    
+    if (keyCode === UP) {
+        moveY--;
+    } else if (keyCode === DOWN) {
+        moveY++;
+    } else if (keyCode === LEFT) {
+        moveX--;
+    } else if (keyCode === RIGHT) {
+        moveX++;
+    } else {
+        moved = false;
+    }
+    
+    if (moved) {
+        // Check player is still on the board
+        if (blocks[moveY] && blocks[moveY][moveX]) {
+            // Check players haven't collided
+            var collided = false;
+            for (var i = 0; i < playerPos.length; i++) {
+                // No need to check whether the player collides with itself
+                if (i === playerTurn) { continue; }
+                if (playerPos[i][0] === moveX && playerPos[i][1] === moveY) {
+                    collided = true;
+                    break;
+                }
+            }
+            if (!collided) {
+                // Move the player
+                playerPos[playerTurn] = [moveX, moveY];
+                updateTurn();
+            }
+        }
+    }
+};
+
+mouseClicked=function(){mouseIsClicked=true;};
+mouseOut=function(){mouseIsOut=true;};
+mouseOver=function(){mouseIsOut=false;};
+mouseDragged=function(){mouseIsDragged=true;};
+mouseReleased=function(){mouseIsReleased=true;};

@@ -1,0 +1,879 @@
+/*********************************************
+ * Your task is to create a scene with
+ * exactly 12 different robots. You can
+ * robots by combining robot types.
+ * Below are some proposed designs and
+ * the cost to make them.
+ * 
+ * You have a budget of $300.
+ *
+ * To do
+ *  - Fix use of pmouse
+**********************************************/ 
+var BACKGROUND = color(230, 240, 255);
+var GREY = color(160, 160, 160);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TOOLBAR = color(245, 245, 245);
+
+var state = 'options';
+var passState = false;
+var selected = false;
+var robots = [];
+
+var MAX_COST = 300;
+var NUM_ROBOTS = 12;
+var cost = 0;
+var partsSelected = 0;
+var transitionTime = 30;
+
+var toolbarX = 25;
+var toolbarWidth = 385;
+
+var tick = String.fromCharCode(0x2714);
+
+// Standard size for each part
+var partSizes = {
+    heads: {
+        width: 40,
+        height: 30
+    },
+    arms: {
+        width: 100,
+        height: 40
+    },
+    bodies: {
+        width: 50,
+        height: 50
+    }
+};
+
+// Each toolbar contains an array of draw functions (currently ugly placeholder images)
+var partImages = {
+    heads: [
+    {
+        cost: 25,
+        image : function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            rect(x - w * 0.12, y - 1, w * 0.24, h * 0.5 + 1);
+            rect(x - w * 0.5, y - h * 0.5, w, h * 0.5, w / 10);
+            fill(255);
+            rect(x - w * 0.35, y - h * 0.45, w * 0.2, h * 0.3, w * 0.2);
+            rect(x + w * 0.15, y - h * 0.45, w * 0.2, h * 0.3, w * 0.2);
+        }
+    },
+    {
+        cost: 50,
+        image: function(x, y, w, h) {
+                strokeWeight(2);
+                stroke(60);
+                line(x - w * 0.5, y - h * 0.2,
+                     x + w * 0.5, y - h * 0.2);
+                strokeWeight(5);
+                point(x - w * 0.5, y - h * 0.2);
+                point(x + w * 0.5, y - h * 0.2);
+                
+                strokeWeight(1);
+                stroke(100);
+                fill(200);
+                rect(x - w * 0.35, y - h * 0.5, w * 0.7, h, w * 0.2);
+                fill(255);
+                rect(x - w * 0.2, y - h * 0.4, w * 0.4, h * 0.3, w * 0.2);
+        }
+    },
+    {
+        cost: 75,
+        image: function(x, y, w, h) {
+                strokeWeight(1);
+                stroke(100);
+                fill(200);
+                ellipse(x, y, w * 0.8, h);
+                
+                fill(255, 255, 255);
+                ellipse(x, y - h * 0.1, w * 0.4, h * 0.5);
+                fill(0);
+                noStroke();
+                ellipse(x, y - h * 0.1, w * 0.3, h * 0.2);
+        }
+    },
+    {
+        cost: 100,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            ellipse(x, y + h * 0.1, w, h * 0.8);
+            
+            fill(255, 255, 255);
+            arc(x - w * 0.25, y - h * 0.25, w * 0.4, h * 0.35, 120, 360);
+            arc(x + w * 0.25, y - h * 0.25, w * 0.4, h * 0.35, 180, 420);
+        }
+    },
+    {
+        cost: 125,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            quad(x - w * 0.2, y + h * 0.5, x + w * 0.2, y + h * 0.5,
+                 x + w * 0.4, y - h * 0.5, x - w * 0.4, y - h * 0.5);
+                 
+            fill(255);
+            triangle(x + w * 0.2, y - h * 0.1,
+                     x + w * 0.06, y - h * 0.1,
+                     x + w * 0.13, y - h * 0.3);
+            triangle(x - w * 0.2, y - h * 0.1,
+                     x - w * 0.06, y - h * 0.1,
+                     x - w * 0.13, y - h * 0.3);
+        }
+    }
+    ],
+    arms: [
+    {
+        cost: 10,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            rect(x - w * 0.5, y + h * 0.12, w, h * 0.22);
+            rect(x - w * 0.3, y + h * 0.08, w * 0.6, h * 0.4);
+        },
+    },
+    {
+        cost: 20,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            rect(x - w * 0.2, y + h * 0.1, w * 0.4, h * 0.4);
+            quad(x - w * 0.2, y + h * 0.1,
+                 x - w * 0.2, y + h * 0.5,
+                 x - w * 0.5, y - h * 0.4,
+                 x - w * 0.5, y - h * 0.5);
+            quad(x + w * 0.2, y + h * 0.1,
+                 x + w * 0.2, y + h * 0.5,
+                 x + w * 0.5, y - h * 0.4,
+                 x + w * 0.5, y - h * 0.5);
+        },
+    },
+    {
+        cost: 40,
+        image: function(x, y, w, h) {
+            stroke(100);
+            fill(200);
+            strokeWeight(1);
+            rect(x - w * 0.15, y + h * 0.33, w * 0.3, h * 0.16);
+            
+            strokeWeight(w * 0.08);
+            noFill();
+            bezier(x + w * 0.15, y + h * 0.4,
+                   x + w * 0.55, y + h * 0.2,
+                   x + w * 0.15, y + h * -0.2,
+                   x + w * 0.45, y + h * -0.4);
+            bezier(x - w * 0.15, y + h * 0.4,
+                   x - w * 0.55, y + h * 0.2,
+                   x - w * 0.15, y + h * -0.2,
+                   x - w * 0.45, y + h * -0.4);
+            
+            strokeWeight(w * 0.066);
+            stroke(200);
+            noFill();
+            bezier(x + w * 0.15, y + h * 0.4,
+                   x + w * 0.55, y + h * 0.2,
+                   x + w * 0.15, y + h * -0.2,
+                   x + w * 0.45, y + h * -0.4);
+            bezier(x - w * 0.15, y + h * 0.4,
+                   x - w * 0.55, y + h * 0.2,
+                   x - w * 0.15, y + h * -0.2,
+                   x - w * 0.45, y + h * -0.4);
+            strokeWeight(w * 0.06);
+        }
+    }
+    ],
+    
+    bodies: [
+    {
+        cost: 30,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            rect(x - w * 0.12, y - h * 0.5, w * 0.24, h * 0.3);
+            rect(x - w * 0.4, y - h * 0.3, w * 0.8, h * 0.78, w / 5);
+            quad(x - w * 0.46, y + 0.35 * h, x + w * 0.46, y + 0.35 * h,
+                 x + w * 0.5, round(y + 0.5 * h), x - w * 0.5,  round(y + 0.5 * h));
+        },
+    },
+    {
+        cost: 60,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            ellipse(x - h * 0.3, y + w  * 0.35, w * 0.3, h * 0.3);
+            ellipse(x + h * 0.3, y + w  * 0.35, w * 0.3, h * 0.3);
+            ellipse(x, y, w * 0.9, h * 0.9);
+        },
+    },
+    {
+        cost: 90,
+        image: function(x, y, w, h) {
+            strokeWeight(3);
+            stroke(20);
+            fill(255);
+            ellipse(x - h * 0.3, y + h * 0.4, w * 0.2, h * 0.2);
+            ellipse(x, y + h * 0.4, w * 0.2, h * 0.2);
+            ellipse(x + h * 0.3, y + h * 0.4, w * 0.2, h * 0.2);
+            
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            quad(x - w * 0.5, y + h * 0.4, x + w * 0.5, y + h * 0.4,
+                 x + w * 0.3, y - h * 0.5, x - w * 0.3, y - h * 0.5);
+        },
+    },
+    {
+        cost: 120,
+        image: function(x, y, w, h) {
+            strokeWeight(1);
+            stroke(100);
+            fill(200);
+            
+            // Legs
+            quad(x - w * 0.2, y + h * 0.2, x - w * 0.3, y + h * 0.5,
+                 x - w * 0.5, y + h * 0.5, x - w * 0.2, y);
+            quad(x + w * 0.2, y + h * 0.2, x + w * 0.3, y + h * 0.5,
+                 x + w * 0.5, y + h * 0.5, x + w * 0.2, y);
+            
+            quad(x - w * 0.2, y + h * 0.3, x + w * 0.2, y + h * 0.3,
+                 x + w * 0.4, y - h * 0.5, x - w * 0.4, y - h * 0.5);
+        }
+    }
+    ]
+};
+
+var removeItemFromArray = function(item, arr) {
+    var i = arr.indexOf(item);
+    if (i !== -1) {
+        arr.splice(i, 1);
+    }
+    return item;
+};
+
+var getScale = function(y) {
+    return 500 / (1700 - y * 3);
+};
+
+var sortByY = function(a, b) {
+    return a.y - b.y;
+};
+
+/*********************************************
+ *      Robot
+ *  A head, body and arms
+**********************************************/ 
+
+var Robot = function(x, y, head, arms, body) {
+    this.x = x;
+    this.y = y;
+    this.head = partImages.heads[head].image;
+    this.arms = partImages.arms[arms].image;
+    this.body = partImages.bodies[body].image;
+};
+
+Robot.prototype.draw = function(s) {
+    s = s || getScale(this.y);
+    
+    pushMatrix();
+    translate(this.x, this.y);
+    scale(s);
+    this.arms(0, -18, partSizes.arms.width, partSizes.arms.height);
+    this.body(0, 0, partSizes.bodies.width, partSizes.bodies.height);
+    this.head(0, -34, partSizes.heads.width, partSizes.heads.height);
+    popMatrix();
+    
+};
+
+Robot.prototype.mouseOver = function() {
+    var s = getScale(this.y);
+    var dx = partSizes.arms.width * s * 0.5;
+    var dy = partSizes.bodies.height * s * 0.5;
+    var dy2 = partSizes.heads.height * s * 0.8;
+    
+    return mouseX >= this.x - dx && mouseX <= this.x + dx &&
+           mouseY >= this.y - dy - dy2 && mouseY <= this.y + dy;
+};
+
+Robot.prototype.overlap = function(that) {
+    var s1 = getScale(this.y);
+    var s2 = getScale(that.y);
+    var w1 = 50 * s1;
+    var w2 = 50 * s2;
+    var h1 = 30 * s1;
+    var h2 = 30 * s2;
+    
+    return this.x + w1 >= that.x - w2 &&
+           this.x - w1 <= that.x + w2 &&
+           this.y + h1 >= that.y - h2 &&
+           this.y - h1 <= that.y + h2;
+};
+
+Robot.prototype.move = function(dx, dy) {
+    this.y = constrain(this.y + dy, 60, height - 50);
+    var s = getScale(this.y);
+    this.x = constrain(this.x + dx, 50 * s, width - 50 * s);
+};
+
+// Move robot to nice position for making a scene
+Robot.prototype.transit = function(i) {
+    var targetX = round(((i % 6) + 0.5) * width / 6);
+    var targetY = round(height - 100 + floor(i / 6) * 65);
+    var speed = 5;
+    
+    for (var s = 0; s < speed; s++) {
+        if (round(this.x) > targetX) {
+            this.x--;
+        } else if (round(this.x) < targetX) {
+            this.x++;
+        } else {
+            break;
+        }
+    }
+    
+    for (var s = 0; s < speed; s++) {
+        if (round(this.y) > targetY) {
+            this.y--;
+        } else if (round(this.y) < targetY) {
+            this.y++;
+        } else {
+            break;
+        }
+    }
+};
+
+// Add all combinations of heads arms and bodies to the scene
+var updateRobots = function(heads, arms, bodies) {
+    var combinations = heads.length * arms.length * bodies.length;
+    robots = [];
+    
+    if (combinations === 0) {
+        return;
+    }
+    
+    var startX = toolbarX + toolbarWidth + 90;
+    var x = startX;
+    var y = 210;
+    var dx = 95;
+    var dy = min(80, 220 / (ceil(combinations / 4) - 1));
+    var row = 0;
+    
+    for (var i = 0; i < heads.length; i++) {
+        var head = heads[i];
+        
+        for (var j = 0; j < arms.length; j++) {
+            var arm = arms[j];
+            
+            for (var k = 0; k < bodies.length; k++) {
+                var body = bodies[k];
+
+                robots.push(new Robot(x, y, head, arm, body));
+                x += dx;
+                if (x > width - 40) {
+                    row++;
+                    x = startX;
+                    if (dy < 80) {
+                        x += (row % 2 - 0.5) * 50;    
+                    }
+                    y += dy;
+                }
+            }
+        }
+    }
+};
+
+/*********************************************
+ *      PartsBin object
+ *  A collection of parts which can be selected
+ *********************************************/
+
+var PartsBin = function(x, y, width, name, parts) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.name = name;
+    this.nameUpper = this.name.toUpperCase();
+    
+    this.partWidth = partSizes[name].width;
+    this.partHeight = partSizes[name].height;
+    this.height = this.partHeight + 40;
+    this.dx = (toolbarWidth - 25) / parts.length;
+    
+    // Add array of part draw functions
+    this.parts = [];
+    this.costs = [];
+    this.selected = [];
+    
+    for (var i = 0; i < parts.length; i++) {
+        this.parts.push(parts[i].image);
+        this.costs.push(parts[i].cost);
+    }
+
+};
+
+PartsBin.prototype.draw = function() {
+    noStroke();
+    fill(0, 0, 0, 60);
+    rect(this.x + 2, this.y + 3, this.width, this.height, 8);
+    
+    if (this.mouseOver()) {
+        fill(253);
+    } else {
+        fill(TOOLBAR);   
+    }
+    rect(this.x, this.y, this.width, this.height, 8);
+
+
+    // Label
+    fill(20);
+    textSize(17);
+    textAlign(CENTER, TOP);
+    pushMatrix();
+    translate(this.x + 2, this.y + this.height / 2);
+    rotate(270);
+    text(this.nameUpper, 0, 0);
+    popMatrix();
+    
+    var x = this.x + 25;
+    var y = this.y + this.height * 0.42;
+    for (var i = 0; i < this.parts.length; i++) {
+        if (this.mouseOverPart(i)) {
+            noStroke();
+            fill(100, 225, 100);
+            rect(x, this.y + 1, this.dx - 1, this.height - 2, 8);
+        }
+        
+        x += this.dx * 0.5;
+        this.parts[i](x, y, this.partWidth, this.partHeight);
+        
+        // Price
+        fill(20);
+        textSize(14);
+        textAlign(CENTER, CENTER);
+        text("$" + this.costs[i], x, this.y + this.height - 10);
+        
+        // Draw tick
+        if (this.selected.indexOf(i) !== -1) {
+            textAlign(CENTER, CENTER);
+            textSize(72);
+            fill(0, 200, 0);
+            text(tick, x, y);   
+        }
+        x += this.dx * 0.5;
+    }
+    
+};
+
+PartsBin.prototype.getCost = function() {
+    var totalCost = 0;
+    for (var i = 0; i < this.selected.length; i++) {
+        totalCost += this.costs[this.selected[i]];
+    }
+    return totalCost;
+};
+
+PartsBin.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.width &&
+           mouseY >= this.y && mouseY <= this.y + this.height;
+};
+
+PartsBin.prototype.mouseOverPart = function(i) {
+    var x = this.x + 25 + i * this.dx;
+    return mouseX >= x && mouseX <= x + this.dx - 1 &&
+           mouseY >= this.y && mouseY <= this.y + this.height + 9;
+};
+
+PartsBin.prototype.select = function() {
+    for (var i = 0; i < this.parts.length; i++) {
+        if (this.mouseOverPart(i)) {
+            var index = this.selected.indexOf(i);
+            if (index === -1) {
+                this.selected.push(i);    
+            } else {
+                this.selected.splice(index, 1);   
+            }
+            return true;
+        }
+    }
+};
+
+/*********************************************
+ *  GUI Button
+**********************************************/
+
+var Button = function(x, y, w, h, name, clickFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.strokeColour = color(255, 30, 20);
+    this.showing = true;
+    this.box = this.h - 6;
+    this.clickFunction = clickFunction;
+};
+
+Button.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+Button.prototype.click = function() {
+    if (this.clickFunction) {
+        this.clickFunction();
+    }
+};
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    if (this.mouseOver()) {
+        fill(255);
+    } else {
+        fill(TOOLBAR);
+    }
+    strokeWeight(3);
+    stroke(this.strokeColour);
+    rect(this.x, this.y - 1, this.w, this.h + 3, 20);
+    
+    fill(20);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+/*********************************************
+ *      Initialising objects
+**********************************************/
+
+var makeToolbars = function() {
+    var x = toolbarX;
+    var y = 170;
+    var w = toolbarWidth;
+    var bins = [];
+    
+    for (var part in partImages) {
+        var parts = partImages[part];
+        var bin = new PartsBin(x, y, w, part, parts);
+        bins.push(bin);
+        y += bin.height + 24;
+    }
+    
+    return bins;
+};
+
+var bins = makeToolbars();
+
+var makeScene = function() {
+    state = 'transition';
+    var robot, x, y;
+    
+    for (var i = 0; i < robots.length; i++) {
+        robot = robots[i];
+        if (i < 7) {
+            x = round((i + 0.5) * width / 7);
+            y = height - 150;
+        } else {
+            x = round((i - 6.5) * width / 5);
+            y = height - 60;
+        }
+        robot.dx = (x - robot.x) / transitionTime;
+        robot.dy = (y - robot.y) / transitionTime;
+    }
+    
+};
+
+var nextButton = new Button((width + toolbarX + toolbarWidth - 290) / 2, height - 50, 300, 30, "", makeScene);
+
+/*********************************************
+ *      Draw functions
+**********************************************/
+var makeStars = function(n) {
+    var stars = [];
+    for (var i = 0; i < n; i++) {
+        var x = floor(width * random());
+        var y = floor(160 * random());
+        stars.push([x, y]);
+    }
+    return stars;
+};
+var stars = makeStars(50);
+
+// To be replaced with something more interesting
+var SKY1 = color(40, 70, 160);
+var SKY2 = color(235, 220, 205);
+var LAND1 = color(225, 165, 130);
+var LAND2 = color(210, 140, 120);
+var LAND3 = color(200, 160, 130);
+var ROAD = color(185, 115, 85);
+
+var drawBackground = function() {
+    // Sky
+    strokeWeight(1);
+    var h = 140;
+    for (var i = 0; i < h; i++) {
+        stroke(lerpColor(SKY1, SKY2, i / h));
+        line(0, i, width, i + 1);
+    }
+    
+    // Stars
+    stroke(255);
+    for (var i = 0; i < stars.length; i++) {
+        point(stars[i][0], stars[i][1]);
+    }
+
+    var x = 0;
+    var y = h;
+    noStroke();
+    fill(LAND2);
+    rect(x, y, width, height);
+    
+    var d = [[0, 0], [0, 0], [50, -70], [100, -30], [100, 40], [80, -20], [100, 20], [120, -40], [100, 50], [100, 30], [80, -60], [80, 80]];
+    
+    fill(LAND3);
+    beginShape();
+    for (var i = 0; i < d.length; i++) {
+        x += d[i][0];
+        y += d[i][1];
+        curveVertex(x, y);
+    }
+    endShape(CLOSE);
+
+    var x = 0;
+    var y = h + 10;
+
+    d = [[0, 0], [0, 0], [0, -60], [40, -30], [80, 70], [80, -30], [80, 0], [120, -40], [80, 50], [120, -10], [80, 30], [80, -15], [80, 25], [80, -10], [80, 20]];
+    
+    fill(LAND1);
+    beginShape();
+    for (var i = 0; i < d.length; i++) {
+        x += d[i][0];
+        y += d[i][1];
+        curveVertex(x, y);
+    }
+    endShape(CLOSE);
+
+    // Rock
+    var x = width - 200;
+    var y = height - 100;
+    beginShape();
+    vertex(x + 120, y);
+    vertex(x, y);
+    curveVertex(x + 20, y - 40);
+    curveVertex(x + 70, y - 50);
+    curveVertex(x + 90, y - 70);
+    curveVertex(x + 120, y - 60);
+    curveVertex(x + 140, y - 30);
+    curveVertex(x + 160, y);
+    endShape(CLOSE);
+
+    // Road
+    fill(ROAD);
+    quad(width / 2 - 180, height, width / 2 - 40, height,
+         width / 2 + 12, h + 10, width / 2 - 12, h + 10);
+    
+    fill(0);
+    arc(width / 2, h + 10, 24, 36, 181, 360);
+
+};
+
+var drawIntroduction = function() {
+    strokeWeight(3);
+    stroke(20, 60, 160);
+    fill(TOOLBAR);
+    
+    var w = 370;
+    var x = toolbarX + toolbarWidth * 0.5;
+    var y = 50;
+    rect(x - w / 2, y, w, 64, 20);
+    
+    fill(20);
+    textSize(15);
+    textAlign(CENTER, TOP);
+    
+    text("Select a subset of heads, bodies, and arms so that\ncombining them in all possible ways creates a crowd\nof exactly " + NUM_ROBOTS + " robots. You have a budget of $" + MAX_COST + ".", x, y + 6);
+
+};
+
+var updateButton = function() {
+    passState = false;
+    
+    if (bins[0].selected.length === 0) {
+        nextButton.name = "You need to select at least one head!";
+    } else if (bins[1].selected.length === 0) {
+        nextButton.name = "You need to select at least one set of arms!";
+    } else if (bins[2].selected.length === 0) {
+        nextButton.name = "You need to select at least one body!";
+    } else if (robots.length < NUM_ROBOTS) {
+        var txt = "Only " + robots.length + " combination";
+        txt += (robots.length === 1 ? "" : "s");
+        txt += " are possible!";
+        nextButton.name = txt;
+    } else if (robots.length > NUM_ROBOTS) {
+        nextButton.name = "Too many combinations (" +  robots.length + ")!";
+    }  else if (cost > MAX_COST) {
+        nextButton.name = "Too expensive!";
+    } else {
+        passState = true;
+        nextButton.name = "Congratulations! Click to continue.";
+    }
+    
+    if (passState) {
+        nextButton.strokeColour = color(20, 60, 160);
+    } else {
+        nextButton.strokeColour = color(255, 30, 20);
+    }
+
+};
+
+// Write information about the current selection
+var drawSelectionInfo = function() {
+    fill(20);
+    textSize(14);
+    textAlign(LEFT, BASELINE);
+    
+    var x = toolbarX + 3;
+    var y = height - 16;
+    var txt = partsSelected + " part";
+    txt += (partsSelected === 1 ? '' : 's');
+    txt += " selected for a cost of ";
+
+    text(txt, x, y);
+    x += textWidth(txt);
+    
+    if (cost > MAX_COST) {
+        fill(255, 0, 0);
+    }
+    
+    txt = "$" + cost + ". "; 
+    text(txt, x, y);
+    x += textWidth(txt);
+    
+    if (robots.length === 12) {
+        fill(20);
+    } else {
+        fill(255, 0, 0);
+    }
+    
+    txt = robots.length + " possible combination";
+    txt += (robots.length === 1 ? '.' : 's.');
+    
+    //text(txt, x, y);
+    
+};
+
+var drawSelectionPage = function() {
+    for (var i = 0; i < bins.length; i++) {
+        bins[i].draw();
+    }
+    
+    drawIntroduction();
+    updateButton();
+    drawSelectionInfo();
+    
+    if (passState) {
+        nextButton.draw();
+    }
+};
+
+/*********************************************
+ *      Main loop
+**********************************************/
+
+draw = function() {
+    drawBackground();
+    
+    var s;
+    if (state === 'options') {
+        drawSelectionPage();
+        s = 0.8;
+    } else if (state === 'transition') {
+        s = 0.8;
+        for (var i = 0; i < robots.length; i++) {
+            robots[i].move(robots[i].dx, robots[i].dy);
+        }
+        transitionTime--;
+        if (transitionTime === 0) {
+            state = 'scene';
+        }
+    } else {
+        strokeWeight(3);
+        stroke(20, 60, 160);
+        fill(TOOLBAR);
+        
+        var w = 220;
+        var x = 10 + w * 0.5;
+        rect(x - w / 2, 5, w, 28, 20);
+        
+        fill(20);
+        textSize(14);
+        textAlign(CENTER, TOP);
+        text("Create a scene with your robots.", x, 11);
+    }
+    
+    for (var i = 0; i < robots.length; i++) {
+        robots[i].draw(s);
+    }
+};
+
+/*********************************************
+ *      Event handling
+**********************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < robots.length; i++) {
+        if (robots[i].mouseOver()) {
+            selected = robots[i];
+        }
+    }
+};
+
+mouseDragged = function() {
+    if (state === 'scene' && selected) {
+        selected.move(mouseX - pmouseX, mouseY - pmouseY);
+        robots.sort(sortByY);
+    }
+};
+
+mouseReleased = function() {
+    if (state === 'options') {
+        // Toolbar interactions
+        for (var i = 0; i < bins.length; i++) {
+            if (bins[i].select()) {
+                var heads = this.bins[0].selected;
+                var arms = this.bins[1].selected;
+                var bodies = this.bins[2].selected;
+                updateRobots(heads, arms, bodies);
+                
+                partsSelected = heads.length +
+                                arms.length +
+                                bodies.length;
+
+                cost = this.bins[0].getCost() +
+                       this.bins[1].getCost() +
+                       this.bins[2].getCost();
+                
+                updateRobots(heads, arms, bodies);
+                break;
+            }
+        }
+        if (passState && nextButton.mouseOver()) {
+            nextButton.click();
+        }
+    }
+    
+    selected = false;
+};

@@ -1,0 +1,56 @@
+var stage = 1;
+var username = "Jonathan1";
+var pasword = "codeiscool";
+var usertype = "J";
+var passtype = "";
+var passtype2 = "";
+//var userclick = false;
+//var passclick = false;
+
+var textbox = false;
+
+var login = function(){
+     fill(255, 255, 255);
+     rect(100,177,200,22);
+     rect(100,237,200,22);
+     textSize(30);
+     textAlign(CENTER,CENTER);
+     fill(0);
+     text("Log-in",200,100);
+     textSize(20);
+     text("Username",200,163);
+     text("Password",200,224);
+     textAlign(LEFT,RIGHT);
+     text(usertype, 105, 195);
+     text(passtype, 105, 255);
+};
+
+draw = function() {
+     background(25, 232, 67);
+     fill(37, 22, 153);
+     rect(50,50,300,300);
+     switch(stage){
+         case 1://login
+          login();
+     }
+};
+
+var mouseReleased = function() {
+    textbox = false;
+    if (mouseX > 100 && mouseX < 300) {
+        if (mouseY > 177 && mouseY < 199) {
+            textbox = 'username';
+        } else if (mouseY > 237 && mouseY < 259) {
+            textbox = 'password';
+        }
+    }
+};
+
+var keyReleased = function() {
+    if (textbox === 'password') {
+        passtype += ".";
+        passtype2 += str(key);
+    } else if (textbox === 'username') {
+        usertype += str(key);
+    }
+};

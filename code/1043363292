@@ -1,0 +1,39 @@
+/**********************************************************
+ * Rendering a sphere pixel-by-pixel
+***********************************************************/
+
+var r = 100;     // Radius
+var r2 = r*r;
+var step1 = 90/r;
+
+// Position of light source - try moving these
+var lightX = -14;
+var lightY = -11;
+
+var stripes = 4;
+
+translate(200, 200);
+
+for (var y = -r+1; y < r; y++){
+    var d = sqrt(r2 - y*y);
+    var step2 = 90 / d;
+    var c1 = max(0, cos((y - lightY) * step1));
+    
+    for (var x = -d; x < d; x++) {
+        var c2 = c1 * max(0, cos((x - lightX) * step2));
+        var redC = 10 + round(240 * c2);
+        
+        // Make stripes
+        if (round(stripes * x / d) % 2 === 0) {
+            stroke(color(redC, 0, 0));
+        } else {
+            stroke(color(redC, redC, redC));
+        }
+        point(x, y);
+        
+    }
+}
+
+noFill();
+stroke(0, 0, 0);
+ellipse(0, 0, r*2, r*2);

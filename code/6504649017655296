@@ -1,0 +1,366 @@
+/**
+ * Add to exercise
+ * Create pan and box objects
+**/
+
+
+var BLUE = color(100, 150, 237);
+var PURPLE = color(157, 56, 189);
+var serifFont = createFont('serif', 48);
+var impactFont = createFont('impact', 15);
+var BUTTON_RADIUS = 16;
+
+var characters = {
+    "Spunky Sam": getImage("avatars/spunky-sam"),
+    "Mr Pink": getImage("avatars/mr-pink"),
+    "Orange Juice Squid": getImage("avatars/orange-juice-squid"),
+    "Purple Pi": getImage("avatars/purple-pi"),
+    "Mr Pants": getImage("avatars/mr-pants"),
+    "Old Spice Man": getImage("avatars/old-spice-man"),
+};
+
+var character = Program.settings().character || "Spunky Sam";
+var characterMass = parseFloat(Program.settings().mass || 3);
+var extraBoxes = parseFloat(Program.settings().boxes || 6);
+var characterImage = characters[character];
+
+//println(character);
+//println(characterImage);
+
+// Circular button
+var Button = function(x, y, name, trigger, disableCondition) {
+    this.x = x;
+    this.y = y;
+    this.r = BUTTON_RADIUS;
+    this.name = name;
+    
+    this.trigger = trigger;
+    this.disableCondition = disableCondition;
+    
+    this.transition = 0;
+    this.color = color(220);
+    this.highlightColor = color(0, 200, 0);
+};
+
+Button.prototype.draw = function() {
+    var c1, c2;
+    if (this.disableCondition()) {
+        c1 = color(160);
+        c2 = color(100);
+        noStroke();
+        if (this.mouseOver()) {
+            cursor('not-allowed');
+        }
+    } else {
+        if (this.mouseOver()) {
+            cursor(HAND);
+        }
+        this.fade();
+        c1 = (lerpColor(this.color, this.highlightColor, this.transition / 10));
+        c2 = color(20);
+    }
+    
+    fill(c1);
+    noStroke();
+    ellipse(this.x, this.y, this.r * 2, this.r * 2);
+    
+    fill(c2);
+    textFont(serifFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y);
+};
+
+Button.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+
+Button.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+
+Button.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+Button.prototype.mouseReleased = function() {
+    if (this.selected && !this.disableCondition() && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+// Add box that moves and fades either in or out
+var FadeBox = function(x, y, size, dir, pan) {
+    this.x = x;
+    this.y = y;
+    this.size = size;
+    this.dir = dir;
+    this.pan = pan;
+    this.animation = 20;
+};
+
+FadeBox.prototype.draw = function() {
+    if (this.animation > 1) {
+        this.animation--;
+        var p = (this.dir === 1 ? this.animation / 20 : 1 - this.animation / 20);
+    
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textFont(impactFont);
+        fill(PURPLE + (floor((1 - p) * 255) << 24));
+        
+        var by = this.y - 50 * p;
+        rect(this.x, by, this.size, this.size);
+        fill(255, 255, 255, 255 - 255 * p);
+        text("1", this.x + this.size * 0.5, by + this.size * 0.5 + 1);
+    }
+};
+
+// Main balance object
+var Balance = {
+    color: BLUE,
+    x: 200,
+    y: 80,
+    width: 240,
+    height: 150,
+    angle: 0,
+    newAngle: 0,
+    deltaHeight: 0,     // Change in beam height due to rotation
+    anchor: 108,        // Where pan wires attach to beam
+    panWidth: 140,
+    panHeight: 120,     // Distance from pan to beam
+    panContents: [0, 0],
+    totalPanContents: [0, 0],
+    boxSize: 19,
+    boxPositions: [
+        [-1, 0], [0, 0], [-0.5, 1], [-2, 0], [-1.5, 1],
+        [-1, 2], [1, 0], [0.5, 1], [0, 2], [-0.5, 3]
+    ],
+    fadeBoxes: [],
+    
+    init: function(boxesOnLeft, boxesOnRight) {
+        this.panContents = [boxesOnLeft, boxesOnRight];
+        this.totalPanContents = [boxesOnLeft, boxesOnRight];
+        this.balance();
+    },
+    
+    draw: function() {
+        if (this.angle > this.newAngle) {
+            this.angle--;
+            this.deltaHeight = this.anchor * tan(this.angle);
+        } else if (this.angle < this.newAngle) {
+            this.angle++;
+            this.deltaHeight = this.anchor * tan(this.angle);
+        }
+        
+        pushMatrix();
+        translate(this.x, this.y);
+        
+        // Base
+        var base = 24;
+        noStroke();
+        fill(BLUE);
+        triangle(0, this.height - 5, -base, this.height + base, base, this.height + base);
+        
+        // Upright
+        strokeWeight(10);
+        stroke(this.color);
+        line(0, 0, 0, this.height);
+        
+        this.drawPan(-this.anchor, -this.deltaHeight, 0);
+        this.drawPan(this.anchor, this.deltaHeight, 1);
+        
+        for (var i = this.fadeBoxes.length; i--;) {
+            var box = this.fadeBoxes[i];
+            box.draw();
+            if (box.animation <= 1) {
+                if (box.dir === 1) {
+                    this.panContents[box.pan]++;
+                }
+                this.fadeBoxes.splice(i, 1);
+            }
+        }
+        
+        // Draw character
+        var cs = 60;
+        var cx = -this.panWidth / 2 - this.anchor;
+        var cy = this.panHeight - this.deltaHeight - 60;
+        image(characterImage, cx, cy, 60, 60);
+        
+        // Cross beam
+        rotate(this.angle);
+        stroke(BLUE);
+        strokeWeight(6);
+        line(-this.width / 2, 0, this.width / 2, 0);
+        
+        // Pointer
+        strokeWeight(3);
+        line(0, 0, 0, -16);
+        
+        // Pivot
+        fill(255);
+        strokeWeight(6);
+        ellipse(0, 0, 20, 20);
+    
+        popMatrix();
+      
+        this.drawEquation(this.x, this.y + this.height + 70);
+    
+    },
+    
+    getBoxPosition: function(pan) {
+        var x = 0;
+        var y = this.panHeight - this.boxSize - 3;
+        
+        if (pan === 0) {
+            x -= this.anchor - this.panWidth * 0.23;
+            y -= this.deltaHeight;
+        } else {
+            x += this.anchor;
+            y += this.deltaHeight;
+        }
+        
+        return { x: x, y: y };
+    },
+    
+    drawPan: function(x, y, pan) {
+        var w = this.panWidth / 2;
+        var y2 = y + this.panHeight;
+        
+        // Wires
+        stroke(0);
+        strokeWeight(1);
+        line(x, y, x - w, y2);
+        line(x, y, x + w, y2);
+        
+        // Pans
+        stroke(BLUE);
+        strokeWeight(6);
+        line(x - w, y2, x + w, y2);
+        
+        // Draw contents
+        var s = this.boxSize;
+        var pos = this.getBoxPosition(pan);
+
+        noStroke();
+        textAlign(CENTER, CENTER);
+        textFont(impactFont);
+        for (var i = 0; i < this.panContents[pan]; i++) {
+            fill(PURPLE);
+            var bx = pos.x + this.boxPositions[i][0] * (s + 1);
+            var by = pos.y - this.boxPositions[i][1] * (s + 1);
+            rect(bx, by, s, s);
+            fill(255);
+            text("1", bx + s * 0.5, by + s * 0.5 + 1);
+        }
+    },
+    
+    drawEquation: function(x, y) {
+        var cx = x - this.panWidth / 2 - this.anchor;
+        image(characterImage, cx, y - 30, 60, 60);
+        
+        fill(0);
+        textFont(serifFont);
+        textAlign(LEFT, CENTER);
+        if (this.panContents[0]) {
+            text("+ " + this.panContents[0], cx + 60, y + 5);
+        }
+        
+        textAlign(CENTER, CENTER);
+        text(this.angle ? "≠" : "=", x, y + 5);
+        text(this.panContents[1], x + this.anchor, y + 5);
+    },
+    
+    rotate: function(angle) {
+        this.angle = angle;
+        this.deltaHeight = this.anchor * tan(this.angle);
+    },
+    
+    addBox: function(pan) {
+        var n = this.panContents[pan];
+        this.totalPanContents[pan]++;
+        var s = this.boxSize;
+        var pos = this.getBoxPosition(pan);
+        var x = pos.x + this.boxPositions[n][0] * (s + 1);
+        var y = pos.y - this.boxPositions[n][1] * (s + 1);
+        
+        this.fadeBoxes.push(new FadeBox(x, y, s, 1, pan));
+        this.balance();
+    },
+    
+    removeBox: function(pan) {
+        var n = --this.panContents[pan];
+        this.totalPanContents[pan]--;
+        var s = this.boxSize;
+        var pos = this.getBoxPosition(pan);
+        var x = pos.x + this.boxPositions[n][0] * (s + 1);
+        var y = pos.y - this.boxPositions[n][1] * (s + 1);
+        
+        this.fadeBoxes.push(new FadeBox(x, y, s, -1, pan));
+        this.balance();
+    },
+    
+    balance: function() {
+        var difference = this.totalPanContents[1] - (this.totalPanContents[0] + characterMass);
+        this.newAngle = 16 * Math.sign(difference);
+        
+        if (difference === 0 && this.panContents[0] === 0) {
+            //println("t");
+            Program.runTest(function() { return true; });
+        } else {
+            //println("f");
+            Program.runTest(function() { return false; });
+        }
+    }
+};
+
+Balance.init(extraBoxes, min(10, extraBoxes + characterMass));
+
+var buttonY = 25;
+var buttons = [
+    new Button(70, buttonY, "-1",
+        function() { Balance.removeBox(0); },
+        function() { return Balance.panContents[0] < 1; }),
+    new Button(110, buttonY, "+1",
+        function() { Balance.addBox(0); },
+        function() { return Balance.totalPanContents[0] > 9; }),
+    new Button(290, buttonY, "-1",
+        function() { Balance.removeBox(1); },
+        function() { return Balance.panContents[1] < 1; }),
+    new Button(330, buttonY, "+1",
+        function() { Balance.addBox(1); },
+        function() { return Balance.totalPanContents[1] > 9; }),
+];
+
+draw = function() {
+    background(255);
+    cursor('default');
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+    Balance.draw();
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].mousePressed();
+    }
+};
+
+mouseReleased = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].mouseReleased();
+    }
+};
+
+mouseOut = mouseReleased;
+
+

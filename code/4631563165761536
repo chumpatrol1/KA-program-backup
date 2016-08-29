@@ -1,0 +1,118 @@
+/***************************************************************
+ * Click and drag the mouse to scribble.
+ * Release the mouse to convert the scribble into an ellipse
+***************************************************************/
+
+// Colours
+var PAGE_COLOUR = color(240, 240, 255);
+var POINT_COLOUR = color(100, 80, 240, 180);
+var SHAPE_COLOUR = color(16, 160, 16, 100);
+
+var points = [];
+var ellipses = [];
+
+// Use PCA to find optimum ellipse to cover points
+var findEllipse = function() {
+    var n = points.length;
+    var meanX2 = 0;     // Mean of x squared
+    var meanY2 = 0;     // Mean of y squared
+    var meanXY = 0;     // Mean of x times y
+    var meanX = 0;
+    var meanY = 0;
+    
+    for (var p in points) {
+        var x = points[p][0];
+        var y = points[p][1];
+        meanX += x;
+        meanY += y;
+        meanX2 += x * x;
+        meanY2 += y * y;
+        meanXY += x * y;
+    }
+    
+    meanX /= n;
+    meanY /= n;
+    meanX2 /= n;
+    meanY2 /= n;
+    meanXY /= n;
+    
+    var varX = meanX2 - meanX * meanX;
+    var varY = meanY2 - meanY * meanY;
+    var coVar = meanXY - meanX * meanY;
+    
+    var sumvars = varX + varY;
+    var diffvars = varX - varY;
+    var discriminant = diffvars * diffvars + 4 * coVar * coVar;
+    var sqrtdiscr = sqrt(discriminant);
+    
+    // Eigenvalues
+    var lambdaplus = (sumvars + sqrtdiscr) / 2;
+    var lambdaminus = (sumvars - sqrtdiscr) / 2;
+    
+    // Eigenvectors
+    var aplus = varX + coVar - lambdaminus;
+    var bplus = varY + coVar - lambdaminus;
+    var aminus = varX + coVar - lambdaplus;
+    var bminus = varY + coVar - lambdaplus;
+
+    var denomPlus = dist(0, 0, aplus, bplus);
+    var denomMinus= dist(0, 0, aminus, bminus);
+    
+    var aParallel = aplus/denomPlus;
+    var bParallel = bplus/denomPlus;
+    var aNormal = aminus/denomMinus;
+    var bNormal = bminus/denomMinus;
+
+    var major = 4 * sqrt(lambdaplus);
+    var minor = 4 * sqrt(lambdaminus);
+
+    var theta = -atan2(aplus, bplus);
+
+    ellipses.push([meanX, meanY, minor, major, theta]);
+};
+
+var drawScribble = function() {
+    stroke(POINT_COLOUR);
+    strokeWeight(2);
+    
+    if (points.length > 1) {
+        var x = points[0][0];
+        var y = points[0][1];
+        for (var i = 1; i < points.length; i++) {
+            var x2 = points[i][0];
+            var y2 = points[i][1];
+            line(x, y, x2, y2);
+            x = x2;
+            y = y2;
+        }   
+    }
+};
+
+var drawShapes = function() {
+    noStroke();
+    fill(SHAPE_COLOUR);
+    for (var i = 0; i < ellipses.length; i++) {
+        var e = ellipses[i];
+        translate(e[0], e[1]);
+        rotate(e[4]);
+        ellipse(0, 0, e[2], e[3]);
+        resetMatrix();
+    }
+};
+
+var draw = function() {
+    background(PAGE_COLOUR);
+    drawScribble();
+    drawShapes();
+};
+
+var mouseDragged = function() {
+    points.push([mouseX, mouseY]);
+};
+
+var mouseReleased = function() {
+    if (points.length > 2) {
+        findEllipse();
+        points = [];
+    }
+};

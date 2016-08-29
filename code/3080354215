@@ -1,0 +1,270 @@
+var BLUE = color(154, 184, 237);
+var BLUE2 = color(101, 123, 237);
+var ORANGE = color(255, 165, 0);
+var ORANGE2 = color(255, 201, 102);
+var sansFont = createFont('Proxima Nova', 14);
+textFont(sansFont, 14);
+
+var LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+var GRAPHSCALE = 600;
+var shift = 0;
+var selected = false;
+
+// Position of letter line
+var lx = 12;
+var ly = 35;
+
+// Distance between letters
+var dx = 15;
+
+// End of line
+var lx2 = lx + 25 * dx;
+
+/*******************************************************
+ *  Set-up message
+********************************************************/
+
+var applyCaesarCipher = function(msg, shift) {
+    var cipher = "";
+    shift += 26;
+
+    for (var i = 0, len = msg.length; i < len; i++) {
+        if (msg[i] >= "a" && msg[i] <= "z") {
+            cipher = cipher + LETTERS[(LETTERS.indexOf(msg[i]) + shift) % 26];
+        } else {
+            cipher = cipher + msg[i];
+        }
+    }
+
+    return cipher;
+};
+
+var message = Program.settings().message;
+var plainText = message || "i have learned all kinds of different things from using khan academy";
+
+var usedShift = Program.settings().shift;
+if (usedShift) {
+    usedShift = parseFloat(usedShift);
+} else {
+    usedShift = 5;
+}
+
+var cipher = applyCaesarCipher(plainText, usedShift);
+
+var decryptedMessage = cipher;
+
+/*******************************************************
+ *      DraggablePoint
+ * A freely draggable point with a position and colour.
+********************************************************/
+{
+var DraggablePoint = function(x, y) {
+    this.x = x;
+    this.y = y;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (selected || this.mouseOver()) {
+        cursor(MOVE);
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else if (this.animation > 0) {
+        this.animation--;
+    }
+
+    noStroke();
+    fill(ORANGE);
+    var r = 12 + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= 6;
+};
+
+DraggablePoint.prototype.mouseDragged = function() {
+    shift = constrain(round(norm(mouseX, lx, lx2) * 25), 0, 25);
+    this.x = lerp(lx, lx2, shift / 25);
+    decryptedMessage = applyCaesarCipher(cipher, -shift);
+};
+}
+
+var Selector = new DraggablePoint(lx, ly);
+
+/*******************************************************
+ *  Frequency graph
+********************************************************/
+
+var getEnglishLetterFrequecies = function(scale) {
+    var freq = [
+        0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015,  // a,b,c,d,e,f,g
+        0.06094, 0.06966, 0.00154, 0.00772, 0.04024, 0.02406, 0.06749,  // h,i,j,k,l,m,n
+        0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758,  // o,p,q,r,s,t,u
+        0.00978, 0.02360, 0.00150, 0.01974, 0.00074                     // v,w,x,y,z
+    ];
+    
+    for (var i = freq.length; i--;) {
+        freq[i] = freq[i] * scale;
+    }
+
+    return freq;
+};
+
+var getMessageLetterFrequencies = function(cipher, scale) {
+    var msg = cipher.toLowerCase();
+    var freq = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    var count = 0;
+
+    // Count characters in cipher
+    for (var i = msg.length; i--;) {
+        if (msg[i] >= "a" && msg[i] <= "z") {
+            freq[LETTERS.indexOf(msg[i])]++;
+            count++;
+        }
+    }
+
+    // Normalize the cipher letter frequency and then scale it
+    scale /= count;
+    
+    for (var i = freq.length; i--;) {
+        freq[i] = freq[i] * scale;
+    }
+
+    return freq;
+};
+
+var standardFrequencies = getEnglishLetterFrequecies(GRAPHSCALE);
+var messageFrequencies = getMessageLetterFrequencies(cipher, GRAPHSCALE);
+
+var drawGraph = function(x, y) {
+    var bx = x;
+    var bw = 5;
+    var x2 = x - bw;
+    var y2 = y + 150;
+    
+    strokeWeight(1);
+    stroke(0);
+    line(x2 - 1, y2, lx2 + bw, y2);
+    line(x2 - 1, y2, x2 - 1, y2 - 120);
+    
+    stroke(220);
+    var h, i;
+    for (i = 1; i < 4; i++) {
+        line(x2, y2 - i * 30, lx2 + bw, y2 - i * 30);
+    }
+    
+    // Draw bars
+    noStroke();
+    textAlign(CENTER, TOP);
+    
+    for (i = 0; i < 26; i++) {
+        h = standardFrequencies[i];
+        fill(BLUE);
+        rect(x2, y2 - h, bw, h);
+        
+        h = messageFrequencies[(i + shift) % 26];
+        fill(ORANGE2);
+        rect(x2 + bw, y2 - h, bw, h);
+        
+        fill(40);
+        text(LETTERS[i], x2 + bw, y2 + 2);
+        x2 += dx;
+    }
+    
+    textFont(sansFont, 16);
+    text("Letter Frequency", (x + lx2) / 2, y2 + 22);
+    text("Letter Frequency", (x + lx2) / 2, y2 + 22);
+    
+    y += 30;
+    textFont(sansFont, 14);
+    
+    fill(BLUE);
+    rect(x, y, 10, 16);
+    fill(ORANGE2);
+    rect(x + 80, y, 10, 16);
+    
+    textAlign(LEFT, CENTER);
+    fill(40);
+    text("English", x + 12, y + 8);
+    text("Cipher", x + 92, y + 8);
+};
+
+var drawMessages = function(x, y) {
+    fill(0);
+    textFont(sansFont, 16);
+    textAlign(CENTER, BASELINE);
+    text("Cipher Message", width / 2, y);
+    text("Cipher Message", width / 2, y);
+    
+    text("Original Message", width / 2, y + 70);
+    text("Original Message", width / 2, y + 70);
+    
+    fill(40);
+    textFont(sansFont, 15);
+    textAlign(LEFT, TOP);
+    text(cipher, x, y + 6, lx2 - x, 100);
+    
+    fill(BLUE2);
+    text(decryptedMessage, x, y + 76, lx2 - x, 100);
+    
+};
+
+/*******************************************************
+ *  Draw letter line
+********************************************************/
+
+var drawLetters = function(x, y) {
+    fill(40);
+    stroke(0);
+    strokeWeight(1);
+    line(x, y, lx2, y);
+    var tx = x;
+    var d;
+    
+    // Top line
+    textAlign(CENTER, BASELINE);
+    for (var i = 0; i < 26; i++) {
+        text(LETTERS[i], tx, y - 15);
+        d = (i % 5 === 0) ? 8 : 4;
+        line(tx, y - d, tx, y + d);
+        tx += dx;
+    }
+    
+    // Top line
+    textAlign(CENTER, TOP);
+    for (var i = 0; i < 26; i++) {
+        text(LETTERS[(i + 26 - shift) % 26], x + i * dx, y + 10);
+    }
+    
+    Selector.draw();
+};
+
+/*******************************************************
+ *  Main loop
+********************************************************/
+
+draw = function() {
+    background(255);
+    cursor(ARROW);
+    drawLetters(lx, ly);
+    drawGraph(lx, ly + 20);
+    drawMessages(lx, ly + 245);
+};
+
+mousePressed = function() {
+    if (Selector.mouseOver()) {
+        selected = Selector;
+    }
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.mouseDragged();
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};

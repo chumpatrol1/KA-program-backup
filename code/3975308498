@@ -1,0 +1,82 @@
+// Camera
+var c = new PVector(0, 0);
+
+// Pixel
+var p = new PVector(2, 0.5);
+
+// The intersection point, (Ix, Iy) is therefore on a line from c to p.
+// The line can be written as (1 - t) * C + t * P.
+// Since C is at (0, 0), that simplifies to t * P.
+// So Ix = t * Px, Iy = t * Py
+
+// There is a line from a to b.
+var a = new PVector(3, 3);
+var b = new PVector(9, -2);
+
+// Vector for the line a to b
+var dx = b.x - a.x;
+var dy = b.y - a.y;
+
+// Get implicit line equation
+// Ax + By + C = 0
+
+var A = dy;
+var B = -dx;
+var C = dx * a.y - dy * a.x;
+// println(A + "x + " + B + "y + " + C);
+
+// (Ix, Iy) is on the line Ax + By + C = 0
+// Now plug in Ix = t * Px, Iy = t * Py into the equation
+// A * t * Px + B * Py * t + C = 0
+// (A * Px + B * Py) * t = -C
+// t = -C / (A * Px + B * Py)
+
+// This is equation you want
+// You could also skip the variables A, B and C:
+// var t = (dy * a.x - dx * a.y) / (dy * p.x - dx * p.y);
+// You might also want to check whether (dy * p.x - dx * p.y) = 0 before trying to divide
+// If it is then the ray is parallel to line ab and there is no intersection
+var t = -C / (A * p.x + B * p.y);
+// println(t);
+
+// Now plug t into the first set of equations.
+// Which means multiplying vector p by t.
+// Since vector p is essentially the ray from the origin to p.
+// t tells you how far along the line the intersection with ab is.
+var I = PVector.mult(p, t);
+
+draw = function() {
+    pushMatrix();
+    translate(100, 200);
+    scale(25);
+    
+    background(255);
+    
+    // Line AB
+    stroke(0, 0, 255);
+    strokeWeight(0.2);
+    line(a.x, a.y, b.x, b.y);
+    
+    // Ray
+    stroke(255, 0, 0);
+    line(c.x, c.y, c.x + p.x * 100, c.y + p.y * 100);
+    
+    // Points
+    stroke(0);
+    strokeWeight(0.1);
+    var r = 0.5;
+    
+    fill(100, 100, 255);
+    ellipse(a.x, a.y, r, r);
+    ellipse(b.x, b.y, r, r);
+    
+    fill(255, 100, 100);
+    ellipse(c.x, c.y, r, r);
+    ellipse(p.x, p.y, r, r);
+    
+    // Intersection
+    fill(255, 0, 0);
+    ellipse(I.x, I.y, r, r);
+    popMatrix();
+    
+};

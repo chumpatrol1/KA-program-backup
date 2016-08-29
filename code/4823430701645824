@@ -1,0 +1,363 @@
+/****************************************
+ * Graph image for exercise.
+*****************************************/
+
+var useTheta = false;
+var drawVertical = false;
+var angle1 = 0;
+var angle2 = 150;
+var px = 3;
+var py = 4;
+var tickSize = 24;
+
+var printHint = function () {
+    var ca = cos(angle2);
+    var sa = sin(angle2);
+    
+    println("x' &\\approx " + px + " \\cdot " + ca.toFixed(3) + " - " + py + " \\cdot " + sa.toFixed(3) + "\\\\");
+    println("x' &\\approx " + (px * ca - py * sa).toFixed(2));
+    println("y' &\\approx " + px + " \\cdot " + sa.toFixed(3) + " + " + py + " \\cdot " + ca.toFixed(3) + "\\\\");
+    println("y' &\\approx " + (px * sa + py * ca).toFixed(2));
+};
+printHint();
+
+// Global colours
+{
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(120, 120, 120);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 200);
+}
+
+var serifFont = createFont("Times", 16);
+//var serifFont = createFont("Cursive", 16);
+ellipseMode(CENTER);
+
+/**************************************
+ *      DraggablePoint
+ *  A point that can be dragged
+***************************************/
+{
+var DraggablePoint = function(x, y, r, color, name, snap) {
+    this.x = x;
+    this.y = y;
+    this.r = r || 6;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.name = name || "";
+    this.snap = snap;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var pr = this.r * 2 + this.animation;
+    ellipse(this.x, this.y, pr, pr);
+};
+
+DraggablePoint.prototype.update = function() {
+    // empty for overwriting
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x = mouseX + dx;
+    this.y = mouseY + dy;
+};
+}
+/**************************************
+ *      ConstrainedPoint
+ *  A point with its position
+ * determined by two other points
+***************************************/
+{
+var ConstrainedPoint = function(p1, p2, weight, color, name) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.w = weight;
+    this.r = p1.r;
+
+    this.name = name;    
+    this.color = color;
+    this.animation = 0;
+    this.update();
+};
+
+ConstrainedPoint.prototype = Object.create(DraggablePoint.prototype);
+
+ConstrainedPoint.prototype.update = function() {
+    this.x = this.p1.x * this.w + this.p2.x * (1 - this.w);
+    this.y = this.p1.y * this.w + this.p2.y * (1 - this.w);
+};
+
+ConstrainedPoint.prototype.move = function() {
+    if (this.p1.x === this.p2.x && this.p1.y === this.p2.y) {
+        return;
+    }
+    
+    // Project (mouseX, mouseY) onto line
+    var lx = this.p1.x - this.p2.x;
+    var ly = this.p1.y - this.p2.y;
+    var mx = mouseX - this.p2.x;
+    var my = mouseY - this.p2.y;
+    
+    var w = (mx * lx + my * ly ) / (lx * lx + ly * ly);
+    this.w = constrain(round(w * 20) / 20, 0, 1);
+};
+}
+
+/**************************************
+ *      Grid object
+ *  A Cartesian grid and with methods to
+ * convert between pixels and grid coordinates.
+***************************************/
+{
+var Grid = function(x0, y0, tickSize, tickValue) {
+    this.originX = x0;
+    this.originY = y0;
+    this.tickSize = tickSize;
+    this.tickValue = tickValue;
+    
+    this.minX = this.originX % this.tickSize;
+    this.minY = this.originY % this.tickSize;
+    this.snapSize = tickSize * 0.5;
+    
+    this.objects = [];
+    this.selectables = [];
+    this.selected = false;
+};
+
+Grid.prototype.draw = function() {
+    background(BACKGROUND);
+    this.drawGrid();
+    
+    for (var i = 0; i < this.objects.length; i++) {
+        this.objects[i].update();
+        this.objects[i].draw();
+    }
+};
+
+Grid.prototype.drawGrid = function() {
+    // Grid lines
+    stroke(GRIDGREY);
+    strokeWeight(1);
+    
+    for (var x = this.minX; x < width; x += this.tickSize) {
+        line(x, 0, x, height);
+    }
+    
+    for (var y = this.minY; y < height; y += this.tickSize) {
+        line(0, y, width, y);
+    }
+    
+    // Axes
+    stroke(GREY);
+    line(this.originX, 0, this.originX, height);
+    line(0, this.originY, width, this.originY);
+    
+    // Labels
+    fill(GREY);
+    textSize(11);
+};
+
+Grid.prototype.addObject = function(obj, selectable) {
+    this.objects.push(obj);
+    if (selectable) {
+        this.selectables.push(obj);
+    }
+};
+
+Grid.prototype.snapTo = function(n, origin) {
+    origin = origin || 0;
+    n = origin - n;
+    n = round(n / this.snapSize) * this.snapSize;
+    return origin - n;
+};
+
+Grid.prototype.pixelToGridX = function(x) {
+    return (x - this.originX) / this.tickSize;
+};
+
+Grid.prototype.pixelToGridY = function(y) {
+    return (this.originY - y) / this.tickSize;
+};
+
+Grid.prototype.gridToPixelX = function(x) {
+    return x * this.tickSize + this.originX;
+};
+
+Grid.prototype.gridToPixelY = function(y) {
+    return this.originY - y * this.tickSize;
+};
+
+Grid.prototype.mousePressed = function() {
+    for (var i = 0; i < this.selectables.length; i++) {
+        var selectable = this.selectables[i];
+        if (selectable.mouseOver()) {
+            this.selected = selectable;
+            this.selected.selected = true;
+            this.dragX = selectable.x - mouseX;
+            this.dragY = selectable.y - mouseY;
+        }
+    }
+};
+
+Grid.prototype.mouseReleased = function() {
+    this.selected.selected = false;
+    this.selected = false;
+};
+
+Grid.prototype.mouseDragged = function() {
+    if (this.selected) {
+        // TODO: Check points don't overlap
+        this.selected.move(this.dragX, this.dragY);
+        if (this.selected.snap) {
+            this.selected.x = this.snapTo(this.selected.x, this.x0);
+            this.selected.y = this.snapTo(this.selected.y, this.y0);
+        }
+    }
+};
+}
+/****************************************
+ *      Create objects
+****************************************/
+
+var grid = new Grid(200, 200, tickSize, tickSize);
+
+/****************************************
+ *      Draw extra
+ *  Ideally add these as objects
+****************************************/
+
+var drawLines = function() {
+    var len = grid.tickSize * 10;
+    var r = abs(angle2) > 90 ? 50 : 100;
+    if (angle2 === 90) { r = 50; }
+    
+    //var px1 = grid.originX + len * cos(angle1);
+    //var py1 = grid.originY - len * sin(angle1);
+    var px1 = grid.gridToPixelX(px);
+    var py1 = grid.gridToPixelY(py);
+    var angle1 = atan2(py, px);
+    var len = dist(grid.originX, grid.originY, px1, py1);
+    
+    var px2 = grid.originX + len * cos(angle1 + angle2);
+    var py2 = grid.originY - len * sin(angle1 + angle2);
+    
+    // Angles
+    stroke(GREEN);
+    strokeWeight(2);
+    noFill();
+    if (angle2 === 90) {
+        pushMatrix();
+        translate(grid.originX, grid.originY);
+        rotate(-angle1);
+        rect(0, 0, 20, -20);
+        popMatrix();
+    } else if (angle2 > 0) {
+        arc(grid.originX, grid.originY, r, r, -angle1-angle2 + 1, -angle1);
+    } else  {
+        arc(grid.originX, grid.originY, r, r, -angle1, -angle1-angle2 - 1);
+    }
+    
+    if (drawVertical) {
+        if (angle2 > 90) {
+            arc(grid.originX, grid.originY, r + 20, r + 20, 181, 361 - angle2);
+        }
+        
+        strokeWeight(2);
+        stroke(PINK);
+        line(px2, py2, px2, grid.originY - 1);
+        line(px2, grid.originY, grid.originX, grid.originY);
+    }
+    
+    // Lines
+    strokeWeight(3);
+    stroke(GREEN);
+    line(grid.originX, grid.originY, px2, py2);
+    stroke(BLUE);
+    line(grid.originX, grid.originY, px1, py1);
+    
+    // Points
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    
+    fill(GREEN);
+    ellipse(px2, py2, 10, 10);
+    fill(BLUE);
+    ellipse(px1, py1, 10, 10);
+    
+    // Labels
+    textAlign(CENTER, CENTER);
+    
+    textFont(serifFont, 16);
+    fill(GREEN);
+    if (useTheta) {
+        textFont(serifFont, 20);
+       // text("θ", grid.originX + (r/2 + 12) * cos(theta / 2), grid.originY - (r/2 + 12) * sin(theta / 2));
+    } else {
+       text(abs(angle2) + "°", grid.originX + (r/2 + 16) * cos(angle1 + angle2 / 2), grid.originY - (r/2 + 16) * sin(angle1 + angle2 / 2));
+       //text(180 - abs(angle2) + "°", grid.originX + (r/2 + 26) * cos(90 + angle2 / 2), grid.originY - (r/2 + 26) * sin(90 + angle2 / 2));
+    }
+    
+    textFont(serifFont, 20);
+    
+    if (drawVertical) {
+        fill(20);
+        if (angle1 === 0) {
+            text("O", grid.originX - 10, grid.originY + 10);
+        } else {
+            text("O", grid.originX + 10, grid.originY + 10);
+        }
+        fill(PINK);
+        text("A", px2, grid.originY + (angle2 < 0 ? -1 : 1) * 12);
+    }
+    
+    fill(GREEN);
+    text("P'", grid.originX + (len + 16) * cos(angle1 + angle2), grid.originY - (len + 16) * sin(angle1 + angle2));
+    fill(BLUE);
+    text("P", px1 + 13, py1 - 9);
+};
+
+/****************************************
+ *      Main loop
+****************************************/
+
+var draw = function() {
+    grid.draw();
+    drawLines();
+};
+
+/****************************************
+ *      Event handling
+****************************************/
+
+var mousePressed = function() {
+    grid.mousePressed();
+};
+
+var mouseReleased = function() {
+    grid.mouseReleased();
+};
+
+var mouseDragged = function() {
+    grid.mouseDragged();
+};

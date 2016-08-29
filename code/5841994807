@@ -1,0 +1,1101 @@
+/**************************************
+ * Animate a ball
+ * 
+ * Using linear interpolation
+ * between keyframes.
+**************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var RED = color(200, 0, 0);
+var BLUE = color(64, 95, 237);
+var SKYBLUE = color(230, 240, 255);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(140, 140, 140);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var sansFont = createFont("sans", 24);
+var serifFont = createFont("serif", 24);
+
+frameRate(24);
+var FRAMES = 24;
+
+var removeButton, speedSlider;
+
+// Linear interpolation of the values of an array between two indices
+var interpolate = function(arr, index1, index2) {
+    var d = index2 - index1;
+    var v1 = arr[index1];
+    var v2 = arr[index2];
+    
+    for (var i = 1; i < d; i++) {
+        arr[index1 + i] = lerp(v1, v2, i / d);
+    }
+};
+
+/*************************************
+ *      Slider object
+**************************************/
+{
+var Slider = function(x, y, length, orientation, minValue, maxValue, nowValue, name, updateF) {
+    this.x = x;
+    this.y = y;
+    this.length = length;
+    this.orientation = orientation;
+    
+    if (this.orientation === 'vertical') {
+        this.start = y;
+        this.end = y + this.length;
+        this.v1 = this.end;
+        this.v2 = this.start;
+    } else {
+        this.start = x;
+        this.end = x + this.length;
+        this.v1 = this.start;
+        this.v2 = this.end;
+    }
+    
+    this.name = name;
+    this.updateFunction = updateF;
+    
+    this.ballR = 8;
+    this.ballD = this.ballR * 2;
+    
+    this.min = minValue;
+    this.max = maxValue;
+    this.value = nowValue || minValue;
+    this.setValue(this.value);
+
+    this.held = false;
+};
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        textAlign(CENTER, CENTER);
+        fill(10);
+        textSize(13);
+        text(this.name + ": " + this.value,  this.x + this.length / 2, this.y - 15);
+    }
+    
+    strokeWeight(3);
+    stroke(GREY);
+    if (this.orientation === 'vertical') {
+        line(this.x, this.y, this.x, this.end);
+    } else {
+        line(this.x, this.y, this.end, this.y);
+    }
+    
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(ORANGE);
+    if (this.orientation === 'vertical') {
+        ellipse(this.x, this.ball, this.ballD, this.ballD);
+    } else {
+        ellipse(this.ball, this.y, this.ballD, this.ballD);
+    }
+    
+};
+
+Slider.prototype.mouseOver = function() {
+    if (mouseX >= this.x - this.ballR &&
+        mouseY >= this.y - this.ballR) {
+        if (this.orientation === 'vertical') {
+            return mouseX <= this.x + this.ballR &&
+                   mouseY <= this.end + this.ballR;
+        } else {
+            return mouseX <= this.end + this.ballR &&
+                   mouseY <= this.y + this.ballR;
+        }   
+    }
+};
+    
+Slider.prototype.mousePressed = function() {
+    if (this.orientation === 'vertical') {
+        this.held = dist(mouseX, mouseY, this.x, this.ball) <= this.ballR;
+    } else {
+        this.held = dist(mouseX, mouseY, this.ball, this.y) <= this.ballR;
+    }
+    if (!this.held && this.mouseOver()) {
+        this.setBallPosition();
+    }
+};
+    
+Slider.prototype.mouseDragged = function() {
+    if (this.held) {
+        this.setBallPosition();
+        return true;
+    }
+};
+
+Slider.prototype.mouseReleased = function() {
+    this.held = false;
+};
+
+Slider.prototype.setBallPosition = function() {
+    var value = this.orientation === 'vertical' ? mouseY : mouseX;
+    this.ball = constrain(value, this.start, this.end);
+    this.setValue();
+};
+
+Slider.prototype.setValue = function(d) {
+    if (d !== undefined) {
+        this.value = constrain(d, this.min, this.max);
+    } else {
+        
+        this.value = round(map(this.ball, this.v1, this.v2, this.min, this.max));
+        this.update();
+    }
+    this.ball = map(this.value, this.min, this.max, this.v1,  this.v2);
+};
+
+Slider.prototype.update = function() {
+    if (this.updateFunction) {
+        this.updateFunction(this.value);
+    }
+};
+}
+/**************************************
+ *  Generic GUI component from which
+ * other elements inherit
+ * 
+ * The default object is basically a
+ * button
+***************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    
+    this.name = name;
+    this.updateFunction = updateFunction;
+    
+    this.showing = true;
+    this.selected = false;
+    this.disabled = false;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && this.showing && !this.deactivated && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    if (this.updateFunction) {
+        this.updateFunction();
+    }
+};
+
+GUI_Component.prototype.deactivationCondition = function() {
+    if (this.deactivationFunction) {
+        this.deactivated = this.deactivationFunction();
+    }
+};
+}
+/********************************************************
+ *  GUI Button
+*********************************************************/
+{
+var Button = function(x, y, w, h, name, updateFunction) {
+    GUI_Component.call(this, x, y, w, h, name, updateFunction);
+
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = color(210, 210, 210, 250);
+    this.transition = 0;
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.fade = function() {
+    if (this.mouseOver() || this.selected) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+
+var FilledButtonDraw = function() {
+    if (!this.showing) { return; }
+    
+    this.fade();
+    this.deactivationCondition();
+    
+    if (this.deactivated) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.deactivated) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function(col) {
+    this.draw = FilledButtonDraw.bind(this);
+    this.defaultCol = color(0, 0, 0, 1);
+    this.highlightCol = col;
+};
+
+// Circular button
+var CircleButton = function(x, y, w, h, clickFunction, drawFunction) {
+    Button.call(this, x, y, w, h, "", clickFunction);
+    this.drawIcon = drawFunction;
+};
+CircleButton.prototype = Object.create(Button.prototype);
+
+CircleButton.prototype.draw = function() {
+    var c;
+    if (this.mouseOver()) {
+        c = color(40, 40, 40);
+        fill(TOOLBAR);
+    } else {
+        c = color(140, 140, 140);
+        noFill();
+    }
+    
+    var x = this.x + this.w / 2;
+    var y = this.y + this.w / 2;
+    stroke(c);
+    strokeWeight(2);
+    ellipse(x, y, this.w, this.w);
+    
+    if (this.drawIcon) {
+        fill(c);
+        this.drawIcon(x, y, this.w / 2);   
+    }
+};
+}
+/******************************************************************
+ *      Draggable point
+*******************************************************************/
+
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.r = 14;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.selected = false;
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.selected || (!this.selected && this.mouseOver())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);
+    
+    var r = this.r + this.animation;
+    ellipse(this.x, this.y, r, r);
+    
+    if (this.selected) {
+        noFill();
+        stroke(BACKGROUND);
+        ellipse(this.x, this.y, r - 4, r - 4);
+    }
+};
+
+var ConstrainedPoint = function(x, y, rangeX, rangeY, color) {
+    DraggablePoint.call(this, x, y, color);
+    this.minX = rangeX[0];
+    this.maxX = rangeX[1];
+    this.minY = rangeY[0];
+    this.maxY = rangeY[1];
+};
+ConstrainedPoint.prototype = Object.create(DraggablePoint.prototype);
+
+ConstrainedPoint.prototype.move = function() {
+    this.x = constrain(this.x + mouseX - pmouseX, this.minX, this.maxX);
+    this.y = constrain(this.y + mouseY - pmouseY, this.minY, this.maxY);
+};
+
+/*************************************
+ *      KeyFrame
+ * A point representing the value of an avar
+ * at a given keyframe.
+ * It can be moved vertically to change the value.
+**************************************/
+
+var KeyFrame = function(frame, value, avar, fixed) {
+    this.frame = frame;
+    this.value = value;
+    this.avar = avar;
+    this.fixed = fixed;
+    this.color = ORANGE;
+    this.animation = 0;
+    this.r = 14;
+    this.frameSelector = this.avar.timeline.frameSelector;
+    
+    this.setPosition();
+};
+
+KeyFrame.prototype = Object.create(DraggablePoint.prototype);
+
+KeyFrame.prototype.setPosition = function() {
+    this.x = this.avar.frameToXPosition(this.frame);
+    this.y = this.avar.valueToYPosition(this.value);
+};
+
+KeyFrame.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r + 1;
+};
+
+KeyFrame.prototype.move = function() {
+    this.y = constrain(this.y + mouseY - pmouseY, this.avar.y2, this.avar.y1);
+    this.value = this.avar.yPositionToValue(this.y);
+    
+    // Drag keyframe to next frame
+    // Overwrite any existing keyframe there
+    var mouseFrame = this.frameSelector.mapMouseToFrame();
+    if (!this.fixed && this.frame !== mouseFrame) {
+        var existing = this.avar.isKeyFrame(mouseFrame);
+        if (existing) {
+            if (existing.fixed) {
+                this.fixed = true;
+            }
+            var index = this.avar.keyFrames.indexOf(existing);
+            this.avar.keyFrames.splice(index, 1);
+        }
+        this.frame = mouseFrame;
+        this.setPosition();
+        this.avar.updateValues();
+    }
+};
+
+/*************************************
+ *      Frame selector
+ * A slider allowing the user to select a frame
+**************************************/
+{
+var FrameSelector = function(timeline, x, y, dx, maxFrames) {
+    this.timeline = timeline;
+    this.x = x;
+    this.y = y;
+    this.dx = dx;
+    this.w = (maxFrames + 1) * this.dx;
+    
+    this.r = 9;
+    this.by = this.y - this.r;
+    this.maxFrames = maxFrames;
+    this.held = false;
+    
+    this.setBallPosition();
+    this.mouseOverFrame = -1;
+};
+
+FrameSelector.prototype.draw = function() {
+    this.setBallPosition();
+    
+    this.mouseOverFrame = this.mapMouseToFrame();
+    if (this.mouseOver() &&
+        this.mouseOverFrame !== this.timeline.currentFrame) {
+            strokeWeight(2);
+            stroke(ORANGE);
+            noFill();
+            var x = this.x + (this.mouseOverFrame + 0.5) * this.dx;
+            ellipse(x, this.by, this.r * 2, this.r * 2);
+    }
+    
+    // Frame counter
+    strokeWeight(1);
+    stroke(GREY);
+    fill(TEXTCOL);
+    textSize(12);
+    
+    textAlign(LEFT, BASELINE);
+    text("Quadro:", this.x - 45, this.y - 3);
+    
+    textSize(11);
+    textAlign(CENTER, BASELINE);
+    for (var i = 0; i <= this.maxFrames; i++) {
+        var x = this.x + (i + 0.5) * this.dx;
+        line(x, this.y, x, this.y - 3);
+        text(i + 1, x, this.y - 5);
+    }
+    
+    // Line over the avar boxes
+    strokeWeight(1);
+    stroke(200);
+    line(this.bx, this.y, this.bx, this.y + this.timeline.h);
+    
+    // Selector ball
+    fill(ORANGE);
+    stroke(BACKGROUND);
+    ellipse(this.bx, this.by, this.r * 2 + 1, this.r * 2 + 1);
+    
+    fill(TEXTCOL);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text(this.timeline.currentFrame + 1, this.bx, this.by);
+    
+    strokeWeight(1);
+    stroke(GREY);
+    line(this.x - 45, this.y, this.x + this.w, this.y);
+};
+
+FrameSelector.prototype.setBallPosition = function() {
+    this.bx = this.x + (this.timeline.currentFrame + 0.5) * this.dx;
+};
+
+FrameSelector.prototype.mousePressed = function() {
+    this.held = dist(mouseX, mouseY, this.bx, this.by) <= this.r;
+};
+
+FrameSelector.prototype.mouseDragged = function() {
+    if (this.held) {
+        this.updateFrame();
+        return true;
+    }
+};
+
+FrameSelector.prototype.mouseOver = function() {
+    return mouseX > this.x && mouseX < this.x + this.w &&
+           mouseY < this.y && mouseY > this.y - 2 * this.r;
+};
+
+FrameSelector.prototype.mouseReleased = function() {
+    // Clicking on frame moves to that frame
+    if (this.mouseOver()) {
+        this.updateFrame();
+    }
+    this.held = false;
+};
+
+FrameSelector.prototype.mapMouseToFrame = function() {
+    var f = map(mouseX + 2, this.x, this.x + this.w, 0, this.maxFrames + 1);
+    return constrain(floor(f), 0, this.maxFrames);
+};
+
+FrameSelector.prototype.updateFrame = function() {
+    // Move to a new frame based on the mouse position
+    this.timeline.currentFrame = this.mapMouseToFrame();
+    this.setBallPosition();
+};
+}
+/**************************************
+ *      Avar
+ * An animation variable.
+ * Each variable has a value for each frame.
+ * Values are determined by keyframes and
+ * interpolation between these frames.
+**************************************/
+{
+var Avar = function(timeline, name, y, value, vmin, vmax) {
+    this.timeline = timeline;
+    this.name = name;
+    this.min = vmin;
+    this.max = vmax;
+    
+    this.frameCount = timeline.frameCount;
+    this.x = timeline.x;
+    this.y = y;
+    this.w = timeline.w;
+    this.h = timeline.dy;
+    
+    this.dx = this.w / this.frameCount;
+    var padding = 10;
+    this.y1 = this.y + this.h - padding;
+    this.y2 = this.y + padding;
+    
+    this.keyFrames = [];
+    this.addKeyFrame(0, value, true);
+    this.addKeyFrame(this.frameCount - 1, value, true);
+    this.selected = -1;
+    this.dragging = -1;
+    
+    this.values = [];
+    for (var i = 0; i < this.frameCount; i++) {
+        this.values.push(value);
+    }
+};
+
+Avar.prototype.draw = function(f) {
+    // Lower border line
+    strokeWeight(1);
+    stroke(GREY);
+    noFill();
+    line(this.x - 45, this.y + this.h, this.x + this.w, this.y + this.h);
+    
+    // Label
+    noStroke();
+    fill(224);
+    rect(this.x - 45, this.y + 1, 44, this.h - 1);
+    
+    textAlign(CENTER, BASELINE);
+    textFont(serifFont, 24);
+    fill(TEXTCOL);
+    text(this.name, this.x - 22, this.y + this.h / 2 - 4);
+    
+    textAlign(CENTER, TOP);
+    textFont(sansFont, 12);
+    text(round(this.values[f]), this.x - 22, this.y + this.h / 2 + 1);
+    
+    // Draw value graph
+    strokeWeight(2);
+    stroke(BLUE);
+    noFill();
+    
+    beginShape();
+    for (var i = 0; i < this.values.length; i++) {
+        var vx = this.x + (i + 0.5) * this.dx;
+        var vy = map(this.values[i], this.min, this.max, this.y1, this.y2);
+        vertex(vx, vy);
+    }
+    endShape();
+    
+    for (var i = 0; i < this.keyFrames.length; i++) {
+        this.keyFrames[i].draw();
+    }
+
+    // Mouse over keyframe
+    var frame = this.mouseOverAvars();
+    
+    if (frame && !(mouseIsPressed && !this.toAddKeyFrame)) {
+        strokeWeight(2);
+        stroke(ORANGE);
+        
+        // Indicate possible keyFrame
+        if (!this.isKeyFrame(frame[0])) {
+            fill(BACKGROUND);
+            ellipse(frame[1], frame[2], 13, 13);   
+        }
+        
+        // Indicate this frame
+        var fs = this.timeline.frameSelector;
+        noFill();
+        ellipse(frame[1], fs.by, fs.r * 2 + 1, fs.r * 2 + 1);
+    }
+    
+};
+
+Avar.prototype.addKeyFrame = function(frame, value, fixed) {
+    var kf = new KeyFrame(frame, value, this, fixed);
+    this.keyFrames.push(kf);
+    this.keyFrames.sort(function(a, b) {
+        return a.frame - b.frame;
+    });
+};
+
+Avar.prototype.updateValues = function() {
+    this.values = [];
+    
+    for (var i = 0; i < this.keyFrames.length - 1; i++) {
+        var p1 = this.keyFrames[i];
+        var p2 = this.keyFrames[i + 1];
+        var df = p2.frame - p1.frame;
+        
+        for (var j = p1.frame; j < p2.frame; j++) {
+            var t = (j - p1.frame) / df;
+            var y = lerp(p1.value, p2.value, t);
+            this.values.push(y);
+        }
+
+    }
+    this.values.push(this.keyFrames[i].value);
+
+};
+
+Avar.prototype.valueToYPosition = function(v) {
+    return map(v, this.min, this.max, this.y1, this.y2);
+};
+
+Avar.prototype.yPositionToValue = function(y) {
+    return map(y, this.y1, this.y2, this.min, this.max);
+};
+
+Avar.prototype.xPositionToFrame = function(x) {
+    var fs = this.timeline.frameSelector;
+    return map(x, fs.x, fs.x + fs.w, 1, fs.maxFrames + 1);
+};
+
+Avar.prototype.frameToXPosition = function(f) {
+    var fs = this.timeline.frameSelector;
+    return fs.x + (f + 0.5) * fs.dx;
+};
+
+Avar.prototype.mouseOver = function() {
+    return mouseY >= this.y && mouseY <= this.y + this.h && 
+           mouseX >= this.x && mouseX <= this.x + this.w;
+};
+
+Avar.prototype.isKeyFrame = function(frame) {
+    for (var i = 0; i < this.keyFrames.length; i++) {
+        if (this.keyFrames[i].frame === frame) {
+            return this.keyFrames[i];
+        }
+    }
+};
+
+Avar.prototype.mouseOverAvars = function() {
+    if (this.mouseOver()) {
+        var fs = this.timeline.frameSelector;
+        var frame = fs.mouseOverFrame;
+        
+        if (frame > -1) {
+            var vx = this.x + (frame + 0.5) * this.dx;
+            var vy = this.valueToYPosition(this.values[frame]);
+            
+            if (dist(mouseX, mouseY, vx, vy) <= (this.dx - 2) / 2) {
+                return [frame, vx, vy];
+            }
+        }
+    }
+};
+
+Avar.prototype.removeSelectedKeyFrame = function() {
+    // Check it's not the first or last frame just to be sure
+    if (!this.selected.fixed) {
+        var index = this.keyFrames.indexOf(this.selected);
+        this.keyFrames.splice(index, 1);
+        this.updateValues();
+    }
+};
+
+Avar.prototype.mousePressed = function() {
+    if (this.selected) {
+        this.selected.selected = false;
+        this.selected = false;
+    }
+    
+    this.toAddKeyFrame = false;
+    
+    // Select key frame node
+    if (this.mouseOver()) {
+        for (var i = 0; i < this.keyFrames.length; i++) {
+            var kf = this.keyFrames[i];
+            if (kf.mouseOver()) {
+                this.selected = kf;
+                this.dragging = kf;
+                kf.selected = true;
+                this.timeline.currentFrame = kf.frame;
+                
+                // Show remove button a non-end frame is selected
+                if (!kf.fixed) {
+                    removeButton.deactivated = false;
+                }
+                return;
+            }
+        }
+        
+        // See if we want to add a keyframe
+        this.toAddKeyFrame =  this.mouseOverAvars();
+    }
+};
+
+Avar.prototype.mouseDragged = function() {
+    if (this.dragging) {
+        this.dragging.move();
+        this.updateValues();
+    }
+};
+
+Avar.prototype.mouseReleased = function() {
+    this.dragging = false;
+    
+    if (this.toAddKeyFrame) {
+        var frame = this.mouseOverAvars();
+        if (frame !== undefined && !this.isKeyFrame(frame[0])) {
+            this.addKeyFrame(frame[0], this.values[frame[0]]);
+            this.timeline.currentFrame = frame[0];
+        }
+    }
+};
+}
+/*************************************
+ *      Timeline
+ * A object that contains a hash
+ * for each avar
+**************************************/
+{
+var Timeline = function(x, y, w, h, frames, scene) {
+    this.x = x + 45;
+    this.y = y;
+    this.w = w - 45;
+    this.h = h;
+    this.dx = this.w / frames;
+    this.scene = scene;
+    this.state = 'paused';
+    
+    this.frameCount = frames;
+    this.currentFrame = 0;
+    this.frameSelector = new FrameSelector(
+        this, this.x, this.y, this.dx, this.frameCount -1
+    );
+    
+    this.avars = {};
+    
+    this.keyFrames = [0, this.frameCount - 1];
+};
+
+Timeline.prototype.addAvars = function(avars) {
+    if (!avars.length) { return; }
+    
+    this.dy = floor(this.h / avars.length);
+    
+    for (var i = 0; i < avars.length; i++) {
+        var a = avars[i];
+        var avar = new Avar(this, a.name, this.y + this.dy * i, a.start, a.min, a.max);
+        this.avars[avar.name] = avar;
+    }
+};
+
+Timeline.prototype.draw = function() {
+    //var mod = 1 << (6 - speedSlider.value);
+    var mod = 7 - speedSlider.value;
+
+    if (this.state === 'running' && frameCount % mod === 0) {
+        this.currentFrame++;
+        this.currentFrame %= this.frameCount;
+    }
+    
+    // Frame Selector
+    this.frameSelector.draw();
+
+    // Draw avars
+    for (var a in this.avars) {
+        this.avars[a].draw(this.currentFrame);
+    }
+};
+
+Timeline.prototype.removeSelectedKeyFrame = function() {
+    for (var a in this.avars) {
+        if (this.avars[a]) {
+            this.avars[a].removeSelectedKeyFrame();
+            removeButton.deactivated = true;
+        }
+    }
+};
+
+Timeline.prototype.mouseOver = function() {
+    return mouseX >= this.x && mouseX <= this.x + this.w &&
+           mouseY >= this.y && mouseY <= this.y + this.h;
+};
+
+Timeline.prototype.mouseDragged = function() {
+    // Drag sliders and update values
+    if (this.state === 'paused') {
+        this.frameSelector.mouseDragged();
+        
+        for (var a in this.avars) {
+            this.avars[a].mouseDragged();
+        }
+    }
+};
+
+Timeline.prototype.mousePressed = function() {
+    this.frameSelector.mousePressed();
+    
+    if (this.frameSelector.mouseOver()) {
+        this.state = 'paused';
+    } else if (this.mouseOver()) {
+        this.state = 'paused';
+        
+        removeButton.deactivated = true;
+        
+        for (var a in this.avars) {
+            var avar = this.avars[a];
+            avar.mousePressed();
+            
+            if (avar.selected) {
+                removeButton.deactivated = avar.selected.fixed;
+            }
+        }
+    }
+};
+
+Timeline.prototype.mouseReleased = function() {
+    if (this.state === 'paused') {
+        this.frameSelector.mouseReleased();
+        
+        for (var a in this.avars) {
+            this.avars[a].mouseReleased();
+        }
+    }
+};
+}
+/*************************************
+ *      Actor
+ * An actor is an object in a scene
+ * to be animated.
+**************************************/
+
+var Actor = function(timeline) {
+    this.timeline = timeline;
+    this.attr = timeline.avars;
+    this.image = getImage("pixar/luxoball");
+};
+
+Actor.prototype.draw = function() {
+    var f = this.timeline.currentFrame;
+    //var x = this.dx + this.attr.x.values[f];
+    var y = this.dy - this.attr.y.values[f];
+    var x = this.x;
+    
+    fill(0, 0, 0, 60);
+    noStroke();
+    ellipse(x + 1, y - 13, 29, 29);
+    image(this.image, x - 16, y - 30, 32, 32);
+};
+
+/*************************************
+ *      Scene
+ * A scene is box in which the
+ * actor exists
+**************************************/
+
+var Scene = function(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.actors = [];
+};
+
+Scene.prototype.draw = function() {
+    fill(SKYBLUE);
+    rect(this.x, this.y, this.w, this.h + 20);
+    
+    noStroke();
+    fill(120, 200, 160);
+    rect(this.x + 1, this.y + this.h, this.w - 1, 20);
+    
+    strokeWeight(2);
+    stroke(GREEN);
+    line(this.x + 1, this.y + this.h + 1, this.x + this.w - 1, this.y + this.h + 1);
+    
+    for (var i = 0; i < this.actors.length; i++) {
+        this.actors[i].draw();
+    }
+    
+    // Border
+    strokeWeight(1);
+    stroke(GREY);
+    noFill();
+    rect(this.x, this.y, this.w, this.h + 20);
+    
+    // Clip scene
+    noStroke();
+    fill(BACKGROUND);
+    rect(0, 0, width, this.y);
+    rect(0, 0, this.x, this.y + this.h + 60);
+    rect(this.x + this.w + 1, 0, this.x, this.y + this.h + 60);
+    rect(0, this.y + this.h + 21, width, 40);
+};
+
+Scene.prototype.addActor = function(actor) {
+    this.actors.push(actor);
+    actor.dx = this.x;
+    actor.x = this.x + this.w / 2;
+    actor.dy = this.y + this.h;
+};
+
+/*************************************
+ *      Setup
+**************************************/
+
+// TODO: bind avars to actor somehow
+var scene = new Scene(20, 8, width - 40, 240);
+
+// Create 24 frames of animation
+var timeline = new Timeline(
+    20, scene.h + scene.y + 55,
+    width - 40, height - scene.h - scene.y - 102,
+    FRAMES, scene
+);
+
+/*************************************
+ *      Set up other GUI elements
+**************************************/
+var buttonY = timeline.y + timeline.h + 10;
+
+var removeKeyFrame = function() {
+    timeline.removeSelectedKeyFrame();
+};
+
+removeButton = new Button(width - 325, buttonY + 1, 185, 26, "Remover quadro principal", removeKeyFrame);
+removeButton.deactivated = true;
+
+var restart = function() {
+    timeline.addAvars([
+    /*{
+        name: 'x',
+        start: 200,
+        min: 0,
+        max: scene.w
+    },*/
+    {
+        name: 'y',
+        start: 150,
+        min: 0,
+        max: scene.h
+    }
+]);
+    scene.addActor(new Actor(timeline));
+    
+    timeline.state = 'paused';
+    timeline.currentFrame = 0;
+    removeButton.deactivated = true;
+};
+restart();
+
+var playPause = function() {
+    if (timeline.state === 'running') {
+        timeline.state = 'paused';
+    } else if (timeline.state === 'paused') {
+        timeline.state = 'running';
+        removeButton.deactivated = true;
+    }
+};
+
+var playIcon = function(x, y, r) {
+    noStroke();
+    if (timeline.state === 'running') {
+        rect(x - 4, y - 5, 3, 10, 5);
+        rect(x + 1, y - 5, 3, 10, 5);
+    } else {
+        triangle(x - r * 0.4, y - r * 0.5, x - r * 0.4, y + r * 0.5, x + r * 0.65, y);
+    }
+};
+
+var playButton = new CircleButton(26, buttonY, 24, 24, playPause, playIcon);
+
+var restartButton = new Button(width - 135, buttonY + 1, 74, 24, "Limpar", restart);
+restartButton.makeFilled(RED);
+
+speedSlider = new Slider(80, buttonY + 20, 90, 'horizontal', 1, 6, 3, "Velocidade");
+
+var elements = [
+    timeline,
+    playButton,
+    removeButton,
+    restartButton,
+    speedSlider
+];
+
+/*************************************
+ *      Main loop
+**************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    
+    scene.draw();
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].draw();
+    }
+};
+
+/*************************************
+ *      Event handling
+**************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].mousePressed();
+    }
+};
+
+mouseDragged = function() {
+    timeline.mouseDragged();
+    speedSlider.mouseDragged();
+};
+
+mouseReleased = function() {
+    for (var i = 0; i < elements.length; i++) {
+        elements[i].mouseReleased();
+    }
+};
+
+mouseOut = function() {
+    timeline.mouseReleased();
+    speedSlider.held = false;
+};

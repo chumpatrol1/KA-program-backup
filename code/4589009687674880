@@ -1,0 +1,73 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var NULLCOL = color(0, 0, 0, 0);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+var MESSAGEBLUE = color(20, 60, 160);
+var TICKGREEN = color(0, 200, 0);
+var CS_GREEN = color(67, 122, 57);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var mouseOverRect = function(self) {
+    return mouseX >= self.x && mouseX <= self.x + this.w &&
+           mouseY >= self.y && mouseY <= self.y + this.h;
+};
+
+var getButton = function(x, y, w, h) {
+    return {
+        x: x, y: y, w: w, h: h,
+        
+        mouseOver: mouseOverRect,
+        
+        draw: function() {
+            stroke(200);
+            strokeWeight(1);
+            
+            if (this.mouseOver(this)) {
+                fill(255, 0, 0);
+            } else {
+                noFill();
+            }
+            
+            rect(this.x, this.y, this.w, this.h, 6);
+        }
+    };
+};
+
+var button = getButton(150, 100, 100, 40);
+
+/**************************************
+ *  Main loop
+***************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    button.draw();
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    
+};
+
+mouseDragged = function() {
+    
+};
+
+mouseReleased = function() {
+    
+};
+
+mouseOut = mouseReleased;

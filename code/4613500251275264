@@ -1,0 +1,813 @@
+/*******************************************************
+ * TODO:
+ *  Cache jitter angle
+ *  Add scales?
+ *  Diasble button for uniform distributions
+********************************************************/
+
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var RED = color(200, 0, 0);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var POINT_SIZE = 8;
+var MAX_DENSITY = 200;
+var WIDTH2 = width / 2;
+var HEIGHT2 = height / 2;
+var WIDTH3 = WIDTH2 + POINT_SIZE;
+var HEIGHT3 = HEIGHT2 + POINT_SIZE;
+
+// GUI
+{
+/*******************************************************
+ * Generic GUI component from which other elements inherit
+ * The default object is basically a button
+********************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+
+GUI_Component.prototype.disabled = function() {};
+}
+/*******************************************************
+ *      GUI Button
+********************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    for (var param in params) {
+        if (params[param] !== undefined) {
+            this[param] = params[param];
+        }
+    }
+    
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled()) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled()) {
+        fill(140);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled()) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled()) {
+        fill(140);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, {name: name});
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    //showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(TEXTCOL);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+    /*
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+    */
+};
+
+var RadioButton = function(x, y, w, h, name, trigger) {
+    Button.call(this, x, y, w, h, {name: name, trigger: trigger});
+    this.r = this.h - 6;
+    this.cx = this.x + this.r;
+    this.cy = this.y + this.h / 2;
+    this.marked = false;
+};
+RadioButton.prototype = Object.create(Button.prototype);
+
+RadioButton.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(10);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.cx + this.r /2 + 4, this.cy + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    ellipse(this.cx, this.cy, this.r, this.r);
+    
+    if (this.marked) {
+        fill(10);
+        ellipse(this.cx, this.cy, this.r / 2, this.r / 2);
+    }
+};
+}
+/*******************************************************
+ *      GUI Slider
+********************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = params.ballR || h / 2;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.jumpSize = params.jumpSize || pow(10, this.decimalPlaces);
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 14);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = this.jumpSize;
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+}
+/*******************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for adding
+ * components like buttons and sliders.
+********************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+};
+
+Toolbar.prototype.draw = function() {
+    if (!this.components.length) { return; }
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.addRadioButtons = function(options, trigger, defaultOption) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var radioButtons = [];
+    
+    var triggerFunction = function() {
+        if (!this.marked) {
+            this.marked = true;
+            
+            // Deselected other buttons
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i] !== this) {
+                    radioButtons[i].marked = false;
+                }
+            }
+        }
+        if (trigger) { trigger(this.name); }
+    };
+    
+    for (var i = 0; i < options.length; i++) {
+        var button = new RadioButton(x, y, w, 22, options[i], triggerFunction);
+        radioButtons.push(button);
+        y += 27;
+        this.h += 27;
+    }
+    
+    radioButtons[defaultOption || 0].trigger();
+    
+    this.components = this.components.concat(radioButtons);
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+}
+
+/*******************************************************
+ *      Create points
+********************************************************/
+var pointsCache = {};
+var points = [];
+var distribution = 'Uniform';
+var density = 100;
+var jitter = 0;
+
+// Functions for generating points with different distributions
+var distributions = {
+    Uniform: function() {
+        // Get a grid of n points on the page
+        var d = sqrt(width * height / MAX_DENSITY);
+        var nx = floor(WIDTH2 / d);
+        var ny = floor(HEIGHT2 / d);
+
+        var x, y;
+        var points = [];
+        for (x = -nx; x <= nx; x++) {
+            for (y = -ny; y <= ny; y++) {
+                points.push([x * d, y * d]);
+            }
+        }
+        
+        return points;
+    },
+    Hexagonal: function() {
+        var dx = sqrt(width * height / MAX_DENSITY);
+        var dy = sqrt(3) * dx / 2;
+        var startX = (-dx * floor(width / dx)) / 2;
+        var startY = (-dy * floor(height / dy)) / 2;
+        
+        var i = 0;
+        var x, y;
+        var points = [];
+        for (y = startY; y <= height; y += dy) {
+            for (x = startX - (i % 2) * dx / 2; x <= width + dx / 2; x += dx) {
+                points.push([x, y]);
+            }
+            i++;
+        }
+        
+        return points;
+    },
+    Random: function() {
+        var points = [];
+        for (var i = 0; i < MAX_DENSITY; i++) {
+            points.push([
+                random(-WIDTH2, WIDTH2),
+                random(-HEIGHT2, HEIGHT2)
+            ]);
+        }
+        return points;
+    },
+    Poisson : function() {
+        // http://www.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
+        // https://www.jasondavies.com/poisson-disc/
+        
+        // How many points we try before rejecting a point
+        var k = 30;
+        
+        var minDist = sqrt(width * height / MAX_DENSITY) * 0.8;
+        var minDist2 = minDist * minDist;
+        
+        var x, y;
+        // Final array of points that we'll return
+        var points = [];
+        
+        // Points that we use to find neighbours
+        var activePoints = [[0, 0]];
+        
+        var addPoint = function(x, y) {
+            points.push([x, y]);
+            activePoints.push([x, y]);
+        };
+        
+        while (activePoints.length) {
+            // Pick a random active point
+            var activeIndex = floor(random() * activePoints.length);
+            var currentPoint = activePoints[activeIndex];
+            
+            var pointAdded = false;
+            for (var i = 0; i < k; i++) {
+                var angle = random() * 360;
+                var d = minDist + random() * minDist;
+                x = currentPoint[0] + cos(angle) * d;
+                y = currentPoint[1] + sin(angle) * d;
+                
+                if (abs(x) > WIDTH3 || abs(y) > HEIGHT3) {
+                    continue;
+                }
+                
+                // Check distance from each other point is > minDist
+                // TODO make this more efficient using the sampleGrid
+                var collision = false;
+                var p;
+                for (var j = points.length; j--;) {
+                    p = points[j];
+                    if ((x - p[0]) * (x - p[0]) + (y - p[1]) * (y - p[1]) < minDist2) {
+                        collision = true;
+                        break;
+                    }
+                }
+                
+                if (!collision) {
+                    addPoint(x, y);
+                    pointAdded = true;
+                    break;
+                }
+            }
+            
+            // Failed to add point so remove it from the active list
+            if (!pointAdded) {
+                activePoints.splice(activeIndex, 1);
+            }
+        }
+        
+        return points;
+    },
+    Radial: function() {
+        var points = [];
+        var len = Math.SQRT2 * max(WIDTH2, HEIGHT2);
+        
+        for (var i = 0; i < MAX_DENSITY; i++) {
+            var angle = random(360);
+            var d = random(len);
+            points.push([d * cos(angle), d * sin(angle)]);
+        }
+        
+        return points;
+    },
+    /*
+    Power: function() {
+        var points = [];
+        var depth = 4;
+        var initial = 1;
+        
+        var getPoints = function(cx, cy, r, n) {
+            if (n <= depth) {
+                for (var i = 0; i < (1 << n + initial); i++) {
+                    var d = random(r);
+                    var angle = random(360);
+                    var x = cx + d * cos(angle);
+                    var y = cy + d * sin(angle);
+                    
+                    points.push([x, y]);
+            
+                    getPoints(x, y, r * 0.66, n + 1);
+                }
+            }
+        };
+        
+        getPoints(width / 2, height / 2, 200, 1);
+        return points;
+    }
+    */
+};
+
+// Get all the points for the current distribution
+// Either generate it or get from cache
+var getPointsForDistribution = function() {
+    var allPoints = pointsCache[distribution]; 
+    if (!allPoints) {
+        pointsCache[distribution] = distributions[distribution]();
+        allPoints = pointsCache[distribution];
+    }
+    return allPoints;
+};
+
+// Get array of points that are visible at the given density
+var getDisplayPoints = function(density, jitter) {
+    var allPoints = getPointsForDistribution();
+    var scale = sqrt(MAX_DENSITY / density);
+    var x, y;
+
+    var w2 = WIDTH3 / scale;
+    var h2 = HEIGHT3 / scale;
+
+    points = [];
+    for (var i = allPoints.length; i--;) {
+        x = allPoints[i][0];
+        y = allPoints[i][1];
+        if (abs(x) <= w2 && abs(y) <= h2) {
+            points.push([
+                WIDTH2 + (x + jitter * random(-0.2, 0.2)) * scale,
+                HEIGHT2 + (y + jitter * random(-0.2, 0.2)) * scale
+            ]);
+        }
+    }
+};
+
+var getNewPattern = function() {
+    if (distribution === 'Uniform' || distribution === 'Hexagonal') {
+        return;
+    }
+    pointsCache[distribution] = distributions[distribution]();
+    getDisplayPoints(density, jitter);
+};
+
+// Get initial points
+//getDisplayPoints(density, jitter);
+
+/*******************************************************
+ *      Calculate graph
+********************************************************/
+
+var gotGraph = false;
+var calculateGraph = function() {
+    // Calculate the minimum distance from
+    // each point to its neighbours
+    var distances = [];
+    var i, j, p1, p2, dx, dy, d;
+    var n = points.length;
+    
+    // Initial Array
+    for (i = 0; i < n; i++) {
+        distances[i] = Infinity;
+    }
+    
+    // Calculate squared distances
+    for (i = 0; i < n - 1; i++) {
+        p1 = points[i];
+        for (j = i + 1; j < n; j++) {
+            p2 = points[j];
+            dx = p1[0] - p2[0];
+            dy = p1[1] - p2[1];
+            d = dx * dx + dy * dy;
+            distances[i] = min(distances[i], d);
+            distances[j] = min(distances[j], d);
+        }
+    }
+    
+    // Get distribution of distances
+    var distanceDistribution = [];
+    var bars = 19;
+    for (var i = 0; i < bars; i++) {
+        distanceDistribution[i] = 0;
+    }
+    
+    var d = 10;
+    var index;
+    
+    for (var i = 0; i < n; i++) {
+        index = min(bars, floor((sqrt(distances[i]) + 0.01) / d));
+        distanceDistribution[index]++;
+    }
+    
+    return distanceDistribution;
+};
+
+var drawGraph = function(data) {
+    var w = 200;
+    var h = 120;
+    var x = width - w;
+    var y = 0;
+    
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(x, y, w, h, 8);
+    
+    var n = data.length;
+    var xgap = 10;
+    var x1 = x + xgap;
+    var y1 = y + h - 15;
+    var dx = floor((w - xgap * 2) / n);
+    //var dy = (h - 20) / max.apply(null, data);
+    var dy = (h - 30) / points.length;
+    
+    strokeWeight(1);
+    stroke(40);
+    line(x1, y1 + 1, x1 + w - xgap * 2, y1 + 1);
+    
+    textSize(10);
+    textAlign(CENTER, TOP);
+    fill(0);
+    text(0, x1, y1 + 1);
+    
+    noStroke();
+    
+    for (var i = 0; i < 20; i++) {
+        var bh = data[i] * dy;
+        fill(BLUE);
+        rect(x1, y1 - bh, dx - 1, bh);
+        
+        x1 += dx;
+        if (i % 2) {
+            fill(0);
+            text((i + 1) * 10, x1, y1 + 1);
+        }
+    }
+    
+    textSize(13);
+    fill(0);
+    text("Distance between points", x + w/2, y + 2);
+};
+
+/*******************************************************
+ *      Create interface
+********************************************************/
+
+var toolbar = new Toolbar(0, 0, 120);
+toolbar.add(Slider, {
+    name: 'Density',
+    min: 10,
+    now: 100,
+    max: MAX_DENSITY,
+    trigger: function() {
+        if (density !== this.val) {
+            density = this.val;
+            getDisplayPoints(density, jitter);
+        }
+    }
+});
+
+toolbar.add(Slider, {
+    name: 'Jitter',
+    min: 0,
+    now: 0,
+    max: 100,
+    trigger: function() {
+        if (jitter !== this.val) {
+            jitter = this.val;
+            getDisplayPoints(density, jitter);
+        }
+    }
+});
+
+var distributionNames = [];
+for (var dName in distributions) {
+    distributionNames.push(dName);
+}
+
+toolbar.addRadioButtons(distributionNames, function(name) {
+    distribution = name;
+    getDisplayPoints(density, jitter);
+    gotGraph = false;
+});
+
+toolbar.add(Button, {
+    name: "New Pattern",
+    trigger: getNewPattern
+});
+
+/*******************************************************
+ *      Main loop
+********************************************************/
+
+var graphData;
+
+draw = function() {
+    background(BACKGROUND);
+    
+    // Draw points
+    strokeWeight(POINT_SIZE);
+    stroke(BLUE);
+    
+    for (var i = 0; i < points.length; i++) {
+        point(points[i][0], points[i][1]);
+    }
+    
+    toolbar.draw();
+    
+    fill(20);
+    text(points.length, 10, height - 10);
+    
+    if (!gotGraph) { graphData = calculateGraph(); }
+    drawGraph(graphData);
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+{
+mousePressed = function() {
+    toolbar.mousePressed();
+};
+
+mouseDragged = function() {
+    toolbar.mouseDragged();
+};
+
+mouseReleased = function() {
+    toolbar.mouseReleased();
+};
+
+mouseOut = function() {
+    toolbar.mouseReleased();
+};
+}

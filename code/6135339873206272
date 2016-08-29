@@ -1,0 +1,502 @@
+// Standard colours and variables
+var BACKGROUND = color(250, 250, 250);
+var GREY = color(100, 100, 100);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+
+textSize(13);
+var pointR = 10;
+var CONTROL_POINT_SIZE = 12;
+var MAX_RESOLUTION = 20;
+var RESOLUTION = 40;
+
+var toolbarWidth = 120;
+var toolbarHeight = 205;
+
+var showing = {
+    'Control points': true,
+    'Control arms': true,
+    'String points': true,
+    Approximation: true,
+};
+
+var selectedPoint = false;
+var sliders;
+
+// Given the end points of two lines (x1, y1) to (x2, y2) and (x3, y3) to (x4, y4),
+// return the point where they intersect
+// Assume lines do intersect (i.e. are not parallel and are not segments)
+var findIntersection = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+    var dx1 = (x1 - x2);
+    var dx2 = (x3 - x4);
+    var dy1 = (y1 - y2);
+    var dy2 = (y3 - y4);
+    var d = dx1 * dy2 - dy1 * dx2;
+    return [(dx2 * (x1 * y2 - y1 * x2) - dx1 * (x3 * y4 - y3 * x4)) / d,
+            (dy2 * (x1 * y2 - y1 * x2) - dy1 * (x3 * y4 - y3 * x4)) / d];
+};
+
+/*********************************************************************
+ * GUI Slider to vary parameters
+**********************************************************************/
+
+var Slider = function(x, y, width, min_v, max_v, current_v) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.h = 12;
+    this.held = false;
+    
+    this.ballR = 8;
+    this.ballD = this.ballR * 2;
+    
+    this.min = min_v;
+    this.max = max_v;
+    this.scale = (max_v - min_v) / width;
+    this.val = current_v || min_v;
+    this.bx = this.x + (this.val - min_v) / this.scale;
+    
+    this.held = false;
+
+    this.draw = function() {
+        noStroke();
+        fill(180);
+        rect(this.x-8, this.y - this.h/2, this.width + 16, this.h, 8);
+    
+        strokeWeight(1);
+        stroke(0, 0, 0, 120);
+        fill(180, 180, 250);
+        ellipse(this.bx, this.y, this.ballD, this.ballD);
+        noStroke();
+        fill(255, 255, 255, 150);
+        ellipse(this.bx - this.ballR * 0.3, this.y - this.ballR * 0.3, 5, 5);
+
+    };
+    
+    this.selected = function() {
+        this.held = dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+    };
+    
+    this.drag = function() {
+        if (this.held) {
+            var x = constrain(mouseX, this.x, this.x + this.width);
+            this.bx = x;
+            this.val = this.min + round((x - this.x) * this.scale);
+            return true;
+        }
+    };
+  
+    // This is used if you want to update the value in a way other
+    // than using the slider (but want the slider to update).
+    this.update = function(d) {
+        this.val = constrain(this.val + d, this.min, this.max);
+        this.bx = (this.val - this.min) / this.scale + this.x;
+    };
+};
+
+/********************************************************
+ *  GUI Button
+*********************************************************/
+
+var Button = function(x, y, w, h, name, clickF) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    this.defaultCol = color(220, 220, 220, 250);
+    this.highlightCol = color(250, 50, 50, 250);
+    this.showing = true;
+    
+    var boxSize = this.h - 6;
+    
+    this.mouseover = function() {
+        return (mouseX >= this.x && mouseX <= this.x + this.w &&
+                mouseY >= this.y && mouseY <= this.y + this.h);
+    };
+    
+    this.click = function() {
+        showing[this.name] = !showing[this.name];
+    };
+    
+    this.draw = function() {
+        if (!this.showing) { return; }
+        
+        noStroke();
+        if (this.mouseover() || this.selected) {
+            fill(this.defaultCol);
+        } else {
+            noFill();
+        }
+        rect(this.x - 5, this.y, this.w, this.h + 1, 5);
+        
+        fill(10);
+        textAlign(LEFT, CENTER);
+        text(this.name, this.x + boxSize + 5, this.y + this.h/2);
+        
+        noFill();
+        stroke(10);
+        strokeWeight(1);
+        rect(this.x, this.y + 3, boxSize, boxSize);
+        
+        if (showing[this.name]) {
+            line(this.x, this.y + 3, this.x + boxSize, this.y + 3 + boxSize);
+            line(this.x + boxSize + 1, this.y + 3, this.x + 1, this.y + 3 + boxSize);
+        }
+    };
+};
+
+
+/*********************************************************
+ * DraggablePoint
+ * A freely draggable point with a position and colour.
+*********************************************************/
+
+var DraggablePoint = function(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (selectedPoint === this || this.mouseover()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = CONTROL_POINT_SIZE + this.animation;
+    ellipse(this.x, this.y, r, r);
+};
+
+DraggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2;
+};
+
+DraggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+
+// Curve between by two points at (x1, y1) and (x2, y2),
+// with a control point at (x3, y3)
+var Curve = function(x1, y1, x2, y2, x3, y3) {
+    this.p1 = new DraggablePoint(x1, y1);
+    this.p2 = new DraggablePoint(x2, y2);
+    this.p3 = new DraggablePoint(x3, y3);
+    this.controlPoints = [this.p1, this.p2, this.p3];
+    this.splinePoints = [];
+    
+    this.update = function() {
+        this.lengths = [
+            dist(this.p1.x, this.p1.y, this.p3.x, this.p3.y),
+            dist(this.p2.x, this.p2.y, this.p3.x, this.p3.y)
+        ];
+        var angle1 = atan2(this.p3.y - this.p1.y, this.p3.x - this.p1.x);
+        var angle2 = atan2(this.p3.y - this.p2.y, this.p3.x - this.p2.x);
+        this.c1 = cos(angle1);
+        this.s1 = sin(angle1);
+        this.c2 = cos(angle2);
+        this.s2 = sin(angle2);
+        
+        // Fill splinePoints array with points along the curve
+        var n = sliders[0].val;
+        var x1 = this.p1.x;
+        var y1 = this.p1.y;
+        var x2 = this.p2.x + this.lengths[1] * n / (n + 1) * this.c2;
+        var y2 = this.p2.y + this.lengths[1] * n / (n + 1) * this.s2;
+        
+        this.splinePoints = [[x1, y1]];
+        for (var i = 1; i <= n; i++) {
+            var len1 = this.lengths[0] * i / (n + 1);
+            var len2 = this.lengths[1] * (n - i) / (n + 1);
+            var x3 = this.p1.x + len1 * this.c1;
+            var y3 = this.p1.y + len1 * this.s1;
+            var x4 = this.p2.x + len2 * this.c2;
+            var y4 = this.p2.y + len2 * this.s2;
+            var coord = findIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+            x1 = coord[0];
+            y1 = coord[1];
+            x2 = x4;
+            y2 = y4;
+            this.splinePoints.push([x1, y1]);
+        }
+        this.splinePoints.push([x2, y2]);
+    };
+    this.update();
+    
+    this.draw = function() {
+        if (showing.Parabola) {
+            this.drawTrueParabola();   
+        }
+        
+        // Construction lines
+        var pinkLine = false;
+        var n = sliders[0].val;
+        var highlight = floor((n + 2) * sliders[2].val / (sliders[2].max + 1)) - 1;
+        var drawStrings = floor((n + 2) * sliders[1].val / (sliders[1].max + 1));
+
+        for (var i = 0; i <= n; i++) {
+            var len1 = this.lengths[0] * i / (n + 1);
+            var len2 = this.lengths[1] * (n - i) / (n + 1);
+            var x1 = this.p1.x + len1 * this.c1;
+            var y1 = this.p1.y + len1 * this.s1;
+            var x2 = this.p2.x + len2 * this.c2;
+            var y2 = this.p2.y + len2 * this.s2;
+            
+            if (i === highlight) {
+                pinkLine = [x1, y1, x2, y2];
+            }
+            
+            if (i < drawStrings) {
+                strokeWeight(1);
+                stroke(GREY);
+                line(x1, y1, x2, y2);
+            }
+            
+            if (showing['String points']) {
+                noStroke();
+                fill(GREY);
+                var d = 5;
+                quad(x1, y1 - d, x1 + d, y1, x1, y1 + d, x1 - d, y1);
+                quad(x2, y2 - d, x2 + d, y2, x2, y2 + d, x2 - d, y2);
+            }
+        }
+        
+        // Approximate parabola
+        if (showing.Approximation) {
+            strokeWeight(2);
+            stroke(lerpColor(GREEN, color(0, 40, 0, 180), 0.5));
+            
+            strokeWeight(4);
+            stroke(GREEN);
+            
+            var x1 = this.splinePoints[0][0];
+            var y1 = this.splinePoints[0][1];
+            for (var i = 0; i <= this.splinePoints.length - 1; i++) {
+                var x2 = this.splinePoints[i][0];
+                var y2 = this.splinePoints[i][1];
+                line(x1, y1, x2, y2);
+                x1 = x2;
+                y1 = y2;
+            }   
+        }
+        
+        if (pinkLine) {
+            stroke(PINK);
+            strokeWeight(2);
+            line(pinkLine[0], pinkLine[1], pinkLine[2], pinkLine[3]);
+        }
+        
+        // Lines to control points
+        if (showing['Control arms']) {
+            this.drawControlArms();
+        }
+        
+        if (showing['Control points']) {
+            this.drawControlPoints();
+        }
+    };
+    
+    this.drawTrueParabola = function() {
+        var x1 = this.p1.x;
+        var y1 = this.p1.y;
+        var x2 = this.p2.x;
+        var y2 = this.p2.y;
+        var x3 = this.p3.x;
+        var y3 = this.p3.y;
+        
+        noFill();
+        beginShape();
+        strokeWeight(4);
+        stroke(GREEN);
+        
+        for (var i = 0; i <= RESOLUTION; i++) {
+            var p = i / RESOLUTION;
+            var q = 1 - p;
+            var rx = p * x1 + q * x3;
+            var ry = p * y1 + q * y3;
+            var sx = p * x3 + q * x2;
+            var sy = p * y3 + q * y2;
+            vertex(p * rx + q * sx, p * ry + q * sy);
+        }
+        endShape();
+    };
+    
+    this.drawControlArms = function() {
+        stroke(BLUE);
+        strokeWeight(2);
+        line(this.p1.x, this.p1.y, this.p3.x, this.p3.y);
+        line(this.p2.x, this.p2.y, this.p3.x, this.p3.y);
+    };
+    
+    this.drawControlPoints = function() {
+        for (var i = 0; i < this.controlPoints.length; i++) {
+            this.controlPoints[i].draw();
+        }
+        this.drawLabels();
+    };
+    
+    this.drawLabels = function() {
+        textSize(14);
+        textAlign(CENTER, CENTER);
+        
+        var x1 = this.p1.x;
+        var y1 = this.p1.y;
+        var x2 = this.p2.x;
+        var y2 = this.p2.y;
+        var x3 = this.p3.x;
+        var y3 = this.p3.y;
+        
+        fill(ORANGE);
+        this.drawLabel("C", x1, y1, x3, y3);
+        this.drawLabel("A", x2, y2, x3, y3);
+        this.drawLabel("B", x3, y3, (x1 + x2)/2, (y1 + y2)/2);
+    };
+    
+    this.drawLabel = function(name, x1, y1, x2, y2) {
+        var dx = x1 - x2;
+        var dy = y1 - y2;
+        var d = sqrt(dx * dx + dy * dy);
+        dx /= d;
+        dy /= d;
+        
+        text(name, x1 + dx * 15, y1 + dy * 15);
+    };
+    
+    this.selectPoint = function() {
+        for (var i = 0; i < this.controlPoints.length; i++) {
+            if (this.controlPoints[i].mouseover()) {
+                selectedPoint = i;
+            }
+        }
+    };
+    
+    this.mouseDrag = function() {
+        if (selectedPoint !== false) {
+            var p = this.controlPoints[selectedPoint];
+            p.x += mouseX - pmouseX;
+            p.y += mouseY - pmouseY;
+            this.update();
+        }
+    };
+};
+
+/*********************************************************************
+ * Creation of objects
+*********************************************************************/
+
+var createButtons = function() {
+    var buttons = [];
+    var x = width - toolbarWidth + 8;
+    var y = 130;
+    var w = 100;
+    var h = 15;
+    
+    for (var opt in showing) {
+        buttons.push(new Button(x, y, w, h, opt));
+        y += 20;
+    }
+    
+    return buttons;
+};
+
+var buttons = createButtons();
+sliders = [
+    new Slider(294, 34, 88, 0, MAX_RESOLUTION - 1, 1),
+    new Slider(294, 74, 88, 0, 84, 0),
+    new Slider(294, 114, 88, 0, 84, 0)
+];
+
+var myCurve = new Curve(350, 350, 50, 50, 50, 350);
+
+/*****************************************************
+ *      Draw functions
+******************************************************/
+
+var drawGUI = function() {
+    textSize(13);
+    noStroke();
+    fill(240, 240, 240, 200);
+    rect(width - 4 - toolbarWidth, 4, toolbarWidth, toolbarHeight, 8);
+    
+    textAlign(CENTER, CENTER);
+    fill(10);
+    var s = sliders[0];
+    text("Num of strings: " + (s.val + 1),  s.x + s.width / 2, s.y - 18);
+    
+    var s = sliders[1];
+    var val = floor((sliders[0].val + 2) * s.val / (s.max + 1));
+    text("Draw strings: " + val,  s.x + s.width / 2, s.y - 18);
+    
+    var s = sliders[2];
+    text("Highlight string",  s.x + s.width / 2, s.y - 18);
+
+    
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].draw();   
+    }
+    
+    textAlign(LEFT, CENTER);
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+/*****************************************************
+ *      Main loop
+******************************************************/
+
+draw = function() {
+    background(BACKGROUND);
+    myCurve.draw();
+    drawGUI();
+};
+
+/*****************************************************
+ *      Event handling
+******************************************************/
+
+mousePressed = function() {
+    myCurve.selectPoint();
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].selected();
+    }
+};
+
+mouseReleased = function() {
+    selectedPoint = false;
+    for (var s = 0; s < sliders.length; s++) {
+        sliders[s].held = false;
+    }
+    for (var b = 0; b < buttons.length; b++) {
+        if (buttons[b].mouseover()) {
+            buttons[b].click();
+        }
+    }
+};
+
+mouseOut = function() {
+    mouseReleased();
+};
+
+mouseDragged = function() {
+    myCurve.mouseDrag();
+    for (var s = 0; s < sliders.length; s++) {
+        if(sliders[s].drag()) {
+            myCurve.update();
+        }
+    }
+};

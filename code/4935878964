@@ -1,0 +1,930 @@
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(230, 230, 230, 200);
+
+strokeJoin(ROUND);
+var sansFont = createFont("sans", 15);
+var serifFont = createFont("serif", 16);
+
+var showing = {
+    Polygon: true,
+    'Control points': true
+};
+
+var testCurves = [
+    {
+        points: [0, 0.4, -0.4, 0.4, -0.35, -0.4],
+        amplitudes: [1, 0, 0],
+    },
+    {
+        points: [-0.4, 0.4, -0.4, 0.4, -0.4, 0.4],
+        amplitudes: [1, 0.75, 0],
+    }
+];
+
+/*************************************************
+ * Generic GUI component from which other elements
+ * inherit
+ * The default object is basically a button
+**************************************************/
+{
+var GUI_Component = function(x, y, w, h, name, updateFunction) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.name = name;
+    
+    if (updateFunction) {
+        this.trigger = updateFunction.bind(this);
+    }
+    
+    this.selected = false;
+    this.disabled = false;
+    this.transition = 0;
+};
+
+GUI_Component.prototype.draw = function() {
+    if (this.mouseOver()) {
+        fill(100);
+    } else {
+        fill(200);
+    }
+    
+    noStroke();
+    rect(this.x, this.y, this.w, this.h, 12);
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+GUI_Component.prototype.mouseOver = function() {
+    return (mouseX >= this.x && mouseX <= this.x + this.w &&
+            mouseY >= this.y && mouseY <= this.y + this.h);
+};
+
+GUI_Component.prototype.mousePressed = function() {
+    this.selected = this.mouseOver();
+};
+
+GUI_Component.prototype.mouseDragged = function() {};
+
+GUI_Component.prototype.mouseReleased = function() {
+    if (this.selected && !this.disabled && this.mouseOver()) {
+        this.trigger();
+    }
+    this.selected = false;
+};
+
+GUI_Component.prototype.trigger = function() {
+    // To be over-written
+};
+
+GUI_Component.prototype.fade = function() {
+    if (this.selected || this.mouseOver()) {
+        this.transition = min(10, this.transition + 1);
+    } else {
+        this.transition = max(0, this.transition - 1);
+    }
+};
+}
+/*************************************************
+ *  GUI Button
+**************************************************/
+{
+var Button = function(x, y, w, h, params) {
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    this.defaultCol = TOOLBAR;
+    this.highlightCol = params.highlightCol || color(210, 210, 210, 250);
+    if (params.filled) {
+        this.makeFilled();
+    }
+};
+Button.prototype = Object.create(GUI_Component.prototype);
+
+Button.prototype.draw = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(200);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 12);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(TEXTCOL);
+    }
+    
+    textFont(sansFont, 15);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2 + 1);
+};
+
+Button.prototype.drawFilled = function() {
+    this.fade();
+    
+    if (this.disabled) {
+        fill(180);
+        noStroke();
+    } else {
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        strokeWeight(1);
+        stroke(this.highlightCol);
+    }
+    
+    rect(this.x, this.y - 1, this.w, this.h + 3, 19);
+    
+    if (this.disabled) {
+        fill(120);
+    } else {
+        fill(lerpColor(this.highlightCol, color(255, 255, 255), this.transition / 10));
+    }
+    
+    textFont(sansFont, 16);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x + this.w / 2, this.y + this.h/2);
+};
+
+Button.prototype.makeFilled = function() {
+    this.draw = this.drawFilled;
+    this.defaultCol = color(0, 0, 0, 1);
+};
+
+var CheckBox = function(x, y, w, h, name) {
+    Button.call(this, x, y, w, h, { name: name });
+    this.box = this.h - 6;
+    this.bx = this.x + 5;
+    this.by = this.y + 3;
+};
+CheckBox.prototype = Object.create(Button.prototype);
+
+CheckBox.prototype.trigger = function() {
+    showing[this.name] = !showing[this.name];  
+};
+
+CheckBox.prototype.draw = function() {
+    this.fade();
+    
+    if (this.transition) {
+        noStroke();
+        fill(lerpColor(this.defaultCol, this.highlightCol, this.transition / 10));
+        rect(this.x, this.y, this.w, this.h + 1, 4);
+    }
+    
+    fill(20);
+    textFont(sansFont, 15);
+    textAlign(LEFT, CENTER);
+    text(this.name, this.x + this.box + 9, this.y + this.h/2 + 1);
+    
+    noFill();
+    stroke(10);
+    strokeWeight(1);
+    rect(this.bx, this.y + 3, this.box, this.box);
+
+    if (showing[this.name]) {
+        line(this.bx + 1, this.by + 1, this.bx + this.box, this.by + this.box);
+        line(this.bx + this.box, this.by + 1, this.bx + 1, this.by + this.box);
+    }
+};
+}
+/*************************************************
+ * GUI Slider
+**************************************************/
+{
+var Slider = function(x, y, w, h, params) {
+    // Size of ball
+    this.ballR = 12;
+    this.ballD = this.ballR * 2;
+    
+    x += this.ballR;
+    w -= this.ballR * 2;
+    
+    var h = this.ballD + (params.name ? 16 : 0);
+    y += h - this.ballR;
+    
+    GUI_Component.call(this, x, y, w, h, params.name, params.trigger);
+    
+    this.x2 = x + w;
+    this.fill = params.fill || color(240);
+    this.stroke = params.stroke || color(180);
+    
+    this.min = params.min || 0;
+    this.max = params.max === undefined ? 1 : params.max;
+    this.val = params.now === undefined ? this.min : params.now;
+    this.decimalPlaces = params.decimalPlaces === undefined ? 0 : params.decimalPlaces;
+    this.setValue(this.val);
+    this.trigger();
+};
+Slider.prototype = Object.create(GUI_Component.prototype);
+
+Slider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+        //text(this.name + ": " + this.val,  this.x + this.w / 2, this.y - 14);
+    }
+    
+    this.fade();
+    fill(lerpColor(color(this.fill), color(this.stroke), this.transition / 10));
+    stroke(this.stroke);
+    strokeWeight(3);
+    line(this.x, this.y, this.x2, this.y);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+    
+    fill(20);
+    textSize(11);
+    textAlign(CENTER, CENTER);
+    text("" + this.val, this.bx, this.y);
+};
+
+Slider.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.bx, this.y) < this.ballR;
+};
+
+Slider.prototype.mousePressed = function() {
+    if (this.mouseOver()) {
+        this.selected = true;
+        return true;
+    }
+};
+
+Slider.prototype.mouseDragged = function() {
+    if (this.selected) {
+        this.bx = constrain(mouseX, this.x, this.x2);
+        var p = pow(10, this.decimalPlaces);
+        this.val = round(map(this.bx, this.x, this.x2, this.min, this.max) * p) / p;
+        this.trigger();
+        return true;
+    }
+};
+
+Slider.prototype.setValue = function(v) {
+    this.val = constrain(v, this.min, this.max);
+    this.bx = map(this.val, this.min, this.max, this.x, this.x2);
+    this.trigger();
+};
+
+var ColorSlider = function(x, y, w, h, params) {
+    Slider.call(this, x, y, w, h, params);
+    //this.max = params.max || 255;
+    this.saturation = params.saturation || 180;
+    this.brightness = params.brightness || 180;
+    this.setColor();
+};
+ColorSlider.prototype = Object.create(Slider.prototype);
+
+ColorSlider.prototype.setColor = function() {
+    colorMode(HSB);
+    this.color = color(this.val, this.saturation, this.brightness);
+    colorMode(RGB);
+    this.R = red(this.color);
+    this.G = green(this.color);
+    this.B = blue(this.color);
+};
+
+ColorSlider.prototype.draw = function() {
+    if (this.name) {
+        fill(20);
+        textSize(13);
+        textAlign(CENTER, BASELINE);
+        text(this.name,  this.x + this.w / 2, this.y - 15);
+    }
+    
+    this.fade();
+    fill(this.color);
+    strokeWeight(4);
+    stroke(this.stroke);
+    line(this.x, this.y, this.x2, this.y);
+    stroke(250);
+    strokeWeight(1);
+    ellipse(this.bx, this.y, this.ballD, this.ballD);
+};
+
+ColorSlider.prototype.trigger = function() {
+    this.setColor();
+};
+}
+/*************************************************
+ * GUI Label
+**************************************************/
+var Label = function(x, y, w, h, name) {
+    this.x = x + w / 2;
+    this.x1 = x + 8;
+    this.x2 = x + w - 8;
+    this.y = y + h - 4;
+    this.name = name;
+};
+
+Label.prototype.draw = function() {
+    fill(40);
+    textFont(sansFont, 16);
+    textAlign(CENTER, BASELINE);
+    text(this.name, this.x, this.y - 2);
+    
+    strokeWeight(1);
+    stroke(40);
+    line(this.x1, this.y, this.x2, this.y);
+};
+/*************************************************
+ *      Toolbar
+ *  Like GUI but is displayed and has methods for
+ * adding components like buttons and sliders.
+**************************************************/
+{
+var Toolbar = function(x, y, w) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = 8;
+    this.components = [];
+    this.labels = [];
+};
+
+Toolbar.prototype.draw = function() {
+    fill(250);
+    strokeWeight(1);
+    stroke(180);
+    rect(this.x, this.y, this.w, this.h, 8);
+   
+    this.components.forEach(function(p) { p.draw(); });
+    this.labels.forEach(function(p) { p.draw(); });
+};
+
+Toolbar.prototype.add = function(type, params) {
+    params = params || {};
+    var h = params.h || 20;
+    var component = new type(this.x + 5, this.y + this.h, this.w - 10, h, params);
+    this.components.push(component);
+    this.h += component.h + 8;
+};
+
+Toolbar.prototype.addLabel = function(name) {
+    var h = 20;
+    this.labels.push(new Label(this.x, this.y + this.h, this.w, h, name));
+    this.h += h + 8;
+};
+
+Toolbar.prototype.addOptions = function(options) {
+    var x = this.x + 3;
+    var y = this.y + this.h + 2;
+    var w = this.w - 6;
+    var h = 22;
+    
+    for (var opt in options) {
+        var button = new CheckBox(x, y, w, h, opt);
+        this.components.push(button);
+        y += h + 5;
+        this.h += h + 5;
+    }
+    
+    this.h += 2;
+};
+
+Toolbar.prototype.mousePressed = function() {
+    this.components.forEach(function(p) { p.mousePressed(); });
+};
+
+Toolbar.prototype.mouseReleased = function() {
+    this.components.forEach(function(p) { p.mouseReleased(); });
+};
+
+Toolbar.prototype.mouseDragged = function() {
+    this.components.forEach(function(p) { p.mouseDragged(); });
+};
+}
+/*************************************************
+ *      DraggablePoint
+ * A freely draggable point with a position and
+ * colour.
+**************************************************/
+{
+var DraggablePoint = function(x, y, name) {
+    this.x = x;
+    this.y = y;
+    this.color = ORANGE;
+    this.animation = 0;
+    this.r = 16;
+    this.name = name || "";
+};
+
+DraggablePoint.prototype.draw = function() {
+    if (this.dragging || this.mouseOver()) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    strokeWeight(1);
+    stroke(BACKGROUND);
+    fill(this.color);
+    
+    var r = this.r + this.animation;
+    ellipse(this.x, this.y, r, r);
+    
+    fill(0);
+    textSize(10);
+    textAlign(CENTER, CENTER);
+    text(this.name, this.x, this.y);
+};
+
+DraggablePoint.prototype.mouseOver = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= this.r / 2;
+};
+
+DraggablePoint.prototype.move = function(dx, dy) {
+    this.x += dx;
+    this.y += dy;
+    if (this.x1 || this.x2) {
+        this.x = constrain(this.x, this.x1, this.x2);
+    }
+    if (this.y1 || this.y2) {
+        this.y = constrain(this.y, this.y1, this.y2);
+    }
+};
+}
+/*************************************************
+ *      Graph
+ * A collection of draggable points constrained
+ * to a box
+**************************************************/
+
+var Graph = function(x, y, w, h, n) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    this.n = n;
+    
+    this.subdivisions = 4;
+    this.numOctaves = 3;
+    this.controlPoints = [];
+    this.curvePoints = [];
+    this.amplitudes = [];
+    
+    // Constraints for draggable points
+    this.x1 = this.x + 12;
+    this.y1 = this.y + 12;
+    this.y2 = this.y + this.h - 12;
+    
+    this.dx = (this.w - 24) / (n - 1);
+    this.dy = this.h + 5;
+    
+    for (var i = 0; i < this.numOctaves; i++) {
+        this.curvePoints.push([]);
+    }
+
+    this.getTestCurve(testCurves[1]);
+
+    // Get start curve
+    for (var i = 0; i < this.numOctaves; i++) {
+        this.amplitudes.push(i ? 1 : 0);
+    }
+
+    this.getRandomPoints();
+};
+
+Graph.prototype.getTestCurve = function(data) {
+    this.amplitudes = data.amplitudes.slice(0);
+    this.getNonRandomPoints(data.points);
+    this.testCurve = this.curvePoints.slice(-1)[0];
+};
+
+Graph.prototype.getRandomPoints = function() {
+    var x = this.x1;
+    var points = [];
+    
+    for (var i = 0; i < this.n; i++) {
+        var value = (random() - 0.5) * 0.8;
+        var py = lerp(this.y + this.h, this.y, value);
+        var p = new DraggablePoint(x, py - this.h / 2, i + 1);
+        p.value = value;
+        p.y1 = this.y1;
+        p.y2 = this.y2;
+        points.push(p);
+        x += this.dx;
+    }
+    
+    this.controlPoints = points;
+    this.calculateSubdivisionCurves();
+};
+
+Graph.prototype.getNonRandomPoints = function(arr) {
+    var x = this.x1;
+
+    this.controlPoints = arr.map(function(value, i) {
+        var py = lerp(this.y + this.h, this.y, value + 0.5);
+        var p = new DraggablePoint(x, py);
+        p.index = i;
+        p.value = value;
+        x += this.dx;
+        return p;
+    }, this);
+    
+    this.calculateSubdivisionCurves();
+};
+
+Graph.prototype.resetPoints = function() {
+    var x = this.x1;
+    this.controlPoints = [];
+    
+    for (var i = 0; i < this.n; i++) {
+        var p = new DraggablePoint(x, this.y + this.h * 0.5, i + 1);
+        p.value = 0;
+        p.y1 = this.y1;
+        p.y2 = this.y2;
+        this.controlPoints.push(p);
+        x += this.dx;
+    }
+
+    this.calculateSubdivisionCurves();
+};
+
+Graph.prototype.draw = function() {
+    var cp = this.controlPoints;
+    var q = 1 << (this.subdivisions - 1);
+
+    for (var i = 0; i <= this.numOctaves; i++) {
+        var y = this.dy * i;
+        this.drawBox(this.x, y, i % this.numOctaves);
+        
+        if (!i && showing.Polygon) {
+            strokeWeight(1);
+            stroke(BLUE);
+            noFill();
+            beginShape();
+            for (var j = cp.length; j--;) {
+                vertex(cp[j].x, cp[j].y);
+            }
+            endShape();
+        }
+        
+        strokeWeight(3);
+        stroke(GREEN);
+        this.drawCurve(0, y, this.curvePoints[i].slice(q, -q));
+        
+        if (i === this.numOctaves) {
+            stroke(255, 0, 0, 100);
+            this.drawCurve(0, y, this.testCurve.slice(q, -q));
+        }
+    }
+
+    
+    if (showing['Control points']) {
+        this.controlPoints.forEach(function(p) {
+            p.draw();
+        });
+    }
+    
+    this.drawColorBar();
+};
+
+Graph.prototype.labelPoint = function(x, y, lx, n, flip) {
+    var p = this.curvePoints[n];
+    var n = p.length - 1;
+    var mx = lx * n;
+    var p1 = mx | 0;
+    var my = 0.5 + lerp(p[p1].value, p[p1 + 1].value, mx - p1);
+
+    strokeWeight(1);
+    stroke(0);
+    var px = lerp(p[0].x, p[n].x, lx);
+    var py = lerp(y + this.h + 5, y + 5, my);
+    
+    var d = 4;
+    line(px - d, py - d, px + d, py + d);
+    line(px - d, py + d, px + d, py - d);
+    
+    fill(0);
+    textSize(11);
+    if ((my > 0.5) ^ flip) {
+        textAlign(CENTER, BASELINE);
+        text("(" + lx + ", " + round(my * 100 - 50) / 100 + ")", px, py - 6);
+    } else {
+        textAlign(CENTER, TOP);
+        text("(" + lx + ", " + round(my * 100 - 50) / 100 + ")", px, py + 4);
+    }
+};
+
+Graph.prototype.drawBox = function(x, y, d) {
+    y += this.y;
+    fill(255);
+    strokeWeight(1);
+    stroke(80);
+    rect(x, y, this.w, this.h, 2);
+    
+    var n = 4;
+    var mid = n / 2 - 1;
+    var dy = this.h / n;
+    var y2 = y;
+    
+    for (var i = 0; i < n - 1; i++) {
+        y2 += dy;
+        stroke(i === mid ? 180 : 230);
+        line(x + 2, y2, x + this.w - 2, y2);
+    }
+    
+    if (d) {
+        d = 1 << d;
+        var dx = this.w / d;
+        var x2 = x;
+        stroke(230);
+        for (var i = 0; i < d - 1; i++) {
+            x2 += dx;
+            //line(x2, y + 2, x2, y + this.h - 2);
+        }
+    }
+    
+};
+
+Graph.prototype.drawCurve = function(dx, dy, p) {
+    pushMatrix();
+    translate(dx, dy);
+    noFill();
+
+    beginShape();
+    for (var i = p.length; i--;) {
+        vertex(p[i].x, p[i].y);
+    }
+    endShape();
+    popMatrix();
+};
+
+Graph.prototype.drawTitle = function(x, y, title) {
+    y += this.y;
+    textSize(15);
+    textAlign(LEFT, TOP);
+    noStroke();
+    fill(255, 255, 255, 200);
+    rect(x + 1, y + 1, textWidth(title) + 5, 20);
+    
+    fill(30);
+    text(title, x + 3, y + 2);
+};
+
+// Show colours along line
+Graph.prototype.drawColorBar = function() {
+    var p1, p2, d, my, n1;
+    var p = this.curvePoints.slice(-1)[0];
+    var n = p.length - 1;
+    
+    var x1 = p[0].x;
+    var x2 = p[n].x;
+    var y1 = height - 61;
+    var y2 = y1 + 56;
+
+    strokeWeight(1);
+    for (var x = x1; x < x2; x++) {
+        var mx = norm(x, p[0].x, p[n].x) * n;
+        // Interpolate along line
+        p1 = mx | 0;
+        my = 0.5 + lerp(p[p1].value, p[p1 + 1].value, mx - p1);
+        stroke(my * this.R, my * this.G, my * this.B);
+        line(x, y1, x, y2);
+    }
+};
+
+Graph.prototype.subdivide = function() {
+    if (this.subdivisions < 4) {
+        this.subdivisions++;
+        this.calculateSubdivisionCurves();
+    }
+};
+
+Graph.prototype.calculateSubdivisionCurves = function(n1, n2) {
+    for (var i = 0; i < this.numOctaves; i++) {
+        this.calculateSubdivisionCurve(i, n1, n2);
+    }
+    
+    this.calculateSummedCurve();
+};
+
+Graph.prototype.calculateSubdivisionCurve = function(octave, n1, n2) {
+    var cp = this.controlPoints;
+    var n = cp.length;
+    
+    // Which points are changing?
+    var n1 = n1 || 0;
+    var n2 = n2 || n;
+    
+    var h2 = this.h / 2;
+    var q = 1 << this.subdivisions;
+    var q2 = q * q;
+    
+    var len = n * (1 << octave);
+    var dx = (this.w - 24) / (len - 1);
+    var amp = this.amplitudes[octave] / q2;
+    
+    var i, len, p1, p2, p3, a, b, c, s, t, idx, v;
+    
+    p1 = cp[(n1 + n - 1) % n];
+    p2 = cp[n1];
+    
+    for (i = 0; i < len; i++) {
+        p3 = cp[(i + 1) % n];
+
+        // Only update points that have changed
+        if ((i % n) >= n1 && (i % n) < n2) {
+            for (t = 0; t < q; t++) {
+                idx = i * q + t;
+                
+                s = q - t - 1;
+                a = (s * s + s) >> 1;
+                c = (t * t + t) >> 1;
+                b = q2 - a - c;
+                v = (a * p1.value +
+                     b * p2.value +
+                     c * p3.value) * amp;
+                
+                this.curvePoints[octave][idx] = {
+                    x: this.x1 + (i + (c - a) / q2) * dx,
+                    y: this.y - lerp(-h2, h2, v),
+                    value: v
+                };
+            }
+        }
+        p1 = p2;
+        p2 = p3;
+    }
+    
+};
+
+Graph.prototype.calculateSummedCurve = function() {
+    var q = 1 << this.subdivisions;
+    var q2 = q / 2;
+    var reps = this.controlPoints.length * (1 << this.numOctaves - 1);
+    var len = reps * q;
+    var dx = (this.w - 24) / (reps - 1);
+    var h2 = this.h / 2;
+        
+    var n1 = this.numOctaves - 1;
+    var n = this.curvePoints[n1].length;
+    var ni = 1 / (n - q);
+    var i, j, p, v, d, p1, t, cp;
+    
+    var points = [];
+    
+    for (i = 0; i < n; i++) {
+        p = this.curvePoints[n1][i];
+        v = p.value;
+        
+        for (j = 0; j < this.numOctaves - 1; j++) {
+            cp = this.curvePoints[j];
+            d = q2 + (i - q2) * (cp.length - q - 1) * ni;
+
+            p1 = d | 0;
+            t = d - p1;
+            v += cp[p1 % cp.length].value * (1 - t) + cp[(p1 + 1) % cp.length].value * t;
+        }
+
+        v = constrain(v, -0.5, 0.5);
+
+        points.push({
+            x: p.x,
+            y: this.y + 3 + lerp(h2 - 3, 3 - h2, v),
+            value: v
+        });
+    }
+    
+    this.curvePoints[this.numOctaves] = points;
+};
+
+Graph.prototype.submitCurve = function() {
+
+};
+
+Graph.prototype.mousePressed = function() {
+    if (showing['Control points']) {
+        for (var i = this.controlPoints.length; i--;) {
+            if (this.controlPoints[i].mouseOver()) {
+                this.selected = this.controlPoints[i];
+                return;
+            }
+        }
+    }
+};
+
+Graph.prototype.mouseReleased = function() {
+    this.selected = false;
+};
+
+Graph.prototype.mouseDragged = function() {
+    if (this.selected) {
+        // Only move y coordinate and constrain in box
+        this.selected.move(0, mouseY - pmouseY);
+        this.selected.value = norm(this.selected.y, this.y + this.h, this.y) - 0.5;
+        var n = this.selected.index;
+        this.calculateSubdivisionCurves(n, n + 2);
+    }
+};
+
+/*************************************************
+ * Set-up page
+**************************************************/
+
+var graph = new Graph(170, 5, width - 175, 128, 6);
+
+var elements = [
+    graph,
+    new Toolbar(5, 5, 160),
+    new Toolbar(5, height - 60, 160),
+];
+elements[1].addLabel("Initial points");
+elements[1].add(Button, {
+    name: "Reset Points",
+    trigger: function() {
+        graph.resetPoints();
+    }
+});
+elements[1].addOptions(showing);
+elements[2].add(ColorSlider, {
+    name: 'Color',
+    now: 90,
+    max: 255,
+    brightness: 220,
+    trigger: function() {
+        this.setColor();
+        graph.R = this.R;
+        graph.G = this.G;
+        graph.B = this.B;
+    }
+});
+elements[2].components[0].trigger();
+
+var getSliderFunction = function(i) {
+    return function() {
+       graph.amplitudes[i] = this.val;
+       graph.calculateSubdivisionCurve(i);
+       graph.calculateSummedCurve();
+    };
+};
+
+var getSubmitCurveFunction = function() {
+    return function() { graph.submitCurve(); };
+};
+
+// Add amplitude sliders
+for (var i = 1; i <= graph.numOctaves; i++) {
+    var toolbar =  new Toolbar(5, graph.y + graph.dy * i, 160);
+    if (i < graph.numOctaves) {
+        toolbar.addLabel("Frequency "+ (1 << i) +" curve");
+        toolbar.add(Slider, {
+            name: 'Amplitude',
+            max: 1,
+            now: 0,
+            decimalPlaces: 2,
+            trigger: getSliderFunction(i)
+        });
+    } else {
+        toolbar.addLabel("Summed curve");
+        toolbar.add(Button, {
+            name: "Submit",
+            trigger: getSubmitCurveFunction
+        });
+    }
+    elements.push(toolbar);
+}
+
+/*************************************************
+ * Main loop
+**************************************************/
+
+draw = function() {
+    background(250);
+    elements.forEach(function(p) { p.draw(); });
+};
+
+/**************************************
+ *  Event handling
+***************************************/
+
+mousePressed = function() {
+    elements.forEach(function(p) { p.mousePressed(); });
+};
+
+mouseDragged = function() {
+    elements.forEach(function(p) { p.mouseDragged(); });
+};
+
+mouseReleased = function() {
+    elements.forEach(function(p) { p.mouseReleased(); });
+};
+
+mouseOut = mouseReleased;

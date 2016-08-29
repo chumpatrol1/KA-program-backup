@@ -1,0 +1,145 @@
+/*********************************************
+* 
+**********************************************/
+
+var BACKGROUND = color(0, 0, 0);
+var RED = color(255, 40, 40);
+var BLUE = color(64, 95, 237);
+var GREEN = color(0, 200, 0);
+var WHITE = color(255, 255, 255);
+var LIGHT = color(255, 255, 200);
+var ORANGE = color(255, 165, 0);
+var TENNIS = color(200, 230, 0);
+
+ellipseMode(CENTER);
+
+var tx = width / 2;
+var ty = height / 2;
+
+// Sphere coordinates
+var r = 80;
+var r2 = r * r;
+
+var getZ = function(x, y) {
+    var x2 = x * x;
+    var y2 = y * y;
+    var z2 = r2 - x2 - y2;
+    
+    if (z2 >= 0) {
+        return sqrt(z2); 
+    }
+    
+    return -1;
+};
+
+var subtract = function(v1, v2) {
+    return [v1[0] - v2[0], v1[1] - v2[1], v1[2], v2[2]];
+};
+
+var normalise = function(x, y, z) {
+    var d = sqrt(x * x + y * y + z * z);
+    return [x / d, y / d, z / d];
+};
+
+var dotProduct = function(v1, v2){
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+};
+
+// Variable for circle on sphere
+var cx = -60;
+var cy = -16;
+var cz = getZ(cx, cy);
+var cr = 32;
+var cr2 = cr * cr;
+
+// Draw sphere
+background(BACKGROUND);
+pushMatrix();
+translate(tx, ty);
+fill(RED);
+//ellipse(0, 0, r * 2, r * 2);
+popMatrix();
+
+// Variables for keeping track where we are on the sphere
+var dy = -r;
+var dy2 = dy * dy;
+
+var light = [-80, -150, 120];
+
+// Make a circle with 3 on it
+var makeImage = function(w, r) {
+    var img = createGraphics(w, w, P2D);
+    var c = w >> 1;
+    
+    img.background(RED);
+    img.angleMode = "degrees";
+    img.fill(250);
+    img.noStroke();
+    img.ellipse(c, c, w - 4, w - 4);
+    img.textFont(createFont("serif", 50), 45);
+    img.textAlign(CENTER, CENTER);
+    img.fill(0);
+    img.translate(c, c);
+    img.rotate(r);
+    img.text("3", 0, 0);
+    return img;
+};
+
+var img = makeImage(cr * 2, -60);
+
+draw = function() {
+    if (dy <= r) {
+        
+        pushMatrix();
+        translate(tx, ty);
+        
+        for (var dx = -r; dx <= r; dx++) {
+            var dx2 = dx * dx;
+            var z2 = r2 - dx2 - dy2;
+            
+            if (z2 >= 0) {
+                var dz = sqrt(z2);
+                
+                var ray = subtract(light, [dx, dy, dz]);
+                var rayNorm = normalise(ray[0], ray[1], ray[2]);
+                var normal = normalise(dx, dy, dz);
+                var diffuse = constrain(dotProduct(normal, rayNorm), 0.15, 1);
+                
+                // Point on sphere
+                var dcx = dx - cx;
+                var dcy = dy - cy;
+                var dcz = dz - cz;
+                
+                var d2 = dcx * dcx + dcy * dcy + dcz * dcz;
+                if (d2 < cr2) {
+                    var d = sqrt(d2);
+                    var a = atan2(dcy, dcx);
+                    var c = img.get(cr + d * cos(a), cr + d * sin(a));
+                    stroke(lerpColor(BACKGROUND, c, diffuse));
+                } else {
+                    stroke(lerpColor(BACKGROUND, RED, diffuse));
+                }
+                point(dx, dy);
+            }
+        }
+        
+        popMatrix();
+        
+        dy++;
+        dy2 = dy * dy;
+    }
+};
+
+mouseMoved = function() {
+    noStroke();
+    fill(BACKGROUND);
+    rect(0, 0, 100, 25);
+    
+    var x = mouseX - tx;
+    var y = mouseY - ty;
+    var z = getZ(x, y);
+    if (z > -1) { 
+        fill(255);
+        text("(" + x + ", " + y + ", " + round(100 * z) / 100 + ")", 10, 20);
+    }
+};

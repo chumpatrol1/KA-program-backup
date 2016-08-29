@@ -1,0 +1,195 @@
+/****************************************
+ * Find position on a parabola for an
+ * x-coordinate given by mouseX
+*****************************************/
+
+var BACKGROUND = color(250, 250, 250);
+var BLUE = color(64, 95, 237);
+var PINK = color(255, 0, 175);
+var GREEN = color(28, 173, 123);
+var ORANGE = color(255, 165, 0);
+var GREY = color(60, 60, 70);
+var GRIDGREY = color(230, 240, 230);
+var TEXTCOL = color(20, 20, 20);
+var TOOLBAR = color(235, 235, 235, 240);
+
+var CONTROL_POINT_SIZE = 12;
+var RESOLUTION = 20;
+
+var selected = false;
+ellipseMode(CENTER);
+
+/*********************************************************************
+ *      Draggable point
+*********************************************************************/
+
+var draggablePoint = function(x, y, color, name) {
+    this.x = x;
+    this.y = y;
+    this.color = color || ORANGE;
+    this.animation = 0;
+    this.name = name || "";
+};
+
+draggablePoint.prototype.mouseover = function() {
+    return dist(mouseX, mouseY, this.x, this.y) <= CONTROL_POINT_SIZE / 2 + 2;
+};
+
+draggablePoint.prototype.move = function() {
+    this.x += mouseX - pmouseX;
+    this.y += mouseY - pmouseY;
+};
+
+draggablePoint.prototype.draw = function() {
+    if (selected === this || (!selected && this.mouseover())) {
+        if (this.animation < 5) {
+            this.animation++;
+        }
+    } else {
+        this.animation = 0;
+    }
+
+    var r = CONTROL_POINT_SIZE + this.animation;
+    
+    stroke(BACKGROUND);
+    strokeWeight(1);
+    fill(this.color);    
+    ellipse(this.x, this.y, r, r);
+};
+
+var p1 = new draggablePoint(40, 250);
+var p2 = new draggablePoint(350, 300);
+var p3 = new draggablePoint(160, 120, PINK);
+
+var selectables = [p1, p2, p3];
+
+/****************************************
+ *      Display functions
+****************************************/
+
+var drawLine = function() {
+    stroke(BLUE);
+    strokeWeight(2);
+    
+    var p1x = selectables[0].x;
+    var p1y = selectables[0].y;
+    
+    for (var i = 1; i < selectables.length; i++) {
+        var p2x = selectables[i].x;
+        var p2y = selectables[i].y;
+        line(p1x, p1y, p2x, p2y);
+        p1x = p2x;
+        p1y = p2y;
+    }
+};
+
+var getMidpoint = function(p1, p2) {
+    return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+};
+
+var getPointOnArc = function(t) {
+    var rx = lerp(p1.x, p3.x, t);
+    var ry = lerp(p1.y, p3.y, t);
+    var sx = lerp(p3.x, p2.x, t);
+    var sy = lerp(p3.y, p2.y, t);
+    var x = lerp(rx, sx, t);
+    var y = lerp(ry, sy, t);
+    return { x : x, y : y };
+};
+
+var getPointOnArc2 = function(t) {
+    var t2 = t * t;
+    
+    var x = (1 - t) * ((1 - t) * p1.x + t * p3.x) + t * ((1 - t) * p3.x + t * p2.x);
+    var y = (1 - t) * ((1 - t) * p1.y + t * p3.y) + t * ((1 - t) * p3.y + t * p2.y);
+    
+    var x = p1.x + t * (-2 * p1.x + 2 * p3.x) + t2 * (p1.x + p2.x - 2 * p3.x);
+    
+    return { x: x, y: y };
+};
+
+var drawArc = function() {
+    strokeWeight(4);
+    stroke(GREEN);
+    noFill();
+    
+    beginShape();
+    for (var i = 0; i <= RESOLUTION; i++) {
+        var p = getPointOnArc(i / RESOLUTION);
+        vertex(p.x, p.y);
+    }
+    endShape();
+};
+
+var drawPointOnArc = function() {
+    var minX = min(p1.x, p2.x);
+    var maxX = max(p1.x, p2.x);
+    
+    if (mouseX < minX || mouseX > maxX) { return; }
+    
+    var a = p1.x + p2.x - 2 * p3.x;
+    var b = 2 * (p3.x - p1.x);
+    var c = p1.x - mouseX;
+    
+    var d = b * b - 4 * a * c;
+    
+    if (d < 0) { return; }
+    d = sqrt(d);
+    
+    var ts = [(-b + d) / (2 * a), (-b - d) / (2 * a)];
+    
+    noFill();
+    stroke(80);
+    
+    for (var i = 0; i < ts.length; i++) {
+        var t = ts[i];
+        if (t < 0 || t > 1) { continue; }
+        var p = getPointOnArc(t);
+        ellipse(p.x, p.y, 12, 12);
+    }
+    
+};
+
+var p = getPointOnArc(0.4);
+println(p.x + " " + p.y);
+
+var p = getPointOnArc2(0.4);
+println(p.x + " " + p.y);
+
+/****************************************
+ *      Main loop
+****************************************/
+
+draw = function() {
+    background(BACKGROUND);
+
+    //drawLine();
+    drawArc();
+    drawPointOnArc();
+    
+    for (var i = 0; i < selectables.length; i++) {
+        selectables[i].draw();
+    }
+};
+
+/****************************************
+ *      Event handling
+****************************************/
+
+mousePressed = function() {
+    for (var i = 0; i < selectables.length; i++) {
+        if (selectables[i].mouseover()) {
+            selected = selectables[i];
+        }
+    }
+};
+
+mouseReleased = function() {
+    selected = false;
+};
+
+mouseDragged = function() {
+    if (selected) {
+        selected.move();
+    }
+};
