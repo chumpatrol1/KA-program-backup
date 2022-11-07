@@ -73,8 +73,8 @@ def getAllCodeLengths(folder):
         c = readProgram(os.path.join(folder, f))
         codeLength.append(len(c.split('\n')))
 
-    print sum(codeLength) / len(codeLength)
-    print codeLength[int(floor(len(codeLength) / 2))]
+    print(sum(codeLength) / len(codeLength))
+    print(codeLength[int(floor(len(codeLength) / 2))])
 
 
 def countWords(code, n):
@@ -97,7 +97,7 @@ def countWords(code, n):
     #for word in split_re.split(code):
     #    word_count[word] += 1
 
-    print Counter(words).most_common(n)
+    print(Counter(words).most_common(n))
 
 
 #code = readProgram('testComments.txt')
