@@ -110,15 +110,15 @@ def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin", kaid = 
 
     if code:
         with open(os.path.join('code', '%s' % kaid, '%s-%s.html' % (code['slug'], id)), 'w', encoding = 'utf-8') as f:
-            f.write("<html>\n\
+            f.write(f"<html>\n\
 <head>\n\
     <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n\
-    <title>Live Editor Simple Demo</title>\n\
+    <title>{code['title']}</title>\n\
     <link rel=\"stylesheet\" href=\"../../build/css/live-editor.core_deps.css\"/>\n\
     <link rel=\"stylesheet\" href=\"../../build/css/live-editor.audio.css\"/>\n\
     <link rel=\"stylesheet\" href=\"../../build/css/live-editor.tooltips.css\"/>\n\
-    <link rel=\"stylesheet\" href=\"../../build/css/live-editor.ui.css\"/>\n\
-    <style>\n\
+    <link rel=\"stylesheet\" href=\"../../build/css/live-editor.ui.css\"/>\n")
+            f.write("<style>\n\
         body {\n\
             padding: 20px;\n\
         }\n\
@@ -129,10 +129,10 @@ def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin", kaid = 
         #sample-live-editor {\n\
             padding: 0;\n\
         }\n\
-    </style>\n\
-</head>\n\
+    </style>\n")
+            f.write(f"</head>\n\
 <body>\n\
-    <h1>Live Editor Example</h1>\n\
+    <h1>{code['title']}</h1>\n\
     <div id=\"sample-live-editor\"></div>\n\
     <script src=\"../../build/js/live-editor.core_deps.js\"></script>\n\
     <script src=\"../../build/js/live-editor.editor_ace_deps.js\"></script>\n\
