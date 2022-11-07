@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Hellstone!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hellstone!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Hellstone! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-10-08T00:49:36Z by kaid_976851263300560061760577\nLast Edited: 2013-10-08T00:49:36Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-10-08T00:49:37Z from origin 2179197916 with similarity of 0.7655462184873949\nOriginal Link: https://www.khanacademy.org/computer-programming/hellstone/2179296604\nRetrieved On: 07-Nov-2022 (17:07:45.079934)**/\
+";
+
+code = code + "\n\n\nfill(255, 0, 0);\n\ntextSize(90);\n\ntext(\"Hellstone\",5,100);\n\nfill(12, 14, 59);\n\ntranslate(36,15,15);\n\nnoStroke();\n\nrect(150,150,30,15);\n\nrect(135,164,15,15);\n\nrect(120,178,15,15);\n\nrect(105,192,15,15);\n\nrect(90,206,15,15);\n\nrect(75,220,15,45);\n\nrect(90,264,15,15);\n\nrect(105,278,30,15);\n\nrect(134,293,63,15);\n\nrect(196,278,30,15);\n\nrect(225,264,15,15);\n\nrect(240,220,15,45);\n\nrect(225,206,15,15);\n\nrect(210,192,15,15);\n\nrect(195,178,15,15);\n\nrect(180,164,15,15);\n\nfill(117, 9, 9);\n\nrect(225,221,15,45);\n\nrect(210,207,15,71);\n\nrect(195,190,15,88);\n\nrect(180,179,16,114);\n\nrect(134,278,63,15);\n\nrect(105,264,30,15);\n\nrect(90,249,15,15);\n\nfill(6, 121, 156);\n\nrect(164,165,16,113);\n\nrect(150,165,16,113);\n\nrect(135,179,16,99);\n\nrect(120,193,16,71);\n\nrect(105,207,16,57);\n\nrect(90,221,15,28);\n\nfill(7, 140, 113);\n\nrect(210,206,15,15);\n\nrect(210,263,15,15);\n\nrect(165,221,15,15);\n\nrect(135,178,15,15);\n\nrect(90,220,15,15);\n\nrect(120,249,15,15);\n\nfill(61, 12, 12);\n\nrect(194,206,15,15);\n\nrect(210,236,15,15);\n\nrect(165,263,15,15);\n\nfill(11, 67, 179);\n\nrect(105,249,15,15);\n\nrect(90,234,15,15);\n\nfill(117, 9, 9);\n\nrect(105,234,15,15);\n\nrect(165,179,15,15);\n\nrect(135,221,15,15);\n\n\n\n\n\n\n\n    \n\n   \n\n    ";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

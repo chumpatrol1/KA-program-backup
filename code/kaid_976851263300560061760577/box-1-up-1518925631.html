@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Box 1-Up</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Box 1-Up</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Box 1-Up by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-04-05T00:54:34Z by kaid_976851263300560061760577\nLast Edited: 2013-04-05T00:54:34Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-04-05T00:54:34Z from origin None with similarity of 0.9821615949632738\nOriginal Link: https://www.khanacademy.org/computer-programming/box-1-up/1518925631\nRetrieved On: 07-Nov-2022 (17:06:57.700709)**/\
+";
+
+code = code + "\n/** Ask your question in the \"questions\" tab. After I answer it, I will put it in the \"Already Asked Questions\" at the bottom of the code.\n * I prefer specific questions over vague questions.\n * I also prefer programming questions and math questions.\n * I will NOT answer personal questions, like \"What\'s your real name?\" or \"How old are you?\".\n * \n * If you have a question about a specific program of mine, you might want to ask it there.\n * If you have a question about this program, ask it here!\n * Remember that I am a \"student\", so:\n * 1: I might not answer immediately, and\n * 2: I might not know the answer.\n */\n\nscale(0.5, 0.5);\nvar gravity = 0.5;\nvar balls = [], platforms = [], signs = [];\n\nvar randColor = function() {\n    return color(random(255), random(255), random(255));\n};\n\nvar circle = function(x, y, r) {\n    ellipse(x, y, 2*r, 2*r);\n};\n\n// define the constructors\nvar Ball = function(x, y, xv, yv, r, color) {\n    this.x = x;\n    this.y = y;\n    this.xv = xv;\n    this.yv = yv;\n    this.r = r;\n    this.color = color;\n    \n    this.render = function() {\n        noStroke();\n        fill(this.color);\n        circle(this.x, this.y, this.r);\n    };\n    \n    this.update = function() {\n        this.x += this.xv;\n        this.y += this.yv;\n        \n        this.yv += gravity;\n        \n        // might be glitchy\n        for (var i = 0; i < platforms.length; i++) {\n            var platform = platforms[i];\n            if (platform.type === \"horizontal\") {\n                if (this.x + this.r > platform.left &&\n                    this.x - this.r < platform.right &&\n                    abs(this.y - platform.cy) < this.r) {\n                    this.yv *= -1;\n                    if (this.yv < 0) {\n                        this.yv += gravity;\n                    } else {\n                        this.yv -= gravity;\n                    }\n                }\n            } else {\n                if (this.y + this.r > platform.top &&\n                    this.y - this.r < platform.bottom &&\n                    abs(this.x - platform.cx) < this.r) {\n                    this.xv *= -1;\n                }\n            }\n        }\n    };\n};\n\nvar horizPlatform = function(centerX, centerY, width) {\n    this.cx = centerX;\n    this.cy = centerY;\n    this.width = width;\n    \n    this.left = centerX - width/2;\n    this.right = centerX + width/2;\n    \n    this.type = \"horizontal\";\n    \n    this.render = function() {\n        strokeWeight(2);\n        stroke(0, 0, 0);\n        line(this.left, this.cy, this.right, this.cy);\n    };\n};\n\nvar vertPlatform = function(centerX, centerY, height) {\n    this.cx = centerX;\n    this.cy = centerY;\n    this.height = height;\n    \n    this.top = centerY - height/2;\n    this.bottom = centerY + height/2;\n    \n    this.type = \"vertical\";\n    \n    this.render = function() {\n        stroke(0, 0, 0);\n        strokeWeight(2);\n        line(this.cx, this.top, this.cx, this.bottom);\n    };\n};\n\n// signs (sorry for so many parameters)\n// They do not affect balls.\nvar Sign = function(x, y, w, h, msg, text_size) {\n    this.x = x;\n    this.y = y;\n    this.width = w;\n    this.height = h;\n    this.msg = msg;\n    this.color = color;\n    this.text_size = text_size;\n    \n    this.render = function() {\n        strokeWeight(5);\n        stroke(0, 0, 0);\n        fill(255);\n        rect(this.x - this.width/2,\n             this.y - this.height/2,\n             this.width,\n             this.height,\n             10 // rounded corners, change the number!\n        );\n        \n        textAlign(CENTER, CENTER);\n        fill(0, 0, 0);\n        textSize(this.text_size);\n        \n        var msg = this.msg;\n        text(this.msg, this.x, this.y);\n    };\n};\n\n// define walls\nplatforms.push(new horizPlatform(400, 800, 800));\nplatforms.push(new vertPlatform(0, 400, 800));\nplatforms.push(new vertPlatform(800, 400, 800));\n\n// other platforms\nplatforms.push(new horizPlatform(400, 400, 100));\n\n// initial balls\nballs.push(new Ball(200, 400, 0, 0, 20, 0xFF000000));\n\n// signs\nsigns.push(new Sign(400, 100, 300, 60, \"Ask Me A Question!\", 30));\nplatforms.push(new vertPlatform(250,100,65));\nplatforms.push(new vertPlatform(550,100,65));\nplatforms.push(new horizPlatform(400,70,300));\nplatforms.push(new horizPlatform(400,130,300));\nsigns.push(new Sign(400, 700, 300, 200, \"Can you improve on this\\nbouncing ball method?\\nIf so save a spinoff.\\nThis sign collides with the\\nballs because there are\\nplatforms on the outside.\", 24));\nplatforms.push(new vertPlatform(250, 700, 200));\nplatforms.push(new vertPlatform(550, 700, 200));\nplatforms.push(new horizPlatform(400, 600, 300));\n\nvar draw = function() {\n    background(0xFFDDDDA0);\n    for (var a in platforms) {\n        platforms[a].render();\n    }\n    for (var b in balls) {\n        balls[b].render();\n        balls[b].update();\n    }\n    for (var c in signs) {\n        signs[c].render();\n    }\n};\n\nvar mouseClicked = function() {\n    balls.push(new Ball(\n        mouseX * 2,\n        mouseY * 2,\n        random(-12, 12),\n        random(-12, 12),\n        floor(random(2, 7)) * 5,\n        randColor()\n    ));\n};\n\n/* ALREADY ASKED QUESTIONS\nBefore asking a question, please check this for the same question.\n\nzephyrcrush78:\nQ: What does floor mean? What does ceil mean?\nA: floor() rounds down, ceil() rounds up.\nExample: floor(23.1) = 23, and ceil(23.1) = 24.\n */";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

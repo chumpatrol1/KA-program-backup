@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The Solar System 3x the Speed!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Solar System 3x the Speed!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**The Solar System 3x the Speed! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:06:16Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:06:16Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-21T19:24:39Z from origin 957249502 with similarity of 0.8619119878603946\nOriginal Link: https://www.khanacademy.org/computer-programming/the-solar-system-3x-the-speed/1048519831\nRetrieved On: 07-Nov-2022 (17:07:15.602643)**/\
+";
+
+code = code + "\n// Simulating the solar system\n// Information from http://www.enchantedlearning.com/subjects/astronomy/planets/\n\n//speed. 1/year\nvar mercurySpeed = 365.26/87.96;\nvar venusSpeed =  365.26/224.68;\nvar earthSpeed = 1;\nvar marsSpeed = 365.26/686.98;\nvar jupiterSpeed = 1/11.862;\nvar saturnSpeed = 1/29.456;\nvar uranusSpeed = 1/84.07;\nvar neptuneSpeed = 1/164.81;\nvar plutoSpeed = 1/247.7;\n\n//size\nvar mercurySize = 5;\nvar venusSize = 10;\nvar earthSize = 10;\nvar marsSize = 7;\nvar jupiterSize = 20;\nvar saturnSize = 15;\nvar uranusSize = 10;\nvar neptuneSize = 10;\nvar plutoSize = 5;\n\n// Orbit \nvar mercuryOrbit = 1;\nvar venusOrbit = 2;\nvar earthOrbit = 3;\nvar marsOrbit = 4;\nvar jupiterOrbit = 5;\nvar saturnOrbit = 6;\nvar uranusOrbit = 7;\nvar neptuneOrbit = 8;\nvar plutoOrbit = 9;\n\n// These control the shape of the orbits\nvar baseSize = 50;\nvar incrX = 30;\nvar incrY = 20;\n\nvar drawPlanet = function(time, speed, orbit, size) {\n    // Draw the planet on a particular orbit\n    var degree = (time * speed)  % 360;\n\n    // Calulate the position of the planet\n    var radiusX = (baseSize + incrX * pow(orbit, 1.1)) / 2;\n    var radiusY = (baseSize + incrY * pow(orbit,1.1)) / 2;\n    var positionX = radiusX * cos(degree);\n    var positionY = radiusY * sin(degree);\n\n    // Draw the planet\n    ellipse(positionX, positionY, size, size);\n    \n    //Earth\'s Moon\n    if (orbit === earthOrbit){\n        fill(145, 136, 136);\n        ellipse(positionX + 5, positionY+5,5,5);\n        fill(36, 136, 212);\n        text(\"Earth and Moon\", positionX+2, positionY-2);\n    }\n    //Mars\n    if (orbit === marsOrbit){\n        text(\"Mars\", positionX+1, positionY-1);\n    }\n    \n    //Jupiter\'s Red Spot\n    if (orbit === jupiterOrbit) {\n        fill(255, 0, 0);\n        ellipse(positionX-5, positionY+4, 0.25*size, 0.25*size);\n       fill(173, 107, 37);\n       text(\"Jupiter\",positionX+14,positionY); \n    }\n\n    // Saturn ring\n    if (orbit === saturnOrbit) {\n        ellipse(positionX, positionY, 1.5*size, 0.25*size);\n        text(\'Saturn\', positionX+13, positionY);\n    }\n    //Uranus Has Rings too!\n    if (orbit === uranusOrbit){\n        ellipse(positionX, positionY, 1.5*size, 0.25*size);\n        text(\"Uranus\", positionX+14, positionY);\n    }\n    //Neptune has small rings.\n    if (orbit === neptuneOrbit){\n        ellipse(positionX, positionY, 1.5*size, 0.2*size);\n        text(\"Neptune\", positionX+10, positionY);\n    }\n    // Pluto may not be a planet?\n    if (orbit === plutoOrbit) {\n        text(\'Pluto?\', positionX, positionY);\n    }\n};\n\nvar drawSolarSystem = function(time) {\n    // Draw the solar system\n    background(0, 0, 0);\n    // Sun\n    noStroke();\n    fill(255, 255, 0);\n    ellipse(0, 0, baseSize, baseSize);\n    \n    // Draw the orbits first\n    noFill();\n    stroke(92, 92, 92);\n    strokeWeight(1);\n    for (var i = 1; i <= 9; i+=1) {\n        var diameterX = baseSize + incrX * pow(i, 1.1);\n        var diameterY = baseSize + incrY * pow(i, 1.1);\n        ellipse(0, 0, diameterX, diameterY);\n    }\n\n    // Mercury\n    noStroke();\n    fill(219, 217, 212);\n    drawPlanet(time, mercurySpeed, mercuryOrbit, mercurySize); \n    // Venus\n    fill(205, 212, 106);\n    drawPlanet(time, venusSpeed, venusOrbit, venusSize);\n    // Earth\n    fill(36, 136, 212);\n    drawPlanet(time, earthSpeed, earthOrbit, earthSize);\n    // Mars\n    fill(255,0,0);\n    drawPlanet(time, marsSpeed, marsOrbit, marsSize);\n    // Jupiter \n    fill(173, 107, 37);\n    drawPlanet(time, jupiterSpeed, jupiterOrbit, jupiterSize);\n    // Saturn\n    fill(163, 131, 77);\n    drawPlanet(time, saturnSpeed, saturnOrbit, saturnSize);\n    // Uranus\n    fill(113, 222, 230);\n    drawPlanet(time, uranusSpeed, uranusOrbit, uranusSize);\n    // Neptune\n    fill(206, 89, 235);\n    drawPlanet(time, neptuneSpeed, neptuneOrbit, neptuneSize);\n    // Pluto\n    fill(240, 57, 130);\n    drawPlanet(time, plutoSpeed, plutoOrbit, plutoSize);\n};\n\nvar speed = 3; // Change the speed and see what happens!  \nvar currentTime = 0;\nvar draw = function() {\n    resetMatrix();\n    translate(200, 200);\n    drawSolarSystem(currentTime);\n    currentTime += speed;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

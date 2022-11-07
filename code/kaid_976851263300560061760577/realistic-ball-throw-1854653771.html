@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Realistic Ball Throw</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Realistic Ball Throw</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Realistic Ball Throw by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-02T11:48:17Z by kaid_976851263300560061760577\nLast Edited: 2013-08-02T11:48:17Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-08-02T14:15:35Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/realistic-ball-throw/1854653771\nRetrieved On: 07-Nov-2022 (17:07:58.852477)**/\
+";
+
+code = code + "\n/*\nMy new side project.\n*/\n//Position of Ball\nvar ballY = 375,\nballX=25,\n//Forces on the Ball (v stands for velocity)\nballYv=15,\nballXv=15,\n//Gravity and Drag\ngravity=1,\ndrag=0.3;\n//State of the Ball (Ready, Moving, Stopped)\nvar state = \"Ready\";\nframeRate(30);\nvar draw = function() {\n    fill(255);\n    rect(-1,-1,500,500);\n    fill(0,0,255);\n    ellipse(ballX,ballY,50,50);\n    if(mouseIsPressed){\n        state = \"Moving\";\n    }\n    if(state===\"Moving\"){\n     ballX+=ballXv;\n    ballY-=ballYv;\n    ballXv-=drag;\n    ballYv-=gravity;   \n    }\n    \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

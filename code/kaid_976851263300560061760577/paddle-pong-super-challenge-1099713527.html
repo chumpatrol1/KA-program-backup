@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Paddle Pong: Super Challenge</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Paddle Pong: Super Challenge</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Paddle Pong: Super Challenge by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:13:03Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:13:03Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-10-22T14:55:34Z from origin 1038134671 with similarity of 0.7731171646715054\nOriginal Link: https://www.khanacademy.org/computer-programming/paddle-pong-super-challenge/1099713527\nRetrieved On: 07-Nov-2022 (17:07:23.429046)**/\
+";
+
+code = code + "\n//Welcome to my newest (and likely last) version of\n//Paddle Pong! \n\n//How to Play: As in my previous versions of Paddle Pong,\n//you bounce the ball in the screen and to get into the\n//enemy\'s goal.\n//There is a twist: Get as many points as you can\n//before the enemy gets 10 points. Good Luck!\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n//Highscores!\nvar highA = 0;\nvar highB = 0;\nvar highC = 0;\nvar aPlay = \"? \";\nvar bPlay = \"? \";\nvar cPlay = \"? \";\n\nnoStroke();\n\nvar paddleWidth = 100;\n\n// The speed of the ball when it first leaves the paddle\n\nvar initialSpeedX = 15;\n\nvar initialSpeedY = -15;\n\n// The current speed of the ball\n\nvar ballSpeedX = initialSpeedX;\n\nvar ballSpeedY = initialSpeedY;\n\n// The current location of the ball\n\nvar ballX = 0;\n\nvar ballY = 0;\n\n//The location of paddle\'s y-coordinate\n\nvar paddleX = 150;\n\nvar paddleY = 370;\n\n\n\n//The enemy\'s coordinates and speed\n\nvar enemyStartX = 200;\n\nvar enemyX;\n\nvar enemyY = 20;\n\nvar enemySpeed = 13;\n\n\n\n//Scores!\n\nvar playerScore = 0;\n\nvar enemyScore = 0;\n\n// true if ball is moving, false if ball is attached to paddle\n\nvar ballMoving = false;\n\n\n\nvar draw = function(){\n    \n    background(22, 107, 199);\n        stroke(0, 0, 0);\n    strokeWeight(2);\n    line(0,200,400,200);\n    noFill();\n    ellipse(200, 400,50,50);\n    ellipse(200,0,50,50);\n      fill(0, 0, 255);\n    rect(150,150,100,100);\n  fill(0, 255, 0);\n    ellipse(200,200,100,100);\n   fill(255, 124, 124);\n   rect(165,165,70,70);\n   fill(255, 0, 0);\n   ellipse(200,200,70,70);\n   fill(255, 0, 255);\n   rect(175,175,50,50);\n\n    // draw score text\nnoStroke();\n    fill(0, 0, 0);\n\n    textSize(16);\n\n    text(enemyScore,200,100);\n\n    text(playerScore,200,300);\n\n    text(\"Computer\",170, 85);\n    text(\"You\",190,285);\n    \n    //Draw Ball\n      // draw the ball\n\n    fill(255, 229, 99);\n\n    ellipse(ballX, ballY, 20, 20);\n    \n    fill(255, 0, 0);\n    \n    rect(paddleX, paddleY, paddleWidth, 10);\n\n    //Draw enemy paddle\n\n    fill(232, 0, 0);\n\n    rect(enemyX - paddleWidth/2, enemyY, paddleWidth, 10);\n  \n  //Ends Game\n  if(enemyScore === 10) {\n      background(0, 0, 0);\n      fill(100, 255, 0);\n      textSize(25);\n      text(\"GAME OVER\", 100,100);\n      textSize(16);\n      text(\"Hit Restart to play again!\",200, 380);\n      textSize(30);\n      text(\"Score: \" + playerScore, 100, 140);\n      text(\"HighScores:\",10,180);\n      text(aPlay+highA,10,210);\n      text(bPlay+highB,10,240);\n      text(cPlay+highC,10,270);\n  }\n    \n    //Setting paddle x-coordinate to avoid bug where\n    //ball can be released outside of stage boundary.\n\n    paddleX = mouseX - paddleWidth/2;\n\n    if (paddleX < 0)\n\n    {\n\n        paddleX = 0;\n\n    }\n\n    if (paddleX > 300)\n\n    {\n\n        paddleX = 300;\n\n    }\n\n    \n\n    //Draw your paddle\n\n    \n\n    \n\n    // Move the ball\n\n    if (ballMoving) \n\n    {\n\n        ballX += ballSpeedX;\n\n        ballY += ballSpeedY;\n\n    }\n\n    else\n\n    {\n\n     \n\n     ballX = paddleX+paddleWidth/2;\n\n        ballY = paddleY-10;\n\n    }\n\n    \n\n    //* move enemy paddle\n\n    if (ballMoving)\n\n    {\n\n        if (ballX>enemyX)\n\n        {\n\n            enemyX += enemySpeed;\n\n        }\n\n        else\n\n        {\n\n            enemyX -= enemySpeed;\n\n        }\n\n    }\n\n    else\n\n    {\n\n        enemyX = enemyStartX;\n\n    }\n\n       \n\n    //Check if the ball has hit the enemy paddle.\n\n    if (ballY >= enemyY + 2 && \n\n        ballY < enemyY + (abs(ballSpeedY)+6) && \n\n        ballX >= enemyX - paddleWidth/2 && \n\n        ballX <= enemyX + paddleWidth/2) \n\n    {\n\n        ballSpeedY = -ballSpeedY;\n\n        ballSpeedX = ballSpeedX;\n\n    }\n\n    //Check if the ball fell out of the top\n\n    if (ballY <= 10) \n\n    {\n\n        ballMoving = false;\n\n        //* ++ basically means playerScore += 1;\n\n        playerScore++;\n\n    }\n\n    // check if the ball has hit the left wall\n\n    if (ballX <= 0)\n\n    {\n\n        ballSpeedX = -ballSpeedX;\n\n    }\n\n    // check if the ball has hit the right wall\n\n    if (ballX >= 400) \n\n    {\n\n        ballSpeedX = -ballSpeedX;\n\n    }\n\n    //* check if the ball has hit the paddle\n\n    if (ballY >= paddleY - abs(ballSpeedY) && \n\n        ballY < paddleY && \n\n        ballX >= mouseX - paddleWidth/2 && \n\n        ballX <= mouseX + paddleWidth/2) \n\n    {\n\n        ballSpeedY = -ballSpeedY;\n\n        ballSpeedX = ballSpeedX;\n\n    }\n\n    // check if ball fell out the bottom\n\n    if (ballY >= 400) \n\n    {\n\n        ballMoving = false;\n\n        //* ++ basically means enemyScore += 1;\n\n        enemyScore++;\n\n    }\n\n};\n\n// This function gets called automatically\n\n// when the mouse is clicked\n\nvar mouseClicked = function() \n\n{\n\n    if (!ballMoving) \n\n    {\n\n        // reset the ball speed\n\n        ballSpeedX = initialSpeedX;\n\n        ballSpeedY = initialSpeedY;\n\n        \n\n        ballMoving = true;\n\n          }\n\n          \n\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

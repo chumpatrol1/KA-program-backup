@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Robomon Speed Value Comparison Test</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Robomon Speed Value Comparison Test</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Robomon Speed Value Comparison Test by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2017-03-01T20:32:42Z by kaid_976851263300560061760577\nLast Edited: 2017-03-01T20:32:42Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2017-03-10T03:05:56Z from origin 6565908132200448 with similarity of 0.04599222786864244\nOriginal Link: https://www.khanacademy.org/computer-programming/robomon-speed-value-comparison-test/5621077362933760\nRetrieved On: 07-Nov-2022 (17:07:52.800796)**/\
+";
+
+code = code + "\n//10 randomly generated robomon\nvar robomon1=null;\nvar robomon2=round(random(0,100.4));\nvar robomon3=round(random(0,100.4));\nvar robomon4=round(random(0,100.4));\nvar robomon5=round(random(0,100.4));\nvar robomon6=round(random(0,100.4));\nvar robomon7=round(random(0,100.4));\nvar robomon8=null;\nvar robomon9=round(random(0,100.4));\nvar robomon10=round(random(0,100.4));\nvar robomonBattleArray=[robomon1,robomon2,robomon3,robomon4,robomon5,robomon6,robomon7,robomon8,robomon9,robomon10];\nvar sortedArray=[];\nvar index=sortedArray.indexOf(null);\nvar draw = function() {\n    background(255);\n    fill(255, 0, 0);\n    ellipse(200,200,200,200);\n    /**for (var i; i===0; i++){\n        if(robomonBattleArray[i]===null){\n            robomonBattleArray[i].splice(null,1);\n        }\n    }**/\n    for(var i = robomonBattleArray.length - 1; i >= 0; i--) {\n    if(robomonBattleArray[i] === null) {\n       robomonBattleArray.splice(index,1);\n       \n    }\n}\n    sortedArray = robomonBattleArray.sort(function(a, b) {return b-a;});\n    text(sortedArray,0,30);\n    text(sortedArray[10],0,60);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

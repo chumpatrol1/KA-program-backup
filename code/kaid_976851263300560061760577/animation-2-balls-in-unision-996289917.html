@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Animation 2: Balls in Unision</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation 2: Balls in Unision</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Animation 2: Balls in Unision by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:06:36Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:06:36Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-08-27T15:11:08Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/animation-2-balls-in-unision/996289917\nRetrieved On: 07-Nov-2022 (17:07:04.639303)**/\
+";
+
+code = code + "\nnoStroke();\n\nvar x=10;\n\nvar draw = function() {\n    background (234, 0, 255);\n    \n    fill(0, 0, 255);\n    ellipse(x + 150, 25, 20, 20);\n    \n    fill(0, 255, 0);\n    ellipse(x + 150, 45, 20,20);\n    \n    fill(255, 200, 0);\n    ellipse(x + 150, 65, 20,20);\n    \n    fill(255, 124, 0);\n    ellipse(x + 150, 85,20,20);\n\n    fill(255, 0, 0);\n    ellipse(x + 150, 105,20,20);\nx = x+1;\n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

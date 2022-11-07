@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>World</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>World</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**World by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-23T14:27:45Z by kaid_976851263300560061760577\nLast Edited: 2013-08-23T14:27:45Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2017-03-29T14:41:52Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/world/1897787554\nRetrieved On: 07-Nov-2022 (17:07:43.322015)**/\
+";
+
+code = code + "\n/**\n * V0.0 (July 26, 2015): Game Released\n * V0.1 (July 26 2015): Instructions and some of the Desktop Made\n * V0.2 (July 27 2015): More Desktop Icons Made, Dialogue Box Added.\n * V0.3 (July 28 2015): BrowSr. Is now a button\n * V0.3.1 (July 28 2015): Removed testNum variable,changed stage designation and began work on BrowSr. Landing Page.\n * V0.3.2 (July 28 2015) Trash Can is now a button and can also exit out into the Desktop.\n**/\nvar stage = \"Splash\";\nvar draw = function() {\nif(stage===\"Splash\"){\n    background(0, 0, 0);\n    fill(0,255,0);\n    textSize(50);\n    text(\"Computer Rules:\\n     The Game!\",0,50);\n    fill(200);\n    rect(100,200,200,50);\n    fill(0);\n    textSize(20);\n    text(\"RUN PROGRAM\",125,230);\n    if(mouseIsPressed&&mouseX>=100&&mouseX<=300&&mouseY>=200&&mouseY<=250){\n    stage = \"Instructions\";\n    }\n}\nif(stage === \"Instructions\")\n{\n    background(0);\n    fill(0,255,0);\n    textSize(50);\n    text(\"     Instructions\",0,50);\n    textSize(20);\n    text(\"Welcome, User. I am Elijah, your virtual\\ncomputer guide! I will give you feedback\\non your web surfing and tally your score. \\nPlease do not bring any food or drink near\\nyour actual computer, as that is what you\\nneed to run the virtual computer. Doing \\ncomputer-smart actions will add points to \\nyou, while bad desiscions will decrease your\\nscore. Try to get the highest score possible!\\nAfter the simulation is over, be sure to use\\nthe valuable info shown in your real net life!\",5,75);\nfill(200);\nrect(50,325,125,50);\nrect(225,325,125,50);\nfill(0);\ntextSize(30);\ntext(\"Back\",80,360);\ntext(\"Finish\",245,360);\nif(mouseIsPressed&&mouseX>=50&&mouseX<=175&&mouseY>=325&&mouseY<=375){\n    stage = \"Splash\";\n}\nif(mouseIsPressed&&mouseX>=225&&mouseX<=375&&mouseY>=325&&mouseY<=375){\n    stage = \"Desktop\";\n}\n}\nif(stage === \"Desktop\"){\nnoStroke();\nbackground(0, 100, 255);\n//Bottom Menu\nfill(100,255,0);\nrect(0,350,400,50);\nfill(0,255,0);\nrect(0,350,100,50);\nfill(255);\ntextSize(30);\ntext(\"Menu\",10,385);\ntextSize(20);\nif(hour()>12){\nif(minute()>9){\ntext(hour()-12+\":\"+minute()+\" PM\",325,365);\n}\nif(minute()<10){\ntext(hour()-12+\":0\"+minute()+\" PM\",325,365);\n}\n}\nif(hour()<13&&minute()<10){\ntext(hour()+\":0\"+minute()+\" AM\",325,365);\n}\nif(hour()<13&&minute()>=10){\ntext(hour()+\":\"+minute()+\" AM\",325,365);\n}\ntextSize(15);\ntext(month()+\"/\"+day()+\"/\"+year(),330,385);\n//Icons\n//BrowSr.\nfill(255);\ntextSize(15);\ntext(\"BrowSr.\",25,100);\nstrokeWeight(25);\nstroke(255, 0, 0);\npoint(50,50);\nstrokeWeight(10);\nline(50,50,50,25);\nline(50,50,30,65);\nline(50,50,70,65);\nstroke(255, 124, 0);\npoint(50,25);\npoint(30,65);\npoint(70,65);\nstrokeWeight(5);\nline(50,25,35,10);\nline(50,25,65,10);\nline(30,65,30,45);\nline(30,65,30,80);\nline(70,65,70,45);\nline(70,65,70,80);\nstroke(255, 255, 0);\npoint(35,10);\npoint(65,10);\npoint(30,45);\npoint(30,80);\npoint(70,45);\npoint(70,80);\n//Trash\nnoStroke();\nfill(200,255,255);\nrect(120,5,60,75);\nstrokeWeight(10);\nstroke(255, 0, 0);\nline(125,25,175,60);\nline(125,60,175,25);\nnoStroke();\nfill(255);\ntextSize(15);\ntext(\"Trash Can\",115,100);\n//D474 F0ld3r\nfill(255, 200, 0);\nrect(205,15,90,50,10);\nfill(255,255,0);\nrect(235,5,50,20,10);\nfill(255);\ntextSize(15);\ntext(\"D474 F0ld3r\",210,100);\n/*Anti-Virus*/\n//Mask\nfill(0);\nrect(0,125,25,25);\nrect(75,125,25,25);\nrect(5,120,25,5);\nrect(70,120,25,5);\nrect(10,115,75,5);\nrect(5,120,5,50);\nrect(90,120,5,50);\nfill(225);\nrect(25,125,50,15);\nrect(30,120,40,5);\n//Face\nfill(255,255,0);\nrect(25,140,50,10);\nrect(10,150,80,20);\nfill(0);\nrect(30,150,10,5);\nrect(40,155,10,5);\nrect(50,160,10,5);\nrect(60,165,10,5);\nfill(255);\ntextSize(15);\ntext(\"Pathogen Bits\",3,197);\n//Dialogue Box\nfill(0);\nrect(0,400,400,100);\n//Buttons\n//BrowSr.\nif(mouseX>=0&&mouseX<100&&mouseY>=0&&mouseY<100&&mouseIsPressed){\nstage = \"BrowSr.\";\n}\n//Trash Can\nif(mouseX>=100&&mouseX<200&&mouseY<100&&mouseIsPressed){\nstage = \"Trash Can\";\n}\n}\nif(stage===\"BrowSr.\"){\n    noStroke();\n    background(255);\n    fill(0);\n    rect(0,400,400,100);\n    //Bottom Menu\nfill(100,255,0);\nrect(0,350,400,50);\nfill(0,255,0);\nrect(0,350,100,50);\nfill(255);\ntextSize(30);\ntext(\"Menu\",10,385);\ntextSize(20);\nif(hour()>12){\nif(minute()>9){\ntext(hour()-12+\":\"+minute()+\" PM\",325,365);\n}\nif(minute()<10){\ntext(hour()-12+\":0\"+minute()+\" PM\",325,365);\n}\n}\nif(hour()<13&&minute()<10){\ntext(hour()+\":0\"+minute()+\" AM\",325,365);\n}\nif(hour()<13&&minute()>=10){\ntext(hour()+\":\"+minute()+\" AM\",325,365);\n}\ntextSize(15);\ntext(month()+\"/\"+day()+\"/\"+year(),330,385);\n//Basic Layout of Page\nfill(0);\ntextSize(40);\ntext(\"Last Visited\",100,30);\n//Exit Button\nfill(255, 0, 0);\nrect(350,0,50,50);\nstrokeWeight(5);\nstroke(0);\nline(355,5,395,45);\nline(395,5,355,45);\nif(mouseX>=350&&mouseX<=400&&mouseY>=0&&mouseY<=50&&mouseIsPressed){\n    stage = \"Desktop\";\n}\n//Pi Circles Link\n}\nif(stage === \"Trash Can\"){\n    background(255);\n    noStroke();\n    //Bottom Menu\nfill(100,255,0);\nrect(0,350,400,50);\nfill(0,255,0);\nrect(0,350,100,50);\nfill(255);\ntextSize(30);\ntext(\"Menu\",10,385);\ntextSize(20);\nif(hour()>12){\nif(minute()>9){\ntext(hour()-12+\":\"+minute()+\" PM\",325,365);\n}\nif(minute()<10){\ntext(hour()-12+\":0\"+minute()+\" PM\",325,365);\n}\n}\nif(hour()<13&&minute()<10){\ntext(hour()+\":0\"+minute()+\" AM\",325,365);\n}\nif(hour()<13&&minute()>=10){\ntext(hour()+\":\"+minute()+\" AM\",325,365);\n}\ntextSize(15);\ntext(month()+\"/\"+day()+\"/\"+year(),330,385);\n//All Clear Text\nfill(0);\ntextSize(50);\ntext(\"All clean!!!\",75,150);\n//Exit Button\nfill(255, 0, 0);\nrect(350,0,50,50);\nstrokeWeight(5);\nstroke(0);\nline(355,5,395,45);\nline(395,5,355,45);\nif(mouseX>=350&&mouseX<=400&&mouseY>=0&&mouseY<=50&&mouseIsPressed){\n    stage = \"Desktop\";\n}\n//Dialogue Box\nfill(0);\nrect(0,400,400,100);\nfill(0, 255, 0);\ntextSize(15);\ntext(\"Your trash can is empty, freeing up disk space for extra data\\nand programs/games.  \",2,415);\n}\n};\nif(width!==400||height!==500||width!==400&&height!==500){\n    throw(\"You need to use the best experience which is in this link:    https://www.khanacademy.org/computer-programming/world/1897787554?width=400&height=500\");\n}";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

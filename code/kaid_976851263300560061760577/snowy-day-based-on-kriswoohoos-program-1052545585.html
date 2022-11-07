@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Snowy Day (Based on KrisWooHoo's Program)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snowy Day (Based on KrisWooHoo's Program)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Snowy Day (Based on KrisWooHoo's Program) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:11:39Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:11:39Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-24T15:03:51Z from origin 966628193 with similarity of 0.6996268656716418\nOriginal Link: https://www.khanacademy.org/computer-programming/snowy-day-based-on-kriswoohoos-program/1052545585\nRetrieved On: 07-Nov-2022 (17:07:16.631496)**/\
+";
+
+code = code + "\n// This is my snowman!\n//You're going to need to Restart the program when you want because I only have so many snowflakes(there are only so many letters in the alphabet...\n\n//Plus, I have a few random variables, so its different every time you restart it :)\n\nnoStroke();\n\n\n\n\n\n\nvar hi = -500;\n\n\nvar a = random(-1, hi);\n\nvar b = random(-1, hi);\n\nvar c = random(-1, hi);\n\nvar d = random(-1, hi);\n\nvar e = random(-1, hi);\n\nvar f = random(-1, hi);\n\nvar g = random(-1, hi);\n\nvar h = random(-1, hi);\n\nvar i = random(-1, hi);\n\nvar j = random(-1, hi);\n\nvar k = random(-1, hi);\n\nvar l = random(-1, hi);\n\nvar m = random(-1, hi);\n\nvar n = random(-1, hi);\n\nvar o = random(-1, hi);\n\nvar p = random(-1, hi);\n\nvar q = random(-1, hi);\n\nvar r = random(-1, hi);\n\nvar s = random(-1, hi);\n\nvar t = random(-1, hi);\n\nvar u = random(-1, hi);\n\nvar v = random(-1, hi);\n\nvar w = random(-1, hi);\n\nvar x = random(-1, hi);\n\nvar y = random(-1, hi);\n\nvar z = random(-1, hi);\n\nvar aa = random(-1, hi);\n\nvar ab = random(-1, hi);\n\nvar ac = random(-1, hi);\n\nvar ad = random(-1, hi);\nvar flakeSizeX = random(2, 20);\n\n\n\nvar draw = function() {\n\n    background(16, 116, 224);\n\n    \n\n    //Draw Snowman, ground, and sky.\n\n\n\nfill(184, 184, 184);\n\nrect(0, 329, 400, 71);\n\n//Draw Snowflakes\n\n\n\n    noStroke();\n\n    fill(255, 255, 255);\n\n    ellipse(150, a, 5, 5);\n    ellipse(250, b, 10, 10);\n    ellipse(200, c, 7, 7);\n    ellipse(267, d, 16, 16);\n    ellipse(300, e, 13, 13);\n    ellipse(150, f, 3, 3);\n    ellipse(176, g, 8, 8);\n    ellipse(54, h, 10, 10);\n    ellipse(350, i, 15, 15);\n    ellipse(100, j, 18, 18);\n    ellipse(75, k, 20, 20);\n    ellipse(47, l, 6, 6);\n    ellipse(236, m, 11, 11);\n    ellipse(167, n, 14, 14);\n    ellipse(314, o, 9, 9);\n    ellipse(284, p, 4, 4);\n    ellipse(190, q, 16, 16);\n    ellipse(126, r, 13, 13);\n    ellipse(94, s, 8, 8);\n    ellipse(320, t, 12, 12);\n    ellipse(75, u, 15, 15);\n    ellipse(265, v, 3, 3);\n    ellipse(183, w, 9, 9);\n    ellipse(145, x, 12, 12);\n    ellipse(90, y, 16, 16);\n    ellipse(190, z, 5, 5);\n    ellipse(154, aa,12,12);\n    ellipse(120, ab,20,20);\n    ellipse(167, ac, 3,3);\n    ellipse(47, ad, 7,7); \n//Make the snowflakes able to move\n   \n\n    a = a + 1;\n    b = b + 1;\n    c = c + 1;\n    d = d + 1;\n    e = e + 1;\n    f = f + 1;\n    g = g + 1;\n    h = h + 1;\n    i = i + 1;\n    j = j + 1;\n    k = k + 1;\n    l = l + 1;\n    m = m + 1;\n    n = n + 1;\n    o = o + 1;\n    p = p + 1;\n    q = q + 1;\n    r = r + 1;\n    s = s + 1;\n    t = t + 1;\n    u = u + 1;\n    v = v + 1;\n    w = w + 1;\n    x = x + 1;\n    y = y + 1;\n    z = z + 1;\n    aa = aa + 1;\n    ab = ab + 1;\n    ac = ac + 1;\n    ad = ad + 1;\n\n   \n\n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

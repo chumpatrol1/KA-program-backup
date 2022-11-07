@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Inventory Test</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Inventory Test</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Inventory Test by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-24T01:16:24Z by kaid_976851263300560061760577\nLast Edited: 2013-02-24T01:16:24Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-02-24T21:33:08Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/inventory-test/1405914774\nRetrieved On: 07-Nov-2022 (17:07:33.936482)**/\
+";
+
+code = code + "\nvar area = \"Invent\";\n/**\n * Being made for my new game\n * Currently features the following Basic Items: \n**/\n/*\nTODO:\n1) Create Wood\n2) Create Stone\n3) Create Seeds\n4) Create Water\n5) Create Mixtures\n*/\n////Variables\n///Base\n//You can find these easily in nature\nvar wood = 10;\nvar stone = 10;\nvar seeds = 10;\nvar water = 10;\nvar lstock = 10;\n\n//Not so Easy\nvar metal = 5;\nvar cloth = 7;\n\n///Mixtures\n\n//Wood+Stone\nvar hoes = 0;\n\n//Wood+Metal\nvar swords = 0;\n\n//Hoes+Seeds or Sword+Livestock\nvar food = 0;\n\n//Stone + Water\nvar clay = 0;\n\n//Cloth + Metal\nvar clothes = 3;\n\n//Clay + Food\nvar pots = 0;\n\n\nframeRate(1);\nvar draw = function() {\n if(area === \"Invent\"){\n  background(255);\n    fill(0, 0, 0);\n    textSize(20);\n    text(\"Wood: x\"+wood,0,20);\n    text(\"Stone: x\"+stone,0,40);\n    text(\"Seeds: x\"+seeds,0,60);\n    text(\"Water: x\"+water,0,80);\n    text(\"Livestock: x\"+lstock,0,100);\n    text(\"Metal: x\"+metal,0,120);\n    text(\"Cloth/Yarn: x\"+cloth,0,140);\n    text(\"Press Space for Recipes\",0,160);\n     if(keyPressed&&keyCode === 32){\n        area = \"Book\";\n    }\n    if(keyPressed&&keyCode === 49){\n        wood = wood-1;\n        stone = stone-1;\n        hoes = hoes+1;\n    }\n }    \n \nif(area === \"Book\"){\n    background(255);\n    fill(0, 0, 0);\n    textSize(20);\n    text(\"Press 1: Wood+Stone=Hoe\",0,20);\n    text(\"Press 2: Wood+Metal=Sword\",0,40);\n    text(\"Press 3: Hoe+Seeds=Food\",0,60);\n    text(\"Press 4: Sword+Livestock=Food\",0,80);\n    text(\"Press 5: Stone+Water=Clay\",0,100);\n    text(\"Press 6: Clay+Food=Pots\",0,120);\n    text(\"Press 7: Cloth+Metal=Clothes\",0,140);\n    \n}\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

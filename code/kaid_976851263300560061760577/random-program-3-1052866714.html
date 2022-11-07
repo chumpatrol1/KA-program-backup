@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Random Program 3</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Program 3</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Random Program 3 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:14:03Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:14:03Z\nVotes/Spinoffs: 2/1\nOriginally Created: 2012-10-05T16:04:39Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/random-program-3/1052866714\nRetrieved On: 07-Nov-2022 (17:06:54.809136)**/\
+";
+
+code = code + "\n//Surprise! Infinity Animations! Change things to true and  //false to get different displays!\nvar ballRed = false;\nvar ballOrange = false; \nvar ballYellow = false;\nvar ballGreen = true;\nvar ballBlue = true;\nvar ballPurple = true;\nvar ballPink = true;\nvar y = -100;\n// This is the complicated stuff down here.\n\n\n\n\n\n\n\n\n\n\n\n\nvar draw = function() {\n    background(0, 238, 255);\n    fill(224, 177, 177);\n    rect(-1,302,401,100);\n\n\n//Draw the Red Ball\nif(ballRed === true){\n    fill(255, 0, 0);\n    ellipse(31,y,57,57);\n    fill(0);\n    textSize(57);\n    text(\"S\",11,y+17);    \n}\n//Draw the Orange Ball\nif(ballOrange === true){\n    fill(255, 124, 0);\n    ellipse(88,y,57,57);\n    fill(0, 0, 0);\n    textSize(57);\n    text(\"A\",68,y+17);\n}\n//Draw the Yellow Ball\nif(ballYellow === true){\n    fill(255, 255, 0);\n    ellipse(145,y,57,57);\n    fill(0, 0, 0);\n    textSize(57);\n    text(\"L\",130,y+17);\n}\nif(ballGreen === true){\n    fill(0, 255, 0);\n    ellipse(202,y,57,57);\n    fill(0, 0, 0);\n    textSize(57);\n    text(\"K\",182,y+20);\n}\nif(ballBlue === true){\n    fill(0, 0, 255);\n    ellipse(259,y,57,57);\n    fill(0, 0, 0);\n    textSize(57);\n    text(\"H\",238,y+20);\n}\nif(ballPurple === true){\n    fill(255, 0, 255);\n    ellipse(316,y,57,57);\n    fill(0, 0, 0);\n    textSize(57);\n    text(\"A\",297,y+18);\n}\nif(ballPink === true){\n    fill(255, 124, 255);\n    ellipse(373,y,57,57);\n    fill(0, 0, 0);\n    textSize(57);\n    text(\"N\",353,y+20);\n}\n\n\n//This makes the balls reappear at the top.\nif(y === 500){\n    y = y-600;\n}\ny = y+3;\n\n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

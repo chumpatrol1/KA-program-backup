@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Circle Apocalypse</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Circle Apocalypse</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Circle Apocalypse by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-04-01T13:27:59Z by kaid_976851263300560061760577\nLast Edited: 2015-04-01T13:27:59Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2015-05-15T11:16:47Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/circle-apocalypse/5518247927218176\nRetrieved On: 07-Nov-2022 (17:07:52.232285)**/\
+";
+
+code = code + "\n//Circles are after you, Fend them off for as long as you can!\n////Weapons:\n///Pistol: Starting weapon with 6 bullets. Ability: Hypercharge (2x Damage from all Weapons for 5 seconds)\n///Knife: Starting melee weapon. Ability: Hack n' Slash (5 Damage to all circles in range)\n///Shotgun: Weapon unlocked after wave 2 has been beaten. Has 4 bullets. Deals more damage to circles close up. Ability: Missile Shot (Shoots 3 Explosives in the lane in front of you and the 2 adjacent lanes)\n///Cleanser: Weapon unlocked after wave 4 has been beaten. Does no damage and has infinite ammo. Cleanses camo and regen from circles (Excluding NNCs and HHDCs). Ability: Foam Wall (All Weapons have Cleanser Properties, and Cleanser can Pierce through 5 Circkes).\n///\n///\n////Enemies:\n///Red Circles are the weakest and are very slow. They take 1 hit to be destroyed.\n///Blue Circles are weak, and are slow. When hit, downgrades to a red circle.\n///Green Circles have normal health and have regular speed. When hit, downgrades to a blue circle.\n///Yellow Circles are strong and have a fast speed. When hit, downgrades to a green circle.\n///Pink Circles are very strong and have are very fast. When hit, downgrades to a yellow circle.\n///White Circles are a different type of circle, being resistant to the slowing effects of the ice and snowballs. When hit, downgrades into 2 pink circles. They are normal speed.\n///Black Circles are a different type of circle, being resistant to bombs and mortars. When hit, downgrades into 2 pink circles. They are normal speed.\n///Gray Circles are a different type of circle, being resistant to regular bullets. When hit, downgrades into 2 black circles. Popped with explosives or melting glue. They are slow.\n///Zebra Circles combine the black and white circle into one resistant circle. When hit, downgrades into a black and white circle. They are normal speed.\n///Rainbow Circles have no special abilities, but have 2 zebra circles in them. They move fast.\n///Brown Circles take 10 or more hits to be destroyed. They have a resistance to glue as it does not slow them down, but that is their only resistance. They recieve extra damage from explosives and snipers. When destroyed, downgrades into 2 rainbow circles.\n///MBCs (Massive Blue Circles) are very slow circles that take over 100 hits to destroy. They are resistant to glue and ice but snowballs slow them down. They recieve extra damage from the Anti-MBC Gun and its ability. When destroyed, they drop 4 brown circles. \n///CRCs (Crazy Red Circles) are very very slow that take over 500 hits to destroy. They have the same resistances and weaknesses as the MBC. When destroyed, drops 4 MBCs.\n///COMGs (Circles of Massive Greatness) are extremely slow circles that take over 2500 hits to destroy. They have the same resistances and weaknesses as the MBC. When destroyed, drops 4 CRCs.\n///NNCs (Nasty Ninja Circles) are slow circles that take over 25 hits to destroy. They have the same resistances and weaknesses as the MBC. These circles are camo and cannot be cleansed. When destroyed, drops 1 Camo Brown Circle and 1 Camo Gray Circle.\n///HHDCs (Horrible Healing Doctor Circles) are slow circles that take over 25 hits to destroy. They have the same resistances and weaknesses as the MBC. These circles are regen and cannot be cleansed, and also slowly heal nearby non-MBC class circles. When destroyed, drops 1 Regen Brown Circle and 1 Regen Gray Circle.\n///Camo Circles can be of many types. All regular circles (Below MBC Class excluding NNC) can be camo, making them only seen in closer distances and invisible to most buildings.\n///Regen Circles can be of many types. All regular circles (Below MBC Class excluding HHDC) can be regen, making them gain a health point up to full when partially damaged.\n//MS4wNDY2fHwxNDMwOTQzNjIyOTk0OzE0MjYwMjIwNDYxOTc7MTQzMDk0NDgxMDk1MjtFbGlqYWh8MTExMTExMDExMTB8MDswOzA7NTY7MDs3MzstMTstMTszOTc0NDA4MTIyNTM4MzEzLjU7MDswOzA7MDswOzE7MDswOzA7MDswOzA7MDs7MDswO3wwLDAsMCwwOzAsMCwwLDA7MCwwLDAsMDswLDAsMCwwOzAsMCwwLDA7MCwwLDAsMDswLDAsMCwwOzAsMCwwLDA7MCwwLDAsMDswLDAsMCwwOzAsMCwwLDA7fDIyNTE3OTk4MTM2ODUyNDk7MjI1MTc5OTgxMzcyNjIwOTsyMjUxNzk5ODEzNjg1NzYxOzIyNTE3OTk4MTM2ODUyNDk7MjI1MTc5OTgxMzgxNjMyMTsyMjUxNzk5ODEzNjg1NzYxOzIyNTE3OTk4MTM2ODUyNDk7MjI1MTc5OTg0NzIzOTY4MTsyMjUxNzk5ODEzNjg1MjQ5OzMyNzY5fDQ1MDM1OTg0ODY0NTQyNzE7MjI2MDQ4MDIwNjgzMTYxNTsyMzIyMTg2MTI3NzM2ODQ3OzYyOTI1NDM%3D%21END%21";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

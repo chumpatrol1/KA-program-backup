@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Coder Club</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coder Club</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Coder Club by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-07-10T13:13:52Z by kaid_976851263300560061760577\nLast Edited: 2013-07-10T13:13:52Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-08-02T22:59:26Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/coder-club/1793612368\nRetrieved On: 07-Nov-2022 (17:07:40.879799)**/\
+";
+
+code = code + "\n//I am remaking my club.\nvar state = \"Welcome\";\nvar draw = function() {\n    if(state === \"Welcome\"){\n        background(0, 0, 0);\n        fill(255);\n        textSize(55);\n        text(\"The Coder Club\",0,55);\n        fill(124);\n        rect(100,100,200,50);\n        rect(100,200,200,50);\n        fill(255);\n        textSize(30);\n        text(\"The Coders\",120,140);\n        text(\"Main Street\",120,240);\n        if(mouseX>100&&mouseX<300&&mouseY>100&&mouseY<150){\n            if(!mouseIsPressed){\n              fill(200);\n        rect(100,100,200,50);\n        fill(255);\n        textSize(30);\n        text(\"The Coders\",120,140);  \n            }\n            if(mouseIsPressed){\n                state = \"The Coders HQ\";\n            }\n        }\n        if(mouseX>100&&mouseX<300&&mouseY>200&&mouseY<250){\n            if(!mouseIsPressed){\n              fill(200);\n        rect(100,200,200,50);\n        fill(255);\n        textSize(30);\n        text(\"Main Street\",120,240); \n            }\n            if(mouseIsPressed){\n                state = \"Main Street 1\";\n            }\n        }\n    }\n    if(state === \"The Coders HQ\"){\n        background(0, 0, 0);\n        fill(255);\n        textSize(55);\n        text(\"The Coder\'s HQ\",0,55);\n        fill(124);\n        rect(100,150,200,50);\n        rect(100,250,200,50);\n        rect(-1,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",15,385);\n        text(\"Badges\",150,285);\n        text(\"Members\",140,185);\n        if(mouseX>0&&mouseX<100&&mouseY>350&&mouseY<400){\n            if(!mouseIsPressed){\n                fill(200);\n               rect(-1,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",15,385); \n            }\n            if(mouseIsPressed){\n                state = \"Welcome\";\n            }\n        }\n        if(mouseX>100&&mouseX<300&&mouseY>250&&mouseY<300){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(100,250,200,50);\n                fill(255);\n                text(\"Badges\",150,285);\n            }\n            if(mouseIsPressed){\n                state = \"Coder\'s Rewards\";\n            }\n        }\n        if(mouseX>100&&mouseX<300&&mouseY>150&&mouseY<200){\n            if(!mouseIsPressed){\n                fill(200);\n        rect(100,150,200,50);\n        fill(255);\n        text(\"Members\",140,185);\n            }\n            if(mouseIsPressed){\n                state = \"Members Main\";\n            }\n        }\n    }\n    if(state === \"Coder\'s Rewards\"){\n        background(0, 0, 0);\n        fill(255);\n        textSize(50);\n        text(\"Coder\'s Rewards\",0,50);\n        textSize(20);\n        text(\"Fame: Have 100 Spinoffs in any one program\\nPop: Have 100 Votes in any one program\\nKnight: Win 5 Coder Club Challenges\\nGood Guy: Have a coding-related answer\\nwith 20 votes\",0,80);\n        fill(124);\n        rect(100,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",115,385);\n        if(mouseX>100&&mouseX<200&&mouseY>350&&mouseY<400){\n            if(!mouseIsPressed){\n                fill(200);\n        rect(100,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",115,385);\n            }\n            if(mouseIsPressed){\n                state = \"The Coders HQ\";\n            }\n        }\n    }\n    if(state === \"Members Main\"){\n        background(0, 0, 0);\n        fill(124);\n        rect(100,350,100,50);\n        rect(200,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",110,385);\n        text(\"Next\",210,385);\n        fill(255, 0, 0);\n        rect(100,100,200,50);\n        fill(255, 124, 0);\n        rect(100,200,200,50);\n        fill(255);\n        textSize(30);\n        text(\"David Elijah M\",100,135);\n        text(\"MATB\",160,235);\n        if(mouseX>100&&mouseX<300&&mouseY>100&&mouseY<150&&mouseIsPressed){\n            state = \"David Elijah M\";\n        }\n        if(mouseX>100&&mouseX<300&&mouseY>200&&mouseY<250&&mouseIsPressed){\n            state = \"Ruby Lover\";\n        }\n        if(mouseX>100&&mouseX<200&&mouseY>350){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(100,350,100,50);\n                fill(255);\n                text(\"Back\",110,385);\n            }\n            if(mouseIsPressed){\n                state = \"The Coders HQ\";\n            }\n        }\n        if(mouseX>200&&mouseX<300&&mouseY>350){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(200,350,100,50);\n                fill(255);\n                text(\"Next\",210,385);\n            }\n            if(mouseIsPressed){\n                state = \"Members Main 2\";\n            }\n        }\n    }\n    if(state === \"David Elijah M\"){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"Name: David Elijah M\",0,30);\n        text(\"Status: Owner\",0,60);\n        text(\"Gems: undefined\",0,90);\n        text(\"Skills: Buttons, Booleans,\\nAnimations\",0,120);\n        text(\"Bio: I am a ten year old boy \\nwho loves to code a lot...\",0,180);\n        fill(124);\n        rect(-1,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",15,385);\n        if(mouseX>0&&mouseX<100&&mouseY>350){\n            if(!mouseIsPressed){\n             fill(200);\n        rect(-1,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",15,385); \n            }\n            if(mouseIsPressed){\n                state = \"Members Main\"; \n            }\n        }\n    }\n    if(state === \"Ruby Lover\"){\n        background(0, 0, 0);\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"Name: MATB\",0,30);\n        text(\"Status: Pro\",0,60);\n        text(\"Gems: 0 Yellow, 0 Green\",0,90);\n        text(\"Skills: Scavenging for Code,\\nComputers in Computers\",0,120);\n        text(\"Bio: Unavailable\",0,180);\n        fill(124);\n        rect(-1,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",15,385);\n        if(mouseX>0&&mouseX<100&&mouseY>350){\n            if(!mouseIsPressed){\n             fill(200);\n        rect(-1,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Back\",15,385); \n            }\n            if(mouseIsPressed){\n                state = \"Members Main\"; \n            }\n        }\n    }\n    if(state === \"Main Street 1\"){\n        background(0, 0, 0);\n        fill(124);\n        rect(100,50,200,50);\n        rect(0,350,100,50);\n        fill(255);\n        textSize(30);\n        text(\"The Library \",125,85);\n        text(\"Back\",15,385); \n        if(mouseX>100&&mouseX<300&&mouseY>50&&mouseY<100){\n            if(!mouseIsPressed){\n             fill(200);\n        rect(100,50,200,50);\n        fill(255);\n        textSize(30);\n        text(\"The Library\",125,85);   \n            }\n            if(mouseIsPressed){\n                state = \"Library 1\";\n            }\n        }\n        if(mouseX>0&&mouseX<100&&mouseY>350){\n         if(!mouseIsPressed){\n             fill(200);\n             rect(0,350,100,50);\n             fill(255);\n             textSize(30);\n            text(\"Back\",15,385);  \n         }   \n         if(mouseIsPressed){\n             state = \"Welcome\"; \n         }\n        }\n        \n    }\n    if(state === \"Library 1\"){\nbackground(0, 0, 0);\nfill(124,124,0);\nrect(100,100,100,100);\nif(mouseX>100&&mouseX<200&&mouseY>100&&mouseY<200&&mouseIsPressed){\n    state = \"B1-P1\";\n}\n/*\nfill(124,124,124,100);\nrect(-1,-1,500,500);\nfill(255, 0, 0);\ntextSize(45);\ntext(\"Under Construction\",0,200);\n*/\n    }\n    if(state===\"Members Main 2\"){\n        background(0, 0, 0);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

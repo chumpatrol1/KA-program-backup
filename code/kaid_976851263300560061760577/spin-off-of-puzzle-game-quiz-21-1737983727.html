@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spin-off of "Puzzle Game Quiz 2.1"</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin-off of "Puzzle Game Quiz 2.1"</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Spin-off of "Puzzle Game Quiz 2.1" by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-06-18T18:20:43Z by kaid_976851263300560061760577\nLast Edited: 2013-06-18T18:20:43Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-06-18T18:20:43Z from origin 1647276374 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/spin-off-of-puzzle-game-quiz-21/1737983727\nRetrieved On: 07-Nov-2022 (17:07:40.277918)**/\
+";
+
+code = code + "\n/**5 questions are currently available**/\n\n/**to prove that you won,post a spinoff showing the win screen**/\n/*****************Update Log********************************/\n/**5/27/13(2.1)Added comment about spinoffs and update log\n\n***/\n\n\n\n\n\n\n\n\n\n\n\n\n\nvar over_button; // This variable is useful.\n\n// This is used for animation purposes.\nvar waver = {\n    size: 0,\n    amount: 1, // This affects the amount of waver\n    direction: -1\n};\n\nvar ballButton = function(x, y, r, label, color) {\n    // Function written by Timothy Smith here:\n    // https://www.khanacademy.org/cs/ballbutton/1624214177\n    \n    // After the function is called, the following variable\n    // is true if the mouse is over the button, false\n    // otherwise.\n    over_button = false;\n    \n    var tratio = 0.5; // This is the size of the text relative to the ball. You can adjust it.\n    \n    // Font\n    var font = createFont(\"impact\", 0);\n    textFont(font, tratio * r);\n    \n    // Turn off stroke for the ball\n    noStroke();\n    var val = 220; // Default brightness of the button.\n    var val2 = 255; // Brightness when mouse is over button.\n    \n    var act_val = val; // Actual brightness of the button; may change.\n    \n    // Following variable used for calculating the position of the button.\n    var distance = dist(mouseX, mouseY, x, y);\n    \n    var text_pos = x + r/2 + 3;\n    \n    \n    // Checks whether the mouse is over the button and\n    // whether it\'s pressed\n    if (distance < r/2 - 3) {\n        over_button = true;\n        // Waver\n        waver.size += waver.amount;\n        waver.amount -= waver.size / 20;\n        r += waver.size;\n        \n        if (mouseIsPressed) {\n//            ratio *= 1.1;\n            act_val = val2;\n        }\n    }\n    \n    \n    // Draws the ball\n    var ratio = 117/(r*1.4); // Roundness\n    for (var a = r; a > 0; a -= 1) {\n        fill(cos(a*ratio)*(act_val * color.r/255), cos(a*ratio)*(act_val*color.g/255), cos(a*ratio)*(act_val*color.b/255));\n        ellipse(x, y, a, a);\n    }\n    \n    // Reflection\n    strokeWeight(r * 0.12);\n    stroke(255, 255, 255, act_val / 3);\n    point(x + r / 7, y - r / 8);\n    // Function written by Timothy Smith here:\n    // https://www.khanacademy.org/cs/ballbutton/1624214177\n    \n    // Draw text\n    textAlign(LEFT, CENTER);\n    fill(act_val * 0.8, act_val * 0.8, act_val*2);\n    text(label, text_pos, y);\n};\nvar page=0;\nif(page===0){\nbackground(0,0,0);\ntextSize(15);\ntext(\"Puzzle Game Quiz\",145,41);\ndraw= function() {\nballButton(189,135,50,\"Start\",{r:0,g:255,b:100});\nif(over_button&&mouseIsPressed){\npage=1;    \n}\nballButton(190,200,50,\"Winner\'s circle\",{r:0,g:255,b:100});\nif(over_button&&mouseIsPressed){\npage=1.1;    \n}\nballButton(190,260,50,\"Fans\",{r:0,g:255,b:100});\nif(over_button&&mouseIsPressed){\npage=1.2;    \n}\nif(page===1.2){\nbackground(0, 0, 0);\ntext(\"Tell me if you want to be here!\",50,21);\ntext(\"1.BirchMonkey857\\n2.psrwhyte\",109,62);\n}\nif(page===1.1){\nbackground(0, 0, 0);\ntext(\"If you win,tell me and your name will\\nbe here!\",20,35);\ntextSize(20);\ntext(\"1.BirchMonkey857\\n2.MobCreeper7\\n3.Timothy Walker(NNED)\\n4.psrwhyte\\n5.jason kim\\n6.MATTHEW ALLGOOD\\n7.MaraJade\\n8.MathMan620\\n9.wbwalp\",139,153);\n}\nif(page===1){\nbackground(0, 21, 255);\ntext(\"Question 1\",158,40);\ntext(\"What is the square root of 144?\",59,92);\ndraw= function() {\nballButton(170,171,50,\"A.144\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=1.25;    \n}\nballButton(170,240,50,\"B.12\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=1.5;    \n}\nballButton(170,300,50,\"C.72\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=1.25;    \n}\nif(page===1.25){\nbackground(0, 0, 0);\ntext(\"Sorry,try again?\",200,200);\n}\nif(page===1.5){\nbackground(0, 21, 255);\ntext(\"Correct!\",150,200);\ndraw= function() {\nballButton(278,311,50,\"Next>>\",{r:0,g:0,b:255}); \nif(over_button&&mouseIsPressed){\npage=2;    \n}\nif(page===2){\nbackground(0,21,255);\ntext(\"Question 2\",158,40);\ntext(\"Is pi a rational number?\",93,92);\ndraw= function() {\nballButton(200,200,50,\"Yes\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=2.25;   \n}\nballButton(200,265,50,\"No\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=2.5;    \n}\nif(page===2.25){\nbackground(0, 0, 0);\ntext(\"Sorry,try again?\",200,200);\n}\nif(page===2.5){\nbackground(0,21,255);\ntext(\"Correct!\",150,200);\ndraw= function() {\nballButton(278,311,50,\"Next>>\",{r:0,g:0,b:255});\nif(over_button&&mouseIsPressed){\npage=3;    \n}\nif(page===3){\nbackground(0,21,255);\ntext(\"Question 3\",158,40);\ntext(\"What is the cube root of 8000?\",50,78);\ndraw= function() {\nballButton(170,171,50,\"A.20\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=3.5;    \n}\nballButton(170,240,50,\"B.8\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=3.25;    \n}\nballButton(170,300,50,\"C.333\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=3.25;    \n}\nif(page===3.25){\nbackground(0, 0, 0);\ntext(\"Sorry,try again?\",150,200);\n}\nif(page===3.5){\nbackground(0,21,255);\ntext(\"Correct!\",150,200);\ndraw= function() {\nballButton(278,311,50,\"Next>>\",{r:0,g:0,b:255});\nif(over_button&&mouseIsPressed){\npage=4;    \n}\nif(page===4){\nbackground(0,21,255);\ntext(\"Question 4\",158,40);\ntext(\"Which of these is NOT a measure of\\n    center?\",20,100);\ndraw= function() {\nballButton(170,171,50,\"A.Mean\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=4.25;   \n}\nballButton(170,240,50,\"B.Median\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=4.25;    \n}\nballButton(170,300,50,\"C.Range\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=4.5;    \n}\nif(page===4.25){\nbackground(0, 0, 0);\ntext(\"Sorry,try again?\",150,200);\n}\nif(page===4.5){\nbackground(0,21,255);\ntext(\"Correct!\",150,200);\ndraw= function() {\nballButton(278,311,50,\"Next>>\",{r:0,g:0,b:255});\nif(over_button&&mouseIsPressed){\npage=5;    \n}\nif(page===5){\nbackground(0,21,255);\ntext(\"Question 5\",158,40);\ntext(\"Which of these symbols best\\ncompletes the equation?\\n7=4_3\",80,99);\ndraw= function() {\nballButton(170,171,50,\"A.+\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=5.5;    \n}\nballButton(170,240,50,\"B.>\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=5.25;   \n}\nballButton(170,300,50,\"C.-\",{r:0,g:255,b:14});\nif(over_button&&mouseIsPressed){\npage=5.25;    \n}\nif(page===5.25){\nbackground(0, 0, 0);\ntextSize(15);\ntext(\"Sorry,try again?\",150,200);\n}\nif(page===5.5){\nbackground(9,0,255);\ntext(\"YOU WON!\",150,200);\n}\n};\n}\n};\n}\n};\n}\n};\n}\n};\n}\n};\n}\n};\n}\n};\n}\n};\n}\n};\n}";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

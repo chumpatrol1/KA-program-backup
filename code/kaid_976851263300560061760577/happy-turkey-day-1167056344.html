@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Happy Turkey Day!!!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Happy Turkey Day!!!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Happy Turkey Day!!! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-23T13:11:02Z by kaid_976851263300560061760577\nLast Edited: 2012-11-23T13:11:02Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-11-25T12:04:53Z from origin 1015336207 with similarity of 0.9991419991419992\nOriginal Link: https://www.khanacademy.org/computer-programming/happy-turkey-day/1167056344\nRetrieved On: 07-Nov-2022 (17:07:24.506477)**/\
+";
+
+code = code + "\n//CONSTANTS\nvar GRAVITY = 0.5,\n    MIN_X = 0,\n    MAX_X = 400,\n    MIN_VX = -3,\n    MAX_VX = 3,\n    MIN_VY = 15,\n    MAX_VY = 20,\n    FIRE_RATE = 0.05,\n    FIRE_INCREMENT = 0.01,\n    EXPLOSION_RADIUS = 5,\n    MANUAL_MULTISHOT = 3;\n    \nvar fireworks = [];\n\nvar keyPressed = function(){\n    switch(keyCode){\n        case UP:\n            FIRE_RATE += FIRE_INCREMENT;\n            break;\n        case DOWN:\n            FIRE_RATE -= FIRE_INCREMENT;            \n            break;\n    }\n};\n\nvar mousePressed = function(){\n    for (var i=0-MANUAL_MULTISHOT/2;i<MANUAL_MULTISHOT/2;i++){\n        var x = random(MIN_X,MAX_X);\n        var Vy = sqrt((400-mouseY)*GRAVITY*2)+i;\n        var Vx = (mouseX-x)*GRAVITY/Vy;\n        append(fireworks,\n               {x:x,\n                y:400,\n                Vx:Vx,\n                Vy:-Vy,\n                color:color(random(204,255), \n                            random(204,255), \n                            random(204,255))\n               });          \n    }\n  \n};\nvar generateFireworks = function(){\n    if (random()<FIRE_RATE){\n        append(fireworks,\n               {x:random(MIN_X,MAX_X),\n                y:400,\n                Vx:random(MIN_VX,MAX_VX),\n                Vy:random(MIN_VY,MAX_VY)*-1,\n                color:color(random(154,255), \n                            random(154,255), \n                            random(154,255))\n               });\n    }\n};\nvar updateFireworks = function(){\n    for (var i=0;i<fireworks.length;i++){\n        fireworks[i].x += fireworks[i].Vx;\n        fireworks[i].y += fireworks[i].Vy;\n        fireworks[i].Vy += GRAVITY;\n    }\n};\n\nvar drawFireworks = function(){\n    for (var i=0;i<fireworks.length;i++){\n        var f = fireworks[i];\n        stroke(f.color);\n        fill(f.color);  \n        if(f.y > 400){\n            fireworks.splice(i,1);\n        }\n        if(f.Vy < 0){\n            strokeWeight(5);\n            point(f.x,f.y);\n        }\n        else{          \n            strokeWeight(1);\n            for (var j=0;j<12;j++){\n                point(f.x+cos(j*30)*f.Vy*EXPLOSION_RADIUS,\n                     f.y+sin(j*30)*f.Vy*EXPLOSION_RADIUS);\n            }\n        }\n        \n    }\n};\n\nvar draw = function() {\n    noStroke();\n    fill(0, 0, 0, 50);\n    rect(0,0,400,400);\n    generateFireworks();\n    updateFireworks();\n    drawFireworks();\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

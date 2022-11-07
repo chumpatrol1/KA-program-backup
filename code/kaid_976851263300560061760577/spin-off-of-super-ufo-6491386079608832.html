@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spin-off of "Super UFO "</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin-off of "Super UFO "</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Spin-off of "Super UFO " by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2014-02-19T21:02:01Z by kaid_976851263300560061760577\nLast Edited: 2014-02-19T21:02:01Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2014-02-19T21:39:42Z from origin 5460891036286976 with similarity of 0.7679856115107914\nOriginal Link: https://www.khanacademy.org/computer-programming/spin-off-of-super-ufo/6491386079608832\nRetrieved On: 07-Nov-2022 (17:07:56.899432)**/\
+";
+
+code = code + "\n//this is my very first program and i know it is boring but if you can leave some ideas for me i will try my best to improve it!\n\n//Define variables for motion\nvar x = -25;\nvar xa = 1;\nvar y=-25;\nvar draw = function() {\n//Stretch the background\nvar spaceback=getImage(\"space/background\");\nimage(spaceback,x,y,425,425);\n    \n    fill(240, 226, 226);\n    \n    fill(20, 126, 207);// change for the color\n    \n    ellipse(mouseX, mouseY, 155, 125); //change for the size of the shape\n\nfill(255, 0, 0);\n    ellipse(mouseX, mouseY, 252, 22);\n    //Movement\n    if(x>=-1){\n        xa=-1;\n    }\n    if(x<-1){\n          x+=1*xa;  \n    }\n  \n    if(y<-1){\n        y+=0.5;\n    }\n\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

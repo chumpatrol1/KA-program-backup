@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Animation 7: Girl Walking</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation 7: Girl Walking</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Animation 7: Girl Walking by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:08Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:08Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-29T19:43:41Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/animation-7-girl-walking/1003716939\nRetrieved On: 07-Nov-2022 (17:07:07.338936)**/\
+";
+
+code = code + "\nvar human=50;\n\nvar draw = function() {\n    background(67, 67, 67);\n    //Human\n    //Head\n    fill(225, 124, 255);\n    ellipse(human+50,50,50,50);\n    //Body\n    fill(225, 124, 225);\n    rect(human+24,75,55,55);\n    //Arms\n    fill(255, 124, 225);\n    rect(human+-25,75,50,15);\n    rect(human+80,75,50,15);\n    //Legs\n    fill(255, 0, 0);\n    rect(human+24,130,15,50);\n    rect(human+65,130,15,50);\n    //Shoulders/Hips\n    fill(140, 0, 255);\n    ellipse(human+24,83,20,20);\n    ellipse(human+84,83,20,20);\n    ellipse(human+32,130,20,20);\n    ellipse(human+72,130,20,20);\n    //Hair\n    fill(255, 102, 0);\n    line(human+38,27,human+ 0,63);\n    line(human+40,29,human+ 5, 65);\n    line(human+42, 31,human+ 10, 67);\n    line(human+56,25,human+156,49);\n    line(human+53,28,human+ 160,54);\n    line(human+50, 31, human+164, 59);\n    //Eyes\n    strokeWeight(2);\n    point(human+62,45);\n    point(human+42, 45);\n    //Nose\n    point(human+52,55);\n    //Mouth\n    point(human+52,65);\n    point(human+51,64);\n    point(human+50,63);\n    point(human+49,62);\n    point(human+53,64);\n    point(human+54,63);\n    point(human+55,62);\n\nhuman = human + 1.5;\n    \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Coruscant Driving *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coruscant Driving *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Coruscant Driving *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-07-22T17:47:20Z by kaid_976851263300560061760577\nLast Edited: 2013-07-22T17:47:20Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-10-06T14:07:15Z from origin 1609491476 with similarity of 0.9657547350296537\nOriginal Link: https://www.khanacademy.org/computer-programming/coruscant-driving-improved/1824365452\nRetrieved On: 07-Nov-2022 (17:06:58.849131)**/\
+";
+
+code = code + "\n//the aim of the game is to avoid laserbeams until you catch bounty hunter zam wessel. My game is inspired by a scene from STAR WARS episode II attach of the clones.\n\n//variables that are VITAL to the game:\nvar obstacletop = 1;\nvar obstaclebottom = 1;\nvar cartop = 1;\nvar carbottom = 1;\nvar obstaclex = 200;\nvar lost = 1;\nvar speedoflight = 2;\nvar car = mouseY;\nvar difficulty = 5;\nvar checkl=false;\nvar checkw=false;\n obstacletop = random(0, 200);\n    obstaclebottom = random(0, 200);\ntextSize(50);\nvar draw = function() {\n   if(speedoflight<difficulty){\n       car = mouseY;\n   }\n   noStroke();\n   \n   background(161, 155, 155);\n    cartop = car + 15;\n    carbottom = car - 15;\n    fill(232, 217, 151);\n    \n    //draw the car\n    fill(44, 39, 184);\n    ellipse(75, mouseY - 1, 20, 40);\n    fill(225, 255, 0);\n    rect(50, mouseY, 60, 30);\n   fill(232, 217, 151);\n   ellipse(74,mouseY-19,20,20);\n    fill(117, 89, 17);\n    rect(65,mouseY-30,19,8);\n    ellipse(80, mouseY-17, 4, 4);\n    //draw the lasers\n    stroke(255, 0, 0);\n    strokeWeight(4);\n    if(!checkl&&!checkw){\n     line(obstaclex,obstaclebottom, obstaclex, obstacletop);   \n    }\n    \n   //move the lasers at the speed of light!\n   obstaclex -=speedoflight;\n    if (obstaclex < 0){\n        obstaclex=200;\n        obstacletop=random(0, 600);\n        obstaclebottom=random(0, 600);\n        speedoflight=speedoflight+0.2;\n    }\n    text(obstaclex,0,30);\n    //did you lose?\n    if (car>obstacletop){\n        if (car<obstaclebottom){\n            if(obstaclex<100){\n                text(\"you lose\", 100, 100);\n                checkl=true;\n                lost = lost+1;\n            }\n        }\n    }\n    if (car<obstacletop){\n        if (car>obstaclebottom){\n          if (obstaclex<100&&obstaclex>50){\n              lost = 2;\n          }  \n        }\n    }\n    if(lost > 1){\n        fill(247, 242, 242);\n        text(\"you lose\", 100, 100); \n    }\n    //did you win?\n    if(speedoflight>difficulty){\n        if(lost<2){\n        noStroke();\n        //draw zam wessel\'s hovercar\n        fill(17, 194, 62);\n        rect(240,239,52,22);\n        rect(158,227,88,35);\n        rect(105,221,85,7);\n        ellipse(202,222,64,20);\n        fill(250, 245, 245);\n        //declare that you have won, and prevent you from losing (you won, right?!)\n        text(\"you win\",91,142);\n        lost = lost - 1000000000000000;\n        car = -20;\n        checkw=true;\n        }\n    }\n    if(mouseY< 1){\n        text(\"HEY! GET THE \", 1, 50);\n        text(\"MOUSE BACK ON\", 1, 100);\n        text(\"THE SCREEN\",1, 150);\n    }\n    if(mouseY> 390){\n        text(\"HEY! GET THE\",1,50);\n        text(\"MOUSE BACK ON\",1,100);\n        text(\"THE SCREEN!\",1,150);\n    }\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

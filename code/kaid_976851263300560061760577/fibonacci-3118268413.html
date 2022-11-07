@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Fibonacci</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fibonacci</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Fibonacci by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-03-03T18:28:10Z by kaid_976851263300560061760577\nLast Edited: 2016-03-03T18:28:10Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-03-09T17:50:44Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/fibonacci/3118268413\nRetrieved On: 07-Nov-2022 (17:07:46.216961)**/\
+";
+
+code = code + "\nstrokeWeight(3);\nfor(var fibonaccix=0; fibonaccix<=400; fibonaccix+=20){\nstroke(0);\nline(fibonaccix,0,fibonaccix,400);\n}\nfor(var fibonacciy=0; fibonacciy<=400; fibonacciy+=20){\nstroke(0);\nline(0,fibonacciy,400,fibonacciy);\n}\nfill(255, 0, 0);\nrect(180,180,20,20);\nfill(255, 124, 0);\nrect(180,200,20,20);\nfill(255,255,0);\nrect(200,180,40,40);\nfill(124, 255, 0);\nrect(180,120,60,60);\nfill(0,255,0);\nrect(80,120,100,100);\nfill(0,255,124);\nrect(80,220,160,160);\nfill(0,255,255);\nrect(240,120,260,260);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

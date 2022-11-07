@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Book 2: The Cake</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book 2: The Cake</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Book 2: The Cake by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-19T19:05:22Z by kaid_976851263300560061760577\nLast Edited: 2013-02-19T19:05:22Z\nVotes/Spinoffs: 3/2\nOriginally Created: 2013-05-23T12:09:38Z from origin 1379535367 with similarity of 0.6693648816936488\nOriginal Link: https://www.khanacademy.org/computer-programming/book-2-the-cake/1393095115\nRetrieved On: 07-Nov-2022 (17:06:48.359477)**/\
+";
+
+code = code + "\n//Click to turn the page\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n// note to self pagey should be pagey+ 92.5 when typing at the beginning of chapterand pagey+-80 and for page pagey =+196.5 anywhere else\nvar pagex=100;\nvar pagey=100;\nvar count=0;\nvar f = createFont(\"Gabriola\", 40);\nvar ff = createFont(\"Arial\",50);\nvar draw= function() {\n   //Cover\n   \n   background(220, 215, 205);\n    fill(255, 255, 0);\n    textFont(ff,50);\n    textSize(50);\n    text(\' The Cake\',pagex+-55,pagey-44);\n    fill(0, 0, 0);\n    textSize(15);\n    text(\'Written By Elijah\\nProgrammed by Elijah\',pagex+8,pagey+79);\n    text(\"An Easy Book\",pagex-100,390);\n    //Page 1\n    textFont(ff,50);\n    text(\'Zion has a sister.\\nHer name is Yael.\\nShe is one year \\nyounger than \\nZion. She is going\\nto help bake a\\ncake!\',pagex+300,pagey+-50);\n    //Page 2\n    text(\"First, they need\\n4 eggs. They\\ncrack the eggs\\nopen to put them\\nin a bowl. They\\nhave to work very\\nhard!\",pagex+705,pagey-62);\n\n//Page 3\n    text(\"Next, they put in\\nsome butter. \\nThere is only a \\nlittle left, so they\\neat that. Now\\nthey have to pour\\nthe milk!\",pagex+1110,pagey+-50);\n    //Page 4\n    text(\"The milk is\\npoured, so the\\nonly thing left is\\nthe flour! They\\nmix it all up and \\nthen put it in the\\noven.\",pagex+1515,pagey+-50);\n    //Page 5\n    text(\"After 20 minutes,\\nthe cake is now\\nready. Zion,\\nYael and the rest\\nof the family \\nenjoy the cake.\",pagex+1920,pagey+-50);\n    //Page 6\n    textFont(f,100);\n    text(\"The End\",pagex+2325,pagey+-0);\n    if(mouseIsPressed){\n        pagex=pagex-400;\n        \n    }\n    \n    mouseIsPressed=false;\nif(pagex===-2700){\n    pagex=pagex+2800;\n}\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

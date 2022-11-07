@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Guy is Scared Outta His Wits!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Guy is Scared Outta His Wits!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Guy is Scared Outta His Wits! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:54Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:54Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2012-10-03T19:25:32Z from origin 1068236533 with similarity of 0.9975698663426489\nOriginal Link: https://www.khanacademy.org/computer-programming/guy-is-scared-outta-his-wits/1068862110\nRetrieved On: 07-Nov-2022 (17:06:55.327710)**/\
+";
+
+code = code + "\nvar all=200;\n\nvar draw = function() {\n\nbackground(3, 224, 187);\n\n//body\nfill(71, 219, 21);\nrect(138,all+-40,95,121);\n\n//head\nfill(237, 167, 92);\nellipse(185,117,100,100);\n\n//left arm\nstroke(237, 167, 92);\nstrokeWeight(17);\nline(all+-61,186,all-150,230);\n\n//right arm\nstroke(237, 167, 92);\nstrokeWeight(17);\nline(all+31,186,all+125,230);\n\n//right leg\nstroke(83, 63, 232);\nstrokeWeight(34);\nline(all+21,286,all+21,369);\n\n//left leg\nstroke(83, 63, 232);\nstrokeWeight(34);\nline(all-45,286,all-45,369);\n\n//right eye\nstroke(0, 0, 0);\nstrokeWeight(10);\npoint(all,101);\n\n//left eye\nstrokeWeight(10);\npoint(all-31,101);\n\n//left foot\nstrokeWeight(2);\nfill(20, 220, 255);\nellipse(all-57,377,-61,31);\n\n//right foot\nfill(20, 220, 255);\nellipse(all+34,377,-61,31);\n\n// mouth\nfill(252, 65, 65);\nellipse(all-13, 137, 49, -13);\n\nall+=1;\n\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

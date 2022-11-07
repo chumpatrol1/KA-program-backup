@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Coin as Big as Gem</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coin as Big as Gem</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Coin as Big as Gem by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-08T12:47:34Z by kaid_976851263300560061760577\nLast Edited: 2013-02-08T12:47:34Z\nVotes/Spinoffs: 0/1\nOriginally Created: 2013-02-08T13:28:43Z from origin 1356059345 with similarity of 0.8195883605393897\nOriginal Link: https://www.khanacademy.org/computer-programming/coin-as-big-as-gem/1361456089\nRetrieved On: 07-Nov-2022 (17:08:00.555871)**/\
+";
+
+code = code + "\n//this is a work in progress!!\n//This game is based off of many random things that depend on each other so if you try enough you\'ll probably win :)\n//If you find any glitchs(which you will)plz tell me imiadiatly!\n/**Glitches Found:\n *when armor is 0 you cant attack\nTo do list:\n *add more levels\n *add bosses\n *add store**/\n/**MADE BY: dnacalkins\n * WITH AWESOME IDEAS AND HELP FROM:\n * David Elijah de Siqueira Campos McLaughlin (Age 10)\n**/\nnoStroke();\nvar state=\'level1\';\nvar coins=0;\nvar coin=getImage(\"cute/GemOrange\");\nvar coinsC=0;\nvar health=100;\nvar healthC=100;\nvar armor=50;\nvar armorC=50;\nvar attack=1;\nvar attackC=1;\nvar player1=\'dnacalkins\';/**put your name here!!!**/\nvar player2=\'computer\';/**don\'t change this!!!**/\nvar random1;\nvar over_button=false;\nvar buttonx=150;\nvar buttony=357;\nvar buttonH=30;\nvar buttonL=125;\nvar turn=player1;\n\nvar draw= function() {\n    if(mouseX>100&&mouseX<325&&mouseY>355&&mouseY<399){\n        over_button=true;\n    }\n    var mx=mouseX;\n    var my=mouseY;\n    background(125, 107, 75);\n    if(state===\'level1\'){\n        fill(31, 148, 8);\n    rect(buttonx-50,buttony,buttonL+100,buttonH+12,100);\n    fill( 0);\n    textSize(40);\n    text(\'Attack!!!\',buttonx,buttony+32);\n    if(mouseIsPressed&&over_button===true){\n        //buttonx--;\n        //buttony++;\n        if(turn===player2){\n            over_button=false;\n            if(armor>=1){\n                random1=round(random(1.5,100));\n                if(random1>=0&&random1<=armor){\n                    armor=armor-attackC*2;\n                    turn=player1;\n                }else if(random1>armor&&random1<=100){\n                    health=health-attackC;\n                    turn=player1;\n                    //coinsC+=0.4;\n                    /**if(attackC<5){\n                    attackC=attackC+0.1;\n                    }**/\n                }\n            }else if(armor<=0){\n                health=health-attackC;\n                turn=player1;\n            } \n        }if(turn===player1){\n            if(armorC>=1){\n                random1=round(random(0,100));\n                if(random1>=0&&random1<=armorC){\n                    armorC=armorC-attack*2;\n                    turn=player2;\n                }else if(random1>armorC&&random1<=100){\n                    healthC=healthC-attack;\n                    turn=player2;\n                    coins+=0.4;\n                    /**if(attack<5){\n                    attack=attack+0.1;\n                    }**/\n                }\n            }\n        }else if(armor<=0){\n            healthC=healthC-attack;\n            turn=player2;\n        }mouseIsPressed=false;\n       \n    }\n    textAlign(LEFT,TOP+19);\n    fill(0, 0, 0);\n    textSize(15);\n    textSize(50);\n    text(\'* \',63,284);\n    textSize(20);\n    text(round(coins),88,265);\n    noStroke();\n    image(coin,6,204,50,80);\n    fill(255, 200, 0);\n    ellipse(50,200,50,50);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

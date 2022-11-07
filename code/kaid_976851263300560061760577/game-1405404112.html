@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Game</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Game by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-23T20:44:23Z by kaid_976851263300560061760577\nLast Edited: 2013-02-23T20:44:23Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-02-24T00:41:11Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/game/1405404112\nRetrieved On: 07-Nov-2022 (17:07:33.621637)**/\
+";
+
+code = code + "\nvar money = 100;\nvar room = \"Enter\";\nvar slotA = round(random(1,5));\nvar slotB = round(random(1,5));\nvar slotC = round(random(1,5));\nvar slideA = 1;\nvar draw = function() {\n  if(room === \"Enter\"){\n      strokeWeight(5);\n      stroke(100, 75, 255);\n      background(0, 0, 0);\n      fill(0, 0, 0);\n      rect(0,0,400,50);\n      fill(100, 75, 255);\n      textSize(20);\n      text(\"Money: \"+money,10,30);\n      fill(0, 0, 0);\n      rect(0,75,100,100);\n       fill(100, 75, 255);\n      text(\"Slot \\nMachines\",10,100);\n      if(mouseX>0&&mouseX<100&&mouseY>75&&mouseY<175){\n          if(!mouseIsPressed){\n                   fill(124);\n           rect(0,75,100,100);\n                  fill(100, 75, 255);\n      text(\"Slot \\nMachines\",10,100);   \n          }\n          if(mouseIsPressed){\n              room = \"Slots\";\n          }\n  \n      }\n  }  \n  if(room === \"Slots\"){\n      background(0, 0, 0);\n      fill(255);\n      textSize(30);\n      text(\"Press Space To Try to Win\\nThe Slot Machine! Cost: $5 \",0,30);\n      if(keyPressed&&keyCode === 32){\n          room = \"Slots2\";\n      }\n  }\n  if(room === \"Slots2\"){\n      background(0, 0, 0);\n      if(slotA===slotB===slotC){\n          if(slotA === 1){\n              fill(255, 0, 0);\n              textSize(30);\n              text(\"You Win 50$!\",0,30);\n                 fill(255, 0, 0);\n    rect(0,50,133,133);\n       fill(255, 0, 0);\n    rect(133,50,133,133);\n       fill(255, 0, 0);\n    rect(266,50,133,133);\n          }\n          if(slotA === 2){\n              fill(255, 124, 0);\n              textSize(30);\n              text(\"You Win 50$\",0,30);\n          }\n          if(slotA === 3){\n                 textSize(30);\n              text(\"You Win 50$\",0,30);\n          }\n          if(slotA === 4){\n                 textSize(30);\n              text(\"You Win 50$\",0,30);\n          }\n          if(slotA === 5){\n                 textSize(30);\n              text(\"You Win 50$\",0,30);\n          }\n      }\n      if(slotA!==slotB||slotA!==slotC||slotB!==slotC){\nfill(255);\ntextSize(30);\ntext(\"You lost 5$!\",0,30);\nif(slotA === 1){\n    fill(255, 0, 0);\n    rect(0,50,133,133);\n}\nif(slotA === 2){\n    fill(255, 124, 0);\n    rect(0,50,133,133);\n}\nif(slotA === 3){\n    fill(255, 255, 0);\n    rect(0,50,133,133);\n}\nif(slotA === 4){\n    fill(0, 255, 0);\n    rect(0,50,133,133);\n}\nif(slotA === 5){\n    fill(0, 0, 255);\n    rect(0,50,133,133);\n}\nif(slotB === 1){\n    fill(255, 0, 0);\n    rect(133,50,133,133);\n}\nif(slotB === 2){\n    fill(255, 124, 0);\n    rect(133,50,133,133);\n}\nif(slotB === 3){\n    fill(255, 255, 0);\n    rect(133,50,133,133);\n}\nif(slotB === 4){\n    fill(0, 255, 0);\n    rect(133,50,133,133);\n}\nif(slotB === 5){\n    fill(0, 0, 255);\n    rect(133,50,133,133);\n}\nif(slotC === 1){\n    fill(255, 0, 0);\n    rect(266,50,133,133);\n}\nif(slotC === 2){\n    fill(255, 124, 0);\n    rect(266,50,133,133);\n}\nif(slotC=== 3){\n    fill(255, 255, 0);\n    rect(266,50,133,133);\n}\nif(slotC === 4){\n    fill(0, 255, 0);\n    rect(266,50,133,133);\n}\nif(slotC === 5){\n    fill(0, 0, 255);\n    rect(266,50,133,133);\n}\n      }\n  }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

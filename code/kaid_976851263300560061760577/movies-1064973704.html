@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Movies!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Movies!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Movies! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:14:03Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:14:03Z\nVotes/Spinoffs: 10/2\nOriginally Created: 2013-04-19T23:06:52Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/movies/1064973704\nRetrieved On: 07-Nov-2022 (17:06:40.767178)**/\
+";
+
+code = code + "\n//It\'s Movie Time!\n//Here is a list of all computer animations (Like the one\n//on the canvas here). You can also start a commentary in the \n//tips and feedback section. Any ideas for a new comuter\n//animation? Put them in the Q&A section. Any suggestions \n//with 3+ votes will be put in my to-do list for 7+ days. \n//Suggestions with 5+ votes will be started in less than 5 //days. Questions? Email me at chumpatrol1@gmail.com.\n\n\n//I\'m Also on youtube! Story behind them is on there:\n//\n//www.youtube.com/user/Chumpatrol1?feature=guide\n\n////Available!\n//Ball World Part 1: http://www.khanacademy.org/cs/ball-world-part-1/1058697473\n//Ball World Part 2: http://www.khanacademy.org/cs/ball-world-part-2/1062925622\n//Ball World Part 3: http://www.khanacademy.org/cs/ball-world-part-3/1071901128\n//Ball World Part 4: http://www.khanacademy.org/cs/ball-world-part-4/1077867391\n//Ball World Part 5: http://www.khanacademy.org/cs/ball-world-part-5/1084847745\n//Ball World Part 6: http://www.khanacademy.org/cs/ball-world-part-6/1094536263\n//Ball World Part 7: http://www.khanacademy.org/cs/ball-world-part-7/1163765223\n//Ball World Part 8: http://www.khanacademy.org/cs/ball-world-part-8/1206975900\n//Ball World Part 9: https://www.khanacademy.org/cs/ball-world-part-9/1360023414\n////Coming Soon!\n//Ball World Part 10\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nvar slide = 0;\n\nvar draw = function() {\n   frameRate(1);\n   if(slide === 0){\n        noStroke();\n        background(0, 0, 0);\n        fill(0, 0, 255);\n        triangle(0,200,50,175,50,225);\n        rect(50,190,50,25);\n        fill(0,255,0);\n        textSize(20);\n        text(\"Chumpatrol\",125,195);\n        text(\"Productions\",125,225);\n        fill(255, 124, 255);\n        ellipse(300,150,50,50);\n        ellipse(350,150,50,50);\n        rect(275,175,100,50);\n        triangle(300,200,250,250,250,150);     \n    }\n       if(slide === 1){\n        noStroke();\n        background(0, 0, 0);\n        fill(0, 255, 0);\n        triangle(0,200,50,175,50,225);\n        rect(50,190,50,25);\n        fill(255,124,255);\n        textSize(20);\n        text(\"Chumpatrol\",125,195);\n        text(\"Productions\",125,225);\n        fill(0, 0, 255);\n        ellipse(300,150,50,50);\n        ellipse(350,150,50,50);\n        rect(275,175,100,50);\n        triangle(300,200,250,250,250,150);     \n    }\n           if(slide === 2){\n        noStroke();\n        background(0, 0, 0);\n        fill(255, 124, 255);\n        triangle(0,200,50,175,50,225);\n        rect(50,190,50,25);\n        fill(0,0,255);\n        textSize(20);\n        text(\"Chumpatrol\",125,195);\n        text(\"Productions\",125,225);\n        fill(0, 255, 0);\n        ellipse(300,150,50,50);\n        ellipse(350,150,50,50);\n        rect(275,175,100,50);\n        triangle(300,200,250,250,250,150);     \n    }\n    if(slide === 2){\n        slide = slide-3;\n    }\n    slide = slide+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

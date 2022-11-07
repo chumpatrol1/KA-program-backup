@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ball World Part 10</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball World Part 10</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Ball World Part 10 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-04-20T12:16:32Z by kaid_976851263300560061760577\nLast Edited: 2013-04-20T12:16:32Z\nVotes/Spinoffs: 9/1\nOriginally Created: 2013-07-09T17:07:52Z from origin 1360023414 with similarity of 0.20888123924268504\nOriginal Link: https://www.khanacademy.org/computer-programming/ball-world-part-10/1567133486\nRetrieved On: 07-Nov-2022 (17:06:38.721104)**/\
+";
+
+code = code + "\n//I am trying to make a cartoon about balls interacting with //each other. Let\'s hope this works :-P.\n\n//First, I\'ll make a variable called \"slide\".\nvar slide = 18;\nvar robot = getImage(\"avatars/robot_male_1\");\nvar robot2 = getImage(\"avatars/robot_female_1\");\nvar x = 50;\n    //Set the frame rate.\n    frameRate(2);\n//Next, I will have to throw in our draw loop...\nvar draw = function() {\n    textSize(30);\n    //All right, no backgrounds today!\n    \n\n    \n    //Let the scenes begin!\n    \n    if(slide === 0){\n        strokeWeight(1);\n        background(255, 0, 255);\n        fill(255);\n        textSize(33);\n        text(\"Ball World Part 10\",50,199);\n    }\n    if(slide === 4){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"One Day...\",0,30);\n    }\n    if(slide === 6){\n        background(0, 255, 255);\n        fill(255, 124, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"I\'m glad Eli and Zion built \\nAmelia the robot. I have a \\nplan for today!\",0,30);\n    }\n    if(slide === 14){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"Seconds later...\",0,30);\n    }\n    if(slide === 18){\n        background(0, 255, 255);\n        fill(255);\n        textSize(30);\n        scale(1,1);\n        text(\"Hi Yael, what do you need?\",0,30);\n        scale(1,1);\n        image(robot,200,200,200,200);\n        scale(-1,1);\n        image(robot2,-135,225,150,150);\n        scale(-1,1);\n    }\n//slide = slide+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

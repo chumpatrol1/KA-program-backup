@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Rubik's Cube</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rubik's Cube</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Rubik's Cube by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-01-29T15:15:29Z by kaid_976851263300560061760577\nLast Edited: 2016-01-29T15:15:29Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-02-03T21:58:35Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/rubiks-cube/6467887263252480\nRetrieved On: 07-Nov-2022 (17:07:56.708074)**/\
+";
+
+code = code + "\nstrokeWeight(10);\nstroke(0);\n//Green Side\nfill(0,255,0);\nbeginShape();\nvertex(150,150);\nvertex(350,150);\nvertex(350,295);\nvertex(150,295);\nendShape();\n//Orange Side\nfill(255,124,0);\nbeginShape();\nvertex(150,150);\nvertex(105,70);\nvertex(105,200);\nvertex(150,300);\nendShape();\n//Sides of the Cube\nline(100,50,300,50);\nline(150,150,350,150);\nline(100,50,150,150);\nline(300,50,350,150);\nline(150,150,150,300);\nline(350,150,350,300);\nline(150,300,350,300);\nline(100,50,100,200);\nline(100,200,150,300);\n//Top Side\nstrokeWeight(5);\nline(167,50,217,150);\nline(223,50,283,150);\nline(120,83,315,83);\nline(135,112,325,112);\n//Front Side\nnoStroke();\nstroke(0);\nstrokeWeight(5);\nline(217,150,217,300);\nline(283,150,283,300);\nline(150,200,350,200);\nline(150,250,350,250);\n//Side-y Side\nnoStroke();\nstrokeWeight(5);\nstroke(0);\nline(150,200,100,115);\nline(150,240,100,160);\nline(115,75,115,225);\nline(135,110,135,270);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Coder Club: Members!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coder Club: Members!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Coder Club: Members! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-23T12:25:52Z by kaid_976851263300560061760577\nLast Edited: 2013-01-23T12:25:52Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-25T17:14:32Z from origin 1227718571 with similarity of 0.013006503251625813\nOriginal Link: https://www.khanacademy.org/computer-programming/coder-club-members/1314879663\nRetrieved On: 07-Nov-2022 (17:07:30.123031)**/\
+";
+
+code = code + "\n/* Welcome to the Coder Club! This is where the member\'s official profiles sit. Be free to view them all, and if you are intrested in joining show your best program below.\n*/\n\nvar state = \"Hi\";\nvar s = second();\nvar m = minute();\nvar h = hour();\n\nvar draw = function() {\n    if(state === \"Hi\"){\n        background(67);\n        fill(255);\n        textSize(30);\n        text(\"Hi! Welcome to the Coder\\nClub, which is relatively new...\\nThis program shows all the\\nmembers who joined in:\\nJanuary 2013\\nPress Up to see profiles and\\npress down to see some other\\nneat stuff.\",0,30);\n        if(keyPressed&&keyCode === UP){\n            state = \"Member\";\n        }\n        if(keyPressed&&keyCode === DOWN){\n            state = \"Neat\";\n        }\n    }\n    if(state===\"Member\"){\n        background(20);\n        fill(255);\n        textSize(30);\n        text(\"Hi, welcome to the member\\nsection!\",0,30);\n        text(\"The King (a)\",0,90);\n        text(\"Directors (b)\",0,120);\n        text(\"Others (c)\",0,150);\n        text(\"The Banished (d)\",0,180);\n        \n    }\n    if(state === \"Neat\"){\n        background(0, 0, 0);\n        fill(255, 0, 0);\n        textSize(30);\n        text(h+\":\"+m+\":\"+s,0,30);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

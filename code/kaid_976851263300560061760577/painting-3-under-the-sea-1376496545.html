@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Painting 3: Under The Sea</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Painting 3: Under The Sea</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Painting 3: Under The Sea by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-13T16:41:08Z by kaid_976851263300560061760577\nLast Edited: 2013-02-13T16:41:08Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2013-02-13T16:57:33Z from origin 1376342896 with similarity of 0.6478521478521478\nOriginal Link: https://www.khanacademy.org/computer-programming/painting-3-under-the-sea/1376496545\nRetrieved On: 07-Nov-2022 (17:07:32.689672)**/\
+";
+
+code = code + "\nvar tileWidth = 25;\nvar tileHeight = 25;\n\n// Create \"colors\" Array and Populate with Color Values\nvar colors = [\n            color(255, 0, 0, 0),    // colors[0] = Alpha\n            color(255, 0, 0),     // colors[1] = Red\n            color(255, 127, 0),   // colors[2] = Orange\n            color(255, 255, 0),   // colors[3] = Yellow\n            color(0, 124, 0),     // colors[4] = Forest Green\n            color(0, 0, 255),     // colors[5] = Blue\n            color(127, 0, 255),    // colors[6] = Purple\n            color(255, 124, 255), //7 Pink \n            color(0, 255, 255), //8 Sky Blue\n            color(0, 255, 0), //9 Normal Green\n            color(255, 75, 255),//10 Dark Pink\n            color(124,124,124),//11 Grey \n            color(0, 124, 255),//12 Water Blue\n            color(0, 0, 0)//13 Black\n            ];\n\n// Create 2 Dimensional \"grid\" Array and preload Tile numbers\nvar grid = [ \n[12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12],\n[12,3,5,5,12,12,12,12,12,12,12,12,12,12,12,12],\n[12,0,5,5,12,1,1,1,12,12,12,12,12,12,12,12],\n[12,3,5,5,12,1,13,1,12,12,12,12,12,12,12,12],\n[12,12,12,12,12,1,1,1,12,12,12,12,12,12,12,12],\n[12,12,12,12,12,12,1,12,12,12,12,12,12,12,12,12],\n[12,12,12,12,12,1,1,1,12,12,12,12,12,12,12,12],\n[12,12,12,12,1,1,12,1,1,12,12,12,12,12,12,12],\n[12,12,12,12,12,12,12,12,12,12,12,12,12,8,12,12],\n[12,12,12,12,12,12,12,12,12,12,12,12,8,8,12,12],\n[12,12,12,12,12,12,12,12,12,12,12,12,8,8,12,12],\n[12,12,12,7,7,12,12,12,12,12,12,12,12,12,12,12],\n[12,12,12,7,7,12,12,12,12,12,12,12,12,12,12,12],\n[12,12,7,12,12,12,12,12,12,12,12,12,12,12,12,12],\n[12,12,12,12,12,12,12,4,4,4,12,12,12,12,12,12],\n[12,12,12,12,12,12,12,4,4,12,12,12,12,12,12,12]\n           ];\n           \n// Draw Tile Map using Nested For Loops\nfor (var x = 0; x < 16; x++){ // Rows\n    for (var y = 0; y < 16; y++){ // Columns\n    \n// Grab Tile number from 2 Dimensional \"grid\" Array and apply fill values from \"color\" Array\n    fill(colors[ grid[y][x] ]);\n    \n    // Draw Tiles\n    rect(x*tileWidth, y*tileHeight, tileWidth, tileHeight);\n    } \n}\n\n// Based on Grid Formation by Larry Serflaten 2013";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

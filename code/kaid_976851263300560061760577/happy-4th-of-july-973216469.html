@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Happy 4th of July!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Happy 4th of July!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Happy 4th of July! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:08:41Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:08:41Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-17T00:57:16Z from origin None with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/happy-4th-of-july/973216469\nRetrieved On: 07-Nov-2022 (17:07:03.819294)**/\
+";
+
+code = code + "\nbackground(9, 9, 10);\n\n// set firework size and spokes\nvar points = 40;\nvar length = 80;\n\n// set firework to happen where mouse is clicked\nvar mouseClicked = function() {\n    \n    // vary firework color by location\n    stroke(mouseX/400*255, mouseY/400*255, (mouseX +         mouseY)/800*255);\n\n    for (var i = 1; i<= points; i+=1 ) {\n        var angle = 360/points * i;\n        var x = length * cos(angle);\n        var y = length * sin(angle);\n        line(mouseX, mouseY, (mouseX - x), (mouseY - y));    \n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

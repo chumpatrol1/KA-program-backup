@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Power Man</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Power Man</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Power Man by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-01T15:41:34Z by kaid_976851263300560061760577\nLast Edited: 2013-08-01T15:41:34Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-08-01T15:42:04Z from origin 1806376136 with similarity of 0.9766970618034447\nOriginal Link: https://www.khanacademy.org/computer-programming/power-man/1851154786\nRetrieved On: 07-Nov-2022 (17:07:42.943298)**/\
+";
+
+code = code + "\n/**\n * 2013/07/15\n * Bar by James Winkler\n * Will be a game soon!\n **/\n \nvar pmouseIsPressed = mouseIsPressed;\nvar feedbackText = \"\";\n\nvar barWidth = 30;\nvar barLength = 0;\nvar barMaxLength = 200;\nvar barSpeed = 8.5;\nvar barCurSpeed = barSpeed;\nvar bar = {\n    x: 50,\n    y: 400/2 + barMaxLength/2\n};\nvar colors = [color(255, 0, 0), color(255, 255, 0), color(0, 255, 0)];\n\nvar handleClick = function(){\n    // stop bar\n    if (mouseIsPressed && !pmouseIsPressed && barCurSpeed !== 0){         \n        barCurSpeed = 0;\n        var pct = round(barLength/(barMaxLength) * 10000);\n        feedbackText = pct / 100 + \"%\"; \n        return;\n    }\n    // start bar\n    if (mouseIsPressed && !pmouseIsPressed && barCurSpeed === 0){\n        barCurSpeed = barSpeed;\n        barLength = 0;\n        return;\n    }\n};\n\nvar draw = function() {\n    background(195, 195, 195);\n    // update bar speed\n    barLength += barCurSpeed;\n    // switch directions at 100%\n    if (barLength > barMaxLength){\n        barLength = barMaxLength;\n        barCurSpeed *= -1;\n    }\n    //switch directions at 0%\n    else if (barLength < 0){\n        barLength = 0;\n        barCurSpeed *= -1;\n    }\n    // inner bar\n    var colorIndex = 0;\n    for (var i = 0; i < barLength; i++){\n        var pct = (i-colorIndex*barMaxLength/(colors.length-1)-1)/(barMaxLength/(colors.length-1));\n        stroke(lerpColor(colors[colorIndex], colors[colorIndex+1], pct));\n        line(bar.x, bar.y - i, bar.x + barWidth, bar.y - i);\n        if (i >= barMaxLength/(colors.length-1) * (colorIndex+1)){\n            colorIndex++;\n        }\n    }\n    // outline\n    stroke(0, 0, 0);\n    fill(255, 255, 255, 0);\n    rect(bar.x, bar.y - barMaxLength, barWidth, barMaxLength);\n    handleClick();\n    // feedback text    \n    if (barCurSpeed === 0){\n        textSize(20);\n        fill(0, 0, 0);\n        text(feedbackText, bar.x + barWidth + 10, bar.y - barLength);\n    }\n    \n    pmouseIsPressed = mouseIsPressed;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

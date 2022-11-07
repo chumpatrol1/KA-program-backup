@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>"Javascript Lesson 5" Person Template</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>"Javascript Lesson 5" Person Template</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**"Javascript Lesson 5" Person Template by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-07-15T11:01:36Z by kaid_976851263300560061760577\nLast Edited: 2013-07-15T11:01:36Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-07-15T12:18:25Z from origin 1765513966 with similarity of 0.40175631174533477\nOriginal Link: https://www.khanacademy.org/computer-programming/javascript-lesson-5-person-template/1805142050\nRetrieved On: 07-Nov-2022 (17:07:41.573350)**/\
+";
+
+code = code + "\n/**\n * Feel free to color this in!\n**/\n\n//Feet\nfill(255, 255, 255);\nrect(100,375,50,25);\nrect(200,375,50,25);\n//Legs\nfill(255, 255, 255);\nrect(125,300,25,75);\nrect(200,300,25,75);\nrect(125,250,100,50);\n//Shirt\nfill(255, 255, 255);\nrect(125,150,100,100);\nrect(50,150,75,25);\nrect(225,150,75,25);\n//Hands\nfill(255, 255, 255);\nellipse(50,162.5,50,50);\nellipse(300,162.5,50,50);\n//Head and Neck\ntriangle(140,150,210,150,175,90);\nellipse(175,70,100,100);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

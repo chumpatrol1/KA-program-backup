@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spin-off of "The race to 5 million"</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin-off of "The race to 5 million"</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Spin-off of "The race to 5 million" by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2014-12-15T15:16:29Z by kaid_976851263300560061760577\nLast Edited: 2014-12-15T15:16:29Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2014-12-15T15:16:29Z from origin 6713033276784640 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/spin-off-of-the-race-to-5-million/5446612771143680\nRetrieved On: 07-Nov-2022 (17:07:00.037033)**/\
+";
+
+code = code + "\n//David Elijah\'s profile:\n//https://www.khanacademy.org/profile/E.McLaughlin/\n\n//My profile:\n//https://www.khanacademy.org/profile/shaky365/\n\n\nvar x=0;\nvar draw = function() {\nnoStroke();\n\nfill(255, 0, 0);\ntriangle(200,200,400,0,0,0);\nfill(255, 255, 0);\ntriangle(200,200,400,400,0,400);\nfill(0, 0, 255);\ntriangle(200,200,400,0,400,400);\nfill(0, 255, 0);\ntriangle(200,200,0,0,0,400);\nstroke(10, 10, 255);\nstrokeWeight(10);\nline(176,x-141,168,x-71);\nline(173,x-100,185,x-24);\nline(164,x-175,172,x-125);\nline(177,x-144,189,x-166);\nline(201,x-146,168,x-71);\nline(170,x-2,179,x-49);\nline(185,x-228,179,x-150);\nline(215,x-230,178,x-149);\nline(169,x-280,183,x-189);\nline(196,x-322,179,x-228);\nline(186,x-278,179,x-355);\nline(191,x-388,183,x-313);\nstroke(255, 255, 255);\nstrokeWeight(4);\nline(176,x-141,168,x-71);\nline(173,x-100,185,x-24);\nline(164,x-175,172,x-125);\nline(177,x-144,189,x-166);\nline(201,x-146,168,x-71);\nline(170,x-2,179,x-49);\nline(185,x-228,179,x-150);\nline(215,x-230,178,x-149);\nline(169,x-280,183,x-189);\nline(196,x-322,179,x-228);\nline(186,x-278,179,x-355);\nline(191,x-388,183,x-313);\ntextSize(25);\nfill(0, 0, 0);\ntext(\"David Elijah      vs.          $H@₭!ℛ\",0,185,width,height);\ntext(\"4,228,174 EP            4,123,579 EP\",0,217,width,height);\n\ntextSize(30);\ntext(\"The Race to 5 million\",45,16,width,height);\n\nif(x===400){\n    x-=2;\n}\nx+=2;\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

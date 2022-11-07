@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Symmetric Circles </title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Symmetric Circles </h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Symmetric Circles  by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-06-13T21:12:23Z by kaid_976851263300560061760577\nLast Edited: 2013-06-13T21:12:23Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-06-13T22:02:55Z from origin 1725210114 with similarity of 0.9889700170887059\nOriginal Link: https://www.khanacademy.org/computer-programming/symmetric-circles/5384878061256704\nRetrieved On: 07-Nov-2022 (17:07:51.431609)**/\
+";
+
+code = code + "\nvar numBalls = 2;\nvar ballSize = 10;\nvar maxSpeed = 7;\nvar attraction = 10000; // must be set high\n\n// Ball object with a position, speed and colour\nvar Ball = function(x,y,r,p /* true = red, false = blue */){\n    this.x = x;\n    this.y = y;\n    this.r = r;\n    this.p = p;\n    this.c = (p) ? color(255, 0, 0) : color(0, 0, 255);\n    \n    this.dx = 10 * (random() - 0.5);\n    this.dy = 10 * (random() - 0.5);\n    \n    // Move ball based on its velocity\n    this.move = function() {\n        this.x += this.dx;\n        this.y += this.dy;\n        var s = sqrt(this.dx*this.dx + this.dy*this.dy);\n        if (s > maxSpeed){\n            // scale the speed down\n            this.dx *= (maxSpeed / s);\n            this.dy *= (maxSpeed / s);\n        }\n    };\n    \n    // Bounce off walls\n    this.bounce = function(){\n        if (this.x < this.r) {\n            this.x = this.r;\n            this.dx *= -1;\n        }\n        if (this.x > width - this.r){\n            this.x = width - this.r;\n            this.dx *= -1;\n        }\n        if (this.y < this.r) {\n            this.y = this.r;\n            this.dy *= -1;\n        }\n        if (this.y > height - this.r){\n            this.y = height - this.r;\n            this.dy *= -1;\n        }\n    };\n    \n    this.collide = function(that) {\n        var dx = this.x - that.x;\n        var dy = this.y - that.y;\n        var dr = this.r + that.r;\n        \n        var theta;\n        var distance = sqrt(dx*dx + dy*dy);\n        if (distance === 0) {\n            return;\n        }\n        theta = atan2(dy, dx);\n        // sq(5) = 25, sq(x) = pow(x, 2)\n        var strength = 1 / sq(distance + 5) * attraction;\n        \n        strength *= (2 * this.p - 1);\n        strength *= (2 * that.p - 1);\n        this.dx += strength * cos(theta);\n        that.dx -= strength * cos(theta);\n        this.dy += strength * sin(theta);\n        that.dy -= strength * sin(theta);\n        \n        if (dx * dx + dy * dy < dr * dr){\n            var a = 0.993;\n            this.dx *= a;\n            that.dx *= a;\n            this.dy *= a;\n            that.dy *= a;\n            \n            theta = atan2(dy, dx);\n            var force = (dr - sqrt(dx*dx + dy*dy));\n            force *= 0.995;\n            this.dx += force * cos(theta);\n            that.dx -= force * cos(theta);\n            this.dy += force * sin(theta);\n            that.dy -= force * sin(theta);\n            \n        }\n    };\n    \n};\n\nvar balls = [];\nfor (var b=0; b<numBalls; b++) {\n    var r = ballSize;\n    var x = r + round(random(width - 2*r));\n    var y = r + round(random(height - 2*r));\n    var p = round(random(0, 1));\n    balls.push(new Ball(x, y, r, p));\n}\n\nnoStroke();\n\nvar i, j, ball;\nvar draw = function() {\n    // Clear everything\n    fill(0, 0, 0,5);\n    rect(-10,-10,500,5000);\n    \n    // Draw balls\n    for (i=0; i<numBalls; i++) {\n        ball = balls[i];\n        fill(ball.c);\n        ellipse(ball.x, ball.y, ball.r*2, ball.r*2);\n    }\n\n    // Calculate acceleration\n    for (i=0; i<numBalls; i++) {\n        for (j=i; j<numBalls; j++){\n            balls[i].collide(balls[j]);\n        }\n    }\n    \n    // Move balls\n    for (i=0; i<numBalls; i++) {\n        ball = balls[i];\n        ball.move();\n        ball.bounce();\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

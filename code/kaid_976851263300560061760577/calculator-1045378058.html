@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Calculator</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculator</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Calculator by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:13:34Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:13:34Z\nVotes/Spinoffs: 3/2\nOriginally Created: 2012-10-01T18:55:13Z from origin 1036496931 with similarity of 0.04523809523809524\nOriginal Link: https://www.khanacademy.org/computer-programming/calculator/1045378058\nRetrieved On: 07-Nov-2022 (17:06:47.118920)**/\
+";
+
+code = code + "\n//Welcome to my calculator. Do any of the available options below.\n\n//Change these number to compare\n//Comparing Numbers (Change to Compare\nvar a = 5;\nvar b = 0;\n//Adding Numbers\nvar c = 6;\nvar d = 6;\nvar e = c+d;\n//Subtracting Numbers\nvar f = 0;\nvar g = 0;\nvar h = f-g;\n//Multiplying Numbers\nvar i = 0;\nvar j = 0;\nvar k = i*j;\n//Dividing Numbers\nvar l = 0;\nvar m = 0;\nvar n = l/m;\n//Exponents\nvar o = 0;\nvar p = 0;\nvar q = pow(o,p);\n//Rounding Numbers\nvar r = 0;\nvar s = round(r);\n\n////Welcome to the processor! (Danger: Do not Touch!)\nbackground(0, 255, 255);\n//Comparing Numbers Process\nif(a>b) {\n   fill(255, 0, 0);\n   textSize(15);\n   text(a+\" is greater than \"+b, 0, 15);\n} \nif(a<b) {\n   fill(255, 0, 0);\n  textSize(15);\n  text(a+\" is smaller than \"+b, 0,15);\n}\nif(a===b) {\n    fill(255, 0, 0);\n    textSize(15);\n    text(a+\" is equal to \"+b, 0, 15);\n}\n\n//Adding Numbers Process\nfill(255, 0, 0);\ntextSize(15);\ntext(c+\"+\"+d+\"=\"+e,0,30);\n\n//Subtracting Numbers Process\ntext(f+\"-\"+g+\"=\"+h,0,45);\n\n//Multiplying Numbers Process\ntext(i+\"x\"+j+\"=\"+k,0,60);\n\n//Dividing Numbers Process\ntext(l+\"/\"+m+\"=\"+n,0,75);\n\n//Exponents Process\ntext(o+\"^\"+p+\"=\"+q,0,90);\n\n//Rounding Numbers Process\ntext(r+\" rounded is \"+s,0,105);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Silly Bob and Parkour (Ep 4)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Silly Bob and Parkour (Ep 4)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Silly Bob and Parkour (Ep 4) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-07-28T22:41:06Z by kaid_976851263300560061760577\nLast Edited: 2013-07-28T22:41:06Z\nVotes/Spinoffs: 46/3\nOriginally Created: 2013-07-29T14:58:00Z from origin 1821895905 with similarity of 0.3978930307941653\nOriginal Link: https://www.khanacademy.org/computer-programming/silly-bob-and-parkour-ep-4/1840745093\nRetrieved On: 07-Nov-2022 (17:06:36.862366)**/\
+";
+
+code = code + "\n//Silly Bob will now do... Parkour? Wiki it to find out what it is!\n\n\n\n\n\n\nbackground(255);\nstroke(0, 0, 0);\nvar spunkysam = getImage(\"cute/CharacterBoy\");\n\n\n\nimage(spunkysam,5,30,50,80);\n\n\n\n\n\n\n\n//middle line\n\n\n\nline(200,0,200,400);\n\n\n\n//1st line\nline(0,97,400,97);\n//2nd line\nline(0,200,400,200);\n//3rd line\nline(0,307,400,307);\n//title\ntextSize(35);\n\n\n\nfill(0, 0, 0);\n\n\n\ntext(\"Silly Bob\\n\", 15, 34);\n\n\n\n//1st script\n\n\n\nnoStroke();\nfill(124, 50, 0);\nfill(100);\nrect(201,0,200,97);\nfill(0, 0, 0);\ntextSize(20);\ntext(\"Silly Bob was on the\\ncouch watching TV.\", 204, 20);\nfill(0, 0, 0);\nrect(211,70,20,20);\nimage(spunkysam,210,60,30,40);\nfill(0, 200, 200,124);\ntriangle(330,75,210,50,210,90);\nfill(0, 0, 0);\nrect(300,50,40,40);\n//2nd script\nfill(0, 0, 0);\nrect(149.5,149.5,50,50);\ntext(\"Someone was doing\\nparkour.\", 5, 116);\nfill(0, 124, 0);\nrect(104.5,149.5,45,45);\nrect(104.5,145.5,70,5);\n//3rd script\nfill(255);\nfill(0, 0, 0);\ntext(\"He thought it was very\\ncool.\", 205, 116);\nimage(spunkysam,270,135,50,80);\n//4th script\ntextSize(20);\ntext(\"So he practiced at\\nbedtime.\", 3, 221);\nfill(255, 0, 0);\nrect(25,270,100,30);\nfill(124, 50, 0);\nrect(15,260,10,47);\nrect(125,230,10,77);\nimage(spunkysam,70,210,50,80);\n//5th line\ntextSize(20);\nfill(0, 0, 0);\ntext(\"When Bob went to\\nwork, he decided\\nto do it on his car...\", 203, 220);\n//6th line\n\ntextSize(20);\ntext(\"!\",80,350);\nimage(spunkysam,60,325,50,80);\nfill(0, 0, 0);\nrect(70,320,1,40);\nrect(105,310,1,45);\n//\nfill(0, 0, 0);\nrect(241,318,130,78);\nfill(255, 255, 255);\ntext(\"Click here\", 256, 365);\nvar off = false;\nvar on = true;\ndraw = function() {\nif (off) {\nnoStroke();\n\n\n\nbackground(0, 0, 0);\n\n\n\nfill(255, 0, 0);\n\n\n\ntextSize(15);\n\n\n\ntext(\"If you liked this edition of Silly Bob please vote up\\n       and every 7 votes i get i will make a new\\n                        Silly Bob! Thanks!\", 38, 13);\n\n\n\ntextSize(70);\n\n\n\nfill(255, 0, 0);\n\n\n\ntext(\"Sploosh!\\nGlug glug\\nglug...\", 18, 100);\n\n\n\ntextSize(42);\n\n\n\ntext(\"The end\", 10, 382);\n\n\n\nif (mouseX>305&&mouseX<315&&mouseY>308&&mouseY<333) {\n\n\n\nif (!mouseIsPressed) {        \n\n\n\n}\n\n\n\nif (mouseIsPressed) {\n\n\n\noff = false;\n\n\n\non = true;\n\n\n\n}\n\n\n\n}\n\n\n\n}\n\n\n\nif (on) {\n\n\n\nvar centerX1 = 200;\n\n\n\nvar centerY1 = 200;\n\n\n\nvar centerX2 = 400;\n\n\n\nvar centerY2 = 400;\n\n\n\nif (mouseX>200&&mouseX<400&&mouseY>341&&mouseY<400) {\n\n\n\nif (!mouseIsPressed) {\n\n\n\n}\n\n\n\nif (mouseIsPressed) {\n\n\n\non = false;\n\n\n\noff = true;\n\n\n\n}\n\n\n\n}\n\n\n\n}\n\n\n\nif (mouseX > 250) {  \n\n\n\n}\n\n\n\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

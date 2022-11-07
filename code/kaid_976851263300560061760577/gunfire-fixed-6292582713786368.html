@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Gunfire *FIXED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gunfire *FIXED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Gunfire *FIXED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2014-02-21T23:14:34Z by kaid_976851263300560061760577\nLast Edited: 2014-02-21T23:14:34Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2014-02-21T23:14:35Z from origin None with similarity of 0.9797822706065319\nOriginal Link: https://www.khanacademy.org/computer-programming/gunfire-fixed/6292582713786368\nRetrieved On: 07-Nov-2022 (17:07:00.181774)**/\
+";
+
+code = code + "\nnoStroke();\nvar x=180;\nvar draw= function() {\n    background(255, 127, 127);\n    fill(0, 0, 0);\n    rotate(11);\n    rect(30, 150, 100, 30);\n    rect(50, 180, 10, 20);\n    rect(130, 150, 61, 20);\n    rect(191, 150, 30, 11);\n    ellipse(x, 156, 10, 10);\n    if(x>375){\n        \n        resetMatrix();\n        fill(0, 0, 0); \n        background(255, 213, 0);\n        textSize(82);\n        \n        text(\"Bull\'s Eye!!!\", 10, 200);\n}\nif(x>700){\n    x=0;\n}\n    x=x+10;\n   \n   resetMatrix();\n    fill(0, 0, 0);\n    ellipse(350, 230, 70, 70);\n    fill(255, 255, 0);\n    ellipse(350, 230, 50, 50);\n    fill(255, 0, 0);\n    ellipse(350, 230, 20, 20);\n    };\n\n   ";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

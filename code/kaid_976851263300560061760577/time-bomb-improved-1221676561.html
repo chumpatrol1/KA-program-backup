@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Time Bomb *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Time Bomb *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Time Bomb *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-12T19:55:13Z by kaid_976851263300560061760577\nLast Edited: 2012-12-12T19:55:13Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-12-12T20:01:33Z from origin 1204174194 with similarity of 0.5830508474576271\nOriginal Link: https://www.khanacademy.org/computer-programming/time-bomb-improved/1221676561\nRetrieved On: 07-Nov-2022 (17:07:27.107663)**/\
+";
+
+code = code + "\nvar y = 0;\nvar x = 100;\n\nvar draw = function() {\n    background(255, 255, 255);\n    fill(255, 0, 0);\nellipse(221,221,154,154);\nfill(25,255,45);\nrect(158,194,130,55);\nfill(0, 0, 0);\n\n     if(x < 0){\n    ellipse(221,221,y,y);\n    fill(255, 0, 0);\n    ellipse(221,221,y-1000,y-1000);\n    fill(255, 124, 0);\n    ellipse(221,221,y-2000,y-2000);\n    fill(255, 255, 0);\n    ellipse(221,221,y-3000,y-3000);\n    fill(0, 0, 0);\n    ellipse(221,221,y-5000,y-5000);\n    y+=25;\n}\nif(x < -250){\n    fill(255, 0, 0);\n    textSize(30);\n    text(\"THE END\",200,200);\n}\nfill(0, 0, 0);\ntextSize(43);\ntext(x,159,241);\nx-=1;\n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

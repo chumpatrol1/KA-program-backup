@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Animation 5: Cruiser on the Move</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation 5: Cruiser on the Move</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Animation 5: Cruiser on the Move by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:17:36Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:17:36Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-08-27T15:10:54Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/animation-5-cruiser-on-the-move/1001366975\nRetrieved On: 07-Nov-2022 (17:07:06.249613)**/\
+";
+
+code = code + "\nvar x = 25;\n\nvar draw= function() {\n   //River/Sky\n   background(0, 255, 191);\n   ////Boat\n   //Frame\n   fill( 250, 74, 10);\n   rect(x+0,275,200,200);\n   //Windows\n   fill(0, 255, 213);\n   ellipse(x+170,315,15,15);\n   ellipse(x+150, 315,15,15);\n   ellipse(x+130,315, 15, 15);\n   ellipse(x+110, 315, 15, 15);\n   ///Smokestack\n   //Stack\n   fill(0, 0, 0);\n   rect(x+0,180,45,95);\n   //Smoke\n   fill(0, 0, 0);\n   line(x+ 0, 180, -29,-168);\n   line(x+ 10, 180, -29, -168);\n   line(x + 20, 180, -29, -168);\n   line(x+ 30, 180, -29, -168);\n   line(x+30, 180, -29,  -168);\n   //People\n   fill(255, 0, 0);\n   ellipse(x+180,270,10,10);\n   fill(255, 124, 0);\n   ellipse(x+170,270,10,10);\n   fill(255, 255, 0);\n   ellipse(x+160, 270, 10, 10);\n   fill(0, 255, 0);\n   ellipse(x+150, 270, 10, 10);\n   fill(0, 0, 255);\n   ellipse(x+140, 270, 10, 10);\n   fill(255, 0, 255);\n   ellipse(x+130, 270, 10, 10);\n   fill(255, 124, 225);\n   ellipse(x+120, 270, 10, 10);\n   fill(255, 255, 255);\n   ellipse(x+110, 270, 10, 10);\n   fill(67, 67, 67);\n   ellipse(x+100, 270, 10, 10);\n   fill(0, 0, 0);\n   ellipse(x+90, 270, 10, 10);\n   \n   \n//Animating\n    x=x+3;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

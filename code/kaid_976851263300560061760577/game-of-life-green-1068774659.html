@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title> Game Of Life Green </title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1> Game Of Life Green </h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/** Game Of Life Green  by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:30Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:30Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-10-03T20:18:58Z from origin 879123336 with similarity of 0.6393526843051631\nOriginal Link: https://www.khanacademy.org/computer-programming/game-of-life-green/1068774659\nRetrieved On: 07-Nov-2022 (17:07:20.154188)**/\
+";
+
+code = code + "\n// This is Conway\'s game of life. Press \'p\' to pause! \n// For more information, check out the wikipedia page:\n//   http://en.wikipedia.org/wiki/Conway\'s_Game_of_Life\n\nstroke(224, 224, 224);\n\n// whether or not the simulation is paused\nvar paused = false;\n\n// how many loop ticks before drawing again\nvar drawDelay = 1;\n\n// size of the grid\nvar gridLength = 35;\nvar squareSize = 400 / gridLength;\n\n// initialize a 2D array of cells\nvar cells = [];\nfor (var x = 0; x < gridLength; x += 1) {\n    cells[x] = [];\n    for (var y = 0; y < gridLength; y += 1) {\n        cells[x][y] = 0;\n    }\n}\n// initialize a 2D array of cells for the next generation\nvar nextGen = [];\nfor (var x = 0; x < gridLength; x += 1) {\n    nextGen[x] = [];\n    for (var y = 0; y < gridLength; y += 1) {\n        nextGen[x][y] = 0;\n    }\n}\n\n// initialize a \"glider\". Try picking different cells\n// and see what happens!\ncells[10][10] = 1;\ncells[11][10] = 1;\ncells[9][10] = 1;\ncells[11][9] = 1;\ncells[10][8] = 1;\n\n// this function determines whether or not a cell lives on\n// to the next generation\nvar livesOn = function (x, y) {\n    // first count the number of live neighbors\n    var numNeighbors = 0;\n    for (var i = -1; i <= 1; i +=1 ) {\n        for (var j = -1; j <= 1; j += 1) {\n            var neighborX = (x + i + gridLength) % gridLength;\n            var neighborY = (y + j + gridLength) % gridLength;\n            \n            if (neighborX !== x || neighborY !== y) {\n                if (cells[neighborX][neighborY] === 1) {\n                    numNeighbors += 1;\n                }\n            }\n            \n        }\n    }\n    // if the cell is living and has 2 or 3 live neighbors...\n    if (cells[x][y] === 1 &&\n            (numNeighbors === 2 || numNeighbors === 3)) {\n        return true;\n    }\n    // if the cell is dead and has exactly 3 neighbors...\n    if (cells[x][y] === 0 && numNeighbors === 3) {\n        return true;\n    }\n    // otherwise it\'s either overpopulated or underpopulated\n    // and the cell is dead\n    return false;\n};\n\nvar nextGeneration = function() {\n    for (var x = 0; x < gridLength; x += 1) {\n        for (var y = 0; y < gridLength; y += 1) {\n            // set color and draw\n            if (cells[x][y] === 1) {\n                fill(0, 255, 0);\n            }\n            else {\n                fill(255, 255, 255);\n            }\n            rect(x * squareSize, y * squareSize,\n                    squareSize, squareSize);\n            // build next generation array\n            if (livesOn(x,y)) {\n                nextGen[x][y] = 1;\n            }\n            else {\n                nextGen[x][y] = 0;\n            }\n        }\n    }\n    // copy next generation into current generation array\n    for (var i = 0; i < gridLength; i += 1) {\n        for (var j = 0; j < gridLength; j += 1) {\n            cells[i][j] = nextGen[i][j];\n        }\n    }\n};\n\n// draw loop!\nvar t = 0;\nvar draw = function() {\n    // to keep the animation from going too fast, only\n    // draw after the specified delay\n    if (t === drawDelay) {\n        nextGeneration();\n        t = 0;\n    }\n    // only increment t if we are not paused\n    if (!paused) {\n        t += 1;\n    }\n};\n\n// add a live cell when you click on it\nvar mouseClicked = function() {\n    var x = floor(mouseX / squareSize);\n    var y = floor(mouseY / squareSize);\n    cells[x][y] = 1;\n    \n    // draw the new cell\n    fill(199, 0, 209);\n    rect(x * squareSize, y * squareSize,\n        squareSize, squareSize);\n};\n\n// do the same thing when you click and drag\nvar mouseDragged = function() {\n    var x = floor(mouseX / squareSize);\n    var y = floor(mouseY / squareSize);\n    cells[x][y] = 1;\n\n    // draw the new cell\n    fill(199, 0, 209);\n    rect(x * squareSize, y * squareSize,\n        squareSize, squareSize);\n};\n\nvar keyPressed = function() {\n    // press \'p\' to pause!\n    if (keyCode === 80) {\n        paused = !paused;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

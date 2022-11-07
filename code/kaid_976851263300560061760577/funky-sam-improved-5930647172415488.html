@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Funky Sam *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Funky Sam *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Funky Sam *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-24T13:58:45Z by kaid_976851263300560061760577\nLast Edited: 2013-08-24T13:58:45Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2013-08-24T14:00:05Z from origin 1828730131 with similarity of 0.9000613120784795\nOriginal Link: https://www.khanacademy.org/computer-programming/funky-sam-improved/5930647172415488\nRetrieved On: 07-Nov-2022 (17:07:54.512670)**/\
+";
+
+code = code + "\n//The Original program contains the right eye a slightly (and almost the same) different colored ey than the left.\nbackground (255, 140, 0);\nvar eyePlace= 200;\nfill (0, 136, 255);\nellipse (200,200,200,200);\n// eye\nfill (255, 255, 255);\nellipse ( 166,164,36,35); \nfill (255, 255, 255);\nellipse ( 227,164,35,35); \nfill (0, 13, 255);\nellipse (200,206,15,15);\nfill (0, 0, 0);\nellipse (166,170,30,20);\nellipse (226,170,30,20);\nfill (0, 0, 0);\nrect (236,237,-65,10);\nellipse (131,118,50,50);\nrect (236,237,-65,10);\nellipse (174,123,50,50);\nrect (236,237,-65,10);\nellipse (210,118,50,50);\nrect (236,237,-65,10);\nellipse (155,106,50,50);\nrect (236,237,-65,10);\nellipse (182,100,50,50);\nrect (236,237,-65,10);\nellipse (216,107,50,50);\nrect (236,237,-65,10);\nellipse (237,120,50,50);\nrect (236,237,-65,10);\nellipse (257,118,50,50);\nrect (236,237,-65,10);\nellipse (244,100,50,50);\n\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

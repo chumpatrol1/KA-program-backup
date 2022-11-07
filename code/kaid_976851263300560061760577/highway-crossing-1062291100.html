@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Highway Crossing</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Highway Crossing</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Highway Crossing by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:14:17Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:14:17Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-30T20:12:43Z from origin 1059650439 with similarity of 0.9830134973831605\nOriginal Link: https://www.khanacademy.org/computer-programming/highway-crossing/1062291100\nRetrieved On: 07-Nov-2022 (17:07:19.564970)**/\
+";
+
+code = code + "\n// Make variables\nvar lives = 3;\nvar score = 0;\nvar x = 5;\nvar y = 5;\nvar z = 5;\nvar a = 5;\nvar b = 5;\nvar c = 5;\nvar d = 5;\nvar level=1;\nvar image1 = getImage(\"avatars/spunky-sam\");\n\n// Make car animation loop\nvar draw = function() {\n    if(level === 1){\n        \n    // Make road and grass\n    noStroke();\n    fill(21, 255, 0);\n    rect(0, 0, 400, 50);\n    rect(0, 350, 400, 50);\n    fill(100, 100, 100);\n    rect(0, 50, 400, 300);\n    fill(255, 255, 0);\n    rect(80, 125, 80, 20);\n    rect(240, 125, 80, 20);\n    rect(80, 190, 80, 20);\n    rect(240, 190, 80, 20);\n    rect(80, 255, 80, 20);\n    rect(240, 255, 80, 20);\n    \n    frameRate(20);\n    fill(255, 132, 0);\n    rect(0, 0, 50, 50);\n    stroke(255, 0, 0);\n    strokeWeight(1);\n    textSize(20);\n    text(\"level: \" + level, 335, 20);\n    noStroke();\n    fill(194, 24, 24);\n    rect(x, y+80, 100, 30);\n    rect(x+25, y+60, 50, 40);\n    ellipse(x+20, y+110, 20, 20);\n    ellipse(x+80, y+110, 20, 20);\n    x = x+4+level;\n    if (x > 400){\n        x = -100;\n    }\n    fill(9, 87, 18);\n    rect(z, y+150, 100, 30);\n    rect(z+25, y+130, 50, 40);\n    ellipse(z+20, y+180, 20, 20);\n    ellipse(z+80, y+180, 20, 20);\n    z = z-6-level;\n    if (z < -100){\n        z=400;\n    }\n    fill(255, 100,0);\n    rect(d, y+215, 100, 30);\n    rect(d + 25, y + 195, 50, 40);\n    ellipse(d + 20, y + 245, 20, 20);\n    ellipse(d + 80, y + 245, 20, 20);\n    d=d+5+level;\n    if(d>400){\n        d = -100;\n    }\n    \n    fill(0, 0, 255);\n    rect(a, y+300, 100, 30);\n    rect(a+25, y+280, 50, 40);\n    ellipse(a+20, y+330, 20, 20);\n    ellipse(a+80, y+330, 20, 20);\n    a = a-2-level;\n    if (a <-100){\n        a = 400;\n    }\n    }\n    if(level === 2){\n        \n    }\n    image(image1, b + 170, c + 345, 50, 50);\n    if (keyIsPressed && keyCode === UP){\n        c = c-5;\n        if(c === -350){\n            c = c+5;\n        }\n    }\n    if(keyIsPressed && keyCode ===RIGHT){\n        b = b + 5;\n        if(b > 250){\n            b = -200;\n        }\n    }\n    if(keyIsPressed && keyCode === LEFT){\n        b = b - 5;\n        if (b <-225){\n           b = 250; \n        }\n    }\n    if(keyIsPressed && keyCode === DOWN){\n        c = c + 5;\n        if(c === 10){\n            c = c -5;\n        }\n    }\n    if((x + 100) > (b + 170) && (b + 170) > (x-50) && (y + 30) > (c + 265) && (c + 265) > (y-70) ){\n        background(0, 0, 0);\n        text(\"You Lose\", 150, 150);\n    }\n    if((z + 100)>(b + 170) && (b + 170) > (z) && (y - 60) > (c + 345) && (c + 345) > (y + 180)){\n        background(0, 0, 0);\n        text(\"You Lose\", 150, 150);\n    }\n    if(b + 170 === a && c + 345 === y + 280){\n        background(0, 0, 0);\n        text(\"You Lose\", 150, 150);\n    }\n    if((25) > (b + 170) > (0) && c + 345 === 0){\n        level = level + 1;\n    }\n};\n\n// Make variables\nvar x = 5;\nvar y = 5;\nvar z = 5;\nvar a = 5;\nvar b = 5;\nvar c = 5;\nvar d = 5;\nvar level=1;\nvar image1 = getImage(\"avatars/spunky-sam\");\n\n// Make car animation loop\nvar draw = function() {\n    // Make road and grass\n    noStroke();\n    fill(21, 255, 0);\n    rect(0, 0, 400, 50);\n    rect(0, 350, 400, 50);\n    fill(100, 100, 100);\n    rect(0, 50, 400, 300);\n    fill(255, 255, 0);\n    rect(80, 125, 80, 20);\n    rect(240, 125, 80, 20);\n    rect(80, 190, 80, 20);\n    rect(240, 190, 80, 20);\n    rect(80, 255, 80, 20);\n    rect(240, 255, 80, 20);\n    \n    frameRate(20);\n    fill(255, 132, 0);\n    rect(0, 0, 50, 50);\n    stroke(255, 0, 0);\n    strokeWeight(1);\n    textSize(20);\n    text(\"level: \" + level, 335, 20);\n    noStroke();\n    fill(194, 24, 24);\n    rect(x, y+80, 100, 30);\n    rect(x+25, y+60, 50, 40);\n    ellipse(x+20, y+110, 20, 20);\n    ellipse(x+80, y+110, 20, 20);\n    x = x+4+level;\n    if (x > 400){\n        x = -100;\n    }\n    fill(9, 87, 18);\n    rect(z, y+150, 100, 30);\n    rect(z+25, y+130, 50, 40);\n    ellipse(z+20, y+180, 20, 20);\n    ellipse(z+80, y+180, 20, 20);\n    z = z-6-level;\n    if (z < -100){\n        z=400;\n    }\n    fill(255, 100,0);\n    rect(d, y+215, 100, 30);\n    rect(d + 25, y + 195, 50, 40);\n    ellipse(d + 20, y + 245, 20, 20);\n    ellipse(d + 80, y + 245, 20, 20);\n    d=d+5+level;\n    if(d>400){\n        d = -100;\n    }\n    \n    fill(0, 0, 255);\n    rect(a, y+300, 100, 30);\n    rect(a+25, y+280, 50, 40);\n    ellipse(a+20, y+330, 20, 20);\n    ellipse(a+80, y+330, 20, 20);\n    a = a-2-level;\n    if (a <-100){\n        a = 400;\n    }\n    image(image1, b + 170, c + 345, 50, 50);\n    if (keyIsPressed && keyCode === UP){\n        c = c-5;\n        if(c === -350){\n            c = c+5;\n        }\n    }\n    if(keyIsPressed && keyCode ===RIGHT){\n        b = b + 5;\n        if(b > 250){\n            b = -200;\n        }\n    }\n    if(keyIsPressed && keyCode === LEFT){\n        b = b - 5;\n        if (b <-225){\n           b = 250; \n        }\n    }\n    if(keyIsPressed && keyCode === DOWN){\n        c = c + 5;\n        if(c === 10){\n            c = c -5;\n        }\n    }\n    if((x + 100) > (b + 170) && (b + 170) > (x-50) && (y + 30) > (c + 265) && (c + 265) > (y-70) ){\n        background(0, 0, 0);\n        text(\"You Lose a live!\", 150, 150);\n    }\n    if((z + 100)>(b + 170) && (b + 170) > (z) && (y - 60) > (c + 345) && (c + 345) > (y + 180)){\n        background(0, 0, 0);\n        text(\"You Lose\", 150, 150);\n    }\n    if(b + 170 === a && c + 345 === y + 280){\n        background(0, 0, 0);\n        text(\"You Lose\", 150, 150);\n    }\n    if((25) > (b + 170) > (0) && c + 345 === 0){\n        background(255, 0, 0);\n        text(\"You Win\", 150, 150);\n    }\n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

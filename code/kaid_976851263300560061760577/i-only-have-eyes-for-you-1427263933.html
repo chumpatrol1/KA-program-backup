@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>I only have Eyes for You</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>I only have Eyes for You</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**I only have Eyes for You by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-03T01:51:41Z by kaid_976851263300560061760577\nLast Edited: 2013-03-03T01:51:41Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-03-03T22:14:35Z from origin 909896018 with similarity of 0.6073365231259968\nOriginal Link: https://www.khanacademy.org/computer-programming/i-only-have-eyes-for-you/1427263933\nRetrieved On: 07-Nov-2022 (17:07:36.165193)**/\
+";
+
+code = code + "\n// the center coordinates of both eyes\nvar centerX1 = 225;\nvar centerY1 = 150;\nvar centerX2 = 275;\nvar centerY2 = 200;\nvar centerX3 = 175;\nvar centerY3=200;\nvar centerX4 = 225;\nvar centerY4 = 250;\nvar centerX5 = 50;\nvar centerY5 = 50;\nvar mouseImage=getImage(\"avatars/leaf-grey\");\n\nvar draw = function() {\n    noCursor();\n    image(mouseImage,mouseX,mouseY);\n    background(0, 0, 0);\n\n    // draw the eye whites\n    strokeWeight(3);\n    stroke(0, 0, 0);\n    fill(255, 216, 61);\n    ellipse(centerX1, centerY1, 100, 100);\n    ellipse(centerX2, centerY2, 100, 100);\n    ellipse(centerX3,centerY3,100,100);\n    ellipse(centerX4,centerY4,100,100);\n    ellipse(centerX5,centerY5,100,100);\n\n    // calculate position of first eyeball\n    var eyeX1 = mouseX;\n    var eyeY1 = mouseY;\n    var dist1 = dist(eyeX1, eyeY1, centerX1, centerY1);\n    if (dist1 > 25) {\n        eyeX1 = 25*(mouseX - centerX1)/dist1 + centerX1;\n        eyeY1 = 25*(mouseY - centerY1)/dist1 + centerY1;\n    }\n\n    // calculate position of second eyeball\n    var eyeX2 = mouseX;\n    var eyeY2 = mouseY;\n    var dist2 = dist(eyeX2, eyeY2, centerX2, centerY2);\n    if (dist2 > 25) {\n        eyeX2 = 25*(mouseX - centerX2)/dist2 + centerX2;\n        eyeY2 = 25*(mouseY - centerY2)/dist2 + centerY2;\n    }\n    //Third\n    var eyeX3 = mouseX;\n    var eyeY3 = mouseY;\nvar dist3 = dist(eyeX3,eyeY3,centerX3,centerY3);\nif(dist3> 25){\n    eyeX3=25*(mouseX-centerX3)/dist3+centerX3;\n    eyeY3=25*(mouseY-centerY3)/dist3+centerY3;\n}\n//Fourth\nvar eyeX4 = mouseX;\nvar eyeY4 = mouseY;\nvar dist4 = dist(eyeX4,eyeY4,centerX4,centerY4);\nif(dist4> 25){\n    eyeX4=25*(mouseX-centerX4)/dist4+centerX4;\n    eyeY4=25*(mouseY-centerY4)/dist4+centerY4;\n}\nvar eyeX5 = mouseX;\nvar eyeY5 = mouseY;\nvar dist5 = dist(eyeX5,eyeY5,centerX5,centerY5);\nif(dist5> 25){\n    eyeX5=25*(mouseX-centerX5)/dist5+centerX5;\n    eyeY5=25*(mouseY-centerY5)/dist5+centerY5;\n}\n    // draw eyeballs\n    strokeWeight(50);\n    stroke(51, 19, 11);\n    point(eyeX1, eyeY1);\n    point(eyeX2, eyeY2);\n    point(eyeX3,eyeY3);\n    point(eyeX4,eyeY4);\n    point(eyeX5,eyeY5);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

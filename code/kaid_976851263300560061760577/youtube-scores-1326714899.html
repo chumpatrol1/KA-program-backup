@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Youtube Scores!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Youtube Scores!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Youtube Scores! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-27T22:32:52Z by kaid_976851263300560061760577\nLast Edited: 2013-01-27T22:32:52Z\nVotes/Spinoffs: 3/0\nOriginally Created: 2013-12-21T00:53:22Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/youtube-scores/1326714899\nRetrieved On: 07-Nov-2022 (17:06:47.932452)**/\
+";
+
+code = code + "\nvar views = 1989;\nvar subscribers = 8;\nvar comments = 21;\nvar score = round(subscribers/views*comments*1000);\nvar message;\n\n\nvar draw = function() {\n    background(255, 0, 0);\n    textSize(30);\n    text(\"Youtube Scoring Machine\",0,30);\n    textSize(20);\n    text(\"Views: \"+views,0,60);\n    text(\"Subscribers: \"+subscribers,0,80);\n    text(\"Comments: \"+comments,0,100);\n    text(\"Your Score: \"+score,0,120);\n    text(message,0,140);\n    if(score<11){\n        message = \"Are your videos good???\";\n    }\n    if(score>10&&score<26){\n        message = \"Make better plots to improve your videos.\";\n    }\n    if(score>25&&score<76){\n        message = \"You\'ve done good, but you can make better\\nvideos still!\";\n    }\n    if(score>75&&score<101){\n        message = \"Well done! You\'re on your way to fame!\";\n    }\n    if(score>100&&score<501){\n        message = \"Almost there!\";\n    }\n    if(score>500){\n        message = \"You\'re Famous!!!\";\n    }\n    \n \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

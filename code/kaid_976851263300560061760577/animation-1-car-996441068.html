@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Animation 1: Car</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation 1: Car</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Animation 1: Car by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:06:58Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:06:58Z\nVotes/Spinoffs: 1/3\nOriginally Created: 2012-08-25T14:22:59Z from origin 830742281 with similarity of 0.3191489361702128\nOriginal Link: https://www.khanacademy.org/computer-programming/animation-1-car/996441068\nRetrieved On: 07-Nov-2022 (17:07:04.949727)**/\
+";
+
+code = code + "\n\nnoStroke();\n\n// position of the car\nvar x = 10;\n\n\n\nvar draw = function() {\n    // this is the draw loop! everything inside these\n    // brackets will be run over and over again.\n    // draw the car body\n   background(252, 255, 214);\n   \n   fill(0, 0, 255);\n    rect(x, 200, 100, 20);\n    rect(x + 15, 178, 70, 40);\n\n    // draw the wheels\n    fill(77, 66, 66);\n    ellipse(x + 25, 221, 24, 24);\n    ellipse(x + 75, 221, 24, 24);\n\nx = x + 1;\n\n\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

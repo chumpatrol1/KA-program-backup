@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Life 1</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Life 1</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Life 1 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-17T12:44:36Z by kaid_976851263300560061760577\nLast Edited: 2013-01-17T12:44:36Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-02-09T04:56:04Z from origin 830742281 with similarity of 0.023707606190319395\nOriginal Link: https://www.khanacademy.org/computer-programming/life-1/1300058050\nRetrieved On: 07-Nov-2022 (17:06:55.829060)**/\
+";
+
+code = code + "\n//Life\n//Counts how many frames has passed.\nvar count = 0;\nvar a = 0;\nvar b = 0;\nvar c = 0;\nvar d = 0;\nvar e = 0;\nvar f = 0;\n\nvar draw = function(){\n    noStroke();\n    background(255);\n    fill(0, 0, 255);\n    textSize(30);\n    text(\"A Chumpatrol Production\",0,a+400);\n    fill(0, 255, 0);\n    text(\"In Association with Cave Man\\nFilms\",0,a+800);\n    fill(255, 124, 255);\n    text(\"Presents to You:\\n\\n\\nLife Episode 1\",0,a+1200);\n    a = a-3;\n    if(count>400){\n        background(0, 255, 255);\n            fill(0, 0, 255);\n     fill(255, 255, 0);\n    rect(350,225,50,100);\n    fill(0, 0, 255);\n   ellipse(b+100,300,50,50);\n    fill(50, 0, 0);\n    rect(0,275,75,100);\n    fill(255, 0, 0);\n    text(\"6:30 AM Waking Up and \\nheading out the door!\",0,30);\n  fill(255);\n  rect(20,280,35,25);\n    b=b+1;\n    }\n    if(count>750){\n        background(0, 255, 255);\n        fill(0, 0, 0);\n        rect(-50,100,75,25);\n        rect(0,125,25,25);\n        rect(25,125,25,25);\n        rect(25,150,25,25);\n        rect(50,150,25,25);\n        rect(50,175,25,25);\n        rect(75,175,25,25);\n        rect(75,200,25,25);\n        rect(100,200,25,25);\n        rect(100,225,25,25);\n        rect(125,225,25,25);\n        rect(125,250,25,25);\n        rect(150,250,25,25);\n        rect(150,275,25,25);\n        rect(175,275,25,25);\n        rect(175,300,25,25);\n        rect(200,300,25,25);\n        rect(200,325,25,25);\n        rect(225,325,25,25);\n        rect(225,350,25,25);\n        rect(250,350,25,25);\n        rect(250,375,25,25);\n        rect(275,375,25,25);\n        fill(0, 0, 255);\n        ellipse(0+c,40+c,50,50);\n        fill(255, 0, 0);\n        text(\"6:35 AM\",0,30);\n        c = c+2;\n    }\n    if(count>950){\n        noStroke();\n        background(0, 255, 255);\n          fill(255, 255, 0);\n        rect(200,300,50,100);\n        fill(0, 255, 0);\n        ellipse(450+e,375,50,50);\n        fill(255);\n        text(\"Hi Elijah!\",475+e,375);\n       fill(0, 255, 255);\n       rect(250,300,250,100);\n       fill(0, 0, 255);\n       ellipse(d-50,375,50,50);\n       fill(255);\n       text(\"Hi Zion!\",d-200,370);\n       e = e-3;\n    }\n    if(count>1150){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(-30+d,370,60,60);\n        fill(255);\n        textSize(30);\n        text(\"Hi Zion!\",d,375);\n        fill(0, 255, 0);\n        ellipse(430+f,375,50,50);\n        d=d+3;\n        f=f-3;\n    }\n    if(count>1200){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(d,370,60,60);\n        fill(0, 255, 0);\n        ellipse(f,375,50,50);\n        d=d-3;\n        f=f+3;\n    }\ntext(count,0,60);\n//1200\n    count = count+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>231.168</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>231.168</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**231.168 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-06-06T13:03:32Z by kaid_976851263300560061760577\nLast Edited: 2013-06-06T13:03:32Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-06-06T13:03:32Z from origin 1489634162 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/231168/1707275508\nRetrieved On: 07-Nov-2022 (17:07:39.848503)**/\
+";
+
+code = code + "\n/* highscores:\npost your score in tips & feed back\n1#232.019 Zander\'s Comix®\n2#231.168 pby.king\n2#231.168 tshoeisawesome\n2#231.618 SAMANTHA\n3#230.400 Griffin Forsgren\n3#230.400 nathan\n\nno editing if you want to make a high score*/\n\nvar t=0;\nvar s=1;\nvar g=getImage(\"cute/CharacterBoy\");\nvar a=getImage(\"cute/Star\");\nvar draw = function() {if (s===1){frameRate(1000);\n    \n\n    background(255, 245, 245);\n    fill(184, 169, 74);\n    rect(129,-1,7,t+1);\n    fill(102, 51, 17);\n    image(g,85,260);\nrect(90,t,90,90,12);\nif(mouseIsPressed&t<231){\n    s=2;\n    \n}\nif(t>232){\n t=t-3;\n s=3;\n \n}\n\n\n\n\n t=t+0.768; \n \n \n \n \n}\n\n\n\n\nif(s===2){\n    background(217, 242, 184);\n    textSize(50);\ntext(t,180,110);\ntext(\'score:\',86,46);\n}\n\n\n\n\nif(s===3){\n    textSize(50);\n    fill(0, 0, 0);\n background(255, 0, 0);\n text(\'you lose\',105,195);\n translate(21,49);\n rotate(3);\n fill(94, 75, 17); triangle(238,296,50,514,196,418);\n triangle(184,281,54,1002,155,374);\n  triangle(289,332,294,306,255,314);\n rect(166,325,24,14);\n  rect(183,317,45,14);\n image(a,199,242,19,27);\n image(a,178,242,19,27);\n  image(a,163,247,19,27);\n image(g,145,198); resetMatrix();\n\n image(a,215,309,19,27);image(a,199,314,19,27);image(a,175,311,19,27);resetMatrix();\n fill(94, 75, 17);\n\n\n}\n\n\n\n\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

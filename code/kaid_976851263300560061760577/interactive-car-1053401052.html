@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Interactive Car</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Interactive Car</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Interactive Car by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:15:30Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:15:30Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-09-26T18:45:03Z from origin 830742281 with similarity of 0.17314487632508835\nOriginal Link: https://www.khanacademy.org/computer-programming/interactive-car/1053401052\nRetrieved On: 07-Nov-2022 (17:07:16.972174)**/\
+";
+
+code = code + "\n\n\nvar draw = function() {\n    background(0, 0, 0);\nnoStroke();\n\n// draw the car body\nfill(255, 0, 115);\nrect(mouseX, 200, 100, 20);\nrect(mouseX + 15, 178, 70, 40);\n\n// draw the wheels\nfill(77, 66, 66);\nellipse(mouseX + 25, 221, 24, 24);\nellipse(mouseX + 75, 221, 24, 24);\n\n//I\'d like some windows.\nfill(0, 255, 191);\nrect(mouseX + 25,180,24,24);\nrect(mouseX + 55, 180, 24,24);\n\n//What about a light?\nfill(255, 234, 0);\ntriangle(mouseX+137,194,mouseX+97,213,mouseX+137,230);\nfill(100);\ntriangle(mouseX+117,195,mouseX+86,211,mouseX+130,232);\n\n//Beep Beep!\nif(keyPressed&&keyCode === RIGHT){\n    fill(255, 0, 0);\n   textSize(20);\n   text(\"BEEP!\",50,115);\n}\n\n};\n\n\n\n\nvar keyReleased = function(){\n  fill(0, 0, 0);\n  rect(50,155,50,50);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

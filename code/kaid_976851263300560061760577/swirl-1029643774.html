@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Swirl</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Swirl</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Swirl by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:11:08Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:11:08Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-10T13:03:29Z from origin 974027992 with similarity of 0.9669992325402916\nOriginal Link: https://www.khanacademy.org/computer-programming/swirl/1029643774\nRetrieved On: 07-Nov-2022 (17:07:11.422931)**/\
+";
+
+code = code + "\nbackground(26, 0, 41);\nstroke(1, 64, 3);\nfill(204, 255, 0);\n\n// how far around the circle the ball is, in radians\nvar angle = 0;\n\n// how big the circle is\nvar radius = 15;\n\n// the center of the canvas\nvar centerX = 200;\nvar centerY = 200;\n\nvar draw = function() {\n    // calculate coordinates of the ball using sin and cosine\n    var x = sin(angle) * radius;\n    var y = cos(angle) * radius;\n    \n    // since the circle is naturally centered at (0,0)\n    // we must add centerX and centerY\n    ellipse(x + centerX, y + centerY, 40, 40);\n\n    // move the ball forward\n    angle = angle +10;\n    // make the circle bigger\n    radius = radius + 0.1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

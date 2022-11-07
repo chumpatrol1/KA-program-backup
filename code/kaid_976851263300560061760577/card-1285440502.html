@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Card</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Card</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Card by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-11T22:54:01Z by kaid_976851263300560061760577\nLast Edited: 2013-01-11T22:54:01Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-13T01:50:36Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/card/1285440502\nRetrieved On: 07-Nov-2022 (17:07:29.428345)**/\
+";
+
+code = code + "\n////Information\n//First and Last Name\nvar name = \"Name\";\n//Image of choice goes here. Do not change else you lose your right to have movies uploaded to Youtube\nvar avatar = getImage(\"avatars/questionmark\");\n//Your Caste.                                                   1: Has the right to have his movies uploaded to Youtube.       2: Has the right to vote for which videos to upload+Caste 1\'s Rights.                                                       3: Controls who can go up to ranks 2 and 3+Caste 1 and 2\'s Rights.\nvar caste = 1;\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nvar draw= function() {\nif(caste ===1){\n    background(0, 0, 255);\n}\nif(caste===2){\n    background(255, 255, 0);\n}\nif(caste === 3){\n    background(255, 0, 0);\n}\n\nfill(255);\ntextSize(30);\ntext(name,0,30);\nif(caste===1){\ntext(\"Has the right to have his\\nmovies uploaded to Youtube.\",0,80);\n}\nif(caste === 2){\n    text(\"Has the right to vote for \\nmovies + Caste 1\",0,80);\n}\nif(caste === 3){\n    text(\"Has the right to promote and \\nremove rights+Caste2 and 1\",0,80);\n}\ntextSize(20);\n//text\nstrokeWeight(10);\nfill(25,25,25,0);\nrect(100,195,200,200,50);\nimage(avatar,140,240);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

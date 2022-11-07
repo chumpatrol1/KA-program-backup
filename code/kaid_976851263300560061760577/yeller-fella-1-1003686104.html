@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Yeller Fella 1</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Yeller Fella 1</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Yeller Fella 1 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:06Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:06Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-28T01:53:41Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/yeller-fella-1/1003686104\nRetrieved On: 07-Nov-2022 (17:07:07.192523)**/\
+";
+
+code = code + "\nvar a = 10;\nvar b = 10;\nvar c = 10;\nvar d = 10;\nvar e = 10;\n\nvar draw= function() {\n    background(0, 0, 0);\n    //The Yeller Fella\n    fill(235, 206, 17);\n    ellipse(a+180,90,30,30);\n    //Thoughts\n    fill(255, 255, 200);\n    ellipse(a+180, 65, 15, 15);\n    ellipse(a+180, 39, 15, 30);\n    \n    //The Bad Fellas\n    //Red\n    fill(255, 0, 0);\n    ellipse(b+220, 90, 30, 30);\n    //O.J. Jones\n    fill(255, 124, 0);\n    ellipse(c+260, 90, 30, 30);\n    //Meany\n    fill(0, 255, 0);\n    ellipse(d+300, 90, 30, 30);\n    //F.M.L. Blue\n    fill(0, 0, 225);\n    ellipse(e+340,90, 30, 30);\n    \n    a = a-5;\n    b = b-4;\n    c = c-3;\n    d = d-2;\n    e = e-1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

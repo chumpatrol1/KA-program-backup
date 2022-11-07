@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Paddle Ball: Level 3</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Paddle Ball: Level 3</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Paddle Ball: Level 3 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:11:15Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:11:15Z\nVotes/Spinoffs: 0/1\nOriginally Created: 2012-08-25T12:40:00Z from origin 830543654 with similarity of 0.6651798160022303\nOriginal Link: https://www.khanacademy.org/computer-programming/paddle-ball-level-3/994888743\nRetrieved On: 07-Nov-2022 (17:07:59.481445)**/\
+";
+
+code = code + "\n//Hardest of all three levels. Fast and small ball/paddle makes it nearly impossible to get 10 in a row. I was able to get 11 in a row, but that was HARD!\nnoStroke();\n\nvar paddleWidth = 25;\n\n// the speed of the ball when it first leaves the paddle\nvar initialSpeedX = 10;\nvar initialSpeedY = -6;\n\n// the current speed of the ball\nvar ballSpeedX = initialSpeedX;\nvar ballSpeedY = initialSpeedY;\n\n// the current location of the ball\nvar ballX = 0;\nvar ballY = 0;\n\n// true if ball is moving, false if ball is attached to paddle\nvar ballMoving = false;\n\nvar draw = function() {\n    background(0, 108, 135);\n    \n    // draw the paddle\n    fill(240, 126, 65);\n    rect(mouseX - paddleWidth/2, 350, paddleWidth, 10);\n    \n    // move the ball\n    if (ballMoving) {\n        ballX += ballSpeedX;\n        ballY += ballSpeedY;\n    }\n    else {\n        ballX = mouseX;\n        ballY = 340;\n    }\n    \n    // draw the ball\n    fill(255, 0, 0);\n    ellipse(ballX, ballY, 10, 10);\n    \n    // check if ball has hit the top wall\n    if (ballY <= 10) {\n        ballSpeedY = -ballSpeedY;\n    }\n    // check if the ball has hit the left wall\n    if (ballX <= 10) {\n        ballSpeedX = -ballSpeedX;\n    }\n    // check if the ball has hit the right wall\n    if (ballX >= 390) {\n        ballSpeedX = -ballSpeedX;\n    }\n    // check if the ball has hit the paddle\n    if (ballY >= 340 && ballY < 346 && ballX >= mouseX - paddleWidth/2 && ballX <= mouseX + paddleWidth/2) {\n        ballSpeedY = -ballSpeedY;\n    }\n    // check if ball fell out the bottom\n    if (ballY >= 400) {\n        ballMoving = false;\n    }\n};\n\n// this function gets called automatically\n// when the mouse is clicked\nvar mouseClicked = function() {\n    if (!ballMoving) {\n        // reset the ball speed\n        ballSpeedX = initialSpeedX;\n        ballSpeedY = initialSpeedY;\n        \n        ballMoving = true;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

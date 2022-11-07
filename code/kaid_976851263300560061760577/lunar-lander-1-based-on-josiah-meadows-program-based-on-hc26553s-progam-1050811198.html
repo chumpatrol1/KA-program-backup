@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lunar Lander 1 (Based on Josiah Meadows' Program (Based on hc26553's Progam)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lunar Lander 1 (Based on Josiah Meadows' Program (Based on hc26553's Progam)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Lunar Lander 1 (Based on Josiah Meadows' Program (Based on hc26553's Progam) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:05:31Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:05:31Z\nVotes/Spinoffs: 8/5\nOriginally Created: 2012-09-24T00:43:07Z from origin None with similarity of 0.6990807398382988\nOriginal Link: https://www.khanacademy.org/computer-programming/lunar-lander-1-based-on-josiah-meadows-program-based-on-hc26553s-progam/1050811198\nRetrieved On: 07-Nov-2022 (17:06:39.279311)**/\
+";
+
+code = code + "\n// You are the pilot of the Khan Kraft and you are on a mission to the moon. You must land in the space titled land here as the rest of the surface is too bumpy.  Use the arrow keys to control the craft.  Clicking the mouse means slowing the desent (carful, fuel is limited) and left and right make the craft move from side to side.  Good luck.  \n\n//Change the dificulty by changing these variables.\n\n//the amount of fuel\nvar parachute = 500;\n\n//the speed the craft can take on impact\nvar endurance = 10;\n\n//The initial speed.\nvar gravity = 3;\n\n//Time before simulation begins.  \nvar time = 50;\n\n//These variables keep the program running the way it should. \nvar x = 67;\nvar y = 36;\n\nvar f = 0;\nvar c = 0;\n\n  \nvar draw = function() {\n    \n    //Drawing the background senery.  \n    background(0, 0, 0);\n    noStroke();\n    fill(83, 84, 87);\n    rect(-1,325,401,110);\n\n  fill(255, 255, 255);\n    rect(302,325,100,20);\n    fill(0, 0, 0);\n    textSize(20);\n    text(\'land here\',314,340);\n    \n    \n    \n    fill(255, 244, 43);\n    ellipse(230,74,18,16);\n    var r = gravity*17;\n    var acceleration = round(r);\n    \n    //Drawing the menu.  \n    fill(255, 255, 255);\n    rect(290,52,121,104);\n    stroke(0, 0, 0);\n    fill(0, 0, 0);\n    textSize(16);\n    text(acceleration, 346,130);\n    text(\"Speed:\",292,129);\n    text(\'km/h\',368,129);\n    if(gravity > endurance&&gravity <endurance*1.5) {\n        fill(255, 153, 0);\n        text(\'Too Fast\',323,145);}\n    if(gravity >endurance*1.5) {\n        fill(255, 0, 0);\n        text(\'SLOW DOWN\',291,145);}\n    fill(0, 0, 0);\n    text(\'Fuel:\',298,80);\n    text(parachute,331,80);\n    text(\'kg\',361,79);\n    if(parachute <500&&parachute >=400) {\n        fill(255, 255, 255);\n        rect(0,0,250,100);\n        fill(0, 0, 255);\n        rect(0,0,250,100);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"Full\",35,65);\n        \n    }\n    if(parachute < 400&&parachute >=300) {\n        fill(255, 255, 255);\n        rect(0,0,250,100);\n        fill(0, 255, 0);\n        rect(0,0,200,100);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"Plenty\",35,65);\n    }\n    if(parachute < 300&&parachute >=200) {\n        fill(255, 255, 255);\n        rect(0,0,250,100);\n        fill(255, 255, 0);\n        rect(0,0,150,100);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"Not Good\",35,65);\n    }\n    if(parachute < 200&&parachute >=100) {\n        fill(255, 255, 255);\n        rect(0,0,250,100);\n        fill(255, 124, 0);\n        rect(0,0,100,100);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"Low\",35,65);\n    }\n    if(parachute < 100&&parachute >=1){\n        fill(255, 255, 255);\n        rect(0,0,250,100);\n        fill(255, 0, 0);\n        rect(0,0,50,100);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"Danger!\",35,65);\n    }\n    if(parachute === 0){\n        fill(255, 255, 255);\n        rect(0,0,250,100);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"EMPTY!\",35,65);\n    }\n    //Drawing the eagle craft.  \n    noStroke();\n    fill(94, 91, 94);\n    rect(x+1,y+12,33,20);\n    rect(x+3,y+6,29,8);\n    fill(94,91,94);\n\n    stroke(158, 152, 152);\n    fill(0, 0, 0);\n    ellipse(x+18,y+15,10,10);\n    noStroke();\n    fill(255, 255, 255);\n    ellipse(x+17,y-2,14,2);\n    ellipse(x+18,y-5,4,5);\n    fill(94,91,94);\n    rect(x+7,y+2,20,5);\n    rect(x+10,y+-1,15,3);\n    x=x;\n    y=y;\n  \n    //Giving you control of the craft.  \n    if (mouseIsPressed &&parachute >0&&time<1) {\n        gravity = gravity - 0.2;\n        parachute = parachute - 1;\n        fill(0,0,255);\n        ellipse(x+15,y+60,25,50);\n        fill(0, 255, 0);\n        ellipse(x+15,y+60, 20, 40);\n        fill(255, 255, 0);\n        ellipse(x+15,y+60,15,30);\n        fill(255, 124, 0);\n        ellipse(x+15,y+60,10,20);\n        fill(255, 0, 0);\n        ellipse(x+15,y+60,5,10);\n   }    \n        \n    \n    if (keyPressed && keyCode === LEFT&&time <1) {\n        x = x - 1;}\n    else{\n            x=x;}\n    if (keyPressed && keyCode === RIGHT&&time<1) {\n        x = x + 1;}\n    else{\n        x=x;}\n    if(time <0&&y<269) {\n        gravity = gravity + 0.06;\n    }\n    \n    //making the gravity\n    y = y + gravity;\n    \n  //Designing the conditions of defeat and its effects.  \n    if (y>269&&time<1&&x<330||f>2||gravity>endurance&&y>269) {\n        fill(255, 0, 0);\n        ellipse(x,y,1208,1208);\n        gravity = 0;\n        gravity = gravity;\n        textSize(39);\n        fill(0, 0, 0);\n        text(\'Mission Failed!!!\',126,85);\n        f = 3;\n        fill(255, 0, 0);\n        x=0;\n        y=0;\n        \n    }\n    //Making the conditions of victory and its effects \n    if (y>269&&x > 330&&gravity < endurance||c>2) {\n        gravity = 0;\n        gravity = gravity;\n        fill(237, 225, 225);\n        textSize(39);\n        text(\'Congratulations!\', 16,200);\n        c = 3;\n        x=334;\n        y=269;\n        fill(255, 255, 255);\n        ellipse(280,282,20,20);\n        fill(0, 0, 0);\n        ellipse(280,282,15,15);\n        fill(255, 255, 255);\n        rect(265,290,30,30);\n var leaf = getImage(\"avatars/leaf-green\");\n        image(leaf,265,290,20,20);\n        rect(265,310,10,20);\n        rect(285,310,10,20);\n        rect(245,290,20,10);\n        rect(295,290,20,10);\n        rect(305,275,10,15);\n        rect(245,275,10,15);\n    }\n\n    time = time -1;\n    \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

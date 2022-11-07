@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Robomon Push Robomon Into Array Test</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Robomon Push Robomon Into Array Test</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Robomon Push Robomon Into Array Test by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2017-02-05T14:00:34Z by kaid_976851263300560061760577\nLast Edited: 2017-02-05T14:00:34Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2017-02-16T14:04:26Z from origin 4573566944739328 with similarity of 0.27755002884819774\nOriginal Link: https://www.khanacademy.org/computer-programming/robomon-push-robomon-into-array-test/5077498603307008\nRetrieved On: 07-Nov-2022 (17:07:49.845651)**/\
+";
+
+code = code + "\n/*READ ME:\nUse Space, Up or Left to generate one of the starter Robomon\nTop Left Value is # of Robomon, top right value is internal ID (Robopedia #)\nWord is name of Robomon\nFirst Number is HP, 2nd is ATK, 3rd is DEF, 4th is SPA, 5th is SDEF, and 6th is SPD\n*/\n//Robomon\n/**\n *NAME: Whatever the Robomon is Named\n * ID: The Game/Robopedia ID\n * TYPEONE: Primary Robomon Type\n * TYPETWO: Secondary Robomon Type\n * LVL: The Current Level of the Robomon\n * EXP: Experience Points to the Next Level\n * HP: Current HP/Max HP\n * ATK: Attack Variable\n * DEF: Defense Variable\n * SPA: Special Attack Variable\n * SDEF: Special Defense Variable\n * SPD: Speed Variable\n * ITEM: Held Item of Robomon\n * Moves: We\'re not sure how they should work.\n * REGMOVE: Moves that can be learned across types and robomon\n * TYPEMOVE: Type Moves this Robomon Knows (Max 3)\n * SIGMOVE: Signature Moves this Robomon Knows (Max 2)\n **/\n //Robomon Type ID\'s\n /**\n  * Typeless: 0\n  * Normal: 1\n  * Fire: 2\n  * Water: 3\n  * Ground: 4\n  * Flying: 5\n **/\nvar robomonOnHand=[];\nvar robomon = function(NAME,ID,TYPEONE,TYPETWO,LVL,EXP,HP,ATK,DEF,SPA,SDEF,SPD,ITEM,REGMOVE,TYPEMOVE,SIGMOVE) {\n        this.NAME=\"\";\n        this.ID=0;\n        this.TYPEONE=0;\n        this.TYPETWO= 0;\n        this.LVL= 0;\n        this.EXP= 0;\n        this.HP=0;\n        this.ATK= 0;\n        this.DEF= 0;\n        this.SPA= 0;\n        this.SDEF= 0;\n        this.SPD= 0;\n        this.ITEM= 0;\n        this.REGMOVE= [];\n        this.TYPEMOVE= [];\n        this.SIGMOVE= [];\n};\nvar pressedSpace=false;\nvar keyPressed=function(){\n    if(robomonOnHand.length<5){\n    if(keyCode===32){\n        if(robomonOnHand[0]===undefined){\n        robomonOnHand.shift();\n        }\n        robomonOnHand.push(new robomon());\n        robomonOnHand[robomonOnHand.length-1].NAME=\"CHARTHROWER\";\n         robomonOnHand[robomonOnHand.length-1].ID=1;\n        robomonOnHand[robomonOnHand.length-1].HP=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].ATK=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].DEF=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SPA=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SDEF=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SPD=round(random(10,15));\n    }\n    if(keyCode===37){\n        if(robomonOnHand[0]===undefined){\n        robomonOnHand.shift(robomon);\n        }\n        robomonOnHand.push(new robomon());\n        robomonOnHand[robomonOnHand.length-1].NAME=\"TORPEDOT\";\n        robomonOnHand[robomonOnHand.length-1].ID=4;\n        robomonOnHand[robomonOnHand.length-1].HP=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].ATK=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].DEF=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SPA=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SDEF=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SPD=round(random(10,15));\n    }\n    if(keyCode===38){\n        if(robomonOnHand[0]===undefined){\n        robomonOnHand.shift();\n        }\n        robomonOnHand.push(new robomon());\n        robomonOnHand[robomonOnHand.length-1].NAME=\"DIGWURM\";\n        robomonOnHand[robomonOnHand.length-1].ID=7;\n        robomonOnHand[robomonOnHand.length-1].HP=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].ATK=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].DEF=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SPA=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SDEF=round(random(10,15));\n        robomonOnHand[robomonOnHand.length-1].SPD=round(random(10,15));\n    }\n    }\n};\nvar draw= function() {\n    background(255);\n    fill(0);\n    textSize(30);\n    if(robomonOnHand.length>0){\n    text(robomonOnHand[robomonOnHand.length-1].NAME,0,60);\n    text(robomonOnHand[robomonOnHand.length-1].HP,0,90);\n    text(robomonOnHand[robomonOnHand.length-1].ATK,0,120);\n    text(robomonOnHand[robomonOnHand.length-1].DEF,0,150);\n    text(robomonOnHand[robomonOnHand.length-1].SPA,0,180);\n    text(robomonOnHand[robomonOnHand.length-1].SDEF,0,210);\n    text(robomonOnHand[robomonOnHand.length-1].SPD,0,240);\n    text(robomonOnHand.length+\" \"+robomonOnHand[robomonOnHand.length-1].ID,0,30);\n    if(robomonOnHand.length>1){\n    text(robomonOnHand[robomonOnHand.length-2].NAME,0,60);\n    text(robomonOnHand[robomonOnHand.length-2].HP,0,90);\n    text(robomonOnHand[robomonOnHand.length-2].ATK,0,120);\n    text(robomonOnHand[robomonOnHand.length-2].DEF,0,150);\n    text(robomonOnHand[robomonOnHand.length-2].SPA,0,180);\n    text(robomonOnHand[robomonOnHand.length-2].SDEF,0,210);\n    text(robomonOnHand[robomonOnHand.length-2].SPD,0,240);\n    text(robomonOnHand.length+\" \"+robomonOnHand[robomonOnHand.length-2].ID,0,30);\n    }\n    } else {\n        text(\"No Robomon Yet!\",0,30);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

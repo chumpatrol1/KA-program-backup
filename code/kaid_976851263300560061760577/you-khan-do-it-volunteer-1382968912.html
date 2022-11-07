@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>You Khan Do It: Volunteer!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>You Khan Do It: Volunteer!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**You Khan Do It: Volunteer! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-15T19:41:38Z by kaid_976851263300560061760577\nLast Edited: 2013-02-15T19:41:38Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-02-15T20:17:06Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/you-khan-do-it-volunteer/1382968912\nRetrieved On: 07-Nov-2022 (17:07:33.021338)**/\
+";
+
+code = code + "\n//You Khan Do It!!!\nvar image1=getImage(\"avatars/leaf-red\");\nvar image2=getImage(\"avatars/leaf-orange\");\nvar image3 = getImage(\"avatars/leaf-yellow\");\nvar image4 = getImage(\"avatars/leaf-green\");\nvar image5 = getImage(\"avatars/leaf-blue\");\nvar page = 1;\nvar drawBackground = function(){\n   background(0, 0, 0);\n};\nvar drawDecor = function(){\n    image(image1,0,0);\n    image(image2,0,250);\n    image(image3,250,250);\n    image(image4,250,0);\n    image(image5,125,125);\n};\nvar drawText = function(){\n    if(page === 1){\n        fill(255);\n        textSize(30);\n        text(\"Welcome to Elijah\'s \\nVolunteering page! Press \\nLeft for submissions and \\nright for the coding kitchen.\",0,30);\n        if(keyPressed&&keyCode ===LEFT){\n            page = 2;\n        }\n        if(keyPressed&&keyCode === RIGHT){\n            page = 3;\n        }\n    }\n    if(page===2){\n           fill(255);\n        textSize(30);\n        text(\"As of 2/15/2013...\\nThere are 0 Submissions\\nPress Space to go back.\",0,30);\n        if(keyPressed&&keyCode === 32){\n            page = 1;\n        }\n    }\n    if(page === 3){\n                  fill(255);\n        textSize(20);\n        text(\"When making your spinoff volunteer effort,\\nUse the Key that follows when using bonus\\nexercise content: Blue-Mastered,Green-\\nSuggested,Orange-Review, Grey-\\nUnsuggested,Purple-Bonus (New),Yellow-\\nBonus (Mastered)\\nWith videos: Grey-Unwatched,Light Green-\\nHalf Watched,Green-Watched,-Purple-\\nBonus (Unwatched),Yellow-Bonus (Watched)\\n\\nIf you think an exercise should unlock a\\nbonus exercise or vice versa or you\'re just\\nhaving trouble with your program, put it in\\nthe Q&A section below! Press Space to go\\nback. \",0,20);\n        if(keyPressed&&keyCode===32){\n            page = 1;\n        }\n    }\n};\nvar draw = function() {\n    drawBackground();\n    drawDecor();\n    drawText();\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

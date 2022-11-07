@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Agent Elijah</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Agent Elijah</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Agent Elijah by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-24T20:40:43Z by kaid_976851263300560061760577\nLast Edited: 2013-08-24T20:40:43Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-08-24T20:47:45Z from origin 1788982614 with similarity of 0.6367265469061876\nOriginal Link: https://www.khanacademy.org/computer-programming/agent-elijah/1900908863\nRetrieved On: 07-Nov-2022 (17:07:43.559265)**/\
+";
+
+code = code + "\n//The goal of this challenge is create character for my game, Dodge! It must be around 40x40 pixels and the code for the drawing must by less than 30 lines. No using scale(). Save as a spin-off with your character entry in the middle of the screen to submit. Thanks!\n\n//Please vote ^ if you enter and get in!\nnoStroke();\nbackground(255);\nfill(0, 0, 255);\nellipse(200,200,50,50);\nfill(0, 0, 0);\nrect(205,190,10,10);\nrect(185,190,10,10);\nrect(185,193.5,30,2.5);\nstrokeWeight(3);\nstroke(0, 0, 0);\nline(185,190,180,185);\nline(215,190,220,185);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

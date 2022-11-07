@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Dice Game</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dice Game</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Dice Game by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-08T01:37:09Z by kaid_976851263300560061760577\nLast Edited: 2013-02-08T01:37:09Z\nVotes/Spinoffs: 2/1\nOriginally Created: 2013-02-08T02:37:42Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/dice-game/1360166538\nRetrieved On: 07-Nov-2022 (17:06:56.459318)**/\
+";
+
+code = code + "\n/**DICE GAME\n * Version 1: Game is Created\n * Version 2: Splash Dice is Created and Completed\n**/\n//Unless you wanna edit the code, please don\'t go down here!\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nvar splashdice = 1;\nvar version = 2;\nvar level = 1;\nvar d4a=round(random(1,4));\nvar d4b=round(random(1,4));\nvar d4c=round(random(1,4));\nvar d4d =round(random(1,4));\nvar d4 = [d4a,d4b,d4c,d4d];\nvar d4e = round(random(1,4));\nvar state = \"Splash\";\nvar draw = function() {\n    if(state === \"Splash\"){\n        background(0, 255, 255);\n        fill(255);\n        textSize(50);\n        text(\"The Dice Game\",0,50);\n        textSize(30);\n        text(\"Click Anywhere to play!\",0,80);\n        text(\"Press Space for Credits!\",0,110);\n        if(splashdice>1){\n            fill(255);\n            rect(100,200,200,200);\n            fill(0, 0, 0);\n            ellipse(200,300,50,50);\n        }\n        if(splashdice >2){\n              fill(255);\n            rect(100,200,200,200);\n            fill(0, 0, 0);\n            ellipse(150,250,50,50);\n            ellipse(250,350,50,50);\n        }\n        if(splashdice >3){\n                fill(255);\n            rect(100,200,200,200);\n            fill(0, 0, 0);\n            ellipse(150,250,50,50);\n            ellipse(250,350,50,50);\n            ellipse(200,300,50,50);\n        }\n        if(splashdice>4){\n                  fill(255);\n                  rect(100,200,200,200);\n            fill(0, 0, 0);\n            ellipse(150,250,50,50);\n            ellipse(250,350,50,50);\n            ellipse(150,350,50,50);\n            ellipse(250,250,50,50);\n        }\n        if(splashdice> 5){\n                       fill(255);\n                       rect(100,200,200,200);\n            fill(0, 0, 0);\n            ellipse(150,250,50,50);\n            ellipse(250,350,50,50);\n            ellipse(150,350,50,50);\n            ellipse(250,250,50,50);\n            ellipse(200,300,50,50);\n        }\n        if(splashdice>6){\n              fill(255);\n              rect(100,200,200,200);\n            fill(0, 0, 0);\n            ellipse(150,225,50,50);\n            ellipse(250,375,50,50);\n            ellipse(150,375,50,50);\n            ellipse(250,225,50,50);\n            ellipse(150,300,50,50);\n            ellipse(250,300,50,50);\n        }\n        if(splashdice===7){\n            splashdice=splashdice-6;\n        }\n        splashdice = splashdice+0.125;\n        if(keyPressed&&keyCode===32){\n            state = \"Credits\";\n        }\n        if(mouseIsPressed){\n            state = \"L1Q1\";\n        }\n    }\n    if(state===\"Credits\"){\n        background(0, 255, 255);\n        fill(255);\n        textSize(30);\n        text(\"\'\'Dice Game\'\' by David Elijah\\nde Siqueira Campos\\nMcLaughlin.\",0,30);\n        text(\"There is no ©opyright in my\\ngame.\",0,150);\n        text(\"Press Right to go back\",0,300);\n        if(keyPressed&&keyCode===RIGHT){\n            state=\"Splash\";\n    }\n    }\n    if(state === \"L1Q1\"){\n        background(0, 255, 255);\n        fill(255);\n        textSize(30);\n        text(\"Level:\"+level,0,30);\n        textSize(20);\n        text(\"Julian rolled a four sided die and got these\\nresults:\"+d4+\". What is the most likely \\nnumber Julian would roll? \\nPress 1,2,3 or 4 to place your guess. Once\\nyou have pressed your number, you cannot\\nturn back.\",0,50);\n        \n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

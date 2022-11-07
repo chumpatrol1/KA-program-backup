@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Petition *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Petition *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Petition *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-10-15T19:56:57Z by kaid_976851263300560061760577\nLast Edited: 2013-10-15T19:56:57Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-10-15T20:00:06Z from origin 1803229750 with similarity of 0.6584852734922861\nOriginal Link: https://www.khanacademy.org/computer-programming/petition-improved/2228890142\nRetrieved On: 07-Nov-2022 (17:07:01.359759)**/\
+";
+
+code = code + "\n//People:\n//I did my best to draw an \'Oh Noes\' guy, and tried to figure out how to copy the image, but I couldn\'t figure out how to copy the image, and this was my best drawing. If anyone knows how to copy the image, or has a better drawing, show it to me and it is likely I will use it. Thanks! \n\n\n\n\nvar leaf = getImage(\"avatars/leaf-green\");\nbackground(0, 0, 0);\nfill(255, 0, 0);\ntextSize(20);\ntext(\"I think that we should have an option of \\nturning of the \'Oh Noes\' telling us what is \\nwrong. For more advanced programmers \\nlooking for a challenge, they may want to \\nfind the bug themselves. So I think the \'Oh \\nNoes\' should just say that something is \\nwrong, and then you have a button that says \\n\'tell me what is the problem\' or something\\nlike that. Please vote up if you agree! \", 10, 20);\nimage(getImage(\"creatures/OhNoes\"),150,275,100,100);\nrotate(340);\nrotate(20);\nstroke(255, 0, 0);\nline(264, 313, 297, 285);\ntextSize(12);\nfill(255, 0, 0);\ntext(\"I agree, but I can\'t vote! :( \\nVote up for me! (From the \\ndespairing \'Oh Noes guy\'.)\", 241, 247);\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

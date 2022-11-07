@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Tesla Graph</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tesla Graph</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Tesla Graph by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:05:45Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:05:45Z\nVotes/Spinoffs: 2/7\nOriginally Created: 2013-04-30T23:56:04Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/tesla-graph/1024416493\nRetrieved On: 07-Nov-2022 (17:07:01.517166)**/\
+";
+
+code = code + "\n//This is a counter that shows total points, goal, amount of points needed, videos you have to watch to reach it, how many points from videos you haven\'t watched, If you watched all the videos now, the amount of points you will have to earn to get to the goal, and how many points all the videos would give. Save it as yours and you may find yourself getting to a goal (like Tesla) faster than ever!\n\n//Time to program ~ 1.25 hrs \n\nbackground(0, 0, 0);\n//Variables\n//Touch\nvar points = 2275672;\nvar tesla = 10000000;\n//No need to TOUCH\nvar needed = tesla-points;\nvar vid = 750;\nvar vidTot = needed/vid;\n//Touch\nvar watched = 832;\nvar khanvid = 4119;\n//Equations (No need to touch)\nvar pointsLeft = (khanvid-watched)*vid;\nvar vidTesla = tesla-pointsLeft;\nvar vidLimit = vid*khanvid;\n\n//Display\nfill(0, 196, 255);\ntextSize(20);\ntext(\"You Have:\" + points, 24, 24);\ntext(\"Goal:\" + tesla, 24, 54);\ntext(\"You Need:\" + needed, 24, 84);\ntext(\"Videos Needed:\" + vidTot, 24, 114);\ntext(\"Unwatched points:\" + pointsLeft, 24, 144);\ntext(\"Videos to Tesla:\" + vidTesla, 24, 174);\ntext(\"The Videos will give:\" + vidLimit, 24, 204);\n\n//Decorations\nfill(0, 0, 255);\nellipse(75,350,99,99);\nfill(0, 255, 0);\nellipse(175,350,99,99);\nfill(255, 124, 255);\nellipse(275,350,99,99);\nfill(255, 0, 0);\nellipse(125,280,66,66);\nfill(124, 0, 255);\nellipse(225,280,66,66);\nfill(255, 255, 255);\nellipse(176,250,45,45);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

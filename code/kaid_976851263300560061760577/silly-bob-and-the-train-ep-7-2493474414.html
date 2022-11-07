@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title> Silly Bob and the Train (Ep 7) </title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1> Silly Bob and the Train (Ep 7) </h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/** Silly Bob and the Train (Ep 7)  by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-11-10T20:06:43Z by kaid_976851263300560061760577\nLast Edited: 2013-11-10T20:06:43Z\nVotes/Spinoffs: 77/6\nOriginally Created: 2013-11-11T12:28:28Z from origin 2503652067 with similarity of 0.5411100658513641\nOriginal Link: https://www.khanacademy.org/computer-programming/silly-bob-and-the-train-ep-7/2493474414\nRetrieved On: 07-Nov-2022 (17:06:39.099273)**/\
+";
+
+code = code + "\n//10 Votes in 7 Hours, awesome!\n\n\n\n\n\nbackground(255);\nstroke(0, 0, 0);\nvar spunkysam = getImage(\"cute/CharacterBoy\");\nvar guest = getImage(\"cute/CharacterPinkGirl\");\nvar health = 250;\nvar heart = getImage(\"cute/Heart\");\nvar counter = 0;\nimage(spunkysam,5,30,50,80);\n\n\n\n\n\n\n\n//middle line\n\n\n\nline(200,0,200,400);\n\n\n\n//1st line\nline(0,97,400,97);\n//2nd line\nline(0,200,400,200);\n//3rd line\nline(0,307,400,307);\n//title\ntextSize(35);\n\n\n\nfill(0, 0, 0);\n\n\n\ntext(\"Silly Bob\\n\", 15, 34);\n\n\n\n//1st script\n\n\n\nnoStroke();\nfill(124, 50, 0);\nfill(0,255,255);\nrect(201,0,200,97);\nfill(0, 0, 0);\ntextSize(20);\ntext(\"Silly Bob was at the\\ntrain station.\", 204, 20);\nfill(255, 0, 0);\nrect(300,62,35,35);\n\nimage(spunkysam,210,40,50,65);\n//2nd script\nfill(0, 0, 0);\ntext(\"He got a ticket.\", 5, 116);\nfill(255);\nstroke(0, 0, 0);\nrect(5,125,150,70);\nellipse(145,185,12.5,12.5);\nfill(0, 0, 0);\ntextSize(10);\ntext(\"Name: Bob Errorton\\nDestination: New\"+\" Laugh City\\nTime: 1:30\\nClass: 2.9\\nHappy Riding!\",7,140);\n\nnoStroke();\n//3rd script\nfill(255);\nstroke(0, 0, 0);\nellipse(250,150,12.5,12.5);\nellipse(275,150,25,25);\nellipse(325,175,80,45);\nfill(255, 0, 0);\nnoStroke();\nrect(310,160,30,30);\ntextSize(20);\nfill(255, 255, 0);\ntext(\"M\",315,180);\nfill(0, 0, 0);\ntext(\"He was very hungry!\", 205, 116);\nimage(spunkysam,200,130,50,80);\n\n//4th script\ntextSize(20);\ntext(\"So he ate at McSilly\'s\", 3, 221);\nimage(spunkysam,50,240,50,80);\nimage(guest,120,240,50,80);\nfill(100, 50, 0);\nrect(100,287,25,20);\n//5th line\ntextSize(20);\nfill(0, 0, 0);\ntext(\"Nom nom nom nom\\nnom nom nom nom\", 203, 220);\nimage(spunkysam,250,240,50,80);\n//6th line\nfill(0, 0, 0);\ntextSize(20);\ntext(\"ALL ABOARD!\",50,350);\nfill(0, 0, 0);\n//6th line\nfill(0, 0, 0);\nrect(241,318,130,78);\nfill(255, 255, 255);\ntext(\"Click here\", 256, 365);\nvar off = false;\nvar on = true;\ndraw = function() {\nif (off) {\nnoStroke();\n\n\n\nbackground(0, 0, 0);\n\n\n\nfill(255, 0, 0);\n\n\n\ntextSize(15);\n\n\n\ntext(\"If you liked this edition of Silly Bob please vote up\\n       and every 7 votes i get i will make a new\\n                        Silly Bob! Thanks!\", 38, 13);\n\n\n\ntextSize(70);\n\n\n\nfill(255, 0, 0);\n\n\n\ntext(\"Oh man! I\\njust missed\\nmy train!\", 18, 100);\n\nstroke(255,255,0);\nstrokeWeight(5);\n\nfill(255, 0, 0);\n\n\ntextSize(42);\n\n\n\ntext(\"The end\", 10, 382);\n\n\n\nif (mouseX>305&&mouseX<315&&mouseY>308&&mouseY<333) {\n\n\n\nif (!mouseIsPressed) {        \n\n\n\n}\n\n\n\nif (mouseIsPressed) {\n\n\n\noff = false;\n\n\n\non = true;\n\n\n\n}\n\n\n\n}\n\n\n\n}\n\n\n\nif (on) {\n\n\n\nvar centerX1 = 200;\n\n\n\nvar centerY1 = 200;\n\n\n\nvar centerX2 = 400;\n\n\n\nvar centerY2 = 400;\n\n\n\nif (mouseX>200&&mouseX<400&&mouseY>341&&mouseY<400) {\n\n\n\nif (!mouseIsPressed) {\n\n\n\n}\n\n\n\nif (mouseIsPressed) {\n\n\n\non = false;\n\n\n\noff = true;\n\n\n\n}\n}\n}\n\n\n\nif (mouseX > 250) {  \n\n\n\n}\n\n\n\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

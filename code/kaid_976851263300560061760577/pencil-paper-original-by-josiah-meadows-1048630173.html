@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Pencil & Paper (Original by Josiah Meadows)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pencil & Paper (Original by Josiah Meadows)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Pencil & Paper (Original by Josiah Meadows) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:07:33Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:07:33Z\nVotes/Spinoffs: 5/-1\nOriginally Created: 2012-09-21T14:14:28Z from origin None with similarity of 0.9104204753199269\nOriginal Link: https://www.khanacademy.org/computer-programming/pencil-paper-original-by-josiah-meadows/1048630173\nRetrieved On: 07-Nov-2022 (17:06:42.221999)**/\
+";
+
+code = code + "\n\n\n\n\nbackground(215, 231, 245);\n\n\n\nfill(255);\nrect(5,263,431,417);\nfill(215, 231, 245);\nellipse(41,309,34,28);\nfill(230, 56, 25);\nrect(88,264,2,194);\nfill(166, 199, 240);\nrect(5,342,420,2);\nrect(5,361,420,2);\nrect(5,378,420,2);\nrect(5,396,420,2);\n//\nfill(75, 75, 75);\nrect(181,51,1,282);\nrect(200,51,1,282);\n\n\ntext(\'Name:\',40,360);\ntext(\'Subject:\',40,377);\ntext(\'Date:\',40,395);\ntext(\'David Elijah de Siqueira Campos McLaughlin\',96,360);\ntext(\'Mathematics\',96,377);\ntext(\"9/21/12\",96,394);\n//Pencil-\n\n\n//Wood\nfill(255, 213, 0);\nrect(170,51,41,282);\n\n\n//Eraser\nfill(250, 180, 236);\nrect(170,350,41,19,50);\n\n//Metal part\nfill(212, 212, 212);\nrect(170,334,41,20);\n\n//Top\nfill(252, 219, 184);\ntriangle(212,50,170,50,191,11);\n\n//Lead\nfill(75, 75, 75);\nellipse(191,14,4,10);\n\n//\nfill(227, 199, 20);\nrect(181,51,2,281);\nrect(199,51,2,281);\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

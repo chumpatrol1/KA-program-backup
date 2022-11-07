@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spin-off of "חופש"</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin-off of "חופש"</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Spin-off of "חופש" by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-11-11T14:47:24Z by kaid_976851263300560061760577\nLast Edited: 2013-11-11T14:47:24Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-11-11T14:47:24Z from origin 2495634417 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/spin-off-of/2513908596\nRetrieved On: 07-Nov-2022 (17:07:45.706355)**/\
+";
+
+code = code + "\nvar K_LEFT = false,\n    K_RIGHT = false,\n    K_UP = false;\nvar keyPressed = function() {\n    if(keyCode === LEFT)  {K_LEFT  = true;}\n    if(keyCode === RIGHT) {K_RIGHT = true;}\n    if(keyCode === UP)    {K_UP    = true;}\n};\nvar keyReleased = function() {\n    if(keyCode === LEFT)  {K_LEFT  = false;}\n    if(keyCode === RIGHT) {K_RIGHT = false;}\n    if(keyCode === UP)    {K_UP    = false;}\n};\n\nvar rings = [];\nrings.add = function(x,y,s,ms,speed,c) {\n    rings.push({x:x,y:y,s:s,ms:ms,speed:speed,c:c});\n};\nrings.draw = function() {\n    for (var i = 0; i < rings.length; i++) {\n        var r = rings[i];\n        var c = rings[i].c;\n        noFill();\n        stroke(c[0],c[1],c[2],c[3]);\n        strokeWeight(4);\n        ellipse(r.x,r.y,r.s,r.s);\n        r.s+=r.speed;\n        \n        if(r.s>r.ms) {\n            c[3] -= r.speed*2;\n            \n        }\n        if(c[3]<0) {\n            //rings.splice(i,1);\n        }\n        if(frameCount%600 === 0) {\n            rings.length=0;\n        }\n    }\n};\n\nvar particles = [];\nparticles.add = function(x,y) {\n    particles.push({x:x,y:y,xv:random(-8,8),yv:random(-8,8),time:millis()});\n};\nparticles.draw = function(player) {\n    for (var i = 0; i < particles.length; i++) {\n        var r = particles[i];\n        noStroke();\n        fill(255, 255, 255);\n        ellipse(r.x,r.y,2,2);\n        if(r.yv>20) {r.yv=20;}\n        //r.yv += 0.3;\n        if(r.x<player.x+20) {\n            r.xv+=0.3;\n        }\n        if(r.x>player.x+20) {\n            r.xv-=0.3;\n        }\n        if(r.xv>0) {r.xv-=0.1;}\n        if(r.xv<0) {r.xv+=0.1;}\n        \n        if(r.y<player.y+20) {\n            r.yv+=0.3;\n        }\n        if(r.y>player.y+20) {\n            r.yv-=0.3;\n        }\n        if(r.yv>0) {r.yv-=0.1;}\n        if(r.yv<0) {r.yv+=0.1;}\n        \n        r.x+=r.xv;\n        r.y+=r.yv;\n        if((millis()-r.time)/1000>1) {\n            particles.splice(i,1);\n        }\n        if(r.y>400) {\n\n        }\n    }\n};\nvar splash = 255;\nvar freedom = function() {\n    \n    noStroke();\n    fill(0, 0, 0,splash);\n    rect(50,60,300,100,8);\n    \n    textSize(130);\n    textAlign(CENTER, 0);\n    \n    fill(0, 0, 0,splash);\n    text(\"חופש\", 195, 146);\n    \n    fill(255, 255, 255,splash);\n    text(\"חופש\", 200, 150);\n    splash-=1.5;\n\n};\nvar addRing = millis();\nvar player = {\n    x:200,y:304,yv:0,xv:0,air:true\n};\n\nplayer.collisionWith = function(blocks,xv,yv) {\n    var x = player.x, y = player.y,\n        w = 40, h = 40;\n    for (var i=0; i < blocks.length; i++) {\n        var block = blocks[i];\n        if(x+w > block.x &&\n           x   < block.x+40 &&\n           y+h > block.y &&\n           y   < block.y+40) {\n            if(xv>0) {player.x=block.x-40;player.xv=0;}\n            if(xv<0) {player.x=block.x+40;player.xv=0;}\n            if(yv>0) {player.y=block.y-h;player.yv=0;\n                      player.air=false;}\n            if(yv<0) {player.y=block.y+40;player.yv=0;}\n\n        }\n    }\n};\n\nvar Block = function(x,y) {\n    this.x=x; this.y=y;\n    this.draw = function() {\n        noStroke();\n        fill(0, 0, 0);\n        rect(this.x,this.y,40,40,-12);\n    };\n};\n\nvar blocks = [];\nblocks.draw = function() {\n    for (var i=0; i < blocks.length; i++) {\n        blocks[i].draw();\n    }\n};\n\nvar levels = [\n    [\"xxxxxxxx x\",\n    \"x        x\",\n    \"x o      x\",\n    \"x        x\",\n    \"xxxxxxxxxx\",\n    \"x        x\",\n    \"xp       x\",\n    \"xxx      x\",\n    \"x        x\",\n    \"xxxxxxxx x\"],\n    [\"xx  xxxxxx\",\n    \"x  xx    x\",\n    \"x  x     x\",\n    \"x  x o   x\",\n    \"x  x     x\",\n    \"   x xxx  \",\n    \"   xxxxxx \",\n    \"x      xxx\",\n    \"xx  p    x\",\n    \"xx  xxxxxx\"],\n    [\"xxxxxxxxxx\",\n    \"x        x\",\n    \"xo       x\",\n    \"xxxxxx   x\",\n    \"x    xx  x\",\n    \"      xx \",\n    \"xx     xxx\",\n    \" xx      x\",\n    \"  xx  p   \",\n    \"xxxxxxxxxx\"]\n];\nvar level_on = 0;\nvar portal = {x:0, y:0};\nvar level_setup = function(level,on) {\n    var x=0, y=0;\n    blocks.length=0;\n    rings.length = 0;\n    for (var col = 0; col < level[on].length; col++) {\n        for (var row = 0; row < level[on][col].length; row++) {\n            if(level[on][col][row] === \"o\") {\n                portal.x= 20+x*40;\n                portal.y = y*40;\n            }\n            if(level[on][col][row] === \"p\") {\n                player.x = 20+x*40;\n                player.y = y*40;\n            }\n            if(level[on][col][row] === \"x\") {\n                var b = new Block(x*40,y*40);\n                blocks.push(b);\n            }\n            x++;\n        }\n        x=0;\n        y++;\n    } \n};\nlevel_setup(levels,level_on);\n\n\ndraw = function() {\n    background(20,20,20);\n    blocks.draw();\n    noStroke();\n\n\n    \n    particles.draw(player);\n    freedom();\n    if((millis()-addRing)/1000 > 0.5) {\n        rings.add(portal.x+20,portal.y+20,0,4,3,[255,255,255,255]);\n        addRing = millis();\n    }\n    \n    \n    \n\n    \n    if(!player.air && K_UP) {player.yv = -8;}\n    if(K_LEFT) {player.xv -= 0.5;}\n    if(K_RIGHT) {player.xv += 0.5;}\n    if(!K_LEFT && !K_RIGHT) {\n        if(player.xv>0) {\n            player.xv-=0.5;\n        }\n        if(player.xv<0) {\n            player.xv+=0.5;\n        }\n    }\n    if(player.xv>5) {player.xv=5;}\n    if(player.xv<-5){player.xv=-5;}\n    player.air=true;\n    \n    if(player.yv>40) {player.yv=40;}\n    player.yv += 0.35;\n    \n    player.x+=player.xv;\n    player.collisionWith(blocks,player.xv,0);\n    \n    player.y+=player.yv;\n    player.collisionWith(blocks,0,player.yv);\n\n\n    if(player.x>400-20) {player.x=0;}\n    if(player.x<0)   {player.x=400-20;}\n    if(player.y>400-20) {player.y=0;}\n    if(player.y<0)   {player.y=400-20;}\n    if(frameCount%4===0) {\n        particles.add(portal.x+20,portal.y+20);\n    }\n    if(player.x+40 > portal.x &&\n        player.x   < portal.x+40 &&\n        player.y+40 > portal.y &&\n        player.y  < portal.y+40) {\n        if(levels.length-1!==level_on) {\n            level_on++;\n            level_setup(levels,level_on);\n        } else {\n            textSize(32);\n            fill(255);\n            text(\"אתה מנצח!\",200,100);\n            particles.add(portal.x+20,portal.y+20);\n        }\n\n    }\n\n    fill(0, 0, 0);\n    rect(player.x,player.y,40,40);\n\n    fill(194, 194, 194);\n    ellipse(player.x+10,player.y+14,8,8);\n    ellipse(player.x+30,player.y+14,8,8);\n    rings.draw();\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>0 Player Paddle Pong (Great Thanks to Jack K!)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>0 Player Paddle Pong (Great Thanks to Jack K!)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**0 Player Paddle Pong (Great Thanks to Jack K!) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:06:53Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:06:53Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-20T13:55:19Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/0-player-paddle-pong-great-thanks-to-jack-k/1047067193\nRetrieved On: 07-Nov-2022 (17:07:15.447006)**/\
+";
+
+code = code + "\n//Great thanks to Jack K!\n\n\n\n//I'm using these to store data for the two players.\n\nvar Player = function(x,y,score) {\n\n    this.x = x;\n\n    this.y = y;\n\n    this.ySpeed = 9;\n\n    this.xSize = 10;\n\n    this.ySize = 50;\n\n    this.score = 1;\n\n};\n\n\n\n//Store the ball variables inside here:\n\nvar ball = {\n\n    x: 200,\n\n    y: 200,\n\n    xVelocity: 10,\n\n    yVelocity: 10,\n\n    size: 20,\n\n    inPlay: true\n\n};\n\n\n\n//Create a player 1 object here\n\nvar player1 = new Player(20,200,0);\n\n//Create a player 2 object here\n\nvar player2 = new Player(370,200,0);\n\n\n\n//Draw Functions//\n\n//Draw Background//\n\nvar drawBackground = function(){\n\n    background(204, 207, 255);\n\n};\n\n//DrawPlayers//\n\nvar drawPlayers = function() {\n\n    //Player1//\n\n    fill(255, 0, 0);\n\n    rect(player1.x,player1.y-player1.ySize/2,player1.xSize,player1.ySize);\n\n    \n\n    //Player2//\n\n    fill(0, 255, 17);\n\n    rect(player2.x,player2.y-player2.ySize/2,player2.xSize,player2.ySize);\n\n};\n\n\n\n//Draw the Ball//\n\nvar drawBall = function(){\n\n    fill(255, 0, 255);\n\n    ellipse(ball.x,ball.y,ball.size,ball.size);\n\n};\n\n\n\n//MOVE FUNCTIONS//\n\nvar moveBall = function(){\n\n    if(ball.inPlay){\n\n        ball.x += ball.xVelocity;\n\n        ball.y += ball.yVelocity;\n\n    }\n\n};\n\n\n\nvar movePlayers = function(){\n\n    //Move Player 1//\n\n    if(player1.y > ball.y){\n\n        player1.y -= player1.ySpeed;\n\n    }\n\n    else if(player1.y < ball.y){\n\n        player1.y += player1.ySpeed;\n\n    }\n\n    \n\n    //Move Player 2//\n\n    if(player2.y > ball.y){\n\n        player2.y -= player2.ySpeed;\n\n    }\n\n    else if(player2.y < ball.y){\n\n        player2.y += player2.ySpeed;\n\n    }\n\n};\n\n\n\n//Collision//\n\n//Collision with walls\n\nvar collisionWalls = function(){\n\n    if(ball.y < 0 + ball.size/2){\n\n        ball.yVelocity *= -1;\n\n    }\n\n    else if(ball.y > 400 - ball.size/2){\n\n        ball.yVelocity *= -1;\n\n    }\n\n};\n\n\n\n//Collision with Paddles//\n\nvar collisionPaddles = function(){\n\n    //Player 1//\n\n    if(ball.x <= player1.x + player1.xSize){\n\n        if(ball.y > player1.y - player1.ySize && ball.y < player1.y + player1.ySize){\n\n            ball.xVelocity *= -1;\n\n        }\n\n    }\n\n    \n\n    //Player 2//\n\n        if(ball.x >= player2.x - player2.xSize){\n\n        if(ball.y > player2.y - player2.ySize && ball.y < player2.y + player2.ySize){\n\n            ball.xVelocity *= -1;\n\n        }\n\n    }\n\n};\n\n\n\n//Main Loop//\n\nvar draw = function() {\n\n    drawBackground();\n\n    drawPlayers();\n\n    drawBall();\n\n    \n\n    moveBall();\n\n    movePlayers();\n\n    \n\n    collisionWalls();\n\n    collisionPaddles();\n\n};\n\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

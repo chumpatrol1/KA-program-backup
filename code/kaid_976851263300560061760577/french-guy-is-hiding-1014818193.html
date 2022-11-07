@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>French Guy is Hiding!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>French Guy is Hiding!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**French Guy is Hiding! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:11:30Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:11:30Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-04T20:29:18Z from origin 906448125 with similarity of 0.5614035087719298\nOriginal Link: https://www.khanacademy.org/computer-programming/french-guy-is-hiding/1014818193\nRetrieved On: 07-Nov-2022 (17:07:08.024538)**/\
+";
+
+code = code + "\nrotate(339);\n\nbackground(187, 255, 153);\n\nvar x=139;\n// set skin color\nfill(255, 211, 178);\n\n// ears\nellipse(x+124, 200, 30, 40);\nellipse(x+274, 200, 30, 40);\n\n// face\nellipse(x+200, 200, 150, 150);\n\n// nose\nellipse(x+200, 228, 17, 10);\n\n// beret\nfill(255, 0, 0);\nellipse(x+200, 145, 142, 50);\nellipse(x+225, 125, 20, 20);\n\n// mouth\nellipse(x+200, 252, 32, 10);\n\n// eyes\nstrokeWeight(16);\npoint(x+163, 215);\npoint(x+235, 215);\n\n// mustache\nstrokeWeight(8);\nline(x+180, 242, x+196, 237);\nline(x+220, 242, x+204, 237);\n\n\n\nfill(0, 0, 0);\ntextSize(15);\ntext(\"Mamma Mia!\", 110, 100);\ntext(\"The cakes are after me!\",80,145);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

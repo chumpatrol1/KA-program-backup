@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Game 3</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game 3</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Game 3 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-13T15:19:42Z by kaid_976851263300560061760577\nLast Edited: 2013-03-13T15:19:42Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-03-15T19:55:56Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/game-3/1459154235\nRetrieved On: 07-Nov-2022 (17:06:57.339314)**/\
+";
+
+code = code + "\n//A \"Timed Catcher\" Game\n//Squares\nvar state = \"Start\";\nvar playera = \"David Elijah\";\nvar levela;\nvar levelb;\nvar scorea;\nvar scoreb;\nvar timer = 1000;\nvar draw = function() {\n    if(state === \"Start\"){\nbackground(0, 124, 200);\nfill(255);\ntextSize(50);\ntext(\"Time Catcher\",50,40);\ntextSize(20);\ntext(\"Welcome to Time Catcher! Catch the multi-\\ncolored squares to earn points and move up \\nlevels! Be careful, as if you click and miss\\nthe square, you would lose 10 units of your\\nvery precious time!\\n\\nRed Squares: 1 Point\\nOrange Squares: 2 Points\\nYellow Squares: 3 Points\\nGreen Squares: 5 Points\\nBlue Bonus Squares: 10 Points\\n\\nP.S. Go Off Screen to pause the game!\\n\\nPress Up to Start!\",0,75);\nif(keyPressed&&keyCode===UP){\n    state = \"Profiles\";\n}\n    }\n    if(state === \"Profiles\"){\n        background(0, 124, 200);\n        fill(255, 0, 0);\n        rect(0,0,133,300);\n        rect(133,0,133,300);\n        rect(266,0,133,300);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Player 1\\n\\nClick to\\nView\\nProfile\",0,30);\n        if(mouseX>0&&mouseX<133&&mouseY>0&&mouseY<300){\n            if(mouseIsPressed){\n                state = \"Player 1\";\n            }\n        }\n    }\n    if(state === \"Player 1\"){\n                background(0, 124, 200);\n                fill(255);\n                textSize(30);\n                text(playera,0,30);\n                scorea = 0;\n                levela = 1;\n                text(\"Points: \"+scorea,0,60);\n                text(\"Level: \"+levela,0,90);\n                fill(255);\n                textSize(30);\n                text(\"Press Right to Play\\nNot this Guy? Press Down\",0,120);\n                if(keyPressed&&keyCode === DOWN){\n                    state = \"Start\";\n                }\n                if(keyPressed&&keyCode === RIGHT){\n                    state = \"Play1\";\n                }\n    }\n    if(state === \"Play1\"){\n        background(0, 124, 200);\n        fill(255);\n        textSize(50);\n        text(\"Ready? Press\\nSpace to Play\\nThen!\\nReady? Press\\nSpace to Play\\nThen!\",0,50);\n        if(keyPressed&&keyCode === 32){\n            state = \"Game1.1\";\n        }\n    }\n    if(state === \"Game1.1\"){\n        background(0, 124, 200);\n        scoreb = 0;\n        \n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

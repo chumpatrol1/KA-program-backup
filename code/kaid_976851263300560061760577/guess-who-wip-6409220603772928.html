@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Guess Who? WIP</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Guess Who? WIP</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Guess Who? WIP by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2014-02-21T23:04:16Z by kaid_976851263300560061760577\nLast Edited: 2014-02-21T23:04:16Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2014-03-23T12:40:20Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/guess-who-wip/6409220603772928\nRetrieved On: 07-Nov-2022 (17:07:56.564210)**/\
+";
+
+code = code + "\n//State of the Game\nvar state = \"Splash\"; \n//Players\nvar player1 = \"Choose\";\nvar player2 = \"Choose\";\n\n//People\n\n//Cursor\nvar draw= function() {\n    if(state === \"Splash\"){\n        noStroke();\n        background(160, 255, 55);\n        fill(0, 0, 0);\n        rect(100,150,200,50);\n        rect(100,275,200,50);\n        fill(255);\n        textSize(50);\n        text(\"Guess Who?\",60,50);\n        textSize(40);\n        text(\"Play\",160,185);\n        text(\"Help\",160,310);\n        if(mouseX>100&&mouseX<300&&mouseY>150&&mouseY<200){\n            if(!mouseIsPressed){\n                fill(50);\n                rect(100,150,200,50);\n                fill(255);\n                textSize(40);\n                text(\"Play\",160,185);\n            }\n            if(mouseIsPressed){\n                state=\"Setup A\";\n            }\n        }\n        if(mouseX>100&&mouseX<300&&mouseY>275&&mouseY<325){\n            if(!mouseIsPressed){\n                         fill(50);\n          rect(100,275,200,50);\n          fill(255);\n          text(\"Help\",160,310); \n            }\n            if(mouseIsPressed){\n                state=\"Help\";\n            }\n        }\n    }\n    if(state===\"Help\"){\n             noStroke();\n        background(160, 255, 55);\n        fill(255);\n        textSize(50);\n        text(\"Help\",125,50);\n        textSize(20);\n        text(\"Guess Who is a game to be played with two \\nplayers. The Object is to guess the \\nopponent\'s character. In the beginning of the\\ngame, the players choose their character by\\nrandom or preference. The choosing player\\nmust remind his/her opponent to look away\\nwhile choosing their character. Then press\\n\'\'Check\'\'. Once in game, one player will press\\nA or G (A is for asking a yes or no question\\nand G is for guessing). If they press A, they\\nask the yes or no question. Then they pass\\nthe computer to the oponent who will click \\n\'\'Check Character\'\' and answer the question.\\nThen they will press \'\'Elimination\'\' (press right)\",0,85);\nif(keyIsPressed&&keyCode===RIGHT){\n    state=\"Help2\";\n}\n    }\n    if(state===\"Help2\"){\n                  noStroke();\n        background(160, 255, 55);\n        fill(255);\n        textSize(50);\n        text(\"Help\",125,50);\n        textSize(20);\n        text(\"and the opponent will click on the characters\\nwho do not fit in the criteria. Then they press\\n\'\'D\'\' when they have finished eliminating \\npeople. Pressing \'\'D\'\' will pass the turn to\\nhis/her opponent. After you have a clear idea\\nof who your opponent\'s character is, press\\n\'\'G\'\' to guess. Click on the character to make\\nyour guess, and if correct, you win the game!\\nIf not, your opponent wins. Remember to be\\nabsolutely sure of your guess! If you\'re \\nwrong, the name of the correct character\\nwill appear in the screen. But the most \\nimportant rule of all: HAVE FUN!!!\\nPress Left to return\",0,85);\n        if(keyIsPressed&&keyCode===LEFT){\n            state = \"Splash\";\n        }\n    }\n    if(state===\"Setup A\"){\n        background(160, 255, 55);\n        fill(255);\n        textSize(50);\n        text(\"Setup\",135,50);\n        textSize(30);\n        text(\"Player 2, look away from the \\nscreen. No Peeking!!! Press\\nRight\",0,80);\n        if(keyIsPressed&&keyCode===RIGHT){\n            state = \"Setup B\";\n        }\n    }\n    if(state===\"Setup B\"){\n        background(160, 255, 55);\n        if(player1===\"Choose\"){\n            fill(255);\n            textSize(50);\n            text(\"Setup\",135,50);\n            textSize(30);\n            text(\"Player 1, How would you like \\nto choose your character?\",0,80);\n            fill(0, 0, 0);\n        rect(100,150,200,50);\n        rect(100,275,200,50);\n        fill(255);\n        textSize(50);\n        textSize(40);\n        text(\"Pick\",160,185);\n        text(\"Random\",130,310);\n        if(mouseX>100&&mouseX<300&&mouseY>150&&mouseY<200){\n            if(!mouseIsPressed){\n                fill(50);\n        rect(100,150,200,50);\n        fill(255);\n        textSize(40);\n        text(\"Pick\",160,185);\n            }\n            if(mouseIsPressed){\n                state=\"Setup C-1\";\n            }\n        }\n        }\n    }\n    if(state===\"Setup C-1\"){\n        background(160, 255, 55);\n        //Dan\n        fill(255, 200, 255);\n        rect(5,5,75,75);\n        fill(0, 0, 0);\n        rect(5,5,75,15);\n        rect(5,20,45,15);\n        rect(65,20,15,15);\n        rect(50,20,5,10);\n        rect(55,20,5,5);\n        rect(60,20,5,15);\n        fill(255);\n        rect(20,35,15,15);\n        rect(50,35,15,15);\n        fill(0, 0, 255);\n        rect(23,38,9,9);\n        rect(53,38,9,9);\n        fill(0, 0, 0);\n        rect(25,60,5,5);\n        rect(30,65,5,5);\n        rect(35,70,5,5);\n        rect(40,70,5,5);\n        rect(45,70,5,5);\n        rect(50,65,5,5);\n        rect(55,60,5,5);\n        fill(255);\n        textSize(20);\n        text(\"Dan\",25,100);\n        //Penny\n        fill(255, 200, 255);\n        rect(85,5,75,75);\n        fill(255,255,200);\n        rect(85,5,75,15);\n        rect(85,20,60,15);\n        rect(85,35,30,15);\n        fill(255);\n        rect(130,35,15,15);\n        fill(0, 255, 200);\n        rect(133,38,9,9);\n        fill(0, 0, 0);\n        rect(105,60,5,5);\n        rect(110,65,5,5);\n        rect(115,70,5,5);\n        rect(120,70,5,5);\n        rect(125,70,5,5);\n        rect(130,65,5,5);\n        rect(135,60,5,5);\n        fill(255);\n        text(\"Penny\",95,100);\n        //Bill\n        fill(255, 200, 124);\n        rect(165,5,75,75);\n        fill(0, 0, 0);\n        rect(165,5,75,15);\n        rect(165,20,15,15);\n        rect(195,20,15,15);\n        rect(225,20,15,15);\n        fill(255);\n        rect(180,35,15,15);\n        rect(210,35,15,15);\n        fill(100, 50, 0);\n        rect(183,38,9,9);\n        rect(213,38,9,9);\n        fill(0, 0, 0);\n        rect(185,60,5,5);\n        rect(190,65,5,5);\n        rect(195,70,5,5);\n        rect(200,70,5,5);\n        rect(205,70,5,5);\n        rect(210,65,5,5);\n        rect(215,60,5,5);\n        fill(255);\n        textSize(20);\n        text(\"Bill\",190,100);\n        //Sam\n        fill(255, 200, 124);\n        rect(245,5,75,75);\n        fill(75, 50, 0);\n        rect(245,5,75,15);\n        rect(260,20,60,15);\n        fill(255);\n        rect(260,35,15,15);\n        rect(290,35,15,15);\n        fill(100, 255, 0);\n        rect(263,38,9,9);\n        rect(293,38,9,9);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

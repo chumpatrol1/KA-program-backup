@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Don't Click! *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Don't Click! *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Don't Click! *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-06-06T12:26:55Z by kaid_976851263300560061760577\nLast Edited: 2013-06-06T12:26:55Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-06-06T12:28:36Z from origin 1706297681 with similarity of 0.9985870004037142\nOriginal Link: https://www.khanacademy.org/computer-programming/dont-click-improved/1706907403\nRetrieved On: 07-Nov-2022 (17:07:39.665322)**/\
+";
+
+code = code + "\nvar mouseClick = 0;\n//you have to click 20 times, the click is VERY sensitive\nvar I = getImage(\"avatars/old-spice-man\");\nvar M = getImage(\"avatars/questionmark\");\nvar S = getImage(\"avatars/orange-juice-squid\");\nvar Q = getImage(\"avatars/robot_male_2\");\nvar circleX = 50;\nvar circleY = 50;\nframeRate(2);\nvar draw = function() {\n    background(0, 0, 0);\n    if(mouseIsPressed){\n        mouseClick += 1;\n    }\n    fill(255, 0, 0);\n    textSize(13);\n    text(mouseClick, 11, 23);\n    if(mouseClick === 0){\n        textSize(20);\n        text(\"Don\'t click\", 155, 296);\n        image(I, 135, 130);\n    }\n    else if(mouseClick === 1){\n        textSize(20);\n        text(\"Hey! I told you not to click!\", 92, 296);\n        image(I, 135, 130);\n    }\n    else if(mouseClick === 2){\n        textSize(20);\n        text(\"Stop clicking!!!!\", 141, 296);\n        image(I, 135, 130);\n    }\n    else if(mouseClick === 3){\n       textSize(17);\n       text(\"If you dont stop clicking bad things will happen!\", 32, 296);\n       image(I, 135, 130);\n    }\n    else if(mouseClick === 4){\n        background(108, 173, 76);\n  textSize(20);\n  text(\"I told you so!\", 146, 289);\n  text(\"You made the background change color!\", 32, 323);\n  image(I, 135, 130);\n    }\n    else if(mouseClick === 5){\n        background(13, 46, 34);\n        image(M, 122, 101);\n        textSize(17);\n        text(\"I\'m hiding from you now so you can\'t click any more!\", 8, 292);\n        }\n        else if(mouseClick === 6){\n            image(I, 135, 130);\n            textSize(14);\n            text(\"Please don\'t click again! If you do horrible things will happen!\", 9, 301);\n        }\n        else if(mouseClick === 7){\n            background(250, 250, 250);\n            textSize(215);\n            text(\"NO\", 50, 266);\n            }\n            else if(mouseClick === 8){\n                background(255, 255, 255);\n                textSize (24);\n                text(\"STOP CLICKING!\", 9, 36);\n                text(\"STOP CLICKING!\", 205, 36);\n                text(\"STOP CLICKING!\", 9, 66);\n                text(\"STOP CLICKING!\", 205, 66);\n                text(\"STOP CLICKING!\", 9, 95);\n                text(\"STOP CLICKING!\", 205, 95);\n                text(\"STOP CLICKING!\", 205, 123);\n                text(\"STOP CLICKING!\", 9, 123);\n                text(\"STOP CLICKING!\", 9, 150);\n                text(\"STOP CLICKING!\", 205, 152);\n                text(\"STOP CLICKING!\", 9, 178);\n                text(\"STOP CLICKING!\", 205, 178);\n                textSize(89);\n                text(\"OR ELSE\", 9, 333);\n                }\n            else if(mouseClick === 9){\n                image(I, 131, 120);\n                textSize(20);\n        text(\"Or else.... or else I will explode\", 67, 310);\n    }\n        else if(mouseClick === 10){\n            image(I, 131, 120);\n            textSize(20);\n        text(\"It\'s really sad, if anyone clicks\", 75, 283);\n            text(\" to many times... I explode.\", 71,310);\n        }\n        else if(mouseClick === 11){\n            image(I, 131, 120);\n            textSize(20);\n            text(\"You just have to keep clicking,\", 70, 271);\n            text(\"and it\'s bye bye for me.\", 74, 296);\n        }\n        else if(mouseClick === 12){\n            image(I, 131, 120);\n            textSize(20);\n    text(\"What! You are going to click again?!!?!\", 41, 286);\n        }\n        else if(mouseClick === 13){\n            image(I, 131, 120);\n            textSize(43);\n            text(\"You are soooo EVIL!\", 1, 305);\n        }\n        else if(mouseClick === 14){\n            image(I, 131, 120);\n            textSize(20);\n            text(\"Please don\'t keep clicking\", 91, 280);\n        }\n        else if(mouseClick === 15){\n            image(I, 131, 120);\n            textSize(20);\n            text(\"I\'ll do what ever you want!\", 86, 283);\n        }\n        else if(mouseClick === 16){\n            image(I, 131, 120);\n            textSize(20);\n            text(\"I can shape shift!\", 129, 278);\n        }\n        else if(mouseClick === 17){\n            image(S, 131, 120);\n            textSize(20);\n            text(\"I told you so!\", 142, 272);\n        }\n        else if(mouseClick === 18){\n            image(Q, 131, 120);\n            textSize(20);\n            text(\"How about now? Do you like me now?\", 40, 288);\n        }\n        else if(mouseClick === 19){\n            image(I, 131, 120);\n                textSize(20);\n                text(\"FINE!!!\", 171, 274);\n                text(\"GOOD BYE CRUEL WORLD\", 74, 305);\n             }\n             else if(mouseClick === 20){\n                 image(I, 131, 120);\n                 ellipse(182, 193, circleX, circleY);\n                 circleX += 10;\n                 circleY += 10;\n                 if(circleX > 100){\n                     fill(255, 255, 255);\n                     textSize(33);\n                text(\"You killed Old Spice Man!\", 13, 200);\n                text(\" You monster!\", 103, 256);\n                 }\n             }\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Book 4: Picnic</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book 4: Picnic</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Book 4: Picnic by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-05-23T11:47:51Z by kaid_976851263300560061760577\nLast Edited: 2013-05-23T11:47:51Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-06-14T16:13:57Z from origin 1669770205 with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/book-4-picnic/1671009360\nRetrieved On: 07-Nov-2022 (17:06:58.499059)**/\
+";
+
+code = code + "\n//Click to turn the page\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n// note to self pagey should be pagey+ 92.5 when typing at the beginning of chapterand pagey+-80 and for page pagey =+196.5 anywhere else\nvar pagex=100;\nvar pagey=100;\nvar count=0;\nvar f = createFont(\"Gabriola\", 40);\nvar ff = createFont(\"Arial\",50);\nvar draw= function() {\n   //Cover\n   \n   background(220, 215, 205);\n    fill(255, 255, 0);\n    textFont(ff,50);\n    textSize(50);\n    text(\'The Picnic\',pagex+-55,pagey-44);\n    fill(0, 0, 0);\n    textSize(15);\n    text(\'Written By Elijah\\nProgrammed by Elijah\',pagex+8,pagey+79);\n    //Page 1\n    textFont(ff,50);\n    text(\'It is a warm and \\nsunny day. It\\nlooks like a good \\nday for a picnic! \\nPapai says yes\\nso they start\\npacking up their\',pagex+300,pagey+-50);\n    //Page 2\n    text(\"food. First, Yael\\nwould get the\\nfruit bowl for the\\nfruit salad she \\nand Mamae will\\nget a big bowl.\",pagex+705,pagey-62);\n\n//Page 3\n    text(\"They fill it with\\napples, pears, \\ngrapes and even \\noranges! It is a\\nyummy salad!\\nZion and Papai\\nwill cook delicous\",pagex+1110,pagey+-50);\n    //Page 4\n    text(\"sausages. They\\nneed to go to the\\nstore to get some\\nsausages. When\\nThey get back,\\nThey waited for\\nthe food to be\",pagex+1515,pagey+-50);\n    //Page 5\n    text(\"ready. Elijah is\\nmaking some\\nfood by himself.\\nHe gets some\\nflour, eggs, water\\nand butter. He\\nmixes them in a\",pagex+1910,pagey+-50);\n    //Page 6\n        text(\"big bowl, and\\nthen he shapes\\nand puts them\\ninto the oven. He\\nis making good\\ncookies. After all\\nthe food is done,\",pagex+2310,pagey+-50);\n        //Page 7\n       text(\"Yael sees that\\nit is raining! How\\nwill they have a\\npicnic now? Zion\\nhas an idea. He\\nwould eat inside!\\nZion\'s a hero!\",pagex+2710,pagey+-50); \n    //Page 8\n    textFont(f,100);\n    text(\"The End\",pagex+3125,pagey+-0);\n    if(mouseIsPressed){\n        pagex=pagex-400;\n        \n    }\n    \n    mouseIsPressed=false;\nif(pagex===-3500){\n    pagex=pagex+3600;\n}\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

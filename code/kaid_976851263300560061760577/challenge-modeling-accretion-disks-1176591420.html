@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Challenge:  Modeling Accretion Disks</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Challenge:  Modeling Accretion Disks</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Challenge:  Modeling Accretion Disks by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-27T17:12:49Z by kaid_976851263300560061760577\nLast Edited: 2012-11-27T17:12:49Z\nVotes/Spinoffs: 0/0\nOriginally Created: 2012-11-27T17:21:21Z from origin 1176457365 with similarity of 0.9051094890510949\nOriginal Link: https://www.khanacademy.org/computer-programming/challenge-modeling-accretion-disks/1176591420\nRetrieved On: 07-Nov-2022 (17:07:59.961456)**/\
+";
+
+code = code + "\n/***************************************************************\n * The goal of this challenge is for users to create models that\n * can depict the formation of accretion disks in three\n * dimensions from clouds of matter due to gravitational \n * interaction.  \n * \n * To \"enter\" your \"entry\", just create a branch off of this\n * scratch pad by \"saving as a spin-off\".  \n * The best entries will be used in the Khan Academy cosmology \n * playlist (and we will give other recognition and bragging \n * rights, and possibly other things to their creators).\n * ************************************************************/\n \n //You should delete this code.  Just put it here to have a\n //nice image for the default icon for this scratchpad :)\n var slide = 1;\n \n var draw = function() {\n     \n };\n\n ";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

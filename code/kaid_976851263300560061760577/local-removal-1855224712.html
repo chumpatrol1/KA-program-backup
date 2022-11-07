@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Local Removal!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Local Removal!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Local Removal! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-02T17:52:35Z by kaid_976851263300560061760577\nLast Edited: 2013-08-02T17:52:35Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-08-02T17:52:35Z from origin 1792413604 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/local-removal/1855224712\nRetrieved On: 07-Nov-2022 (17:07:43.146935)**/\
+";
+
+code = code + "\n/*\n * This program allows YOU to clear junk from YOUR local storage.\n *\n * This lists key-value pairs from your localStorage. To remove\n * a pair, use the mouse to select the pair as RED, then TYPE\n * the Delete (or Backspace on some browsers) key.\n */\n \nvar ls, bObject, img, maidService, boxes;\n\nvar Box = {\n    x: 20,\n    y: 38,\n    w: 360,\n    h: 24,\n    selected: false,\n    key: \"\",\n    value: \"\",\n    \n    /* How a box gets created */\n    extend: function(props) {\n        var obj = bObject.create(this);\n        for (var prop in props) {\n            if (props.hasOwnProperty(prop)) {\n                obj[prop] = props[prop];\n            }\n        }\n        return obj;\n    },\n    \n    /* Initialize a box */\n    reInit: function() {\n        /* Y position dependent on our position in boxes */\n        var i = boxes.indexOf(this);\n        if (i < 0) {\n            return;     /* shouldn\'t happen */\n        } else if (i === 0) {\n            this.y = Box.y;\n        } else {\n            this.y = boxes[i-1].y + boxes[i-1].h;\n        }\n    },\n    \n    mouseIsOver: function() {\n        var dx = mouseX - this.x;\n        var dy = mouseY - this.y;\n        if (dx < this.w && dx > 0 && dy < this.h && dy > 0) {\n            if (mouseIsPressed) {\n                this.selected = true;\n            }\n            return true;\n        } else {\n            this.selected = false;\n            return false;\n        }\n    },\n    \n    render: function(gfx) {\n        if (this.mouseIsOver()) {\n                fill(50, 50, 50, 100);\n            if (this.selected) {\n                fill(255, 0, 0, 100);\n            }\n        } else {\n            noFill();\n        }\n        rect(this.x, this.y, this.w, this.h);\n        fill(0, 0, 240);\n        textAlign(RIGHT, CENTER);\n        text(this.key, this.x+4, this.y, this.w/4 - 8, this.h);\n        textAlign(LEFT, CENTER);\n        text(this.value, this.x + this.w/4 + 4, this.y,\n            3*this.w/4 - 8, this.h);\n    }\n};\n\nvar init = function() {\n    img = getImage(\"avatars/robot_female_2\");\n    bObject = (function(what) { return this[what]; })(\"Object\");\n    ls = (function(what) { return this[what]; })(\"localStorage\");\n    boxes = [];\n    for (var i = 0; i < ls.length; i++) {\n        var key = ls.key(i);\n        var item = ls.getItem(key);\n        var b = Box.extend({ key: key, value: item });\n        boxes.push(b);\n        b.reInit();\n    }\n};\n\ndraw = function() {\n    background(255, 255, 255);\n    fill(0, 0, 240);\n    \n    if (! maidService) {\n        textAlign(RIGHT, TOP);\n        text(\"key\", Box.x, Box.y - Box.h + 4, Box.w/4 - 4, Box.h);\n        textAlign(LEFT, TOP);\n        text(\"value\", Box.x + Box.w/4 + 4, Box.y - Box.h + 4,\n                3*Box.w/4, Box.h);\n                \n        for (var i = 0; i < boxes.length; i++) {\n            boxes[i].render();\n        }\n    }\n    \n    if (maidService || boxes.length === 0) {\n        image(img, 140, 140);\n        text(\"Your local storage is very tidy!\", 130, 280);\n    }\n};\n\nkeyReleased = function() {\n    if (keyCode === DELETE || keyCode === BACKSPACE) {\n        for (var i = 0; i < boxes.length; i++) {\n            if (boxes[i].selected) {\n                ls.removeItem(boxes[i].key);\n                init();\n                return;\n            }\n        }\n    }\n};\n\ninit();\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

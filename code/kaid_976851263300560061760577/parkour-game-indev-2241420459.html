@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Parkour Game *INDEV*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Parkour Game *INDEV*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Parkour Game *INDEV* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-10-17T15:34:47Z by kaid_976851263300560061760577\nLast Edited: 2013-10-17T15:34:47Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-10-30T22:30:27Z from origin 2235877467 with similarity of 0.5843733043950081\nOriginal Link: https://www.khanacademy.org/computer-programming/parkour-game-indev/2241420459\nRetrieved On: 07-Nov-2022 (17:06:59.320743)**/\
+";
+
+code = code + "\n//This is the In development program. Find the official game here: https://www.khanacademy.org/cs/parkour-game-unfinished/2235877467\n//Coming Soon: Obstacles, Energy+Energy Bonus\nvar guyX=0;\nvar guyY=250;\nvar guyLegA=25;\nvar guyLegA2=1;\nvar guyLegB=75;\nvar guyLegB2=-1;\nvar guyArmA=25;\nvar guyArmA2=1;\nvar guyArmB=65;\nvar guyArmB2=-1;\nvar guy = \"Walking\";\nvar jump=1;\nvar obstacleX = 400;\nvar energy = 300;\nvar energyX = 500;\nvar energyY=50;\nvar energyGet = false;\nvar dead=false;\nvar death=255;\nvar legHitBox;\nrotate(0);\nvar draw = function() {\n    background(124);\n    noStroke();\n    fill(200);\n    rect(0,350,400,50);\n    if(guy===\"Walking\"){\n     strokeWeight(3);\n    stroke(0, 0, 0);\n    line(50,guyY,50,guyY+60);\n    line(50,guyY+60,guyLegA,guyY+98);\n    line(50,guyY+60,guyLegB,guyY+98);\n    if(!dead){\n     guyLegA+=1*guyLegA2;\n    guyLegB+=1*guyLegB2;\n    if(guyLegA>75){\n        guyLegA2=-1;\n    }\n    if(guyLegA<25){\n        guyLegA2=1;\n    }\n    if(guyLegB<25){\n        guyLegB2=1;\n    }\n    if(guyLegB>75){\n        guyLegB2=-1;\n    }   \n    }\n    line(50,guyY+10,guyArmA,guyY+25);\n    line(guyArmA,guyY+25,guyArmA+50,guyY+30);\n    line(50,guyY+10,guyArmB,guyY+25);\n    line(guyArmB,guyY+25,guyArmB+50,guyY+30);\n    if(!dead){\n    guyArmA+=1*guyArmA2;\n    guyArmB+=1*guyArmB2;\n    if(guyArmA>65){\n        guyArmA2=-1;\n    }\n    if(guyArmA<25){\n        guyArmA2=1;\n    }\n    if(guyArmB>65){\n        guyArmB2=-1;\n    }\n    if(guyArmB<25){\n        guyArmB2=1;\n    }    \n    }\n    fill(255);\n    ellipse(50,guyY-25,50,50);\n    noStroke();\n    fill(255, 0, 0);\n    ellipse(60,guyY-35,10,10);\n   strokeWeight(3);\n    stroke(0, 0, 0);\n    line(50,guyY-15,70,guyY-10);\n    rotate(20);\n    noStroke();\n    fill(255);\n    rect(125,guyY-75,10,5);   \n    }\n    if(guy===\"Jumping\"){\n        strokeWeight(3);\n    stroke(0, 0, 0);\n    line(50,guyY,50,guyY+60);\n    line(50,guyY+60,30,guyY+100);\n    line(50,guyY+60,45,guyY+100);\n    line(50,guyY+10,15,guyY+35);\n    line(50,guyY+10,20,guyY+40);\n    fill(255);\n    ellipse(50,guyY-25,50,50);\n    noStroke();\n    fill(255, 0, 0);\n    ellipse(60,guyY-35,10,10);\n   strokeWeight(3);\n    stroke(0, 0, 0);\n    line(50,guyY-15,70,guyY-10);rotate(20);\n     guyY-=2*jump;\n    if(guyY<200){\n        jump=-1;\n    }\n    if(guyY>250){\n        keyCode=87; //Keycode for \"W\"\n        guy=\"Walking\";\n        guyY=249;\n        jump=1;\n    }\n    }\n    if(keyPressed&&keyCode===32&&energy>1){\n        guy=\"Jumping\";\n    }\n    noStroke();\n    fill(200);\n    rotate(-20);\n    rect(obstacleX,325,20,25);\n    obstacleX-=2;\n    if(obstacleX<-50){\n        obstacleX+=450;\n    }fill(200);\n    rect(0,0,400,35);\n    rect(305,0,100,75);\n    fill(124);\n    rect(310,5,85,65);\n    if(energy>200){\n        strokeWeight(3);\n        stroke(0);\n        line(350,67.5,350,60);\n        fill(255);\n        strokeWeight(2);\n        ellipse(350,35,50,50);\n        fill(255, 0, 0);\n        ellipse(340,25,10,10);\n        ellipse(360,25,10,10);\n        fill(255, 0, 0);\n        bezier(360,40,365,55,335,55,340,40);\n        line(357,40,340,40);\n    }\n    if(energy>100&&energy<201){\n        strokeWeight(3);\n        stroke(0);\n        line(350,67.5,350,60);\n        fill(255);\n        strokeWeight(2);\n        ellipse(350,35,50,50);\n        fill(255, 0, 0);\n        ellipse(340,25,10,10);\n        ellipse(360,25,10,10);\n        line(360,45,340,45);\n    }\n    if(energy<101){\n        strokeWeight(3);\n        stroke(0);\n        line(350,67.5,350,60);\n        fill(255);\n        strokeWeight(2);\n        ellipse(350,35,50,50);\n        fill(255, 0, 0);\n        ellipse(340,25,10,10);\n        ellipse(360,25,10,10);\n        bezier(360,55,365,40,335,40,340,55);\n        fill(0, 255, 255,124);\n        ellipse(330,38,5,5);\n        ellipse(333,45,5,5);\n        ellipse(345,16,5,5);\n        ellipse(360,42,5,5);\n    }\n    noStroke();\n    fill(255);\n    textSize(15);\n    text(\"Energy\",0,27);\n    if(energy>100){\n        fill(0, 255, 0);\n        rect(5,5,energy,10);\n        energy-=0.25;\n    }\n    if(energy<101){\n        fill(255, 0, 0);\n        rect(5,5,energy,10);\n        energy-=0.25;\n    }\n    //Refill Your energy: (Phew!)\n    if(!energyGet){\n     fill(0, 255, 255);\n    rect(energyX,175-energyY,50,50);\n    fill(255, 255, 0);\n    beginShape();\n    vertex(energyX+5,180-energyY);\n    vertex(energyX+30,195-energyY);\n    vertex(energyX+20,195-energyY);\n    vertex(energyX+50,220-energyY);\n    vertex(energyX+10,195-energyY);\n    vertex(energyX+15,190-energyY);\n    endShape(CLOSE);\n    if(energyX>-25&&energyX<90&&guyY<225&&!dead){\n        energyGet=true;\n        energy+=100;\n        if(energy>300){\n            energy=300;\n        }\n    }\n    }\n    \n    if(energyX<-200){\n        energyX+=random(650,850);\n        energyGet=false;\n    }\n    energyX-=2;\n    if(energy<1){\n        dead=true;\n    }\n    //HitBox\n    stroke(255, 0, 0);\n    noFill();\n    text(guyLegA,0,90);\n    text(guyLegB,0,120);\n    if(guyLegA<51&&guy===\"Walking\"){\n    noFill();\n    rect(guyLegA,guyY+53,dist(-guyLegA,10,-guyLegB,10),45);\n    }\n    if(guyLegB<51&&guy===\"Walking\"){\n    noFill();\n    rect(guyLegB,guyY+53,dist(-guyLegA,10,-guyLegB,10),45);\n    }\n    if(guy===\"Jumping\"){\n        noFill();\n        rect(25,guyY+55,25,45);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

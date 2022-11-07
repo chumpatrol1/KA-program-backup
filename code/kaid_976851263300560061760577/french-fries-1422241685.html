@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>French Fries</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>French Fries</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**French Fries by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-01T00:49:57Z by kaid_976851263300560061760577\nLast Edited: 2013-03-01T00:49:57Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-03-01T00:49:57Z from origin 844038377 with similarity of 0.012364760432766615\nOriginal Link: https://www.khanacademy.org/computer-programming/french-fries/1422241685\nRetrieved On: 07-Nov-2022 (17:07:34.955119)**/\
+";
+
+code = code + "\n///////////////////////////////////////////////////////Yummy!\n\n//French Fries\nfor (var a = 0; a < 200; a += 20) {\nfill(255, 200, 0);\nrect(a+105,125,10,400);\n}\nfor ( var b = 0; b<200;b+=20){\n   fill(255, 200, 0);\nrect(b+107,100,3,400); \n}\nfor (var c = 0;c<180;c+=30){\n       fill(255, 200, 0);\nrect(c+107,100,7,400); \n}\n\n/////The Box\n//Carton\nfill(255, 0, 0);\nnoStroke();\nrect(100,200,200,200);\nfill(255, 255, 0);\n////Face\n//Yellow Ellipse\nellipse(200,300,175,175);\nfill(0, 0, 0);\n//Eyes\nellipse(170,250,20,20);\nellipse(230,250,20,20);\n//Smile: Part 1: Left\nellipse(160,325,20,20);\nellipse(165,330,20,20);\nellipse(170,335,20,20);\nellipse(175,340,20,20);\nellipse(180,342,20,20);\nellipse(185,345,20,20);\nellipse(190,347,20,20);\nellipse(195,348,20,20);\n//Part 2: Middle\nellipse(200,350,20,20);\n//Part 3: Right\nellipse(240,325,20,20);\nellipse(235,330,20,20);\nellipse(230,335,20,20);\nellipse(225,340,20,20);\nellipse(220,342,20,20);\nellipse(215,345,20,20);\nellipse(210,347,20,20);\nellipse(205,348,20,20);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

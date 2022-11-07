@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Eli's Labs: Tile Maps</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eli's Labs: Tile Maps</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Eli's Labs: Tile Maps by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-13T12:59:36Z by kaid_976851263300560061760577\nLast Edited: 2013-02-13T12:59:36Z\nVotes/Spinoffs: 3/0\nOriginally Created: 2013-02-13T13:02:00Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/elis-labs-tile-maps/1376063583\nRetrieved On: 07-Nov-2022 (17:06:48.069542)**/\
+";
+
+code = code + "\nvar tileW=25;\nvar tileH=25;\n\nvar tiles = [\n    getImage(\"cute/BrownBlock\"),\n    getImage(\"cute/DirtBlock\"),\n    getImage(\"cute/GrassBlock\"),\n    getImage(\"cute/PlainBlock\"),\n    getImage(\"cute/CharacterBoy\")\n];\nvar tileMap = [\n    [0,0,0,0,0,0,0,0],\n    []\n    ];\n    for (var x = 0; x < 16; x++){ // Rows\n    for (var y = 0; y < 16; y++){ // Columns\n    \n// Grab Tile number from 2 Dimensional \"grid\" Array and apply fill values from \"color\" Array\n    \n    // Draw Tiles\n    image(tiles,x*tileW, y*tileH, tileW, tileH);\n    } \n}";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

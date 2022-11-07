@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Idle Miner</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Idle Miner</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Idle Miner by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-09-07T17:08:43Z by kaid_976851263300560061760577\nLast Edited: 2015-09-07T17:08:43Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2015-10-25T14:46:26Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/idle-miner/5584321959297024\nRetrieved On: 07-Nov-2022 (17:07:52.607726)**/\
+";
+
+code = code + "\n//Created on 9/7/2015\nvar wood = 0;\nvar time = 5;\nvar timeStage = \"Dawn\";\nvar explored = 1;\nvar area = 1;\nvar hotbar = 0;\nvar worldbook = \"1\";\nvar radarRot = 0;\nvar weight = wood;//More stuff later\nvar weightLim = 100;\nvar buttonTimer = 0;\n//Home Area\nvar homeArea=0;\nvar draw = function() {\nbackground(255);\n//Hotbar\n\nif(hotbar===0){\n//Top Bar\n{\nnoStroke();\nfill(100);\nrect(0,0,600,100);\n}\n//Your World book\n{fill(150,75,0);\nrect(5,5,100,90);\nfill(125,50,0);\nrect(5,5,20,90);\nfill(0);\ntextSize(20);\ntext(\" Your \\nWorld\",30,30);\ntextSize(10);\ntext(\"By Yourself\",30,80);\nif(mouseX>=0&&mouseX<=110&&mouseY>=0&&mouseY<=100&&mouseIsPressed&&buttonTimer===0){\n    hotbar = 1;\n    buttonTimer=30;\n}\nif(mouseX>=111&&mouseX<=170&&mouseY>=0&&mouseY<=100&&mouseIsPressed){\n    hotbar = 2;\n    buttonTimer=30;\n}\n}\n//Inventory\nfill(255, 0, 0);\ntextSize(50);\ntext(\"E!\",120,70);\n//You\nfill(125,50,0);\nrect(200,0,100,20);\nrect(200,0,10,40);\nrect(290,0,10,40);\nfill(225, 175, 100);\nrect(210,20,80,60);\nfill(255);\nrect(225,40,20,10);\nrect(260,40,20,10);\nfill(0,255,255);\nrect(235,40,10,10);\nrect(260,40,10,10);\nfill(220, 150, 75);\nrect(227.5,60,50,10);\n//Scanner\nfill(200);\nrect(325,0,100,100);\nfill(0);\nellipse(375,50,90,90);\nstrokeWeight(1);\nstroke(0,255,0);\nnoFill();\nellipse(375,50,90,90);\nellipse(375,50,70,70);\nellipse(375,50,50,50);\nstrokeWeight(5);\npoint(375,50);\npushMatrix();\nstrokeWeight(3);\ntranslate(375,50);\nrotate(radarRot);\nradarRot+=1;\nline(0,0,0,45);\nstroke(0,255,0,200);\nline(0,0,2,45);\nstroke(0,255,0,150);\nline(0,0,4,45);\nstroke(0,255,0,100);\nline(0,0,6,45);\nstroke(0,255,0,50);\nline(0,0,8,45);\npopMatrix();\nif(radarRot===360){\n    radarRot=0;\n}\n//Contract Board\nnoStroke();\nfill(124,50,0);\nrect(450,10,125,50);\nrect(450,10,10,80);\nrect(565,10,10,80);\nfill(255,255,225);\nrect(455,15,115,40);\nfill(0);\ntextSize(20);\ntext(\"Contracts\",470,40);\n//Map, Time and Other Stuff\ntextSize(50);\ntext(\"MAP\",0,580);\nif(mouseX>=0&&mouseX<=124&&mouseY>=525&&mouseY<=600&&mouseIsPressed){\nhotbar = 6;\n}\ntext(\"Time: \"+time,125,580);\nif(area===1){\nfill(0);\ntextSize(30);\ntext(\"Enter Home (WIP)\",0,130);\ntext(\"Explore\",0,160);\ntext(\"Farms and Grinders (WIP)\",0,190);\ntext(\"Traps (WIP)\",0,220);\nif(mouseX>=0&&mouseX<=110&&mouseY>=131&&mouseY<=160&&mouseIsPressed&&buttonTimer===0){\ntime+=3;\nexplored+=1;\nbuttonTimer=30;\n}\n}\n}\nif(hotbar===1){\n    if(worldbook===\"1\"){\nbackground(255,255,225);\nfill(0,0,0);\ntextSize(50);\ntext(\"Your World Chapters\",0,50);\ntextSize(40);\ntext(\"Part 1: Overworld\",0,100);\ntext(\"Part 2: Nether\",0,250);\ntext(\"Part 3: The End\",0,400);\ntext(\"Part 4: Misc\",0,550);\nfill(0,0,255);\ntextSize(30);\ntext(\"Chapter 1: Mobs\",0,125);\ntext(\"Chapter 2: Blocks and Items\",0,150);\ntext(\"Chapter 3: Biomes and Areas\",0,175);\ntext(\"Chapter 4: Human Villages\",0,200);\ntext(\"Chapter 1: Mobs\",0,275);\ntext(\"Chapter 2: Blocks and Items\",0,300);\ntext(\"Chapter 3: Biomes and Areas\",0,325);\ntext(\"Chapter 4: Pigmen Villages\",0,350);\ntext(\"Chapter 1: Mobs\",0,425);\ntext(\"Chapter 2: Blocks and Items\",0,450);\ntext(\"Chapter 3: Biomes and Areas\",0,475);\ntext(\"Chapter 4: Ender Villages\",0,500);\ntext(\"Chapter 1: Crafting\",0,575);\nfill(0);\nrect(500,500,75,75);\nfill(255);\ntext(\">>>\",510,545);\nif(mouseX>=500&&mouseX<=575&&mouseY>=500&&mouseY<=575&&mouseIsPressed){\nworldbook = \"2\";\n}\nfill(255, 0, 0);\nrect(500,350,75,75);\nfill(255);\ntextSize(50);\ntext(\"X\",520,405);\nif(mouseX>=500&&mouseX<=575&&mouseY>=350&&mouseY<=425&&mouseIsPressed){\n    hotbar=0;\n}\n    }\nif(worldbook===\"2\"){\nbackground(255, 255, 225);\nfill(0);\ntextSize(40);\ntext(\"Chapter 4 Cont\'d\",0,40);\nfill(0,0,255);\ntextSize(30);\ntext(\"Chapter 2: Smelting\",0,70);\ntext(\"Chapter 3: Tools and Armor\",0,100);\ntext(\"Chapter 4: Brewing\",0,130);\ntext(\"Chapter 5: Trading\",0,160);\nfill(0);\nrect(500,500-75,75,75);\nfill(255);\ntext(\"<<<\",510,545-75);\nif(mouseX>=500&&mouseX<=575&&mouseY>=425&&mouseY<=500&&mouseIsPressed){\nworldbook = \"1\";\n}\nfill(255, 0, 0);\nrect(500,350,75,75);\nfill(255);\ntextSize(50);\ntext(\"X\",520,405);\nif(mouseX>=500&&mouseX<=575&&mouseY>=350&&mouseY<425&&mouseIsPressed){\n    hotbar=0;\n}\n}\n}\nif(hotbar===2){\nbackground(255);\nfill(0);\ntextSize(30);\ntext(\"Weight: \"+weight+\"/\"+weightLim,0,30);\nif(wood>1){\n}\n}\nif(hotbar===6){\nbackground(255);\nfill(0);\ntextSize(30);\ntext(\"HOME\",0,30);\nif(explored>=2){\ntext(\"FOREST\",0,70);\n}\nif(mouseX>=0&&mouseX<=50&&mouseY>=0&&mouseY<=30&&mouseIsPressed&&buttonTimer===0){\n    hotbar=0;\n    area=1;\n    buttonTimer=30;\n}\nif(mouseX>=0&&mouseX<=75&&mouseY>=31&&mouseY<=60&&mouseIsPressed&&buttonTimer===0){\n    hotbar=0;\n    area=2;\n    buttonTimer=30;\n}\n}\nif(width!==600||height!==600){\nbackground(255, 0, 0);\nfill(255);\ntextSize(30);\ntext(\"Add ?width=600&height=600 \\nto the end of the URL!\",0,170);\n}\nif(buttonTimer>0){\nbuttonTimer-=1;\n}\n    fill(255, 0, 0);\ntext(mouseX+\" \"+mouseY,0,150);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

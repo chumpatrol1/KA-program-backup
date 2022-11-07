@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Blätter *Fixed* (Sort of...)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Blätter *Fixed* (Sort of...)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Blätter *Fixed* (Sort of...) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-09-25T20:57:12Z by kaid_976851263300560061760577\nLast Edited: 2013-09-25T20:57:12Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-09-25T20:57:34Z from origin 2088998317 with similarity of 0.9914346895074947\nOriginal Link: https://www.khanacademy.org/computer-programming/bltter-fixed-sort-of/5512852668416000\nRetrieved On: 07-Nov-2022 (17:07:52.086913)**/\
+";
+
+code = code + "\nvar blattBild = [\n        getImage(\"avatars/leaf-yellow\"),\n        getImage(\"avatars/leaf-blue\"),\n        getImage(\"avatars/leaf-red\"),\n        getImage(\"avatars/leaf-orange\")\n    ],\n    naechstesBlatt = 0,\n    blaetter = [];\n\nfill(255, 0, 0);\n\nvar draw = function() {\n    \n    background(255, 255, 255);\n    \n    if( --naechstesBlatt < 0 ) {\n        var neuesBlatt = parseInt(random(4),1);\n        naechstesBlatt = parseInt(random(10),1);\n        blaetter.push({\n            x: random(400),\n            y: -50,\n            r: 0,\n            blatt: blattBild[neuesBlatt]\n        });\n    }\n    \n    for( var i=0 ; i<blaetter.length ; i++ ) {\n        var b = blaetter[i];\n        b.y+=3;\n        b.x+=random(6)-3;\n        b.r+=random(12)-3;\n        \n        translate(b.x,b.y);\n        rotate(b.r);\n        image(b.blatt,0,0,50,50);\n        resetMatrix();\n        \n        if( b.y > 400 ) {\n    b.splice(i,i);\n        }\n    }\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

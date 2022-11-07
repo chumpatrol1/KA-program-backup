@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Nyan Cat 4</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Nyan Cat 4</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Nyan Cat 4 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:13:26Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:13:26Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-12T01:18:19Z from origin 975591894 with similarity of 0.3263919921351327\nOriginal Link: https://www.khanacademy.org/computer-programming/nyan-cat-4/1033149442\nRetrieved On: 07-Nov-2022 (17:07:12.427741)**/\
+";
+
+code = code + "\n//Nyan's having a party today!\nvar drawStar = function(state, x, y) {\n    switch (state) {\n    case 0:\n        point(x, y);\n        break;\n    case 1:\n        line(x - 10, y, x - 8, y);\n        line(x + 10, y, x + 8, y);\n        line(x, y - 10, x, y - 8);\n        line(x, y + 10, x, y + 8);\n        break;\n    case 2:\n        point(x - 15, y);\n        point(x + 15, y);\n        point(x, y - 15);\n        point(x, y + 15);\n        point(x - 10, y - 10);\n        point(x + 10, y + 10);\n        point(x - 10, y + 10);\n        point(x + 10, y - 10);\n        break;\n    case 3:\n        point(x - 20, y);\n        point(x + 20, y);\n        point(x, y - 20);\n        point(x, y + 20);\n    }\n};\n\nvar drawStars = function(state, dx) {\n    stroke(255, 255, 255);\n    drawStar(state, 400 - (dx % 400), 30);\n    drawStar((state + 2) % 4, 400 - ((dx + 100) % 400), 100);\n    drawStar((state + 1) % 4, 400 - ((dx - 60) % 400), 150);\n    drawStar((state + 3) % 4, 400 - ((dx + 200) % 400), 230);\n    drawStar((state + 2), 400 - ((dx + 300) % 400), 290);\n    drawStar((state + 1), 400 - ((dx - 175) % 400), 370);\n};\n\nvar drawRainbowStreak = function(shift, color, dy) {\n    // each rainbow streak is sin wave\n    stroke(color);\n    var x = 0;\n    var y = 10 * sin(x * 2 + shift);\n    for (var i = 0; i < 134; i++) {\n        y = 5 * sin(4 * x + shift);\n        point(x, y + dy);\n        x += 1;\n    }\n};\n\nvar drawRainbow = function(shift) {\n    var red = color(255, 10, 10);\n    var orange = color(255, 111, 0);\n    var yellow = color(255, 255, 0);\n    var green = color(0, 255, 0);\n    var blue = color(0, 136, 255);\n    var purple = color(145, 48, 255);\n\n    strokeWeight(20);\n\n};\n\n\n\nvar drawNyanHead = function(state) {\n    strokeWeight(6);\n    stroke(0, 0, 0);\n    \n    // head\n    var headDeltY = 0;\n    var headDeltX = 0;\n    switch(state) {\n    case 0:\n        headDeltX = 10;\n        headDeltY = -6;\n        break;\n    case 2:\n        headDeltX = -2;\n        headDeltY = -6;\n        break;\n    case 3:\n        headDeltY = -15;\n    }\n\n    fill(143, 143, 143);    \n    ellipse(275 + headDeltX, 209 + headDeltY, 108, 80);\n\n    // ears\n    bezier(223 + headDeltX,\n            197 + headDeltY,\n            210 + headDeltX,\n            158 + headDeltY,\n            215 + headDeltX,\n            133 + headDeltY,\n            262 + headDeltX,\n            171 + headDeltY);\n    \n    bezier(329 + headDeltX,\n            199 + headDeltY,\n            338 + headDeltX,\n            149 + headDeltY,\n            321 + headDeltX,\n            133 + headDeltY,\n            285 + headDeltX,\n            169 + headDeltY);\n\n    // eyes\n    strokeWeight(14);\n    point(252 + headDeltX, 207 + headDeltY);\n    point(300 + headDeltX, 207 + headDeltY);\n\n    // nose\n    strokeWeight(8);\n    point(283 + headDeltX, 217 + headDeltY);\n\n    // mouth\n    strokeWeight(4);\n    bezier(259 + headDeltX,\n            225 + headDeltY,\n            262 + headDeltX,\n            235 + headDeltY,\n            287 + headDeltX,\n            231 + headDeltY,\n            284 + headDeltX,\n            226 + headDeltY);\n\n    bezier(300 + headDeltX,\n            225 + headDeltY,\n            300 + headDeltX,\n            232 + headDeltY,\n            282 + headDeltX,\n            232 + headDeltY,\n            284 + headDeltX,\n            226 + headDeltY);\n\n    // cheeks\n    strokeWeight(16);\n    stroke(250, 123, 142);\n    point(244 + headDeltX, 225 + headDeltY);\n    point(313 + headDeltX, 222 + headDeltY);\n\n    // eye highlights\n    strokeWeight(8);\n    stroke(255, 255, 255);\n    point(250 + headDeltX, 205 + headDeltY);\n    point(298 + headDeltX, 205 + headDeltY);\n};\n\nvar drawNyanCat = function(state) {\n\n    drawNyanHead(state);\n};\n\nvar state = 0;\nvar draw = function() {\n    background(8, 52, 107);\n\n    // there are only 4 states in the animation:\n    //      0, 1, 2, and 3\n    drawStars(state % 4, frameCount * 20);\n    drawRainbow(frameCount * 20);\n    drawNyanCat(state % 4);\n\n    // only increase the state every 4 frames, to slow\n    // down the animation\n    if (frameCount % 4 === 0) {\n        state += 1;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

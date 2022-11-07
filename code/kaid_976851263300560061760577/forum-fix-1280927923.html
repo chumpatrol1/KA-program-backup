@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Forum Fix</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Forum Fix</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Forum Fix by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-10T13:28:20Z by kaid_976851263300560061760577\nLast Edited: 2013-01-10T13:28:20Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-10T13:43:03Z from origin 1169150705 with similarity of 0.7580815550390873\nOriginal Link: https://www.khanacademy.org/computer-programming/forum-fix/1280927923\nRetrieved On: 07-Nov-2022 (17:07:29.131021)**/\
+";
+
+code = code + "\n//Hey guys! Need to contact me? Just look at the canvas -->\n//Chat here, or E-Mail me at chumpatrol1@gmail.com.\n//My Channel: http://www.youtube.com/user/Chumpatrol1\n\n\n//When a discussion is done, immeadiately delete it or Kitt\n//will delete it. \n// Hello, my name is tatiana.camp, and I\'m a huge fan. I\'m sorta hoping that you will join my forum, but you\'ll only be able to find me under my programs because I can\'t chat!(deep breath) Our conversations will be under spinoff programs. Look for the program title,\"tatiana.camp\'s forum:_______________\'s chat\". It\'ll be a spinoff of your chat    (name of chatter)\n//program, but more complexicated! \n\n\n\n// Sincerely,\n\n\n\n//Tatiana.camp, age 10\n\n//P.S: I fixed a glitch on your program. On yours, you\'d have to move it and restart your program. On mine, I added a background function and poof! the problems were gone.\n\n\n\n\n\n    \n\n\n\n\n\n\n\n\n\n    \n\n//You need Pages to make things Smooth\nvar chat = true;\n//As you earn more and more members, make MemberB (Accesable by pressing the UP Key (MemberA) and then Right (MEmber B)\nvar memberA = false;\n//Rules for forum\nvar rules = false;\nvar stat = 1;\n\nvar draw = function() {\n    if(chat){\n            background(0, 255, 213);\n    line(78, 62, 78, 20);\n    line(94, 40, 78, 20);\n    line(62, 40, 78, 20);\n    fill(255, 0, 0);\n    text(\"Members\", 20, 97);\n    line(62, 200, 22, 200);\n    line(40, 187, 22, 200);\n    line(42, 215, 22, 200);\n    text(\"Rules\", 10, 247);\n    text(\"Done!\", 175, 380);\n    \n    if(stat === 1){\n        fill(0, 217, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"ON!\",175,50);\n    }\n    if(stat === 2){\n        fill(255, 255, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"I\'m Busy Now\",113,50);\n    }\n    if(stat === 3){\n        fill(255, 0, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"Currently Off...\",108,50);  \n\n }\n  if(keyPressed&&keyCode ===UP){\n      chat = false;\n      memberA=true;\n  } \n  if(keyPressed&&keyCode ===LEFT){\n      chat = false;\n      rules = true;\n  }\n    }\n \n            if(memberA){\n\n\nbackground(255, 0, 0);\ntextSize(30);\ntext(\"Members\", 200, 25);\n       var me = getImage(\"avatars/robot_female_2\");\n       var DavidElijah = getImage(\"avatars/leaf-blue\");\n       image(me,0,0,50,50);\n       image(DavidElijah,0,60,50,50);\n       textSize(20);\n       text(\"tatiana.camp\",50,30);\n       text(\"David Eijah\",50,95);\n       if(keyPressed&&keyCode === DOWN){\n           memberA=false;\n           chat = true;\n       }\n       }\n       if(rules){\n           background(255, 0, 0);\n           if(keyPressed&&keyCode ===RIGHT){\n               rules = false;\n               chat = true;\n           }\n       }\n       \n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

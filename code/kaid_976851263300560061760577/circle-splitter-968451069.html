@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Circle Splitter</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Circle Splitter</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Circle Splitter by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:08:41Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:08:41Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-15T12:13:11Z from origin 938934557 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/circle-splitter/968451069\nRetrieved On: 07-Nov-2022 (17:07:02.439710)**/\
+";
+
+code = code + "\n// Circles split when you run your mouse over them.\n// Move your mouse around on the circle to the right!\n\n// The array holding the list of all circles displayed.\n// Start off with one big circle in the middle of the screen.\nvar circles = [{\n    x: 200,\n    y: 200,\n    r: 200\n}];\n\n// Draw the circle passed in based on its x coordinate, \n// y coordinate, and radius.\nvar drawCircle = function(circle) {\n    var red = 250 - 250 * (circle.x / 400);\n    var green = 250 - 250 * (circle.y / 400);\n    var blue = 100;\n    fill(red, green, blue);\n    stroke(255, 255, 255);\n    ellipse(circle.x, circle.y, circle.r * 2, circle.r * 2);   \n};\n\n// Draw the initial circle.\ndrawCircle(circles[0]);\n\nvar draw = function() {    \n    for (var i = 0; i < circles.length; i += 1) {\n        var circle = circles[i];\n        // If the mouse is over a circle that hasn't\n        // been split before, split it!\n        if (!circle.split && dist(mouseX, mouseY, circle.x, circle.y) < circle.r && circle.r > 5) {\n            circle.split = true;\n            var c1 = {\n                x: circle.x - circle.r/2,\n                y: circle.y - circle.r/2,\n                r: circle.r/2\n            };\n            var c2 = {\n                x: circle.x + circle.r/2,\n                y: circle.y - circle.r/2,\n                r: circle.r/2\n            };\n            var c3 = {\n                x: circle.x - circle.r/2,\n                y: circle.y + circle.r/2,\n                r: circle.r/2\n            };\n            var c4 = {\n                x: circle.x + circle.r/2,\n                y: circle.y + circle.r/2,\n                r: circle.r/2\n            };\n            \n            // Add the 4 smaller circles to the list of\n            // circles.\n            circles.push(c1);\n            circles.push(c2);\n            circles.push(c3);\n            circles.push(c4);\n            \n            // Draw the 4 new circles.\n            drawCircle(c1);\n            drawCircle(c2);\n            drawCircle(c3);\n            drawCircle(c4);\n        }\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ani *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>ani *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**ani *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-12T20:07:00Z by kaid_976851263300560061760577\nLast Edited: 2012-12-12T20:07:00Z\nVotes/Spinoffs: 3/1\nOriginally Created: 2012-12-12T20:07:49Z from origin 1131323219 with similarity of 0.9958677685950413\nOriginal Link: https://www.khanacademy.org/computer-programming/ani-improved/1221799074\nRetrieved On: 07-Nov-2022 (17:06:47.793390)**/\
+";
+
+code = code + "\n\n\nvar x=180;\nvar y=500;\n\nvar draw = function(){\n    background (139, 207, 224);\n    noStroke();\n    fill(234, 247, 252);\n    //cloud1\n    ellipse (60, 50, 100, 30);\n    ellipse (92, 36, 90, 41);\n    ellipse (92, 67, 90, 41);\n    ellipse (126, 50, 100, 30);\n    //cloud2\n    ellipse (260, 150, 100, 30);\n    ellipse (292, 136, 90, 41);\n    ellipse (292, 167, 90, 41);\n    ellipse (326, 150, 100, 30);\n    //fire\n    fill(255, 244, 127);\n    ellipse(x+20,y+120,30,100);\n    fill(255, 154, 31);\n    ellipse(x+20,y+120,20,80);    \n    fill(255, 51, 51);\n    ellipse(x+20,y+120,10,60);\n    //rocket\n    //engine\n    fill(122, 122, 122);\n    triangle(x+50,y+130,x-10,y+130,x+20,y+37);\n    //shine\n    fill(163, 163, 163);\n    triangle(x+7,y+130,x-4,y+130,x+20,y+49);\n    //body\n    fill(138, 138, 138);\n    rect(x, y,40,100);\n    //shine\n    fill(184, 184, 184);\n    rect(x+5, y,8,100);\n    //head\n    fill(214, 214, 214);\n    triangle(x+40,y,x,y,x+20,y-45);\n    y=y-1*2;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

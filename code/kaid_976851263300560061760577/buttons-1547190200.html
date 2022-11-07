@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Buttons</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Buttons</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Buttons by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-04-13T22:16:15Z by kaid_976851263300560061760577\nLast Edited: 2013-04-13T22:16:15Z\nVotes/Spinoffs: 3/1\nOriginally Created: 2013-08-02T22:22:09Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/buttons/1547190200\nRetrieved On: 07-Nov-2022 (17:06:49.753334)**/\
+";
+
+code = code + "\n/////Note: I only know about square and rectangular buttons.\n///UPDATE: Circlular buttons have arrived!\n\n//A switch statement.\nvar state = \"A\";\nvar draw = function() {\n    //State 1\n    if(state === \"A\"){\n            background(0, 0, 0);\n            //Draw the Button\n            fill(124);\n            rect(100,150,200,100);\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"Click Here!!!\",125,200);\n            //Making the button work (You can Make the code text mouseX and mouseY for you)\n            //Is the mouse within these ranges?\n            if(mouseX>100&&mouseX<300&&mouseY>150&&mouseY<250){               //In Ranges, but not pressed (Note that there is a ! before mouseIsPressed, that means If Mouse is NOT Pressed)\n                if(!mouseIsPressed){\n               fill(200);\n                          rect(100,150,200,100);\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"Click Here!!!\",125,200);\n            }\n            //The Mouse is Actually Pressed\n            if(mouseIsPressed){\n                //The state is not A anymore.\n                state = \"B\";\n            }\n                \n            }\n            \n    }\n    \n    //Page Number 2\n    if(state === \"B\"){\n        background(255, 0, 0);\n        fill(0, 0, 0);\n        textSize(100);\n        text(\"BOOM!\",0,100);\n        textSize(30);\n        text(\"Press Space to Restart\",0,370);\n        //Remember that Space is the 32nd keycode.\n        if(keyPressed&&keyCode===32){\n            //Go to third page.\n            state = \"C\";\n        }\n    }\n\n if(state === \"C\"){\n     background(0, 0, 0);\n     fill(255, 0, 0);\n     ellipse(200,200,200,200);\n     fill(255);\n     textSize(30);\n     text(\"Didn\'t restart. Let\'s try this!\",0,30);\n     //The distance is the size of the circle/2+1\n     if(dist(mouseX,mouseY,200,200)<101){\n         if(!mouseIsPressed){\n          fill(255, 124, 0);\n          ellipse(200,200,200,200);\n         }\n         if(mouseIsPressed){\n             //Go to the third page.\n             state = \"D\";\n         }\n     }\n }   \n if(state === \"D\"){\n     background(0, 255, 0);\n     fill(255);\n     textSize(30);\n     text(\"Restart Sucessful! Press \\nRight Now!\",0,30);\n     if(keyPressed&&keyCode === RIGHT){\n         state = \"A\";\n     }\n }\n};\n\n//No ©2013 exists here!";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

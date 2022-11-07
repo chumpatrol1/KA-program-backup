@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Seismometer</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Seismometer</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Seismometer by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-28T16:13:30Z by kaid_976851263300560061760577\nLast Edited: 2013-02-28T16:13:30Z\nVotes/Spinoffs: 2/1\nOriginally Created: 2013-03-02T12:10:18Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/seismometer/1420658101\nRetrieved On: 07-Nov-2022 (17:06:57.170239)**/\
+";
+
+code = code + "\nvar a = random(0,400);\nvar b = random(0,400);\nvar c = random(0,400);\nvar d = random(0,400);\nvar e = random(0,400);\nvar f = random(0,400);\nvar g = random(0,400);\nvar h = random(0,400);\nvar i = random(0,400);\nvar j = random(0,400);\nvar k = random(0,400);\nvar l = random(0,400);\nvar m = random(0,400);\nvar n = random(0,400);\nvar o = random(0,400);\nvar p = random(0,400);\nvar q = random(0,400);\nvar r = random(0,400);\nvar s = random(0,400);\nvar t = random(0,400);\nvar u = random(0,400);\nvar v = random(0,400);\nvar w = random(0,400);\nvar x = random(0,400);\nvar y = random(0,400);\nvar z = random(0,400);\n\nvar numList = [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z];\n\nfor (var num = 0; num <= 25; num ++) {\npoint(num*10, numList[num]);\nline(num*10, numList[num], (num+1)*10, numList[num+1]);\n}";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Avoider</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Avoider</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Avoider by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-20T20:06:51Z by kaid_976851263300560061760577\nLast Edited: 2013-01-20T20:06:51Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-21T13:01:22Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/avoider/1307305098\nRetrieved On: 07-Nov-2022 (17:07:58.411330)**/\
+";
+
+code = code + "\nvar left = false, right = false;\nvar state = \"Splash\";\nvar ship = 200;\nnoStroke();\nvar draw = function() {\n    if(state === \"Splash\"){\n        noStroke();\n        background(0, 0, 0);\n        fill(255);\n        textSize(70);\n        text(\"AVOIDER\",0,70);\n        textSize(30);\n        text(\"Press Space to Play\",0,100);\n        text(\"Press Up to Learn\",0,150);\n        text(\"Press Down for Credits\",0,200);\n        if(keyPressed&&keyCode ===UP){\n            state = \"Learn\";\n        }\n        if(keyPressed&&keyCode ===32){\n            state = \"Play\";\n        }\n    }\n    if(state === \"Learn\"){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"You have been hired to ship\\nsome valuable cargo. As you\\nsleep on the job (Oh No!) you \\nenter the gravitational pull of\\nCowetia, where asteroids tend\\nto orbit and then hit the \\nplanet\'s surface. You just\\nwoke up and find a lot of \\nasteroids. To see how to play,\\npress the right arrow key.\",0,30);\n    }\n    if(state === \"Play\"){\n        background(0, 0, 0);\n        \nif(keyPressed){\n    if(keyCode === LEFT){\n        left = true;\n    }\n    if(keyCode === RIGHT){\n        right = true;\n    }\n}\nif(keyReleased){\n    if(keyCode === LEFT){\n        left = false;\n    }\n    if(keyCode === RIGHT){\n        right = false;\n    }\n}\nfill(124);\nrect(ship-25,300,50,50);\ntriangle(ship,275,ship-25,300,ship+25,300);\nfill(0, 255, 255);\nellipse(ship,315,20,30);\nif(left === true){\n    ship = ship -1;\n} else if(right === true){\n    ship = ship +1;\n}\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Zombie Attack 2</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zombie Attack 2</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Zombie Attack 2 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:16:13Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:16:13Z\nVotes/Spinoffs: 5/2\nOriginally Created: 2012-09-26T16:53:06Z from origin 1056404225 with similarity of 0.997880034917072\nOriginal Link: https://www.khanacademy.org/computer-programming/zombie-attack-2/1056412585\nRetrieved On: 07-Nov-2022 (17:06:42.389717)**/\
+";
+
+code = code + "\n//Zombie Attack! 2 Zombies has been spotted!\ntranslate(200,200);\ntextAlign(CENTER,CENTER);\ntextSize(20);\nnoStroke();\n//Constants\nvar SIZE=10,\n    ENERGY=300,\n    ZOMBIES = 2,\n    ZOMBIE_COLOR = color(0, 102, 0),\n    ZOMBIE_SPEED = 1,\n    HUMANS = 200,\n    HUMAN_COLOR = color(255, 153, 204),\n    HUMAN_SPEED = 1;\n\nvar msg = \"Click To Start.\",\n    bDone = true,\n    z, //Zombies\n    t, //Turning\n    h; //Humans\n\n\nvar populateHumans = function(){\n    var a = [];\n    for (var i=0;i<HUMANS;i++){\n        a.push({x:random(-width/2,width/2),\n                y:random(-height/2,height/2),\n                dx:0,\n                dy:0,\n                e:ENERGY\n        });\n    }\n    return a;\n};\n\nvar populateZombies = function(){\n    var a = [];\n    for (var i=0;i<ZOMBIES;i++){\n        a.push({x:random(-width/2,width/2),\n                y:random(-height/2,height/2),\n                dx:0,\n                dy:0,\n                e:ENERGY\n        });\n    }\n    return a;\n};\nvar mouseClicked = function(){\n    if(bDone){\n        t = [];\n        h = populateHumans();\n        z = populateZombies();\n        bDone = false;\n    }\n};\n\nvar closest = function (t,x,y){\n    var min_dist = Infinity, min_index;\n    for (var i=0;i<t.length;i++){\n        if(dist(x,y,t[i].x,t[i].y)<min_dist){\n            min_dist = dist(x,y,t[i].x,t[i].y);\n            min_index = i;\n        }\n    }\n    return min_index;\n};\n\nvar attack = function(){\n    var c,i,d;\n    for (i=z.length-1;i>=0;i--){\n        if(z[i].e<0){\n            z.splice(i,1);\n        }\n        else{\n            c = closest(h,z[i].x,z[i].y);\n            d = dist(h[c].x,h[c].y,z[i].x,z[i].y);\n            z[i].dx=(h[c].x-z[i].x)/d;\n            z[i].dy=(h[c].y-z[i].y)/d;\n            if(abs(z[i].x)>width/2){\n                z[i].dx*=-1;\n            }\n            if(abs(z[i].y)>height/2){\n                z[i].dy*=-1;\n            }           \n            z[i].x=constrain(z[i].x+z[i].dx*ZOMBIE_SPEED,\n                             -width/2,width/2);\n            z[i].y=constrain(z[i].y+z[i].dy*ZOMBIE_SPEED,\n                             -height/2,height/2);\n            z[i].e--;\n        }            \n    }\n\n};\nvar evade = function(){\n    var c,i,d;\n    for (i=h.length-1;i>=0;i--){\n        c = closest(z,h[i].x,h[i].y);\n        d = dist(z[c].x,z[c].y,h[i].x,h[i].y);\n        if (d < SIZE){\n            z[c].e += h[i].e;\n            t.push(h[i]);\n            h.splice(i,1);\n        }\n        else{\n            h[i].dx=-(z[c].y)/\n                      sqrt(z[c].x*z[c].x+z[c].y*z[c].y);\n            h[i].dy=(z[c].x)/\n                     sqrt(z[c].x*z[c].x+z[c].y*z[c].y);\n            if(abs(h[i].x)>width/2){\n                h[i].dx*=-1;\n            }\n            if(abs(h[i].y)>height/2){\n                h[i].dy*=-1;\n            }           \n            h[i].x=constrain(h[i].x+h[i].dx*HUMAN_SPEED,\n                             -width/2,width/2);\n            h[i].y=constrain(h[i].y+h[i].dy*HUMAN_SPEED,\n                             -height/2,height/2);            \n        }\n\n    }\n};\n\nvar turn = function(){\n    var i;\n    for(i=t.length-1;i>=0;i--){\n        if(t[i].e<0){\n            t[i].e=ENERGY;\n            z.push(t[i]);\n            t.splice(i,1);\n        }\n        else{\n            t[i].e--;\n        }\n    }\n};\nvar drawArray = function(a,c){\n    fill(c);\n    for (var i=0;i<a.length;i++){\n        ellipse(a[i].x,a[i].y,SIZE,SIZE);\n    }\n};\n\n\nvar draw = function() {\n    if(bDone){\n        background(255, 0, 0);\n        fill(255);\n        text(msg,0,0);\n    }\n    else{\n        background(255);\n        attack();\n        if (!z.length){\n            msg = \"Humans live on! Click to restart\";\n            bDone = true;\n            return;\n        }        \n        evade();\n        if(!h.length){\n            msg = \"Tragic! Click to try again.\";\n            bDone=true;\n            return;\n        }\n        turn();\n        drawArray(t,lerpColor(ZOMBIE_COLOR,HUMAN_COLOR,0.5));\n        drawArray(z,ZOMBIE_COLOR);\n        drawArray(h,HUMAN_COLOR);        \n    }\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

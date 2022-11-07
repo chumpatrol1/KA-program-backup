@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ball World Part 6</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball World Part 6</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Ball World Part 6 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:14:46Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:14:46Z\nVotes/Spinoffs: 7/1\nOriginally Created: 2012-11-27T17:35:22Z from origin 1084847745 with similarity of 0.2937332937332937\nOriginal Link: https://www.khanacademy.org/computer-programming/ball-world-part-6/1094536263\nRetrieved On: 07-Nov-2022 (17:06:40.478121)**/\
+";
+
+code = code + "\n//I am trying to make a cartoon about balls interacting with //each other. Let\'s hope this works :-P.\n\n//First, I\'ll make a variable called \"slide\".\nvar slide = 0;\nvar robot = getImage(\"avatars/robot_male_1\");\nvar x = 130;\n//Next, I will have to throw in our draw loop...\n\nvar draw = function() {\n    //All right, no backgrounds today!\n    \n    //Set the frame rate.\n    frameRate(1);\n    \n    //Let the scenes begin!\n    \n    if(slide === 0){\n        strokeWeight(1);\n        background(0, 0, 255);\n        textSize(33);\n        text(\"Ball World Part 6\",50,199);\n    }\n    if(slide === 1){\n            background(0, 0, 255);\n            textSize(33);\n            text(\"Ball World Part 6\",50,199);\n    }\n    if(slide === 2){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,150,150);\n        fill(255);\n        textSize(30);\n        text(\"Papai, please tell me what \\n 8+9 is!\",0,30);\n    }\n    if(slide === 6){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"1 Year Later...\",0,30);\n    }\n    if(slide === 8){\n        background(0, 255,255);\n        fill(124);\n        rect(50,100,300,150);\n        line(50,250,350,250);\n        rect(50,250,300,100);\n        fill(0, 200, 200);\n        rect(75,125,250,100);\n        fill(50);\n        rect(75,250,25,25);\n        rect(125,250,25,25);\n        rect(175,250,25,25);\n        rect(225,250,25,25);\n        rect(275,250,25,25);\n        rect(325,250,25,25);\n        rect(50,275,25,25);\n        rect(100,275,25,25);\n        rect(150,275,25,25);\n        rect(200,275,25,25);\n        rect(250,275,25,25);\n        rect(300,275,25,25);\n        rect(75,300,25,25);\n        rect(125,300,25,25);\n        rect(175,300,25,25);\n        rect(225,300,25,25);\n        rect(275,300,25,25);\n        rect(325,300,25,25);\n        fill(255);\n        textSize(10);\n        text(\"X+10=4X-2\",100,150);\n    }\n    if(slide === 12){\n        background(0,255,255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"This is Easy!\",0,30);\n    }\n    if(slide === 14){\n        background(0, 255, 255);\n        fill(0, 0, 0);\n        ellipse(200,200,25,25);\n        fill(255);\n        textSize(30);\n        text(\"Bzzz! I hate math!!!\",0,30);\n        \n    }\n    if(slide === 16){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"How did I get that one wrong???\",0,30);\n    }\n    if(slide === 19){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(0, 0, 0);\n        ellipse(0,200,25,25);\n    }\n        if(slide === 20){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(0, 0, 0);\n        ellipse(50,200,25,25);\n    }\n            if(slide === 21){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(0, 0, 0);\n        ellipse(75,200,25,25);\n    }\n    if(slide === 22){\n           background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(0, 0, 0);\n        ellipse(50,200,25,25);\n    }\n\n    if(slide === 23){\n           background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(0, 0, 0);\n        ellipse(0,200,25,25);\n    }\n    if(slide === 24){\n           background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"I\'ll get you Fly!!\",0,30);\n    }\n    if(slide === 27){\n        background(0, 255, 255);\n        fill(255, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"I hate flies! Let\'s catch him...\",0,30);\n    }\n    if(slide === 31){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"Later...\",0,30);\n    }\n    if(slide === 32){\n        background(0, 255, 255);\n        fill(255, 0, 0);\n        rect(190,0,20,10);\n        fill(200, 200, 0);\n        rect(180,10,40,75);\n        fill(255, 0, 0);\nnoStroke();\nellipse(222,187+x,135,146);\nellipse(172,187+x,135,146);\nellipse(171,244+x,78,51);\nellipse(221,244+x,78,53);\nfill(79, 105, 0);\nrect(195,98+x,14,27);\nellipse(222,102+x,61,19);\n        }\nif(slide === 33){\n        background(0, 255, 255);\n         strokeWeight(1);\n        fill(255, 0, 0);\n        rect(190,0,20,10);\n        fill(200, 200, 0);\n        rect(180,10,40,75);\n        fill(255, 0, 0);\nnoStroke();\nellipse(222,187+x,135,146);\nellipse(172,187+x,135,146);\nellipse(171,244+x,78,51);\nellipse(221,244+x,78,53);\nfill(79, 105, 0);\nrect(195,98+x,14,27);\nellipse(222,102+x,61,19);  \nfill(0, 0, 0);\nellipse(25,30,20,20);\n\n}\nif(slide === 34){\n        background(0, 255, 255);\n         strokeWeight(1);\n        fill(255, 0, 0);\n        rect(190,0,20,10);\n        fill(200, 200, 0);\n        rect(180,10,40,75);\n        fill(255, 0, 0);\nnoStroke();\nellipse(222,187+x,135,146);\nellipse(172,187+x,135,146);\nellipse(171,244+x,78,51);\nellipse(221,244+x,78,53);\nfill(79, 105, 0);\nrect(195,98+x,14,27);\nellipse(222,102+x,61,19);  \nfill(0, 0, 0);\nellipse(75,30,20,20);\n}\nif(slide === 34){\n        background(0, 255, 255);\n         strokeWeight(1);\n        fill(255, 0, 0);\n        rect(190,0,20,10);\n        fill(200, 200, 0);\n        rect(180,10,40,75);\n        fill(255, 0, 0);\nnoStroke();\nellipse(222,187+x,135,146);\nellipse(172,187+x,135,146);\nellipse(171,244+x,78,51);\nellipse(221,244+x,78,53);\nfill(79, 105, 0);\nrect(195,98+x,14,27);\nellipse(222,102+x,61,19);  \nfill(0, 0, 0);\nellipse(75,30,20,20);\n}\n\nif(slide === 35){\n        background(0, 255, 255);\n         strokeWeight(1);\n        fill(255, 0, 0);\n        rect(190,0,20,10);\n        fill(200, 200, 0);\n        rect(180,10,40,75);\n        fill(255, 0, 0);\nnoStroke();\nellipse(222,187+x,135,146);\nellipse(172,187+x,135,146);\nellipse(171,244+x,78,51);\nellipse(221,244+x,78,53);\nfill(79, 105, 0);\nrect(195,98+x,14,27);\nellipse(222,102+x,61,19);  \nfill(0, 0, 0);\nellipse(125,30,20,20);\n}\nif(slide === 36){\n        background(0, 255, 255);\n         strokeWeight(1);\n        fill(255, 0, 0);\n        rect(190,0,20,10);\n        fill(200, 200, 0);\n        rect(180,10,40,75);\n        fill(255, 0, 0);\nnoStroke();\nellipse(222,187+x,135,146);\nellipse(172,187+x,135,146);\nellipse(171,244+x,78,51);\nellipse(221,244+x,78,53);\nfill(79, 105, 0);\nrect(195,98+x,14,27);\nellipse(222,102+x,61,19);  \nfill(0, 0, 0);\nellipse(190,30,20,20);\nfill(255);\ntextSize(30);\ntext(\"Bzzz! I\'m stuck!\",0,110);\n}\n\nif(slide === 38){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"To Be Continued\",0,30);\n}\nif(slide === 45){\n    slide = slide - 46;\n}\nslide = slide+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

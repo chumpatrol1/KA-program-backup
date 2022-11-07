@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Brotrait </title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Brotrait </h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Brotrait  by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:13:59Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:13:59Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-02-26T19:18:33Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/brotrait/1010688083\nRetrieved On: 07-Nov-2022 (17:07:07.623326)**/\
+";
+
+code = code + "\n//Brotrait \n\n\n\nnoStroke();\n\n//Neck\nfill(240, 203, 130);\nellipse(175,381,100,200);\n\n//Head\nellipse(190,160,300,300);\n\n//Eyes\n//Sclera\nfill(255, 255, 255);\nellipse(135,100, 60, 60);\nellipse(230,100, 60, 60);\n//Iris\nfill(46, 117, 35);\nellipse(135, 100, 30, 30);\nellipse(230, 100, 30, 30);\n//Pupil\nfill(0, 0, 0);\nellipse(135, 100, 15, 15);\nellipse(230, 100, 15, 15);\n//Reflection\nfill(255, 255, 255);\nellipse(141, 93, 5, 5);\nellipse(235, 92, 5, 5);\n\n//Nose\nstrokeWeight(5);\nfill(0, 0, 0);\n//Center\nellipse(175,177,3,3);\n//Left Half (Step By Step)\n//Down Left (4)\nellipse(174,178,3,3);\nellipse(173,179,3,3);\nellipse(172,180,3,3);\nellipse(171,181,3,3);\n//Up Left (6)\nellipse(170,180,3,3);\nellipse(169,179,3,3);\nellipse(168,178,3,3);\nellipse(167,177,3,3);\nellipse(166,176,3,3);\nellipse(165,175,3,3);\n//Up (4)\nellipse(165,174,3,3);\nellipse(165,173,3,3);\nellipse(165,172,3,3);\nellipse(165,171,3,3);\n//Up Right (3)\nellipse(165,170,3,3);\nellipse(166,169,3,3);\nellipse(167,168,3,3);\n//Up (7)\nellipse(167,167,3,3);\nellipse(167,166,3,3);\nellipse(167,165,3,3);\nellipse(167,164,3,3);\nellipse(167,163,3,3);\nellipse(167,162,3,3);\nellipse(167,161,3,3);\n//Up Left (3)\nellipse(167,160,3,3);\nellipse(166,159,3,3);\nellipse(165,158,3,3);\n//Up (1)\nellipse(165,157,3,3);\n\n\n//Right Half (Step By Step)\n//Down Right (4)\nellipse(176,178,3,3);\nellipse(177,179,3,3);\nellipse(178,180,3,3);\nellipse(179,181,3,3);\n//Up Right (6)\nellipse(180,180,3,3);\nellipse(181,179,3,3);\nellipse(182,178,3,3);\nellipse(183,177,3,3);\nellipse(184,176,3,3);\nellipse(185,175,3,3);\n//Up (4)\nellipse(185,174,3,3);\nellipse(185,173,3,3);\nellipse(185,172,3,3);\nellipse(185,172,3,3);\n//Up Left (3)\nellipse(185,171,3,3);\nellipse(184,170,3,3);\nellipse(183,169,3,3);\n//Up (7)\nellipse(183,168,3,3);\nellipse(183,167,3,3);\nellipse(183,166,3,3);\nellipse(183,165,3,3);\nellipse(183,164,3,3);\nellipse(183,163,3,3);\nellipse(183,162,3,3);\n//Up Right (3)\nellipse(183,161,3,3);\nellipse(184,160,3,3);\nellipse(185,159,3,3);\n//Up (1)\nellipse(185,158,3,3);\n//Nostrils\nstrokeWeight(5);\nellipse(171,173,7,7);\nellipse(179,173,7,7);\n\n//Mouth\nnoStroke();\nfill(255, 0, 0);\nellipse(175,230,50,50);\n\n//Shirt\n//Collar\nstrokeWeight(1);\nfill(136, 255, 0);\nrect(110,320,150,10);\n//Other Part\nfill(0, 255, 0);\nrect(-95,330,500,70);\n\n//Hair\nfill(255, 183, 0);\nrect(203,0,50,50);\nrect(153,0,50,50);\nrect(103,0,50,50);\nrect(53,11,50,50);\nrect(253,11,50,50);\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

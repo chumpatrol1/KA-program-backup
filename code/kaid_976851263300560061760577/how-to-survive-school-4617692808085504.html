@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>How to Survive School</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>How to Survive School</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**How to Survive School by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-04-23T11:15:36Z by kaid_976851263300560061760577\nLast Edited: 2015-04-23T11:15:36Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2015-05-13T20:58:59Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/how-to-survive-school/4617692808085504\nRetrieved On: 07-Nov-2022 (17:06:59.465639)**/\
+";
+
+code = code + "\n<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"utf-8\">\n        <title>How to Survive School</title>\n        <h1>How to Survive School: By David Elijah de Siqueira Campos McLaughlin</h1>\n        <h2>Introduction</h2>\n        <p>Welcome to school, a fabulous place (hopefully) to learn and grow. But sometimes, that just doesn\'t happen. To get through some tough school situations, just remember these 4 pillars: Be Efficent, Be Polite, Don\'t Talk Politics and Public Tips. If you know and commit to keeping these pillars, you will oftentimes have a great day at school.</p>\n        <h2>Pillar 1: Be Efficent</h2>\n        <p>When at school, this is an important pillar to get good grades. First rule of Pillar 1: If you have time to check your classwork, check it. If you make a mistake and check it over, you are infinitely more likely to catch it than if you instantly open an unrelated novel. This almost guarentees a better grade. Rule 2: Don\'t forget your homework! Each day an assignment is late, you will oftentimes lose points, lowering your grade.</p>\n        <h2>Pillar 2: Be Polite</h2>\n        <p>This is of utmost importance. All the time, you may see people chew gum and stick it under seats,  or throw paper in the hall, or simply be rude to others. This pillar can set you apart from other people, and make you more likeable. First and foremost, use your manners. Please and Thank you are good starts, but remember to use other polite sayings. For example, a subsitute teacher in our class was not liked by the students for no apparent reason. So, I thanked the teacher instead of complaining. Remember: Kindness is key!</p>\n        <h2>Pillar 3: Don\'t Talk Politics</h2>\n        <p>This is one of the fuzziest pillars. My definition of politics is: Religion, Political, and Extremely Controversial subjects. This counts the most when online, as this can never be removed and it contributes to your Digital Footprint. Certain acts online may contribute positively or negatively to your footprint, but \"politics\" almost always contribute negatively. As talking in real life doesn\'t have too much effect on your footprint, you may have more freedom  to speak \"politics\".</p>\n    <h2>Pillar 4: Public Tips</h2>\n    <p>Welcome to Public Tips, where the community can contribute to the pillars! Feel free to comment below or make a spinoff with your own pillars!</p>\n        \n    </head>\n    <body>\n\n\n    </body>\n</html>";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

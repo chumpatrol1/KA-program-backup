@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Reading (Please Do Under Parental Supervision!)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reading (Please Do Under Parental Supervision!)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Reading (Please Do Under Parental Supervision!) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-14T02:19:25Z by kaid_976851263300560061760577\nLast Edited: 2013-01-14T02:19:25Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-17T18:30:00Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/reading-please-do-under-parental-supervision/1290062456\nRetrieved On: 07-Nov-2022 (17:07:29.623102)**/\
+";
+
+code = code + "\n//Let\'s start with the pages (Please don\'t touch)\nvar splash = true;\n//The Map\nvar readA1A = false;\n//The Lessons\nvar lessonA1A = false;\nvar lessonA1B = false;\nvar lessonA1C = false;\nvar lessonA1D = false;\nvar lessonA2A = false;\nvar lessonA2B = false;\nvar lessonA2C = false;\nvar lessonA2D = false;\n\n//Is the lesson failed, completed or unstarted?\nvar lessonA1 = true;\nvar lessonA2 = false;\nvar lessonA3 = false;\n\n//All The Images Used in Game (You can change for child\'s desires)\nvar readerImage = getImage(\"avatars/leaf-green\");\nvar rock = getImage(\"cute/Rock\");\nvar gem = getImage(\"cute/GemOrange\");\n\nvar draw = function() {\n    if(splash){\n        background(255);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Reading Program\",85,30);\n        rect(100,100,200,50);\n        rect(100,200,200,50);\n        fill(255);\n        text(\"Read!\",160,135);\n        text(\"Credits\",150,235);\n        image(readerImage,50,250);\n        image(readerImage,150,250);\n        image(readerImage,250,250);\n        if(mouseX>100&&mouseX<300&&mouseY>100&&mouseY<150){\n            if(!mouseIsPressed){\n                fill(100);\n                rect(100,100,200,50);\n                fill(255);\n                text(\"Read!\",160,135);\n            }\n            if(mouseIsPressed){\n                splash = false;\n                readA1A = true;\n            }\n        }\n    }\n    \n    if(readA1A){\n        background(255);\n        line(170,50,170,200);\n        image(readerImage,130,0,100,100);\n        image(rock,130,120,100,150);\n        \n        fill(0,0,0);text(\"Unit 1,Lesson 1\",0,30);\n        if(keyPressed&&keyCode === 32){\n            readA1A = false;\n            lessonA1A = true;\n        }\n    }\n    if(lessonA1A){\n        background(255);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Unit 1, Lesson 1\",0,30);\n        text(\"Words with 3 Letters\",0,100);\n        textSize(20);\n        text(\"Dog\\nCat\\nBag\\nPig\\nRat\",0,130);\n        textSize(25);\n        text(\"Question 1:\",0,270);\n        text(\"Which word does not belong?\",0,300);\n        text(\"Pig\",0,350);\n        text(\"Dog\",100,350);\n        text(\"Bag\",200,350);\n        if(mouseX>0&&mouseX<50&&mouseY>340&&mouseY<380){\n            if(mouseIsPressed){\n                lessonA1A = false;\n                lessonA1B = true;\n            }\n        }\n        if(mouseX>100&&mouseX<150&&mouseY>340&&mouseY<380){\n            if(mouseIsPressed){\n                lessonA1A = false;\n                lessonA1C = true;\n            }\n        }\n        if(mouseX>200&&mouseX<250&&mouseY>340&&mouseY<380){\n            if(mouseIsPressed){\n                lessonA1A = false;\n                lessonA1D = true;\n            }\n        }\n    }\n    if(lessonA1B){\n              background(255);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Unit 1, Lesson 1\",0,30);\n        text(\"Words with 3 Letters\",0,100);\n        textSize(20);\n        text(\"Dog\\nCat\\nBag\\nPig\\nRat\",0,130);\n        textSize(25);\n        text(\"Question 1:\",0,270);\n        text(\"Which word does not belong?\",0,300);\n        fill(255, 0, 0);\n        text(\"Pig\",0,350);\n        fill(0, 0, 0);\n        text(\"Dog\",100,350);\n        text(\"Bag\",200,350);\n        text(\"Press \'A\' to Continue\",0,370);\n        if(keyPressed&&keyCode === 64){\n            lessonA1B = false;\n            lessonA2A = true;\n            lessonA3 = true;\n        }\n    }\n    if(lessonA1C){\n           background(255);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Unit 1, Lesson 1\",0,30);\n        text(\"Words with 3 Letters\",0,100);\n        textSize(20);\n        text(\"Dog\\nCat\\nBag\\nPig\\nRat\",0,130);\n        textSize(25);\n        text(\"Question 1:\",0,270);\n        text(\"Which word does not belong?\",0,300);\n        text(\"Pig\",0,350);\n        fill(255, 0, 0);\n        text(\"Dog\",100,350);\n        fill(0, 0, 0);\n        text(\"Bag\",200,350);\n        text(\"Press \'B\' to Continue\",0,370);\n        if(keyPressed&&keyCode===66){\n            lessonA1C = false;\n            lessonA2A = true;\n            lessonA3 = true;\n        }\n    }\n    if(lessonA1D){\n        background(255);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Unit 1, Lesson 1\",0,30);\n        text(\"Words with 3 Letters\",0,100);\n        textSize(20);\n        text(\"Dog\\nCat\\nBag\\nPig\\nRat\",0,130);\n        textSize(25);\n        text(\"Question 1:\",0,270);\n        text(\"Which word does not belong?\",0,300);\n        text(\"Pig\",0,350);\n        text(\"Dog\",100,350);\n        fill(0, 255, 0);\n        text(\"Bag\",200,350);\n        fill(0, 0, 0);\n        text(\"Press \'C\' to Continue\",0,370);\n        if(keyPressed&&keyCode === 67){\n            lessonA1D = false;\n            lessonA2A = true;\n            lessonA2 = true;\n        }\n    }\n    if(lessonA2A){\n         background(255);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Unit 1, Lesson 1\",0,30);\n        text(\"Words with 3 Letters\",0,100);\n        textSize(20);\n        text(\"Dog\\nCat\\nBag\\nPig\\nRat\",0,130);\n        textSize(25);\n        text(\"Question 2:\",0,270);\n        text(\"Fill the blank: The __ chews bones.\",0,300);\n        textSize(20);\n        text(\"Bag\",0,350);\n        text(\"Dog\",100,350);\n        text(\"Rat\",200,350);\n        \n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>SRL 3</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>SRL 3</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**SRL 3 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:11:15Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:11:15Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-09-04T11:15:37Z from origin 1017426025 with similarity of 0.8976520168573149\nOriginal Link: https://www.khanacademy.org/computer-programming/srl-3/1020408601\nRetrieved On: 07-Nov-2022 (17:07:09.769468)**/\
+";
+
+code = code + "\n// The slither to draw\nvar slither = \"SLLRRLLRRLLRRLLRRLLRRLLRRSSRRLLRRLLRRLLRRLLRRLLRRLLSSLLRRLLRRLLRRLLRRLLRRLLRRSSRRLLRRLLRRLLRRLLRRLLRRLLSSLLRRLLRRLLRRLLRRLLRRLLRRSSRRLLRRLLRRLLRRLLRRLLRRLLSSLLRRLLRRLLRRLLRRLLRRLLRRSSS\";\n\n// The starting direction of the snake\nvar direction = \"south\";\n\n// How far the snake travels in each step\nvar stepSize = 30;\n\n// The position of the snake\nvar x = 20;\nvar y = 400;\n\nstrokeWeight(11);\nstroke(255, 0, 0);\nbackground(0, 0, 0);\n\nfor (var i = 0; i < slither.length; i += 1) {\n    var bend = slither[i];\n    if (bend === \"R\") {\n        if (direction === \"north\") {\n            direction = \"east\";\n        } else if (direction === \"east\") {\n            direction = \"south\";\n        } else if (direction === \"south\") {\n            direction = \"west\";\n        } else if (direction === \"west\") {\n            direction = \"north\";\n        }\n    } else if (bend === \"L\") {\n        if (direction === \"north\") {\n            direction = \"west\";\n        } else if (direction === \"east\") {\n            direction = \"north\";\n        } else if (direction === \"south\") {\n            direction = \"east\";\n        } else if (direction === \"west\") {\n            direction = \"south\";\n        }\n    }\n\n    var nextX = x;\n    var nextY = y;\n    if (direction === \"north\") {\n        stroke(33, 255, 13);\n        nextY += stepSize;\n    } else if (direction === \"east\") {\n        stroke(91, 15, 255);\n        nextX += stepSize;\n    } else if (direction === \"south\") {\n        stroke(255, 191, 0);\n        nextY -= stepSize;\n    } else if (direction === \"west\") {\n        stroke(255, 15, 15);\n        nextX -= stepSize;\n    }\n\n    line(x, y, nextX, nextY);\n    x = nextX;\n    y = nextY;\n}\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

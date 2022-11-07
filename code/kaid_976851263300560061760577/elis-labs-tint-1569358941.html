@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Eli's Labs: Tint</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eli's Labs: Tint</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Eli's Labs: Tint by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-04-21T13:12:14Z by kaid_976851263300560061760577\nLast Edited: 2013-04-21T13:12:14Z\nVotes/Spinoffs: 2/1\nOriginally Created: 2013-04-21T13:52:03Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/elis-labs-tint/1569358941\nRetrieved On: 07-Nov-2022 (17:06:57.910415)**/\
+";
+
+code = code + "\n// Load original image\n\nvar originalImage = getImage(\"cute/CharacterPinkGirl\");\n\nvar originalImage2 = getImage(\"cute/CharacterPrincessGirl\");\n\nvar originalImage3 = getImage(\"avatars/leaf-red\");\n\n// Create graphics object that will be our new image\n\nvar imageGfx = createGraphics(originalImage.width, originalImage.height, JAVA2D);\n\nvar imageGfx2 = createGraphics(originalImage2.width, originalImage2.height, JAVA2D);\n\nvar imageGfx3 = createGraphics(originalImage3.width, originalImage3.height, JAVA2D);\n\n// Begin drawing to the graphics object\n\nimageGfx.beginDraw();\n\n// Make the background transparent\n\nimageGfx.background(255, 0);\n\nimageGfx.fill(255, 0);\n\n// Draw the image to the graphics\n\nimageGfx.image(originalImage, 0, 0);\n\nimageGfx.endDraw();\n\n\n\n//Image 2\n\nimageGfx2.beginDraw();\n\nimageGfx2.background(255, 0);\n\nimageGfx2.fill(255, 0);\n\nimageGfx2.image(originalImage2,0,0);\n\nimageGfx2.endDraw();\n\n//Thing 3\nimageGfx.beginDraw();\n\n// Make the background transparent\n\nimageGfx3.background(255, 0);\n\nimageGfx3.fill(255, 0);\n\n// Draw the image to the graphics\n\nimageGfx3.image(originalImage3, 0, 0);\n\nimageGfx.endDraw();\n\nvar draw = function(){\n\nbackground(255);\n\n\t\n\n\t// First Person\n\n\tvar rgColor = 100;\n\n\t\n\n\t// Apply the tint (right now we make the img look more blue)\n\n\t// tint takes (red, green, blue, alpha) values, all [0, 255]\n\n\ttint(rgColor, rgColor, 255, 255);\n\n\t\n\n\t// Draw the image the way you normally would\n\n\timage(imageGfx, 0, 0);\ntint(255,124,255,255);\n    image(imageGfx2,100,0);\ntint(255,124,255,100);\nimage(imageGfx3,200,50);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

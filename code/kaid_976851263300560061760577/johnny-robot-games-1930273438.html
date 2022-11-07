@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Johnny Robot Games</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Johnny Robot Games</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Johnny Robot Games by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-30T17:21:39Z by kaid_976851263300560061760577\nLast Edited: 2013-08-30T17:21:39Z\nVotes/Spinoffs: 3/2\nOriginally Created: 2013-12-21T00:46:46Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/johnny-robot-games/1930273438\nRetrieved On: 07-Nov-2022 (17:06:50.351501)**/\
+";
+
+code = code + "\n\nvar johnny = getImage(\"avatars/robot_male_1\");\nvar area = \"Main Page\";\nvar draw = function() {\nif(area===\"Main Page\"){\n    background(0, 0, 0);\n image(johnny,0,0,100,100);\nfill(255);\ntextSize(30);\ntext(\"Johnny Robot Games\",100,30);\ntextSize(20);\ntext(\"Welcome to Johnny Robot Games! We are\\na small group of game creators who are\\nmaking great games. Click the buttons\\nbelow  to see the page!\\n-David Elijah McLaughlin and Johnny Robot\",0,120);\nfill(124);\nrect(50,225,100,50);\n\nrect(250,225,100,50);\nrect(50,300,100,50);\nrect(250,300,100,50);\nfill(255);\ntext(\"Games\",65,255);\ntext(\"Members\",260,255);\nif(mouseX>=50&&mouseX<=150&&mouseY>=225&&mouseY<=275){\n    if(!mouseIsPressed){\n        fill(200);\n        rect(50,225,100,50);\n        fill(255);\ntext(\"Games\",65,255);\n    }\n    if(mouseIsPressed){\n        area=\"Games\";\n    }\n}\nif(mouseX>=250&&mouseX<=350&&mouseY>=225&&mouseY<=275){\n    if(!mouseIsPressed){\n        fill(200);\n        rect(250,225,100,50);\n        fill(255);\ntext(\"Members\",260,255);\n    }\n    if(mouseIsPressed){\n        area=\"Members Main\";\n    }\n}\n}\nif(area===\"Games\"){\n       background(0, 0, 0);\n image(johnny,0,0,100,100);\n    fill(255);\n    textSize(20);\ntext(\"Finished Games Amount: 1\\nWIPs: 3-5\\nIdeas (Seen Below): 2\\n\\nIdea 1: Military Quest: Help E,Z and Y\\naccomplish missions by driving a car, shooting\\nplanes and deactivating underwater mines.\\n\\nIdea 2: MineQuest: As an unskilled city folk\\nwith an ordinary job, you have no skill other \\nthan exchanging ores for rare items. Some\\nhostile creatures invade the world, and you\\nare the only one to stop the invasion!\",0,120); \nfill(124);\nrect(200,5,100,50);\nfill(255);\ntextSize(20);\ntext(\"Main Page\",203,35);\nif(mouseX>=200&&mouseX<=300&&mouseY>=5&&mouseY<=55){\n    if(!mouseIsPressed){\n     fill(200);\nrect(200,5,100,50);\nfill(255);\ntextSize(20);\ntext(\"Main Page\",203,35);   \n    }\n    if(mouseIsPressed){\n        area=\"Main Page\";\n    }\n}\n}\nif(area===\"Members Main\"){\n    background(0, 0, 0);\n     image(johnny,0,0,100,100);\nfill(255);\ntextSize(30);\ntext(\"Johnny Robot Games\",100,30);\nfill(124);\nrect(50,100,100,50);\nfill(255);\ntextSize(20);\ntext(\"Main Page\",53,130);\nfill(124);\nrect(250,100,100,50);\nfill(255);\ntextSize(20);\ntext(\"Leader\",270,130);\nif(mouseX>=50&&mouseX<=150&&mouseY>=100&&mouseY<=150){\n    if(!mouseIsPressed){\n        fill(200);\nrect(50,100,100,50);\nfill(255);\ntextSize(20);\ntext(\"Main Page\",53,130);\n    }\n    if(mouseIsPressed){\n        area = \"Main Page\";\n    }\n}\nif(mouseX>=250&&mouseX<=350&&mouseY>=100&&mouseY<=150){\n       if(!mouseIsPressed){\n        fill(200);\nrect(250,100,100,50);\nfill(255);\ntextSize(20);\ntext(\"Leader\",270,130);\n    }\n    if(mouseIsPressed){\n        area = \"Leader\";\n    } \n}\n}\nif(area===\"Leader\"){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"David Elijah de \\nSiqueira Campos \\nMcLaughlin\",100,30);\n    image(getImage(\"avatars/leaf-blue\"),0,0,100,100);\n    textSize(20);\n    text(\"Bio: I am a boy who lives in East Hampton,\\nConnecticut in the subdivision of \'\'Cobalt\'\',\\nwhich is a lot smaller than the whole district.\\nI am homeschooled and very proud of it,\\nand I have 2 siblings named Zion (5 1/2 yrs\\nyounger) and Yael (6 1/2 yrs younger).\\nI love chess and play it with Zion and also on\\nchess.com!\\nGood At: Leading, Images, Pages, and other\",0,130);\n    fill(124);\n    rect(10,325,100,50);\n    fill(255);\n    text(\"Members \\n   Main\",20,345);\n    if(mouseX>=10&&mouseX<=110&&mouseY>=325&&mouseY<=375){\n        if(!mouseIsPressed){\n          fill(200);\n    rect(10,325,100,50);\n    fill(255);\n    text(\"Members \\n   Main\",20,345);  \n        }\n        if(mouseIsPressed){\n        area=\"Members Main\";\n        }\n    }\n}\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

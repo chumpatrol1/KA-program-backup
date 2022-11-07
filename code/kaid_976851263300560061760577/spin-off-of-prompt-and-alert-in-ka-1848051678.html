@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Spin-off of "Prompt and Alert In KA"</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spin-off of "Prompt and Alert In KA"</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Spin-off of "Prompt and Alert In KA" by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-07-31T13:20:04Z by kaid_976851263300560061760577\nLast Edited: 2013-07-31T13:20:04Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-07-31T13:20:04Z from origin 1847060917 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/spin-off-of-prompt-and-alert-in-ka/1848051678\nRetrieved On: 07-Nov-2022 (17:07:42.528196)**/\
+";
+
+code = code + "\ndraw = function() {\nbackground(0, 0, 0);\nfill(200, 100, 100);\ntextSize(17);\ntext(\"      If you want to see something you\'ve never \\n seen before on Khan Academy, click the button!\\n   This is using Javascript commands in KA, and \\nthanks to Robert.B.Lyon and Croecxo for helping \\nme.  Please vote up or spin-off if this is neat!  And,\\n I you want to make your own prompt, check out \\n             the code for how to do it yourself!\",15,30);\nfill(123, 123, 123);\nstroke(200, 200, 100);\nstrokeWeight(2);\nrect(130,190,130,50,2);\nfill(0);\ntextSize(20);\ntext(\"START!\",163,225);\nif (mouseX>130&&mouseX<260&&mouseY>190&&mouseY<240) {\n    fill(161, 161, 161);\n    rect(130,190,130,50,2);\n    fill(0, 0, 0);\n    text(\"START!\",163,225);\n    mouseClicked = function() {\nvar canvas = this.externals.canvas;\nvar od = \"ownerDocument\";\nvar Name = canvas[od].defaultView.prompt(\"What is your name?\",\"Type your name here\");\nvar Age = canvas[od].defaultView.prompt(\"What is your age?\",\"Type your age here\");\ntextSize(20);\nfill(0, 0, 0);\n\nvar alert = ( function() {\n    return this.alert.bind();\n    }());\n    alert(\"Hello, I\'m Mistriman.  Your name is \" + Name + \" and your age is \" + Age + \". I can read your mind.  :D\");\n};\n}\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

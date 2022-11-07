@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Undercover Tutor</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Undercover Tutor</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Undercover Tutor by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-08-01T15:09:56Z by kaid_976851263300560061760577\nLast Edited: 2013-08-01T15:09:56Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-08-07T17:01:48Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/undercover-tutor/1850437398\nRetrieved On: 07-Nov-2022 (17:07:42.739784)**/\
+";
+
+code = code + "\n//This is going to be a game soon!\n//My goal: You and your best friend are going to have an exam in an hour, and the teacher is speaking too fast for your friend to understand. Your goal is to press the key to fill your friend\'s Khan Meter and teach him. Don\'t let the teacher see you, otherwise you\'ll get sent to the principal (and Lose)\n\n//My Progress: Animation Finished!\nvar gameState = \"Intro\";\nvar slide = 1;\nvar JohnnyRobot = getImage(\"avatars/robot_male_1\");\nvar a = -100;\nvar b = 300;\nvar c = 0;\nvar draw = function() {\n    if(gameState===\"Intro\"){\n        if(slide === 1){\n            background(50);\n            if(a<1){\n             image(JohnnyRobot,0,250,150,150); \n             fill(0, 0, 0);\n             rect(0+25,250,125,25);\n             rect(0+25,290,125,100);\n             rect(0+25,250,25,100);\n             rect(100+25,250,25,100);\n             fill(255);\n             textSize(50);\n             text(\"!\",75,250);\n            }\n            if(a>0){\n             image(JohnnyRobot,a,250,150,150); \n             fill(0, 0, 0);\n             rect(a+25,250,125,25);\n             rect(a+25,290,125,100);\n             rect(a+25,250,25,100);\n             rect(a+125,250,25,100);\n            }\n            fill(255, 124, 0);\n            ellipse(350,350,100,100);\n            fill(255);\n            textSize(50);\n            text(\"?\",325,300);\n            if(a>100){\n                slide = 2;\n            }\n            a+=1;\n        }\n        if(slide === 2){\n            if(b>200){\n               strokeWeight(1);\n            stroke(0, 0, 0);\n            background(50);\n            line(200,400,200,150);\n            line(200,200,100,300);\n            line(200,200,300,300);\n            fill(255);\n            ellipse(200,100,100,100);\n            noStroke();\n            fill(255, 0, 0);\n            ellipse(180,75,15,15);\n            ellipse(220,75,15,15);\n            strokeWeight(1);\n            stroke(0, 0, 0);\n            bezier(175,100,190,120,210,120,225,100); \n            fill(255);\n            textSize(30);\n            text(\"Good Morning Class!\",0,30);\n            }\n            if(b<201){\n                strokeWeight(1);\n            stroke(0, 0, 0);\n            background(50);\n            line(200,400,200,150);\n            line(200,200,100,300);\n            line(200,200,300,300);\n            fill(255);\n            ellipse(200,100,100,100);\n            textSize(30);\n            text(\"Bla bla bla bla bla bla bla bla\\n bla bla  bla           bla bla\\n\\n    bla Bla\\nbla blabbity         blob blibbity\\n blabbity bla\\n      bloop bla bla bla  blo\\nbla bla bla       bloop bleep\\n bla bla bla...\",0,30);\n            }\n            b-=1;\n            if(b<1){\n                slide = 3;\n            }\n        }\n        if(slide === 3){\n            background(50);\n        stroke(0, 0, 0);\n            strokeWeight(1);\n             image(JohnnyRobot,a,250,150,150); \n             fill(0, 0, 0);\n             rect(a+25,250,125,25);\n             rect(a+25,290,125,100);\n             rect(a+25,250,25,100);\n             rect(a+125,250,25,100);\n            fill(255, 124, 0);\n            ellipse(350,350,100,100);\n            fill(255);\n            textSize(50);\n            text(\"?\",325,300);\n            stroke(255);\n            strokeWeight(10);\n            noFill();\n            rect(15,15,210,50);\n            noStroke();\n            fill(0, 255, 0);\n            rect(20,20,c,40);\n            textSize(30);\n            text(\"Khan Meter\",50,100);\n            if(c===200){\n                slide = 4;\n            }\n            c+=1;\n        }\n        if(slide === 4){\n            background(50);\n            stroke(0, 0, 0);\n            strokeWeight(1);\n             image(JohnnyRobot,a,250,150,150); \n             fill(0, 0, 0);\n             rect(a+25,250,125,25);\n             rect(a+25,290,125,100);\n             rect(a+25,250,25,100);\n             rect(a+125,250,25,100);\n            fill(255, 124, 0);\n            ellipse(350,350,100,100);\n            fill(255);\n            textSize(30);\n            text(\"Thanks!\",290,300);\n            stroke(255);\n            strokeWeight(10);\n            noFill();\n            rect(15,15,210,50);\n            noStroke();\n            fill(0, 255, 0);\n            rect(20,20,c,40);\n            textSize(30);\n            text(\"Khan Meter\",50,100);\n            if(a<-150){\n                gameState = \"Splash Screen\";\n            }\n            a-=1;\n        }\n    }\n    if(gameState === \"Splash Screen\"){\n        background(50);\n        fill(255);\n        textSize(50);\n        text(\"Undercover Tutor\",0,50);\n        fill(124);\n        rect(100,100,200,50);\n        rect(100,200,200,50);\n        rect(100,300,200,50);\n        fill(255);\n        textSize(45);\n        text(\"Play\",150,140);\n        textSize(37);\n        text(\"How to Play\",100,240);\n        if(mouseX>100&&mouseX<300&&mouseY>200&&mouseY<250){\n            if(mouseIsPressed){\n               gameState = \"How To 1\"; \n            }\n        }\n    }\n    if(gameState === \"How To 1\"){\n        background(50);\n        fill(255);\n        textSize(70);\n        text(\"How to Play\",10,60);\n        textSize(30);\n        text(\"You and your best friend are\\ngoing to have an exam in an\\nhour. The teacher is speaking\\nway too fast, so now your \\nfriend is in trouble! Press next\\nto continue.\",0,100);\n        fill(124);\n        rect(300,350,100,50);\n        textSize(30);\n        fill(255);\n        text(\"Next\",320,385);\n        if(mouseX>300&&mouseX<400&&mouseY>350){\n            if(!mouseIsPressed){\n               fill(200);\n        rect(300,350,100,50);\n        textSize(30);\n        fill(255);\n        text(\"Next\",320,385); \n            }\n            if(mouseIsPressed){\n                gameState = \"How To 2\";\n            }\n        }\n    }\n    if(gameState === \"How To 2\"){\n        background(50);\n        background(50);\n        fill(255);\n        textSize(70);\n        text(\"How to Play\",10,60);\n        textSize(30);\n        text(\"Press the key in the ellipse \\nover\",0,100);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Giant maze</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Giant maze</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Giant maze by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-03T00:59:05Z by kaid_976851263300560061760577\nLast Edited: 2013-03-03T00:59:05Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2013-03-03T01:32:53Z from origin 1312458218 with similarity of 0.997836730046681\nOriginal Link: https://www.khanacademy.org/computer-programming/giant-maze/1427195293\nRetrieved On: 07-Nov-2022 (17:07:35.999280)**/\
+";
+
+code = code + "\nvar displayDebugInfo = !true;\nvar debugOutput = function(t){\n    if(displayDebugInfo){\n        textSize(100);\n        text(t,0,400);\n    }\n};\nvar maze = [//0=wall,1=dot,2=chompy,3=ghost\n    [0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],\n    [1,1,3,3,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1,1,3],\n    [1,1,3,3,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0],\n    [0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,0],\n    [0,0,0,0,0,1,0,0,0,0,1,1,1,1,1,0,1,0,1,1,1,0],\n    [0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0],\n    [0,0,0,0,0,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,1,0],\n    [0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0],\n    [0,3,3,4,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,0],\n    [0,3,3,3,0,1,1,1,1,0,0,0,0,1,1,1,1,1,1,1,0,0],\n    [0,1,1,3,0,0,0,0,1,1,1,1,1,0,0,3,0,0,0,0,0,0],\n    [0,1,1,3,0,0,4,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0],\n    [0,1,1,1,0,0,3,1,1,0,4,0,1,0,0,1,1,1,1,1,0,0],\n    [0,0,1,0,0,0,0,0,1,0,3,0,1,0,0,0,1,0,0,1,0,0],\n    [1,1,1,1,1,1,0,0,1,0,1,1,1,0,0,0,1,0,0,1,0,1],\n    [0,0,0,0,0,1,0,1,1,1,0,0,0,0,0,0,1,0,1,1,1,1],\n    [0,2,1,1,0,1,0,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0],\n    [0,1,1,1,0,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,1,1],\n    [0,4,1,1,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0,1],\n    [0,0,0,1,0,1,0,0,1,0,4,0,0,1,0,0,1,0,0,1,0,1],\n    [4,0,0,1,1,1,1,1,1,0,3,0,0,1,1,1,1,1,1,1,0,1],\n    [3,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1]];\nvar ghostImage = getImage(\"avatars/orange-juice-squid\");\nvar star = getImage(\"cute/ChestClosed\");\n\nvar compass = {\n    opp:function(d){\n        var r;\n        switch(d.s){\n            case \"n\":\n                r = this.s;\n                break;\n            case \"s\":\n                r = this.n;\n                break;\n            case \"e\":\n                r = this.w;\n                break;\n            case \"w\":\n                r = this.e;\n                break;\n        }\n        return r;\n    },\n    n:{x:0,y:-1,s:\"n\"},\n    s:{x:0,y:1,s:\"s\"},\n    e:{x:1,y:0,s:\"e\"},\n    w:{x:-1,y:0,s:\"w\"}\n};\n\nvar makeSpace = function(xCo,yCo,value){\n    return{\n        x:xCo,\n        y:yCo,\n        val:value,\n        adj:function(dir){\n            var x = xCo;\n            var y = yCo;\n            x = x % maze.length;\n            y = y % maze.length;\n            if(x<0){\n                x+=maze.length;\n            }\n            if(y<0){\n                y+=maze.length;\n            }\n            return maze[y][x];\n        }\n    };\n};\nvar makeSprite = function(xCo,yCo,direction){\n    return{\n        x:xCo,\n        y:yCo,\n        d:direction\n    };\n};\nvar you = makeSprite(0,0,compass.e),\n    ghosts = [];\nfor(var y = 0;y < maze.length;y++){\n    for(var x = 0;x < maze.length;x++){\n        maze[y][x] = makeSpace(x,y,maze[y][x]);\n        if(maze[y][x].val === 2){\n            you.x = x;\n            you.y = y;\n        }\n        if(maze[y][x].val === 3){\n            maze[y][x].val = 1;\n            ghosts.push(makeSprite(x,y,compass.e));\n        }\n    }\n}\n\nvar tileSize = 400/maze.length;\n//var currentMove = \"e\";\nvar moving = true;\n\nvar getSpot = function(x,y){//find spot in maze with \n                            //wrap around\n    x = round(x);\n    var y1 = round(y);\n    x = x % maze.length;\n    y1 = y1 % maze.length;\n    if(x<0){\n        x+=maze.length;\n    }\n    if(y1<0){\n        y1+=maze.length;\n    }\n    return maze[y1][x].val;\n};\n\n\nvar lastOrder = compass.e;\nvar keyPressed = function(){\n    moving = true;\n    if(keyCode === UP){\n        lastOrder = compass.n;\n    }else if(keyCode === DOWN){\n        lastOrder = compass.s;\n    }else if(keyCode === RIGHT){\n        lastOrder = compass.e;\n    }else if(keyCode === LEFT){\n        lastOrder = compass.w;\n    }\n};\n\nvar isOpen = function(sprite,dir){\n    var x = round(sprite.x);\n    var y = round(sprite.y);\n    x += dir.x;\n    y += dir.y;\n    if(getSpot(x,y) === 0){\n        return false;\n    }\n    return true;\n};\n\nvar moveSprite = function(sprite){\n    sprite.x += sprite.d.x/10;\n    sprite.y += sprite.d.y/10;\n    return sprite;\n};\n\nvar invincibleTime = 0;\n\nvar moveChomp = function(){\n    if(you.x>maze.length){\n        you.x-=maze.length;\n    }if(you.x<0){\n        you.x+=maze.length;\n    }if(you.y>maze.length){\n        you.y-=maze.length;\n    }if(you.y<0){\n        you.y+=maze.length;\n    }\n    if((you.x+you.y)%1 < 0.05||(you.x+you.y)%1 > 0.95){\n        \n        you.x = round(you.x);\n        you.y = round(you.y);\n        if(getSpot(you.x,you.y) === 1){\n            maze[you.y%maze.length][you.x%maze.length] = 2;\n        }\n        if(getSpot(you.x,you.y) === 4){\n             maze[you.y%maze.length][you.x%maze.length] = 2;\n             invincibleTime = 300;\n             ghostImage = getImage(\"avatars/purple-pi\");\n        }\n        if(isOpen(you,lastOrder)){\n            you.d = lastOrder;\n        }else if(isOpen(you,you.d)){\n            \n        }else{\n            moving = false;\n        }\n    }\n    if (moving){\n        you = moveSprite(you);\n    }\n};\n\nvar moveGhost = function(ghost){\n    if(ghost.x>maze.length){\n        ghost.x-=maze.length;\n    }if(ghost.x<0){\n        ghost.x+=maze.length;\n    }if(ghost.y>maze.length){\n        ghost.y-=maze.length;\n    }if(ghost.y<0){\n        ghost.y+=maze.length;\n    }\n    if((ghost.x + ghost.y) % 1 < 0.05 ||\n                (ghost.x + ghost.y) % 1 > 0.95){\n        ghost.x = round(ghost.x);\n        ghost.y = round(ghost.y);\n        var startDir =  ghost.d;\n        var startI = floor(random(4));\n        for(var i = startI;i<startI+4;i++){\n            var dir = [compass.n,compass.s,\n                                compass.e,compass.w][i % 4];\n            if(isOpen(ghost,dir) &&\n                    dir.s !== compass.opp(startDir).s){\n                ghost.d = dir;\n            }\n        }\n        if(!isOpen(ghost,ghost.d)){\n            ghost.d = compass.opp(ghost.d);\n        }\n    }\n    return moveSprite(ghost);\n};\n\nvar win = function(){\n    for(var y = 0;y < maze.length;y++){\n        for(var x = 0;x < maze.length;x++){\n            if(maze[x][y].val === 1){return false;}\n        }\n    }\n    return true;\n};\n\nvar byGhost = function(){\n    for(var i = 0;i < ghosts.length;i++){\n        if(dist(ghosts[i].x,ghosts[i].y,you.x,you.y)<1){\n            return i+1;\n        }\n    }\n    return false;\n};\n\nnoStroke();\n\nvar drawChompy = function(x,y,size){\n    if(frameCount % 16 > 7){\n        var angle;\n        if(you.d.s === \"n\"){\n            angle = 3*PI/2;\n        }if(you.d.s === \"s\"){\n            angle = PI/2;\n        }if(you.d.s === \"e\"){\n            angle = 0;\n        }if(you.d.s === \"w\"){\n            angle = PI;\n        }\n        fill(245, 245, 46);\n        arc(tileSize*(x+0.5),tileSize*(y+0.5),size,size,\n            PI/4+angle,PI*1.75+angle); \n    }else{\n        fill(245, 245, 46);\n        ellipse(tileSize*(x+0.5),tileSize*(y+0.5),size,size); \n    }\n};\n\nvar drawGhost = function(g){\n    debugOutput(ghostImage);\n    image(ghostImage,tileSize*(g.x),tileSize*(g.y),\n                                        tileSize,tileSize);\n};\n\nvar moveGhosts = function(){\n    for(var i = 0;i<ghosts.length;i++){\n        ghosts[i] = moveGhost(ghosts[i]);\n        drawGhost(ghosts[i]);\n    }\n};\n\nvar drawMaze = function() {\n    var tile_h = 400/maze.length;\n    var tile_w = 400/maze[0].length;\n    var tile;\n    for(var x = 0;x < maze.length;x += 1){\n        for(var y = 0;y < maze[x].length;y += 1){\n            tile = maze[x][y].val;\n            if(tile === 0){\n                fill(255, 0, 0);\n                rect(tile_h*y,tile_w*x,tile_w+1,tile_h+1);\n            }else{\n                fill(0, 0, 0);\n                rect(tile_h*y,tile_w*x,tile_w+1,tile_h+1);\n                if(tile === 1){\n                    fill(255, 255, 255);\n                    ellipse(tile_h*(y+0.5),tile_w*(x+0.5),9,9);\n                }\n                else if(tile === 4){\n                    image(star,tile_h*y,tile_w*x,\n                                tile_w+1,tile_h+1);\n                }\n            }\n            \n        }\n    }\n};\n\nvar playing = true;\n\ndraw = function() {\n    drawMaze();\n    drawChompy(you.x,you.y,tileSize);\n    drawChompy(you.x,you.y-maze.length,tileSize);\n    drawChompy(you.x-maze.length,you.y,tileSize);\n    if(playing){\n        moveChomp();\n        moveGhosts();\n    }\n    if(win()){\n        textSize(50);\n        fill(56, 255, 255);\n        text(\"you win!\",88,207);\n        playing = false;\n    }\n    if(invincibleTime > 0){\n        invincibleTime--;\n        if (invincibleTime % 5 < 3 && invincibleTime < 60){\n            ghostImage = getImage(\"avatars/orange-juice-squid\");\n        }else{\n            ghostImage = getImage(\"avatars/purple-pi\");\n        }\n        if(byGhost()){\n            var DeadGhost = byGhost()-1;\n            ghosts.splice(DeadGhost,1);\n        }\n    }else{\n        if(byGhost()){\n            textSize(50);\n            fill(59, 85, 161);\n            text(\"you lose!\",88,207);\n            playing = false;\n        }\n    }\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

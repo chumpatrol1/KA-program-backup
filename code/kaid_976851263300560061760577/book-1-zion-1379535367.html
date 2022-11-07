@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Book 1: Zion</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Book 1: Zion</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Book 1: Zion by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-14T14:32:36Z by kaid_976851263300560061760577\nLast Edited: 2013-02-14T14:32:36Z\nVotes/Spinoffs: 3/2\nOriginally Created: 2013-05-23T12:08:19Z from origin None with similarity of 0.22649807586586038\nOriginal Link: https://www.khanacademy.org/computer-programming/book-1-zion/1379535367\nRetrieved On: 07-Nov-2022 (17:06:48.228664)**/\
+";
+
+code = code + "\n//Click to turn the page\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n// note to self pagey should be pagey+ 92.5 when typing at the beginning of chapterand pagey+-80 and for page pagey =+196.5 anywhere else\nvar pagex=100;\nvar pagey=100;\nvar count=0;\nvar f = createFont(\"Gabriola\", 40);\nvar ff = createFont(\"Arial\",50);\nvar draw= function() {\n   //Cover\n   \n   background(220, 215, 205);\n    fill(255, 255, 0);\n    textFont(ff,50);\n    textSize(50);\n    text(\'      Zion\',pagex+-55,pagey-44);\n    fill(0, 0, 0);\n    textSize(15);\n    text(\'Written By Elijah\\nProgrammed by Elijah\',pagex+8,pagey+79);\n    text(\"An Easy Book.\",pagex-100,390);\n    //Page 1\n    textFont(ff,50);\n    text(\'Zion is a big boy.\\nHe can do many\\nthings. Today he\\nis going on a \\ntreasure hunt!\',pagex+300,pagey+-50);\n    //Page 2\n    text(\"Zion gets a kiwi,\\na bottle of water\\nand a shovel. \\nNow he can go\\noutside! Zion will\\nfind his treasure\\nin the woods.\",pagex+705,pagey-62);\n\n//Page 3\n    text(\"Zion sees a big\\ntree. He digs and\\ndigs until he finds\\na coin. It is a \\npenny. Zion will\\nnow go to the \\nyard to find more.\",pagex+1110,pagey+-50);\n    //Page 4\n    text(\"Zion goes to the\\nyard and eats his\\nkiwi. He sees\\na dime. He picks\\n it up. The sun is\\nred, and Zion is\\ntired.\",pagex+1515,pagey+-50);\n    //Page 5\n    text(\"Zion goes to bed\\nwhen the moon\\ngoes up. He is \\nnow very happy\\nwith the coins he\\npicked up.\",pagex+1920,pagey+-50);\n    //Page 6\n    textFont(f,100);\n    text(\"The End\",pagex+2325,pagey+-0);\n    if(mouseIsPressed){\n        pagex=pagex-400;\n        \n    }\n    \n    mouseIsPressed=false;\nif(pagex===-2700){\n    pagex=pagex+2800;\n}\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

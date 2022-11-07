@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Silly Bob Gets Smart(er) (Ep 10)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Silly Bob Gets Smart(er) (Ep 10)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Silly Bob Gets Smart(er) (Ep 10) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-11-16T13:19:13Z by kaid_976851263300560061760577\nLast Edited: 2013-11-16T13:19:13Z\nVotes/Spinoffs: 42/2\nOriginally Created: 2013-11-19T23:07:20Z from origin 2510702567 with similarity of 0.4473164056560742\nOriginal Link: https://www.khanacademy.org/computer-programming/silly-bob-gets-smarter-ep-10/2532987575\nRetrieved On: 07-Nov-2022 (17:06:38.576389)**/\
+";
+
+code = code + "\n//Silly Bob is and will always be silly! :-D\n\n\n\n\n\nstroke(0, 0, 0);\nvar spunkysam = getImage(\"avatars/old-spice-man\");\nvar bob = getImage(\"cute/CharacterBoy\");\nvar guest = getImage(\"avatars/mr-pink\");\nvar health = 250;\nvar heart = getImage(\"cute/Heart\");\nvar counter = 0;\nvar load=false;\nvar load1=0;\nvar page = 1;\ndraw = function() {\n    if(page===1){\n        background(255);\n        stroke(0, 0, 0);\n       //middle line\nimage(bob,5,30,50,80);\nline(200,0,200,400);\n//1st line\nline(0,97,400,97);\n//2nd line\nline(0,200,400,200);\n//3rd line\nline(0,307,400,307);\n//title\ntextSize(35);\nfill(0, 0, 0);\ntext(\"Silly Bob\\n\", 15, 34);\n//1st script\nnoStroke();\nfill(124, 50, 0);\nfill(0,255,255);\nrect(201,0,200,97);\nfill(0, 0, 0);\ntextSize(20);\ntext(\"Silly Bob is going to\\nschool.\", 204, 20);\nfill(255, 0, 0);\nrect(300,62,35,35);\nimage(bob,210,40,50,65);\n//2nd script\nimage(guest,50,130,70,70);\nfill(0, 0, 0);\ntext(\"I\'m Mr. Hapslon.\",0,120);\nnoStroke();\n//3rd script\nfill(255);\nstroke(0, 0, 0);\ntextSize(20);\nfill(0, 0, 0);\ntext(\"Let\'s start with...\\nMath!\", 205, 116);\nimage(guest,270,130,70,70);\n\n//4th script\ntextSize(20);\ntext(\"The site is Luminosity.\\nMakes brains sharp.\", 3, 221);\nimage(guest,50,240,70,70);\n//5th line\ntextSize(20);\nfill(0, 0, 0);\nimage(bob,200,230,50,75);\ntext(\"Let\'s see... 2+2=5,\\n5-5=5. That seems\\n       right.\", 203, 220);\n\n//6th line\nfill(0, 0, 0);\ntextSize(20);\ntext(\"Psst, that\'s wrong!\",10,330);\nfill(0, 0, 0);\nimage(spunkysam,50,340,50,50);\n//6th line\nfill(0, 0, 0);\nrect(241,318,130,78);\nfill(255, 255, 255);\ntext(\"Next\", 256, 365);\nfill(255, 0, 0);\ntextSize(30);\n    if (mouseX>241&&mouseX<372&&mouseY>319&&mouseY<395) {\nif (mouseIsPressed) {\npage=2;\n}\n    }\n    }\n    \nif(page===2){\n    background(255);\n    stroke(0, 0, 0);\n    line(200,0,200,400);\n//1st line\nline(0,97,400,97);\n//2nd line\nline(0,200,400,200);\n//3rd line\nline(0,307,400,307);\n//script 8\nfill(0, 0, 0);\ntextSize(20);\ntext(\"Who the heck are \\nyou?\",0,20);\nimage(bob,75,30,50,75);\n\n//Script 9\ntext(\"Proffesor Smatini, a\\nbanished genius.\",203,20);\nimage(spunkysam,200,45,50,50);\n//Script 10\nfill(0, 0, 0);\ntext(\"Lunch time!\",0,115);\nimage(guest,0,115,80,80);\n//Script 11\nfill(0, 0, 0);\ntext(\"So... sleepy!\",220,150);\n//Script 12\ntext(\"Later...\",5,220);\n//Script 13\nstroke(0, 0, 0);\nimage(bob,200,215,60,90);\nfill(0, 0, 0);\ntext(\"100 divided by 5 is\\n20. 200+0.1 is 200.1.\",205,220);\n//Script 14\nstroke(0, 0, 0);\nimage(guest,230,350,50,50);\nfill(0, 0, 0);\ntext(\"What the heck? You\\nshould be stupid!\",205,330);\n//Button\nfill(0, 0, 0);\nrect(5,310,130,80);\nfill(255);\ntextSize(20);\ntext(\"Click Here\",10,350);\nif(mouseX>5&&mouseX<135&&mouseY>31&&mouseY<390&&mouseIsPressed){\n    page=3;\n}\n}\n    \nif (page===3) {\nnoStroke();\n\n\n\nbackground(0, 0, 0);\n\n\n\nfill(255, 0, 0);\n\n\n\ntextSize(15);\n\n\n\ntext(\"If you liked this edition of Silly Bob please vote up\\n       and every 7 votes I get I will make a new\\n                        Silly Bob! Thanks!\", 38, 13);\n\n\n\ntextSize(65);\n\n\n\nfill(255, 0, 0);\n\n\n\ntext(\"Hi-5! Yeah!\", 38, 100);\nimage(bob,0,130);\nimage(spunkysam,100,180,100,100);\nstroke(255,255,0);\nstrokeWeight(5);\n\nfill(255, 0, 0);\n\n\ntextSize(42);\n\n\n\ntext(\"The end\", 10, 382);\n}\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

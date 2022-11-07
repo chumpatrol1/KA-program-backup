@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Sharks *FIXED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sharks *FIXED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Sharks *FIXED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-24T23:17:21Z by kaid_976851263300560061760577\nLast Edited: 2012-12-24T23:17:21Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-12-25T11:50:35Z from origin 1245591940 with similarity of 0.993562426330583\nOriginal Link: https://www.khanacademy.org/computer-programming/sharks-fixed/1248751308\nRetrieved On: 07-Nov-2022 (17:07:28.294888)**/\
+";
+
+code = code + "\n/**FEEDBACK**/\n//What do you think about the different kinds of sharks? Give me your opinions about them and how I can make them better below in the tips and feedback section. :)\n\n/**DRAW LOOP**/\n//If anyone knows how to make a draw loop so that the sharks return to the right edge of the screen once they disappear on the left side, I would greatly appreciate it if they could make a spin off and notify me that they fixed it so I can implement it in my game and they will be put in the credit section of the game!\n//Thanks,\n//MAXXtreme\n\nvar xShark=1.0;\nvar yShark=0.5;\nvar speedShark=2.5;\nvar playing = false;\nvar draw = function() {\nbackground(0, 204, 219);\nfill(0, 247, 255);\nrect(-1, -1, 401, 70);\nresetMatrix();\nif (true){\nplaying=true; \n//shark\nnoStroke();\nfill(133, 133, 133);\n//body\nellipse(xShark*speedShark+345, yShark+124,80,25);\n//fin\ntriangle(xShark*speedShark+334, yShark+112, xShark*speedShark+358, yShark+95, xShark*speedShark+349, yShark+112);\ntriangle(xShark*speedShark+337, yShark+129, xShark*speedShark+371, yShark+151, xShark*speedShark+354, yShark+127);\n//tail\ntriangle(xShark*speedShark+388, yShark+125, xShark*speedShark+401, yShark+95, xShark*speedShark+373, yShark+125);\ntriangle(xShark*speedShark+397, yShark+148, xShark*speedShark+384, yShark+116, xShark*speedShark+375, yShark+125);\n//gills\nfill(0, 0, 0);\nrect(xShark*speedShark+327, yShark+120,1,6);\nrect(xShark*speedShark+330, yShark+119,1,6);\nrect(xShark*speedShark+333, yShark+120,1,6);\n//eye\nfill(0, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,8,4);\nfill(255, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,4,4);\n//teeth\nfill(255, 255, 255);\ntriangle(xShark*speedShark+307, yShark+129, xShark*speedShark+322, yShark+127, xShark*speedShark+324, yShark+125);\nresetMatrix();\n\n//Tiger Shark\ntranslate(150, 0);\nfill(255, 119, 0);\n//body\nellipse(xShark*speedShark+345, yShark+124,80,25);\n//fin\ntriangle(xShark*speedShark+334, yShark+112, xShark*speedShark+358, yShark+95, xShark*speedShark+349, yShark+112);\ntriangle(xShark*speedShark+337, yShark+129, xShark*speedShark+371, yShark+151, xShark*speedShark+354, yShark+127);\n//tail\ntriangle(xShark*speedShark+388, yShark+125, xShark*speedShark+401, yShark+95, xShark*speedShark+373, yShark+125);\ntriangle(xShark*speedShark+397, yShark+148, xShark*speedShark+384, yShark+116, xShark*speedShark+375, yShark+125);\n//stripes\nfill(0, 0, 0);\nrect(xShark*speedShark+310, yShark+117, 3, 13);\nrect(xShark*speedShark+325, yShark+112, 3, 22);\nrect(xShark*speedShark+340, yShark+106, 3, 30);\nrect(xShark*speedShark+355, yShark+113, 3, 28);\nrect(xShark*speedShark+353, yShark+97, 3, 3);\nrect(xShark*speedShark+370, yShark+113, 3, 20);\nrect(xShark*speedShark+385, yShark+110, 3, 26);\nfill(255, 119, 0);\n//gills\nfill(0, 0, 0);\nrect(xShark*speedShark+327, yShark+120,1,6);\nrect(xShark*speedShark+330, yShark+119,1,6);\nrect(xShark*speedShark+333, yShark+120,1,6);\n//eye\nfill(0, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,8,4);\nfill(255, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,4,4);\n//teeth\nfill(255, 255, 255);\ntriangle(xShark*speedShark+307, yShark+129, xShark*speedShark+322, yShark+127, xShark*speedShark+324, yShark+125);\nresetMatrix();\n\n\n//Zombie Shark\ntranslate(300, 0);\nfill(9, 189, 0);\n//body\nellipse(xShark*speedShark+345, yShark+124,80,25);\n//fin\ntriangle(xShark*speedShark+334, yShark+112, xShark*speedShark+358, yShark+95, xShark*speedShark+349, yShark+112);\ntriangle(xShark*speedShark+337, yShark+129, xShark*speedShark+371, yShark+151, xShark*speedShark+354, yShark+127);\n//tail\ntriangle(xShark*speedShark+388, yShark+125, xShark*speedShark+401, yShark+95, xShark*speedShark+373, yShark+125);\ntriangle(xShark*speedShark+397, yShark+148, xShark*speedShark+384, yShark+116, xShark*speedShark+375, yShark+125);\n//gills\nfill(0, 0, 0);\nrect(xShark*speedShark+327, yShark+120,1,6);\nrect(xShark*speedShark+330, yShark+119,1,6);\nrect(xShark*speedShark+333, yShark+120,1,6);\n//scars\nfill(255, 0, 0);\nrect(xShark*speedShark+348, yShark+119,12,1);\nrect(xShark*speedShark+350, yShark+116,1,6);\nrect(xShark*speedShark+354, yShark+117,1,6);\nrect(xShark*speedShark+357, yShark+116,1,6);\n//eye\nfill(0, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,8,4);\nfill(242, 0, 255);\nellipse(xShark*speedShark+320, yShark+120,4,4);\n//teeth\nfill(255, 255, 255);\ntriangle(xShark*speedShark+307, yShark+129, xShark*speedShark+322, yShark+127, xShark*speedShark+324, yShark+125);\nresetMatrix();\n\n//Mega-Shark\ntranslate(200, 0);\nscale(2.8, 2.5);\nfill(133, 133, 133);\n//body\nellipse(xShark*speedShark+345, yShark+124,80,25);\n//fin\ntriangle(xShark*speedShark+334, yShark+112, xShark*speedShark+358, yShark+95, xShark*speedShark+349, yShark+112);\ntriangle(xShark*speedShark+337, yShark+129, xShark*speedShark+371, yShark+151, xShark*speedShark+354, yShark+127);\n//tail\ntriangle(xShark*speedShark+388, yShark+125, xShark*speedShark+401, yShark+95, xShark*speedShark+373, yShark+125);\ntriangle(xShark*speedShark+397, yShark+148, xShark*speedShark+384, yShark+116, xShark*speedShark+375, yShark+125);\n//gills\nfill(0, 0, 0);\nrect(xShark*speedShark+327, yShark+120,1,6);\nrect(xShark*speedShark+330, yShark+119,1,6);\nrect(xShark*speedShark+333, yShark+120,1,6);\n//eye\nfill(0, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,8,4);\nfill(255, 0, 0);\nellipse(xShark*speedShark+320, yShark+120,4,4);\n//teeth\nfill(255, 255, 255);\ntriangle(xShark*speedShark+307, yShark+129, xShark*speedShark+322, yShark+127, xShark*speedShark+324, yShark+125);\nresetMatrix();\nxShark+=-1;\nif(xShark === -300){\n    xShark = xShark + 401;\n}\n}\ntext(xShark,0,30);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

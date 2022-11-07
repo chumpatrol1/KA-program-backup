@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Kingdom of the Brainards</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Kingdom of the Brainards</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Kingdom of the Brainards by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-05-18T11:27:13Z by kaid_976851263300560061760577\nLast Edited: 2013-05-18T11:27:13Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-07-01T21:16:53Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/kingdom-of-the-brainards/1654841929\nRetrieved On: 07-Nov-2022 (17:07:39.396023)**/\
+";
+
+code = code + "\nvar state = \"Welcome\";\nvar draw = function() {\n    noStroke();\n    if(state === \"Welcome\"){\n \n\n        \n        background(0, 0, 0);\n\n        fill(0, 255, 0);\n        ellipse(200,200,100,100);\n        fill(124);\n        ellipse(200,50,50,50);\n        ellipse(200,350,50,50);\n        fill(0, 0, 255);\n        ellipse(175,170,25,50);\nstrokeWeight(50);\nstroke(0, 0, 0);\nnoFill();\nellipse(200,200,150,150);\nfill(255);\ntextSize(20);\ntext(\"Earth\",170,220);\ntext(\"Luna, aka the Moon\",100,320);\ntext(\"Planet Brainard, the Misnamed Planet\",50,100);\nif(dist(mouseX,mouseY,200,50)<25&&mouseIsPressed){\n    state = \"Brainard\";\n}\nif(dist(mouseX,mouseY,200,350)<25&&mouseIsPressed){\n    state = \"Luna\";\n}\n    }\n    if(state === \"Brainard\"){\n        noStroke();\n        background(124);\n        fill(255, 255, 0);\n        rect(150,50,100,50);\n        fill(0, 255, 0);\n        rect(50,125,100,50);\n        fill(200);\n        rect(250,125,100,50);\n        fill(0);\n        textSize(20);\n        text(\"The Castle\",150,80);\n        text(\"    The \\n  Gardens\",50,145);\n        text(\"The Lab\",265,155);\n        if(mouseX>150&&mouseX<250&&mouseY>50&&mouseY<100&&mouseIsPressed){\n            state = \"Castle\";\n        }\n        if(mouseX>50&&mouseX<150&&mouseY>125&&mouseY<175&&mouseIsPressed){\n           state = \"Garden\"; \n        }\n        if(mouseX>250&&mouseX<350&&mouseY>125&&mouseY<175&&mouseIsPressed){\n            state = \"Laboratory\";\n        }\n    }\n    if(state === \"Castle\"){\n        background(255, 255, 0);\n        fill(255);\n        textSize(30);\n        text(\"Welcome to the Castle!\",50,30);\n        textSize(20);\n        text(\"I am King Elijah, the ruler of Planet Brainard,\\nwhich is not even a planet, but a moon.\\nSo, how did this moon come into existence?\\nWell, some out-of-service satellites collided\\ninto a small, bumpy ball. More satellites have\\njoined the group until it was being hit by \\nmeteorites, which drastically changed its size\\ninto a moon.\\nNow that I have told you my story, I must\\nwarn you that I will not accept my enemies.\\nThe growing threat of the Monsters will\\ncause hysteria and destruction on Earth,\\nso go and support the fight against monsters!\\n\\nPress right to leave.\",0,60);\n        if(keyIsPressed&&keyCode === RIGHT){\n            state = \"Brainard\";\n        }\n    }\n    if(state === \"Garden\"){\n        background(0, 255, 0);\n        fill(255);\n        textSize(30);\n        text(\"Welcome to the Gardens!\",30,30);\n        textSize(20);\n        text(\"The gardens are home to exotic plants\\nincluding Cookie Grass, Golden Grass and\\nthe lengendary Magic Trees, who make\\none kind of fruit per individual tree, but the\\nseeds they contain could bear another kind\\nof fruit. It is not run by anyone, which is a\\nbig problem!\\n\\nCookie Grass: 1 Pound\\nGolden Grass: 1 Pound\\nMagic Trees: 1 Pound\\n\\n\\n\\nPress right to leave\",0,60);\n        if(keyIsPressed&&keyCode === RIGHT){\n            state = \"Brainard\";\n        }\n    }\n    if(state === \"Laboratory\"){\n        background(200);\n        fill(255);\n        textSize(30);\n        text(\"Welcome to the Laboratory!\",20,30);\n        textSize(20);\n        text(\"A laboratory is the best place to look for new\"+\" knick-knacks such as light bulbs, robots and lava lamps. There is no manager, so productions are meager.\\n\\nLight Bulbs: 5\\nRobots: 1\\nLava Lamps: 5\\n\\n\\n\\n\\n\\n\\nPress right to leave\",0,60,400,400);\n        if(keyIsPressed&&keyCode === RIGHT){\n            state = \"Brainard\";\n        }\n    }\n    if(state === \"Luna\"){\n        background(124);\n        fill(255);\n        textSize(30);\n        text(\"Luna, Home of the Monsters\",10,30);\n        textSize(20);\n        text(\"Luna is a monster infested planet that is a\\ndanger to\",0,60);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

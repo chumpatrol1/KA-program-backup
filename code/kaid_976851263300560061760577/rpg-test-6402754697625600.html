@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>RPG Test</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>RPG Test</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**RPG Test by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-06-19T11:17:49Z by kaid_976851263300560061760577\nLast Edited: 2016-06-19T11:17:49Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-10-15T00:46:11Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/rpg-test/6402754697625600\nRetrieved On: 07-Nov-2022 (17:07:56.295172)**/\
+";
+
+code = code + "\n//V1 (6/19/2016): Created\n//V2 (10/8/2016): Enemies created, work on fighting is worked on.\n//V3 (10/14/2016): Attacks system worked upon, knight can attack\nvar side=0;\nvar charturn=0;\nvar moveselect=0;\nvar movetimer=60;\nvar select=0;\n//Contains basic programming for good guys\n{\nvar knight = {\n    health: 10,\n    attack: 2\n};\n\nvar drawKnight=function(knightx,knighty){\nfill(255, 0, 0);\nrect(knightx,knighty,50,50);\nfill(0, 255, 0);\ntextSize(15);\ntext(\"HP: \"+knight.health,knightx+10,knighty+65);\n};\nvar healer = {\n    maxhealth: 7,\n    health: 7,\n    attack: 1,\n    magic: 10\n};\nvar drawHealer=function(healerx,healery){\nfill(255, 255, 0);\nrect(healerx,healery,50,50);\nif(healer.health===healer.maxhealth){\n    fill(0,255,0);\n    textSize(15);\n    text(\"HP: \"+healer.health,healerx+10,healery+65);\n}\n};\nvar mage = {\n    maxhealth: 7,\n    health: 7,\n    attack: 1,\n    magic: 20\n};\nvar drawMage=function(magex,magey){\n    fill(0, 0, 255);\n    rect(magex,magey,50,50);\n    if(mage.health===mage.maxhealth){\n        fill(0, 255, 0);\n        textSize(15);\n        text(\"HP: \"+mage.health,magex+10,magey+65);\n    }\n};\n}\n//Contains basic programming for bad guys\n{\nvar thug={\n    health: 15,\n    attack: 3\n};\nvar drawThug=function(thugx,thugy){\n    fill(0, 0, 0);\nrect(thugx,thugy,50,50);\nfill(0, 255, 0);\ntextSize(15);\ntext(\"HP: \"+thug.health,thugx+10,thugy+65);\n};\nvar evilsci={\n    health: 10,\n    attack: 2\n};\nvar drawEvilSci=function(evilscix,evilsciy){\nfill(124, 0, 0);\nrect(evilscix,evilsciy,50,50);\nfill(0, 255, 0);\ntextSize(15);\ntext(\"HP: \"+evilsci.health,evilscix+10,evilsciy+65);\n};\n}\nvar draw = function() {\n    background(255);\n    drawKnight(50,50);\n    drawHealer(25,150);\n    drawMage(50,250);\n    drawThug(300,75);\n    drawEvilSci(275,175);\n    fill(0, 0, 0);\n    rect(0,400,400,200);\nif(side===0){\n    if(charturn===0){\n    if(moveselect===0){\n    fill(200, 0, 0);\n    rect(25,425,150,50,100);\n    rect(200,425,150,50,100);\n    rect(25,500,150,50,100);\n    rect(200,500,150,50,100);\n    fill(255);\n    textSize(20);\n    text(\"Slash\",75,450);\n    text(\"Block\",250,450);\n    text(\"Stab\", 75,525);\n    text(\"Honor Shield\",225,525);\n    if(mouseX>=25&&mouseX<=175&&mouseY>=425&&mouseY<=475){\n        if(mouseIsPressed){\n        moveselect=1;\n        movetimer=60;\n        } else if(!mouseIsPressed){\n        fill(255);\n        rect(25,425,150,50,100);\n        fill(0);\n        text(\"Slash\",75,450);\n        }\n    }\n    if(mouseX>=200&&mouseX<=350&&mouseY>=425&&mouseY<=475){\n        if(mouseIsPressed){\n        moveselect=2;\n        movetimer=60;\n        } else if(!mouseIsPressed){\n        fill(255);\n        rect(200,425,150,50,100);\n        fill(0);\n        text(\"Block\",250,450);\n        }\n    }\n    if(mouseX>=25&&mouseX<=175&&mouseY>=500&&mouseY<=550){\n        if(mouseIsPressed){\n            moveselect=3;\n            movetimer=60;\n        } else if(!mouseIsPressed){\n            fill(255);\n            rect(25,500,150,50,100);\n            fill(0);\n            text(\"Stab\",75,525);\n        }\n    }\n    if(mouseX>=200&&mouseX<=350&&mouseY>=500&&mouseY<=550){\n        if(mouseIsPressed){\n            moveselect=4;\n            movetimer=60;\n        } else if(!mouseIsPressed){\n            fill(255);\n            rect(200,500,150,50,100);\n            fill(0);\n            text(\"Honor Shield\",225,525);\n        }\n    }\n    } else if(moveselect!==0&&moveselect!==5){\n        if(movetimer>0){\n            fill(255);\n            textSize(30);\n            text(\"WAITING...\",125,500);\n            movetimer-=1;\n        } else {\n            fill(255);\n            textSize(40);\n            text(\"Who Will You Attack?\",15,440);\n            fill(255);\n            fill(200, 0, 0);\n            rect(25,450,150,50,100);\n            rect(200,450,150,50,100);\n            rect(25,525,150,50,100);\n            fill(255);\n            textSize(20);\n            text(\"Black Square\",40,480);\n            text(\"Maroon Square\",210,480);\n            text(\"Cancel Attack\",40,555);\n            if(mouseX>=25&&mouseX<=175&&mouseY>=450&&mouseY<=500){\n                if(mouseIsPressed){\n                    select=1;\n                    charturn=0.5;\n                    movetimer=60;\n                }\n            }\n            if(mouseX>=200&&mouseX<=250&&mouseY>=450&&mouseY<=500){\n                if(mouseIsPressed){\n                    select=2;\n                    charturn=0.5;\n                    movetimer=60;\n                }\n            }\n            if(mouseX>=25&&mouseX<=175&&mouseY>=525&&mouseY<=575){\n                if(mouseIsPressed){\n                   moveselect=5;\n                   movetimer=60;\n                }\n            }\n        }\n    \n    } else if(moveselect===5){\n        if(movetimer>0){\n            fill(255);\n            textSize(30);\n            text(\"WAITING...\",125,500);\n            movetimer-=1;\n        } else {\n            moveselect=0;\n        }\n    }\n    }\n}\nfill(255, 0, 0);\ntext(mouseX,0,30);\ntext(mouseY,0,60);\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

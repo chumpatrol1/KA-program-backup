@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Elijah's FAQs from School!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Elijah's FAQs from School!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Elijah's FAQs from School! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-05-12T14:12:07Z by kaid_976851263300560061760577\nLast Edited: 2015-05-12T14:12:07Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2015-06-01T19:37:33Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/elijahs-faqs-from-school/4759439020261376\nRetrieved On: 07-Nov-2022 (17:07:48.353074)**/\
+";
+
+code = code + "\n<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"utf-8\">\n        <title>Elijah\'s FAQs from School!</title>\n        <h1>Elijah\'s Frequently Asked Questions</h1>\n<h2>#1</h2>\n<p>Person: Are you the kid that moved from 6th grade to 8th grade?<br>Me: Yep<br>Person: Cool...</p>\n<h2>#2</h2>\n<p>Person: What\'s my name?<br>Me: Lexi/Allysa/Wiley/Morgan/Kayla<br>Correct: Nice Job Elijah!<br>Incorrect: Nope, it\'s Lexi/Allysa/Wiley/Morgan/Kayla.</p>\n<h2>#3</h2>\n<p>Person: Are you going to Semi?<br>Me: No<br>Person: Why?<br>Me: I\'m way too young to go to dance. I never wanted to go anway!</p>\n<h2>#4</h2>\n<p>Person: What is your lowest grade this quarter?<br>Me: An 80!<br>Person: That\'s great!</p>\n    </head>\n    <body>\n\n\n    </body>\n</html>";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

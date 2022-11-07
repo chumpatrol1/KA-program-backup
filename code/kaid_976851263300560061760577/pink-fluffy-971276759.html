@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Pink Fluffy</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pink Fluffy</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Pink Fluffy by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:20:51Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:20:51Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-21T12:16:16Z from origin 883107888 with similarity of 0.9392117568470274\nOriginal Link: https://www.khanacademy.org/computer-programming/pink-fluffy/971276759\nRetrieved On: 07-Nov-2022 (17:07:03.111576)**/\
+";
+
+code = code + "\nbackground(14, 15, 14);\n\n// back foot\nfill(194, 15, 51);\nellipse(138, 292, 78, 100);\n\n// arms\nfill(255, 178, 206);\nellipse(89, 200, 71, 58);\nellipse(312, 166, 54, 70);\n\n// body\nellipse(200, 200, 220, 220);\n\n// front foot\nfill(194, 15, 51);\nellipse(275, 281, 88, 106);\n\n// eyes\nfill(76, 112, 255);\nellipse(168, 159, 31, 72);\nellipse(400 - 168, 159, 31, 72);\nfill(0, 0, 0);\nellipse(168, 148, 27, 50);\nellipse(400 - 168, 148, 27, 50);\nfill(255, 255, 255);\nellipse(168, 144, 23, 35);\nellipse(400 - 168, 144, 23, 35);\n\n// mouth\nfill(84, 8, 27);\nellipse(200, 211, 35, 36);\nfill(217, 104, 104);\nellipse(200, 217, 30, 23);\n\n// cheeks\nnoStroke();\nfill(252, 121, 173);\nellipse(150, 210, 40, 20);\nellipse(400 - 150, 210, 40, 20);\n\n// stars\nfill(255, 255, 255);\nnoStroke();\npoint(19, 20);\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ice Cream Code</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ice Cream Code</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Ice Cream Code by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-09-15T12:55:13Z by kaid_976851263300560061760577\nLast Edited: 2013-09-15T12:55:13Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-09-15T12:55:14Z from origin 1931511584 with similarity of 0.5893719806763285\nOriginal Link: https://www.khanacademy.org/computer-programming/ice-cream-code/2039076375\nRetrieved On: 07-Nov-2022 (17:07:44.418519)**/\
+";
+
+code = code + "\nfill(255, 124, 255);\nellipse(200, 92, 80, 80);  // Top scoop\nfill(124, 50, 0);\nellipse(200, 141, 80, 80); // Middle scoop!\nfill(255,255,200);\nellipse(200, 187, 80, 80);  // Bottom scoop!\nfill(0, 255, 124);\nrect(150, 200, 107, 112);  // The cup!\nfill(255, 0, 0);\nellipse(200, 46, 20, 20);  // The cherry, yum\nline(200, 27, 200, 36);   // And the cherry stem";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

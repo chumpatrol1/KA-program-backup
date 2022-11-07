@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Bill Cipher</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bill Cipher</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Bill Cipher by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-03-18T17:20:23Z by kaid_976851263300560061760577\nLast Edited: 2016-03-18T17:20:23Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-03-20T20:26:59Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/bill-cipher/3555663078\nRetrieved On: 07-Nov-2022 (17:07:46.425244)**/\
+";
+
+code = code + "\nstrokeWeight(10);\nstroke(0, 0, 0);\nline(150,300,150,350);\nline(250,300,250,350);\nline(150,250,50,100);\nline(250,250,350,100);\nstrokeWeight(1);\nfill(255,255,0);\ntriangle(200,50,50,300,350,300);\nstrokeWeight(5);\nnoStroke();\nfill(255);\nellipse(200,175,125,75);\nfill(0);\nellipse(200,175,50,50);\nstroke(0);\nstrokeWeight(3);\nline(95,225,305,225);\nline(75,260,325,260);\nline(95,225,95,258);\nline(75,260,75,298);\nline(145,225,145,258);\nline(125,260,125,298);\nline(195,225,195,258);\nline(175,260,175,298);\nline(245,225,245,258);\nline(225,260,225,298);\nline(295,225,295,258);\nline(275,260,275,298);\nline(325,260,325,298);\nnoStroke();\nquad(150,225,250,275,250,225,150,275);\nrect(150,100,100,25);\nrect(170,-5,60,125);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

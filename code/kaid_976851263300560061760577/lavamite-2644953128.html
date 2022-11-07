@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Lavamite</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lavamite</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Lavamite by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-11-21T22:35:48Z by kaid_976851263300560061760577\nLast Edited: 2013-11-21T22:35:48Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-11-21T22:36:07Z from origin 2601896243 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/lavamite/2644953128\nRetrieved On: 07-Nov-2022 (17:07:59.319926)**/\
+";
+
+code = code + "\n/*\nWe have a system in place to remove downvotes before the judging begins. So don\'t sweat the downvotes!\n\nIf you\'re downvoting, don\'t. It\'s silly. \n*/\n\n/*\nWelcome to the second official Khan Academy avatar naming \ncontest! We\'re glad you\'re here :)\n\nWe\'re looking for *ONE* name for all of the stages of this \ncreature\'s life. To propose a new name for this earnest\nand adorable-yet-fearsome creature.\n \nThe contest ends on Monday November 25, 2013 at 12pm PST\n \nThe rules are pretty simple:\n \n1. Create a spinoff and title it with the name that you \nthink fits best --OR-- vote for your favorite suggestions!\n2. No profanity or other nasty stuff. You know what we\'re\ntalking about!\n3. Remember when submitting your own ideas that you want\nother students to be proud of their avatars (and their\navatars\' names).\n4. You can only win one avatar naming contest. Congrats to our previous winners!\n \nThanks for helping us bring this new avatar to life! As with the previous contest, the winner of this contest will be decided by Sal choosing among the three top eligible spin-offs.\n\nLast but not least, a huge shoutout to the folks at Viget Labs for designing and creating these avatars (especially Joseph and Saad).\n\nThe original contest can be found here: https://www.khanacademy.org/cs/new-avatar-naming-contest/2424853823\n\n*/\n\nfill(40, 40, 40);\nrect(0,0,400,400);\nfill(255,255,255);\nimage(getImage(\"avatars/mystery-2\"), 4, 35);\ntextSize(25);\ntext(\"Help us name our newest avatar!\", 16, 39);\ntextSize(18);\ntext(\"<--Follow the instructions on the left to\\nsuggest a name or vote for your favorites!\", 37, 359);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

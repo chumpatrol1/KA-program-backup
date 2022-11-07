@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Pet Zach *IMPROVED*</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pet Zach *IMPROVED*</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Pet Zach *IMPROVED* by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-29T20:59:55Z by kaid_976851263300560061760577\nLast Edited: 2013-03-29T20:59:55Z\nVotes/Spinoffs: 3/0\nOriginally Created: 2013-03-30T19:29:05Z from origin 1035631202 with similarity of 0.8294719265289083\nOriginal Link: https://www.khanacademy.org/computer-programming/pet-zach-improved/1502738000\nRetrieved On: 07-Nov-2022 (17:06:49.598984)**/\
+";
+
+code = code + "\n// still a bug, but considering\n// the progress i\'ve made, it\'s a great program!\n// P.S. The bug is called flying zach ;-)\n\n//I am going to create a happiness meter and a toy for Zach.\nvar hspeed = 1;\nvar hungry = 100;\nvar happy = 100;\nvar hspa = hungry/200;\nvar r = hungry * -5.1 + 892.5;\nvar g = hungry * 5.1 - 127.5;\nvar r2 = happy*5.1-892.5;\nvar g2 = happy*5.1-127.5;\nvar energy = 0.10;\nvar speed = 3;\nvar x = 150;\nvar y = 235;\nvar zach = getImage (\"cute/CharacterBoy\");\nvar draw = function() {\n    var r = hungry * -5.1 + 892.5;\n    var g = hungry * 5.1 - 127.5;\n    background (30, 15, 82);\n    fill (r, g, 0);\n    rect (100,15,hungry,10);\n    fill(r2, g2, 0);\n    rect(100,45,happy,10);\n    noFill ();\n    stroke (0, 0, 0);\n    rect (100,15,50,10);\n    rect (100,15,100,10);\n    rect (100,15,150,10);\n    rect (100,15,200,10);\n    rect(100,45,50,10);\n    rect(100,45,150,10);\n    rect(100,45,200,10);\n    fill (255, 255, 255);\n    noStroke();\n    image (zach,x, y);\n    triangle (370,400,400,350,400,400);\n    triangle (400,400,350,400,400,370);\n    stroke(0, 0, 0);\n    fill (143, 93, 93);\n    rect (mouseX,mouseY,15,5,25\n    );\n    if ( x + 52 > mouseX ) {\n        x = x - 1.5*hspeed;\n        hungry=hungry-energy;\n        happy = happy - energy;\n    }\n    if ( x + 52 < mouseX ) {\n        x = x + 1.5*hspeed;\n        hungry=hungry-energy;\n        happy = happy-energy;\n    }\n    if ( mouseY < y + 112) {\n        y = y - speed*hspeed;\n        hungry=hungry+energy/2;\n        if ( y + 112 < 250) {\n            speed = -3;\n        }\n        if ( y + 112 > 350 ) {\n            speed = 3;\n            hungry=hungry+energy;\n            }\n        if ( y + 109 < mouseY) {\n            speed = -3;\n            hungry=hungry+energy;\n            \n        \n        }\n        }\n        if (mouseY>y+106 && mouseY<y+118 && mouseX>x+49 && mouseX < x + 59) {\n            hungry=hungry + energy*6;\n        }\n        if (hungry > 200) {\n            hungry=hungry-1;\n        }\n        if (hungry < 0) {\n            hungry=hungry+1;\n        }\n        if (hungry < 1) {\n            fill (255, 0, 0);\n            textSize(20);\n            text (\"feed me\",x+16,y+53);\n        }\n        if(happy>200){\n            happy=happy-1;\n        }\n        if(happy < 0){\n            happy=happy+1;\n        }\n        \n        \n\n\n        textSize (13);\n      fill (255, 255, 255);\n      text (\"pet zach\",10,15);\n      text (\"Hunger Bar\",161,12.5);\n      text(\"Happiness\",161,37.5);\n      text (\"version 1.4\",335,15);\n      text (\"non-beta version\",1,397);\n    };\n    // NOTE TO SELF: for later add these:\n    // && x + 52 === mouseX\n     //hspeed=hspeed+hspa;";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

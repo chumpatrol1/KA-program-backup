@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Colored Pirate</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Colored Pirate</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Colored Pirate by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-26T19:21:43Z by kaid_976851263300560061760577\nLast Edited: 2013-02-26T19:21:43Z\nVotes/Spinoffs: 1/9\nOriginally Created: 2013-02-26T19:25:52Z from origin 1317066801 with similarity of 0.973059269606865\nOriginal Link: https://www.khanacademy.org/computer-programming/colored-pirate/1413865696\nRetrieved On: 07-Nov-2022 (17:07:34.241304)**/\
+";
+
+code = code + "\n//Arms\nfill(0, 150, 150);\nnoStroke();\ntriangle(53, 106, 42, 220, 76, 192);\ntriangle(31, 106, 42, 225, 57, 109);\ntriangle(41, 221, 83, 176, 96, 237);\ntriangle(172, 99, 98, 116, 87, 228);\ntriangle(240, 99, 303, 116, 87, 228);\nellipse(101, 177, 57, 123);\nellipse(297, 177, 57, 124);\n\ntriangle(290, 303, 323, 203, 279, 224);\nellipse(283, 293, 40, 40);\n\n\n//Hook\nfill(0, 0, 0);\nellipse(52, 71, 50, 50);\nfill(255, 255, 255);\nnoStroke();\nellipse(57, 80, 39, 44);\nfill(0, 0, 0);\nrect(30,92,26,25);\n\n//Peg\nfill(100, 50, 0);\nrect(165, 280, 17, 97);\nfill(30, 30, 30);\nrect(163, 280, 23, 62);\nrect(163, 367, 22, 16);\n\n//Body\nfill(255, 255, 0);\nnoStroke();triangle(129, 200, 272, 200, 202, 310);\nellipse(199, 160, 225, 134);\nnoStroke();\nellipse(200, 213, 63, 124);\nfill(255, 0, 0);\ntriangle(275, 125, 220, 69, 210, 276);\ntriangle(119, 124, 170, 83, 194, 276);\nrect(157, 241, 32, 97);\nrect(218, 241, 32, 140);\n\nrect(157, 240, 93, 71);\n\n\n\n\n\n\n//Head\nstroke(0,0,0);\n\nfill(255, 255, 255);\nfill(255, 224, 145);\nellipse(199, 101, 86, 112);\n\n//Beard\nfill(0);\nellipse(199, 145, 73, 69);\nellipse(199, 162, 55, 69);\nellipse(200, 180, 30, 59);\n\n//Hat\nline(138, 91, 261, 92);\nline(266, 65, 261, 91);\nline(128, 64, 138, 91);\nellipse(200, 47, 75, 79);\nline(128, 64, 170, 24);\nline(266, 64, 228, 24);\ntriangle(128, 65, 187, 10, 197, 91);\ntriangle(267, 65, 213, 10, 197, 91);\ntriangle(261, 91, 267, 65, 197, 91);\ntriangle(138, 91, 128, 65, 197, 91);\nfill(255, 255, 255);\nellipse(200, 44, 37, 50);\n\n//Hat Skull\nfill(0, 0, 0);\nellipse(200, 41, 22, 23);\nfill(255, 255, 255);\nellipse(196, 38, 9, 8);\nellipse(205, 38, 9, 8);\nnoStroke();\nrect(189, 48, 21, 12);\nfill(0, 0, 0);\ntriangle(201, 45, 189, 43, 197, 56);\ntriangle(210, 45, 203, 43, 205, 56);\ntriangle(192, 45, 205, 43, 202, 56);\nstroke(0, 0, 0);\nline(193, 63, 214, 55);\nline(209, 63, 187, 55);\n\n//Mouth\nfill(255, 255, 255);\nellipse(199, 137, 47, 32);\nfill(255, 255, 255);\nnoStroke();\nellipse(185, 136, 16, 19);\nellipse(214, 134, 16, 18);\nstroke(0, 0, 0);\nbezier(223, 142, 220, 146, 205, 114, 177, 142);\nline(200, 120, 200, 139);\nline(190, 120, 194, 139);\nline(179, 120, 188, 146);\nline(212, 120, 206, 139);\nline(224, 121, 210, 148);\nfill(0, 0, 0);\nellipse(200, 150, 41, 21);\n\n\n//Eyes\nfill(255, 255, 255);\nellipse(179, 100, 30, 30);\nellipse(219, 100, 30, 30);\nline(166, 92, 195, 100);\nline(205, 100, 231, 92);\nbezier(165, 105, 200, 115, 189, 102, 194, 104);\nbezier(206, 105, 238, 117, 230, 94, 234, 104);\n\n//Eyeballs\nfill(0, 0, 0);\nellipse(219, 100, 8, 8);\nellipse(180, 100, 10, 10);\n\n\n\n\n\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

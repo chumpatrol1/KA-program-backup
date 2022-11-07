@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Night Guard</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Night Guard</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Night Guard by David Elijah de Siqueira Campos McLaughlin\nOriginal size(600, 600);\nOriginally Created on 2018-08-08T21:44:38Z by kaid_976851263300560061760577\nLast Edited: 2018-08-08T21:44:38Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2018-10-12T13:03:40Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/night-guard/5009671961477120\nRetrieved On: 07-Nov-2022 (17:06:59.829103)**/\
+";
+
+code = code + "\n//Add ?width=600&height=600 to increase the screen to the proper size\nvar state=\"Menu\";\n//You unlock nights by beating a previous night. There are 7 total\nvar nightsUnlocked=1;\nvar redGuy={\nai:0,\nposition:0,\naggro:0,\n};\nvar orangeGuy=0;\nvar yellowGuy=0;\nvar greenGuy=0;\nvar blueGuy=0;\nvar mouseIsClicked;\n\nvar cutsceneTimer=0;\nvar revealNight=function(){\n    if(state===\"Night 1\"){\n    background(0);\n    fill(255);\n    textSize(100);\n    text(\"Night 1\",120,100);\n    }\n};\nvar mouseReleased=function(){\n    //Story Mode, From Main Menu\n    if(500>=mouseX&&mouseX>=100&&250>=mouseY&&mouseY>=150&&mouseIsPressed){\n            state=\"Story Select\";\n        }\n    //Main Menu, From Story Mode\n    if(mouseX>=445&&mouseX<=570&&mouseY>=400&&mouseY<=525&&mouseIsClicked){\n        state=\"Menu\";\n        }\n    //Night 1 Button\n    if(mouseX>=25&&mouseX<=150&&mouseY>=100&&mouseY<=225){\n            revealNight();\n            state=\"Night 1\";\n        }\n};\nvar draw= function() {\n    noStroke();\n    textAlign(LEFT);\n    if(state===\"Menu\"){\n        background(0, 0, 0);\n        fill(255);\n        textSize(100);\n        text(\"Night Guard\",25,80);\n        fill(125);\n        rect(100,150,400,100);\n        rect(100,275,400,100);\n        rect(100,400,400,100);\n        fill(255);\n        textSize(50);\n        text(\"Story Mode\",180,210);\n        text(\"Unlock\",225,340);\n        text(\"Guide\",230,470);\n        if(500>=mouseX&&mouseX>=100&&250>=mouseY&&mouseY>=150&&!mouseIsPressed){\n            fill(200);\n            rect(100,150,400,100);\n            fill(255);\n            textSize(50);\n            text(\"Story Mode\",180,210);\n        }\n        if(500>=mouseX&&mouseX>=100&&375>=mouseY&&mouseY>=275&&!mouseIsPressed){\n            fill(200);\n            rect(100,275,400,100);\n            fill(255);\n            textSize(50);\n            text(\"Unlock\",225,340);\n        }\n        if(500>=mouseX&&mouseX>=100&&500>=mouseY&&mouseY>=400&&!mouseIsPressed){\n            fill(200);\n            rect(100,400,400,100);\n            fill(255);\n            textSize(50);\n            text(\"Guide\",230,470);\n        }\n    }\n    if(state===\"Story Select\"){\n        background(0);\n        fill(255);\n        textSize(100);\n        text(\"Story Mode\",25,80);\n        fill(125);\n        rect(25,100,125,125);\n        rect(165,100,125,125);\n        rect(305,100,125,125);\n        rect(445,100,125,125);\n        rect(25,250,125,125);\n        rect(165,250,125,125);\n        rect(305,250,125,125);\n        rect(445,250,125,125);\n        rect(25,400,125,125);\n        rect(165,400,125,125);\n        rect(305,400,125,125);\n        rect(445,400,125,125);\n        fill(255);\n        textSize(40);\n        text(\"Night 1\",30,175);\n        textAlign(CENTER);\n        textSize(30);\n        text(\" Version \\nHistory\",370,450);\n        textSize(40);\n        text(\"Main\\nMenu\",500,450);\n        if(mouseX>=25&&mouseX<=150&&mouseY>=100&&mouseY<=225&&!mouseIsPressed){\n            fill(225);\n            rect(25,100,125,125);\n            fill(255);\n            textSize(40);\n            textAlign(LEFT);\n            text(\"Night 1\",30,175);\n        }\n        if(mouseX>=445&&mouseX<=570&&mouseY>=400&&mouseY<=525&&!mouseIsPressed){\n            fill(225);\n            rect(445,400,125,125);\n            textAlign(CENTER);\n            fill(255);\n            text(\"Main\\nMenu\",500,450);\n        }\n    }\n    if(state===\"Night 1\"){\n        \n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

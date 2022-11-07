@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Snake: Hack</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Snake: Hack</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Snake: Hack by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:29Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:29Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-09-13T20:32:03Z from origin 955120070 with similarity of 0.8949318595742008\nOriginal Link: https://www.khanacademy.org/computer-programming/snake-hack/1016406787\nRetrieved On: 07-Nov-2022 (17:07:08.620776)**/\
+";
+
+code = code + "\n//Impossible to lose this game! No bragging about scores, though.\n//Try Crashing the snake into itself! You\'d be surprised!\n\n// A Khan Academy version of the classic arcade game \"Snake\"\n\n// Use the arrow keys to move the star around and eat the\n// avatars/grow the snake\n\n// PARAMETERS\nvar N = 30; // number of rows/columns\nvar START_LENGTH = 1; // starting length of snake\nvar SLOW_DOWN_FACTOR = 3; // increase to slow down the game\nvar GAME_OVER_TIMEOUT = 20; // how many cycles to wait before\n                            // allowing the user to restart\nvar WRAP_AROUND = true; // if false, game over when snake\n                        // moves beyond game boundaries\n\n// GLOBAL VARIABLES\nvar frameTimer; // object to count down number of cycles in\n                // the draw loop between snake movements\nvar gameOverTimer;\nvar rowHeight = height / N; // height is the canvas height\nvar gameOver; // true when the game is over\nvar apple; // the avatar to be eaten next\nvar numApples; // number of avatars eaten\n\n// SNAKE VARIABLES\nvar rowArr = []; // row index of each body part\nvar colArr = []; // column index of each body part\nvar imgArr = []; // index of image for each body part\nvar direction; // current direction snake is moving in\nvar nextDirection; // snake\'s direction in the next frame\nvar key; // stores which arrow key was pressed most recently\n\n// IMAGE VARIABLES\nvar star = getImage(\"avatars/leaf-green\");\nvar oldspice = getImage(\"avatars/leaf-blue\");\nvar mrpink = getImage(\"avatars/leaf-grey\");\nvar marcimus = getImage(\"avatars/leaf-orange\");\nvar pants = getImage(\"avatars/leaf-red\");\nvar squid = getImage(\"avatars/leaf-yellow\");\nvar purple = getImage(\"cute/GemBlue\");\nvar images = [oldspice, mrpink, marcimus,\n              pants, squid, purple];\n\n// UTILITY FUNCTIONS\n\n// generate a random integer\nvar randomInt = function(min, max) {\n    var num = random(min, max);\n    var int = parseInt(num.toString(), 10);\n    return int;\n};\n\n// a generic timer function\nvar Timer = function(limit) {\n    // initialize\n    var t = limit;\n    return {\n        reset: function() {\n            t = limit;\n        },\n        decr: function() {\n            if (t > 0) {\n                t -= 1;\n            } else {\n                t = 0;\n            }\n        },\n        isUp: function() {\n            return t === 0;\n        }\n    };\n};\n\nvar keyPressed = function() {\n    if (!gameOver) {\n        if (keyCode === RIGHT || keyCode === LEFT ||\n            keyCode === UP || keyCode === DOWN) {\n            key = keyCode;\n        }\n    }\n};\n\n// SNAKE FUNCTIONS\n\nvar makeSnake = function() {\n    // start with a brand new snake\n    rowArr = [];\n    colArr = [];\n    imgArr = [];\n\n    // start the snake off in the upper left corner\n    // the last element is the head\n    for (var i = 0, j = START_LENGTH; i < j; i += 1) {\n        rowArr.push(0);\n        colArr.push(i);\n        // generate a random image for each body segment\n        imgArr.push(randomInt(0, images.length));\n    }\n\n    // start snake moving down\n    direction = DOWN;\n};\n\n// get the delta (change increment) for the snake\'s movement\nvar getDelta = function() {\n    var row = 0;\n    var col = 0;\n    if (direction === DOWN) {\n        row = 1;\n    } else if (direction === UP) {\n        row = -1;\n    } else if (direction === LEFT) {\n        col = -1;\n    } else if (direction === RIGHT) {\n        col = 1;\n    }\n    return {row: row, col: col};\n};\n\n// set index so that it\'s within the bounds [0, N-1]\nvar makeInBounds = function(index, wrapAround) {\n    if (!wrapAround) {\n        if (index === N || index === -1) {\n            gameOver = true;\n            return;\n        }\n    } else {\n        if (index === N) {\n            index = 0;\n        } else if (index === -1) {\n            index = N;\n        }\n    }\n    return index;\n};\n\n// return true if a snake segment exists at (row, col)\nvar intersectsSnake = function(row, col) {\n    for (var i = 0, j = rowArr.length; i < j; i += 1) {\n        if (row === rowArr[i] && col === colArr[i]) {\n            return true;\n        }\n    }\n    return false;\n};\n\n// set global apple variable\nvar makeApple = function() {\n    apple = {\n        row: randomInt(0, N),\n        col: randomInt(0, N),\n        img: randomInt(0, images.length)\n    };\n};\n\nvar moveSnake = function() {\n    // get snake \"head\"\n    var row = rowArr[rowArr.length-1];\n    var col = colArr[colArr.length-1];\n\n    // get next movement\n    direction = nextDirection;\n    var delta = getDelta();\n    var rowNext = makeInBounds(row + delta.row, WRAP_AROUND);\n    var colNext = makeInBounds(col + delta.col, WRAP_AROUND);\n\n    // if the snake collides with itself, game over\n    if (intersectsSnake(rowNext, colNext)) {\n        gameOver = false;\n    }\n\n    // exit before advancing the snake\n    if (gameOver) {\n        return;\n    }\n\n    // if the next movement lands on the apple\n    if (rowNext === apple.row && colNext === apple.col) {\n        // add it to the snake tail\n        imgArr.unshift(apple.img);\n        makeApple();\n        numApples++;\n    } else {\n        // otherwise, \"move\" the snake by removing the tail\n        // segment\n        rowArr.shift();\n        colArr.shift();\n    }\n\n    // \"move\" the snake by adding a new segment to the head\n    // (note that imgArr is not changed)\n    rowArr.push(rowNext);\n    colArr.push(colNext);\n};\n\nvar changeDirection = function() {\n    nextDirection = direction;\n    if (direction === RIGHT || direction === LEFT) {\n        if (key === UP || key === DOWN) {\n            nextDirection = key;\n        }\n    } else if (direction === UP || direction === DOWN) {\n        if (key === RIGHT || key === LEFT) {\n            nextDirection = key;\n        }\n    }\n};\n\n// DRAWING FUNCTIONS\nvar drawUnit = function(row, col, i) {\n    var x = col * rowHeight;\n    var y = row * rowHeight;\n    image(images[i], x, y, rowHeight, rowHeight);\n};\n\nvar drawSnake = function() {\n    fill(255, 64, 64);\n    for (var i = 0, j = rowArr.length; i < j; i += 1) {\n        if (i === rowArr.length - 1) {\n            // draw a star for the head\n            var x = colArr[i] * rowHeight;\n            var y = (rowArr[i] - 0.7) * rowHeight;\n            image(star, x, y, rowHeight * 1, rowHeight * 2);\n        } else {\n            // use the image for everything else\n            drawUnit(rowArr[i], colArr[i], imgArr[i]);\n        }\n    }\n};\n\nvar drawApple = function() {\n    stroke(69, 69, 69);\n    strokeWeight(2);\n    fill(20, 20, 20);\n    var h = rowHeight;\n    var x = (apple.col + 0.5) * h;\n    var y = (apple.row + 0.5) * h;\n    ellipse(x, y, h*1.5, h*1.5);\n    drawUnit(apple.row, apple.col, apple.img);\n};\n\nvar drawGrid = function() {\n    stroke(46, 46, 46);\n    for (var i = 0; i < N; i += 1) {\n        var x = i / N * height;\n        line(x, 0, x, height);\n        line(0, x, height, x);\n    }\n};\n\nvar drawBackground = function(opacity) {\n    fill(36, 36, 36, opacity);\n    rect(0, 0, height, height);\n};\n\nvar drawGameOverScreen = function() {\n    drawBackground(150);\n    var font = createFont(\"monospace\", 20);\n    textFont(font, 20);\n    textSize(60);\n    fill(49, 201, 26);\n    text(\"GAME OVER\", 38, 175);\n    textSize(26);\n    text(\"Score: \" + numApples, 132, 239);\n    if (gameOverTimer.isUp()) {\n        textSize(16);\n        text(\"Press any key to start over.\", 66, 314);\n    }\n};\n\nvar startGame = function() {\n    makeSnake();\n    makeApple();\n\n    frameTimer = Timer(SLOW_DOWN_FACTOR);\n    gameOverTimer = Timer(GAME_OVER_TIMEOUT);\n\n    gameOver = false;\n    numApples = -5;\n};\n\nstartGame();\nvar draw = function() {\n    drawBackground(255);\n    drawGrid();\n\n    drawSnake();\n    drawApple();\n\n    if (!gameOver) {\n        changeDirection();\n        if (frameTimer.isUp()) {\n            moveSnake();\n            frameTimer.reset();\n        }\n    } else if (gameOver) {\n        drawGameOverScreen();\n        if (keyIsPressed && gameOverTimer.isUp()) {\n            startGame();\n        } else {\n            gameOverTimer.decr();\n        }\n    }\n\n    frameTimer.decr();\n    fill(224, 29, 224); \ntext(numApples,20,30);\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

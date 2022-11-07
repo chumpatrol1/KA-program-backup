@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Particle stream</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Particle stream</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Particle stream by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-06T14:03:39Z by kaid_976851263300560061760577\nLast Edited: 2012-12-06T14:03:39Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-12-06T14:03:39Z from origin 1137370007 with similarity of 0.894257064721969\nOriginal Link: https://www.khanacademy.org/computer-programming/particle-stream/1202466669\nRetrieved On: 07-Nov-2022 (17:07:26.415765)**/\
+";
+
+code = code + "\n// move the mouse around the canvas\n\nvar particles = [];\n\n// draws everything - called many times per second\nvar draw = function() {\n    noStroke(); // do not draw shape borders\n    background(0, 0, 0); // draw background\n    \n    // constantly add particles\n    var particle = {\n        x: 200,\n        y: 200,\n        xSpeed: random(4) - 2,\n        ySpeed: random(4) - 2,\n        color: color(random(255), random(255), random(255))\n    };\n    particles.push(particle);        \n\n    // only keep 5000 most recent particles\n    if (particles.length > 5000) {\n        particles.shift();\n    } \n        \n    // move and draw particles\n    for (var j = 0; j < particles.length; j += 1) {   \n        particles[j].x = particles[j].x + particles[j].xSpeed +\n                         (mouseX - 200) / 15;\n        particles[j].y = particles[j].y + particles[j].ySpeed +\n                         (mouseY - 200) / 15;\n        \n        fill(particles[j].color);\n       if(!mouseIsPressed){\n       ellipse(particles[j].x, particles[j].y, 3, 3);\n       }\n       if(mouseIsPressed){\n           ellipse(particles[j].x, particles[j].y, 10, 10);\n       }\n    }\n    text(particles.length,0,30);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

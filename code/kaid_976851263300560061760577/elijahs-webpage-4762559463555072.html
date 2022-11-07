@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Elijah's Webpage</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Elijah's Webpage</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Elijah's Webpage by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-01-10T19:06:11Z by kaid_976851263300560061760577\nLast Edited: 2015-01-10T19:06:11Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2015-01-10T19:06:11Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/elijahs-webpage/4762559463555072\nRetrieved On: 07-Nov-2022 (17:07:48.522568)**/\
+";
+
+code = code + "\n<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"utf-8\">\n        <title>New Webpage</title>\n        <style>\n        #headerone {\n            color : rgb(255,0,0);\n        }\n        #headertwo {\n            color : rgb(0,0,255);\n        }\n        #headerthree {\n            color : rgb(0,255,0);\n        }\n        #paraone {\n            color : rgb(0,255,0);\n        }\n        #paratwo {\n            color : rgb(255,0,0);\n        }\n        </style>\n    </head>\n    <body>\n<h1 id=\"headerone\">Basic Overview of Elijah</h1>\n<p id=\"paraone\">My full name is David Elijah de Siqueira Campos McLaughlin and I was born on November 8, 2002.<br>I have 2 siblings named Zion de Siqueira Campos McLaughlin and Yael de Siqueira Campos McLaughlin.<br>I have been homeschooled nearly every day in my life. I aspire to go to MIT when I grow up and then<br>will create some cool inventions! My favorite color is blue!</p>\n<h1 id=\"headertwo\">What I Do</h1>\n<p id=\"paratwo\">I study hard on Khan Academy, Time4Learning and Duolingo. In my free time, I like to play games with my siblings, program, and read books. I also answer community questions on Computer Science. I also run a book review blog and own a Chess.com account (Username: ElijahMcLaughlin).</p>\n<h1 id=\"headerthree\">Contact Me and Links</h1>\n<p id=\"headertwo\">Email: chumpatrol1@gmail.com</p>\n<a href=\"http://www.chess.com/members/view/ElijahMcLaughlin\">Chess.com Account</a>\n<br>\n<a href=\"http://booksoftheweek.blogspot.com/\">Book Blog</a>\n<br>\n<a href=\"https://www.khanacademy.org/profile/E.McLaughlin/\">My Profile</a>\n    </body>\n</html>\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

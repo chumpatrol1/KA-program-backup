@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Animation 3: Colorful Boat</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animation 3: Colorful Boat</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Animation 3: Colorful Boat by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:07:05Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:07:05Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-27T15:10:20Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/animation-3-colorful-boat/996499064\nRetrieved On: 07-Nov-2022 (17:07:05.156511)**/\
+";
+
+code = code + "\nvar x = 10;\n\nvar draw = function() {\n    background(0, 0, 0);\n    \n//Squares    \n    \n    fill(255, 0, 0);\n    rect(x + 100, 20, 20, 20);\n    \n    fill(255, 124, 0);\n    rect(x + 100, 40, 20, 20);\n    \n    fill(255, 255, 0);\n    rect(x + 100, 60, 20, 20);\n    \n    fill(0, 255, 0);\n    rect(x + 100, 80, 20, 20);\n    \n    fill(0, 0, 255);\n    rect(x + 100, 100, 20, 20);\n    \n    fill(140, 0, 255);\n    rect(x + 100, 120, 20, 20);\n    \n    fill(242, 123, 242);\n    rect(x + 100, 140, 20, 20);\n    \n    fill(255, 255, 255);\n    rect(x + 100, 160, 20, 20);\n    \n//Layer 1 of Balls    \n    \n    fill(255, 0, 0);\n    ellipse(x + 100, 180, 20, 20);\n    \n    fill (255, 124, 0);\n    ellipse(x + 120, 180, 20, 20);\n    \n    fill(255, 255, 0);\n    ellipse(x + 140, 180, 20, 20);\n    \n    fill(0, 255, 0);\n    ellipse(x + 160, 180, 20,20);\n    \n    fill(0, 0, 255);\n    ellipse(x + 180, 180, 20, 20);\n    \n    fill(140, 0, 255);\n    ellipse(x + 200, 180, 20, 20);\n    \n    fill(242, 123, 242);\n    ellipse(x + 220, 180, 20, 20);\n    \n    fill(255, 255, 255);\n    ellipse(x + 240, 180, 20, 20);\n    \n    fill(255, 255, 255);\n    ellipse(x + 110, 200, 20, 20);\n    \n    //Layer 2 of Balls\n    \n    fill(242, 123, 242);\n    ellipse(x + 130, 200, 20, 20);\n    \n    fill(140, 0, 255);\n    ellipse(x + 150, 200, 20, 20);\n    \n    fill(0, 0, 255);\n    ellipse(x + 170, 200, 20, 20);\n    \n    fill(0, 255, 0);\n    ellipse(x + 190, 200, 20, 20);\n    \n    fill(255, 255, 0);\n    ellipse(x + 210, 200, 20, 20);\n    \n    fill(255, 124, 0);\n    ellipse(x + 230, 200, 20, 20);\n    \n    //Layer 3 of Balls\n    \n    fill(255, 0, 0);\n    ellipse(x + 120, 220, 20,20);\n    \n    fill(255, 124, 0);\n    ellipse(x + 140, 220, 20, 20);\n    \n    fill(255, 255, 0);\n    ellipse(x + 160, 220, 20, 20);\n    \n    fill(0, 255, 0);\n    ellipse(x + 180, 220, 20, 20);\n    \n    fill(0, 0, 225);\n    ellipse(x + 200, 220, 20, 20);\n    \n    fill(140, 0, 255);\n    ellipse(x + 220, 220, 20, 20);\n    \n    //Layer 4 of Balls\n    fill(255, 255, 255);\n    ellipse(x + 130, 240, 20, 20);\n    \n    fill(242, 124, 242);\n    ellipse(x + 150, 240, 20, 20);\n    \n    fill(140, 0, 255);\n    ellipse(x + 170, 240, 20, 20);\n    \n    fill(0, 0, 255);\n    ellipse(x + 190, 240, 20, 20);\n    \n    fill(0, 255, 0);\n    ellipse(x + 210, 240, 20, 20);\n    \n    //Layer 5 of Balls\n    fill(255, 0, 0);\n    ellipse(x + 140, 260, 20, 20);\n    \n    fill(255, 124, 0);\n    ellipse(x + 160, 260, 20, 20);\n    \n    fill(255, 255, 0);\n    ellipse(x + 180, 260, 20, 20);\n    \n    fill(0, 255, 0);\n    ellipse(x + 200, 260, 20, 20);\n    \n\n    //Layer 6 of Balls\n    \n    fill(255, 255, 255);\n    ellipse(x + 150, 280, 20, 20);\n    \n    fill(242, 123, 242);\n    ellipse(x + 170, 280, 20, 20);\n    \n    fill(140, 0, 255);\n    ellipse(x + 190, 280, 20, 20);\n    \n    //Layer 7 of Balls\n    \n    fill(255, 0, 0);\n    ellipse(x + 160, 300, 20, 20);\n    \n    fill(255, 124, 0);\n    ellipse(x + 180, 300, 20, 20);\n    \n    //Layer 8 of Balls (Last Layer)\n    fill(255, 255, 255);\n    ellipse(x + 170, 320, 20, 20);\n    \n    x = x + 1;\n    \n};\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

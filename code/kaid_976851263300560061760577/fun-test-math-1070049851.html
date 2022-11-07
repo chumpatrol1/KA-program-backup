@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Fun Test! (Math)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fun Test! (Math)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Fun Test! (Math) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:06:23Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:06:23Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-10-04T12:26:55Z from origin 1062780773 with similarity of 0.34007782101167316\nOriginal Link: https://www.khanacademy.org/computer-programming/fun-test-math/1070049851\nRetrieved On: 07-Nov-2022 (17:07:20.722052)**/\
+";
+
+code = code + "\nvar level = 1;\nvar x = 155;\nvar time = 60;\nvar score = 0;\nvar draw= function(){   \n\nif(level===1){\n  fill(255, 0, 0);\nrect(0,155+x,133.33,89);\nfill(255, 255, 0);\nrect(133.33,155+x,133.33,89);\nfill(0, 0, 255);\nrect(266.66,155+x,133.33,89);\nfill(0, 255, 0);\nrect(133.33,65+x,133.33,89);\n fill(0, 0, 0);\n textSize(20);\n text(\"What is 1+1?\",0,20);\n text(\"Level: \"+level,0,40);\n text(\"Time: \"+time,0,60);\n text(\"2\",60,365);\n text(\"1\",190,365);\n text(\"0\",320,365);\n text(\"5\",190,265);\n\n \n //seperated   \nif (keyIsPressed && keyCode === DOWN) {\n fill(255, 0, 0);\nrect(-5,-17,429,540);\nfill(255, 221, 0);\ntext(\"Wrong Answer! Try again!\", 115, 50);\n    }\nif (keyIsPressed && keyCode === RIGHT) {\n fill(255, 0, 0);\nrect(-5,-17,429,540);\nfill(255, 221, 0);\ntext(\"Wrong Answer! Try again!\", 115, 50);\n    }\n\nif (keyIsPressed && keyCode === UP) {\n fill(255, 0, 0);\nrect(-5,-17,429,540);\nfill(255, 221, 0);\ntext(\"Wrong Answer! Try again!\", 115, 50);\n    } else {\n     \n    }\nif (keyIsPressed && keyCode === LEFT) {\nfill(0, 255, 0);\ntext(\"Correct\",0,100);\n    }\n}\n    \n};\n\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

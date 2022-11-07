@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Dr. Silly</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dr. Silly</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Dr. Silly by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-15T00:43:04Z by kaid_976851263300560061760577\nLast Edited: 2013-03-15T00:43:04Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-03-15T19:14:44Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/dr-silly/1463488964\nRetrieved On: 07-Nov-2022 (17:07:58.544705)**/\
+";
+
+code = code + "\n//A Game Template\nvar drfacingr = true;\nvar left = false;\nvar right = true;\nvar still = false;\nvar x = 0;\nvar slide = 0;\nframeRate(100);\nvar draw = function() {\n    background(0, 200, 200);\n    fill(200, 124, 0);\n    rect(x,375,500,25);\n    if(keyPressed&&keyCode===RIGHT){\n        right=true;\n        drfacingr=true;\n        left=false;\n    }\n    if(keyPressed&&keyCode===LEFT){\n        right=false;\n        drfacingr=false;\n        left=true;\n    }\n    if(!drfacingr){\n        if(slide>-1&&slide<50){\n        fill(230);\n        rect(150,300,25,75);\n        fill(0, 0, 0);\n        rect(140,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(200);\n        rect(225,300,25,75);\n        fill(0, 0, 0);\n        rect(215,360,35,15);\n    }\n    if(slide>49&&slide<100){\n                fill(230);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(165,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(165,360,35,15);\n    }\n    if(slide>99&&slide<150){\n                fill(230);\n        rect(225,300,25,75);\n        fill(0, 0, 0);\n        rect(215,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(150,300,25,75);\n        fill(0, 0, 0);\n        rect(140,360,35,15);\n    }\n    if(slide>149&&slide<201){\n                fill(200);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(165,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(165,360,35,15);        \n    }}\n    if(drfacingr){\n        if(slide>-1&&slide<50){\n        fill(200);\n        rect(150,300,25,75);\n        fill(0, 0, 0);\n        rect(150,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(225,300,25,75);\n        fill(0, 0, 0);\n        rect(225,360,35,15);\n    }\n    if(slide>49&&slide<100){\n                fill(200);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(175,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(175,360,35,15);\n    }\n    if(slide>99&&slide<150){\n                fill(200);\n        rect(225,300,25,75);\n        fill(0, 0, 0);\n        rect(225,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(150,300,25,75);\n        fill(0, 0, 0);\n        rect(150,360,35,15);\n    }\n    if(slide>149&&slide<201){\n                fill(200);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(175,360,35,15);\n        fill(255);\n        rect(150,200,100,100);\n        fill(230);\n        rect(175,300,25,75);\n        fill(0, 0, 0);\n        rect(175,360,35,15);        \n    }\n    }\n    slide=slide+1;\n    if(slide === 200){\n        slide =slide-201;\n    }\n    if(keyReleased){\n        still = true;\n        right = false;\n        left = false;\n        drfacingr = \"Nope\";\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

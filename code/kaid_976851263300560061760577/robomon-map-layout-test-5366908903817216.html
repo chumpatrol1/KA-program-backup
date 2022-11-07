@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Robomon Map Layout Test </title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Robomon Map Layout Test </h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Robomon Map Layout Test  by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-10-23T15:02:46Z by kaid_976851263300560061760577\nLast Edited: 2016-10-23T15:02:46Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2017-01-06T14:04:58Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/robomon-map-layout-test/5366908903817216\nRetrieved On: 07-Nov-2022 (17:07:51.032308)**/\
+";
+
+code = code + "\n//Home Zone (10x10). Beginning location of the game. Connects with Zone 1 (Placeholder Name)\n//Arrays Holding Arrays\n//0=Empty Space\n//1=Wall (Impassible)\n//2=Spawn\n//3=Portal (Moves to Different Level)\nvar home = [\n    //Get the Length (Number of Subarrays) to get the Rows\n    //Get the Length of the First Subarray to get the Columns\n[1,1,1,1,1,1,1,1,1,1],\n[1,1,2,0,0,0,0,0,0,1],\n[1,1,0,0,0,0,0,0,0,1],\n[1,0,0,0,0,0,0,0,0,1],\n[1,0,0,0,0,0,0,0,0,1],\n[1,0,0,0,0,0,0,0,0,1],\n[1,0,0,0,0,0,0,0,0,1],\n[1,0,0,0,0,0,1,1,1,1],\n[1,0,0,0,0,0,0,0,3,1],\n[1,1,1,1,1,1,1,1,1,1]\n];\nvar homeR=home.length;\nvar homeC=home[0].length;\nfor(var i=0; i<10; i++){\n    fill(0);\n    text(home[i],0,15+15*i);\n}\n//Basically Rows\n/**for(var i=0; i<homeR; i++){\n    //Write Code that looks at a number and outputs a letter\n    for(var j=0; j<homeC; j++){\n        fill(255,0,0);\n        if(home[i][j]===1){\n            home[i][j]= \"A\";\n        }\n        text(home[i][j],200+10*j,15+15*i);\n    }\n}**/\n//Now Shapes\n//Rows\n/**for(var i=0; i<homeR; i++){\n //Columns\n for(var j=0; j<homeC; j++){\n     fill(0,255,0);\n     if(home[i][j]===\"A\"){\n         home[i][j]=rect(j*10,200+i*10,10,10);\n     }\n     if(home[i][j]===\"0\"){\n         fill(0,0,0);\n        home[i][j]=rect(j*10,200+i*10,10,10);\n     }\n     text(home[i][j],0+10*j,200+10*i);\n }\n}**/\nfor(var i=0; i<homeR; i++){\n    for(var j=0; j<homeC; j++){\n        if(home[i][j]===1){\n            fill(0);\n            rect(200+10*j,10+10*i,10,10);\n        }\n        if(home[i][j]===0){\n            fill(255);\n            rect(200*10+j,10+10*i,10,10);\n        }\n        if(home[i][j]===2){\n            fill(255,0,0);\n            rect(200+10*j,10+10*i,10,10);\n        }\n        if(home[i][j]===3){\n            fill(0,255,0);\n            rect(200+10*j,10+10*i,10,10);\n        }\n    }\n}";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

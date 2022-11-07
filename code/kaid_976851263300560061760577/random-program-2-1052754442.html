@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Random Program 2</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Program 2</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Random Program 2 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:13:40Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:13:40Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-07T16:23:37Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/random-program-2/1052754442\nRetrieved On: 07-Nov-2022 (17:07:16.808060)**/\
+";
+
+code = code + "\n//This is an auto-refueling car.\n\n//This makes you refuel. If you are a guy who likes to see\n//tow trucks, change to false.\nvar refuel = true;\n\n//Your Fuel amount. If you have to change this, You\'ll have \n//to have a \"Coil\" (Coding Oil) change!\nvar fuel = 400;\n\nvar draw = function() {\n     frameRate(50);\n     background(0, 187, 255);\n     fill(67);\n     rect(0,300,400,100);\n     rect(0,0,20,400);\n     rect(380,0,20,400);\n     rect(0,0,400,40);\n     fill(0, 255, 0);\n     rect(0,0,fuel,10);\n     fill(57, 200, 255);\n     rect(20,350,115,50);\n     fill(0);\n     textSize(20);\n     text(fuel,60,385);     \n     \n     if(mouseIsPressed){\n         fuel = fuel-1;\n     }\n     \n     if(fuel < 0&&refuel ===true){\n         if(mouseIsPressed){\n             fuel = fuel+400;\n         }\n     } else if(fuel<0&&refuel === false){\n         background(0, 0, 0);\n         fill(255);\n         textSize(150);\n         text(\"NO!\",0,150);\n     }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>User Search Spin Off</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Search Spin Off</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**User Search Spin Off by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-08-15T19:14:58Z by kaid_976851263300560061760577\nLast Edited: 2015-08-15T19:14:58Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2015-08-15T19:14:58Z from origin 6280544280248320 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/user-search-spin-off/6223760987389952\nRetrieved On: 07-Nov-2022 (17:07:55.337053)**/\
+";
+
+code = code + "\n<!DOCTYPE html>\n<html>\n    <head>\n        <meta charset=\"utf-8\">\n        <title>User Search</title>\n        <script type=\"text/javascript\" src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js\"></script>\n        <style>\n            #username, #button {\n                font-size: 1.6em;\n            }\n            #data {\n                font-size: 1.3em;\n                font-family: sans-serif;\n            }\n        </style>\n    </head>\n    <body>\n        <form>\n            <input autofocus id=\"username\" placeholder=\"Input username\">\n            <button id=\"button\" type=\"submit\">Search</button>\n        </form>\n        <div id=\"data\"></div>\n        <h4><em>Credit to wowsk for helping me out with JSON and inspired by Loki\'s <a target=\"_blank\" href=\"https://chrome.google.com/webstore/detail/multitool-for-khan-academ/melabjdobbjfobmgaagkmgbnhplncdie\">MultiTool</a></em></h4>\n        <script>\n            var button = document.getElementById(\"button\");\n            \n            var getUserData = function() {\n                var username = document.getElementById(\"username\").value;\n                $.getJSON(\"https://www.khanacademy.org/api/internal/user/profile?casing=camel&username=\" + username + \"&lang=en&_=1436642444478&callback=?\", function (data) {\n                    \n                    document.getElementById(\"data\").innerHTML = \"<br>Bio: \" + data.bio + \"<br><br>Nickname: \" + data.nickname + \"<br><br>Unread notifications: \" + data.countBrandNewNotifications + \"<br><br>Videos watched: \" + data.countVideosCompleted + \"<br><br>Has students: \" + data.hasStudents + \"<br><br>Energy points: \" + data.points + \"<br><br>Child account: \" + data.isChildAccount + \"<br><br>Is developer: \" + data.isDeveloper + \"<br><br>Is moderator (\\\"Guardian\\\"): \" + data.isModerator + \"<br><br>Moderator level: \" + data.moderatorLevel + \"<br><br>Date joined: \" + data.dateJoined + \"<br><br>Showcase badges: \" + data.publicBadges[0].description + \", \" + data.publicBadges[1].description + \", \" + data.publicBadges[2].description + \", \" + data.publicBadges[3].description + \", \" + data.publicBadges[4].description + \"<br><br>Is coaching logged in user: \" + data.isCoachingLoggedInUser;\n                })\n            };\n            \n            button.addEventListener(\"click\", getUserData);\n        </script>\n    </body>\n</html>\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

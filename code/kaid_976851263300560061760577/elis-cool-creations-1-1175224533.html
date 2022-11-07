@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Eli's Cool Creations 1</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eli's Cool Creations 1</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Eli's Cool Creations 1 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-27T03:32:09Z by kaid_976851263300560061760577\nLast Edited: 2012-11-27T03:32:09Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-11-27T16:19:07Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/elis-cool-creations-1/1175224533\nRetrieved On: 07-Nov-2022 (17:07:25.550881)**/\
+";
+
+code = code + "\n/***********************************************************\n I Got a bit bored so why not make something new?\n Today I'll make a car...\n * ********************************************************/\n var carX = 0;\n var carY = 0;\n \n var draw = function() {\n     background(0, 0, 0);\n     fill(0, 0, 255);\n     rect(carX,carY,80,50);\n     fill(0, 255, 0);\n     ellipse(carX+65,carY+50,20,20);\n     fill(255, 124, 255);\n     ellipse(carX+15,carY+50,20,20);\n     \n     if(keyPressed && keyCode === LEFT){\n         carX = carX - 1;\n     }\n     if(keyPressed && keyCode === RIGHT){\n         carX = carX +1;\n     }\n     if(keyPressed && keyCode === DOWN){\n         carY = carY + 1;\n     }\n     if(keyPressed && keyCode === UP){\n         carY = carY -1;\n     }\n     text(carX,0,30);\n     fill(0, 255, 0);\n     text(carY,0,60);\n };\n ";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

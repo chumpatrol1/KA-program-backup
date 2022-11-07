@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Tinted Leaves</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tinted Leaves</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Tinted Leaves by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-04-21T13:42:32Z by kaid_976851263300560061760577\nLast Edited: 2013-04-21T13:42:32Z\nVotes/Spinoffs: 8/4\nOriginally Created: 2017-03-31T16:03:33Z from origin 844038377 with similarity of 0.01366120218579235\nOriginal Link: https://www.khanacademy.org/computer-programming/tinted-leaves/1569379498\nRetrieved On: 07-Nov-2022 (17:06:39.568870)**/\
+";
+
+code = code + "\n// Load original image\nvar originalImage = getImage(\"avatars/leaf-red\");\nvar originalImage2 = getImage(\"avatars/leaf-red\");\nvar originalImage3 = getImage(\"avatars/leaf-red\");\nvar originalImage4 = getImage(\"avatars/leaf-blue\");\n// Create graphics object that will be our new image\nvar imageGfx = createGraphics(originalImage.width, originalImage.height, JAVA2D);\nvar imageGfx2 = createGraphics(originalImage2.width, originalImage2.height, JAVA2D);\nvar imageGfx3 = createGraphics(originalImage3.width, originalImage3.height, JAVA2D);\nvar imageGfx4 = createGraphics(originalImage4.width,   originalImage4.height, JAVA2D);\n// Begin drawing to the graphics object\nimageGfx.beginDraw();\n// Make the background transparent\nimageGfx.background(255, 0);\nimageGfx.fill(255, 0);\n// Draw the image to the graphics\nimageGfx.image(originalImage, 0, 0);\nimageGfx.endDraw();\n//Image 2\nimageGfx2.beginDraw();\nimageGfx2.background(255, 0);\nimageGfx2.fill(255, 0);\nimageGfx2.image(originalImage2,0,0);\nimageGfx2.endDraw();\n//Image 3\nimageGfx3.beginDraw();\n// Make the background transparent\nimageGfx3.background(255, 0);\nimageGfx3.fill(255, 0);\n// Draw the image to the graphics\nimageGfx3.image(originalImage3, 0, 0);\nimageGfx3.endDraw();\n//Image 4\nimageGfx4.beginDraw();\n// Make the background transparent\nimageGfx4.background(255, 0);\nimageGfx4.fill(255, 0);\n// Draw the image to the graphics\nimageGfx4.image(originalImage4, 0, 0);\nimageGfx4.endDraw();\nvar draw = function(){\nbackground(255);\n\n\t// First Person\n\tvar rgColor = 100;\n\t// Apply the tint (right now we make the img look more blue)\n\t// tint takes (red, green, blue, alpha) values, all [0, 255]\n\ttint(rgColor, rgColor, 255, 255);\n\t// Draw the image the way you normally would\n\timage(imageGfx, 0, 50);\n\ntint(255,124,255,255);\n\n    image(imageGfx2,100,50);\n\ntint(255,124,255,100);\n\nimage(imageGfx3,200,50);\n\ntint(200,0,200,200);\n\nimage(imageGfx4,300,50);\n\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

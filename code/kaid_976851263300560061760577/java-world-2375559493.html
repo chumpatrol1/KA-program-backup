@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Java World</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Java World</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Java World by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-10-30T23:10:15Z by kaid_976851263300560061760577\nLast Edited: 2013-10-30T23:10:15Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-11-02T12:06:48Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/java-world/2375559493\nRetrieved On: 07-Nov-2022 (17:07:45.402057)**/\
+";
+
+code = code + "\nvar area = \"A\";\nvar draw= function() {\n    if(area===\"A\"){\n        background(0, 255, 255);\nfill(0, 255, 0);\nrect(-1,350,401,50);\n//The \"Smosh\"\nfill(200);\nrect(5,250,100,95);\nfill(255);\nellipse(30,275,25,25);\nellipse(70,275,25,25);\nfill(0, 0, 0);\nellipse(30,275,10,10);\nellipse(70,275,10,10);\nstrokeWeight(5);\nstroke(200);\nline(20,255,40,269);\nline(80,255,60,269);\nfill(255, 0, 0);\nellipse(50,325,74,25);\nif(mouseX>=5&&mouseX<=100&&mouseY>=250&&mouseY<=345&&mouseIsPressed){\n area= \"Smosh\";   \n}\n//The \"Wosh\"\nnoStroke();\nfill(0, 0, 255,124);\nellipse(200,200,100,100);\nellipse(200,150,50,50);\nellipse(200,125,25,25);\nellipse(200,112.5,12.5,12.5);\nellipse(200,106.26,6.25,6.25);\nfill(255, 255, 255,200);\nellipse(175,200,25,25);\nellipse(225,200,25,25);\nfill(0, 0, 0,200);\nellipse(175,200,10,10);\nellipse(225,200,10,10);\n//The \"Biferno\"\nfill(255, 255, 0,200);\nrect(300,300,100,50);\nfill(255, 125, 0,200);\nrect(300,280,40,25);\nrect(360,280,40,25);\nfill(255, 0, 0,200);\nrect(300,270,15,12.5);\nrect(325,270,15,12.5);\nrect(360,270,15,12.5);\nrect(385,270,15,12.5);\nfill(255, 255, 255,200);\nrect(365,320,25,20);\nrect(315,320,25,20);\nfill(200, 100, 0);\nrect(320,325,10,10);\nrect(370,325,10,10);\ntextSize(30);    \n    }\n    if(area===\"Smosh\"){\n    background(200);\n    fill(255);\n    textSize(30);\n    text(\"The smosh is a giant stone\\nthat likes to jump on things.\\nThey are very peaceful \\ndespite liking to smash things.\",0,30);\n}\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

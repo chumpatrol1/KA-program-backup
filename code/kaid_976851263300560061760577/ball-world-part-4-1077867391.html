@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ball World Part 4</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball World Part 4</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Ball World Part 4 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:15:17Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:15:17Z\nVotes/Spinoffs: 6/5\nOriginally Created: 2012-10-12T01:03:07Z from origin 1071901128 with similarity of 0.09242957746478873\nOriginal Link: https://www.khanacademy.org/computer-programming/ball-world-part-4/1077867391\nRetrieved On: 07-Nov-2022 (17:06:41.168854)**/\
+";
+
+code = code + "\n//I am trying to make a cartoon about balls interacting with //each other. Let\'s hope this works :-P.\n\n//First, I\'ll make a variable called \"slide\".\nvar slide = 0;\n\n//Next, I will have to throw in our draw loop...\n\nvar draw = function() {\n    //All right, no backgrounds today!\n    \n    //Set the frame rate.\n    frameRate(1);\n    \n    //Let the scenes begin!\n    \n    if(slide === 0){\n        background(255, 0, 0);\n        textSize(33);\n        text(\"Ball World Part 4\",50,199);\n    }\n    if(slide === 1){\n            background(255, 0, 0);\n            textSize(33);\n            text(\"Ball World Part 4\",50,199);\n    }\n    if(slide === 2){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Hey Yael, I\'m bored!\",0,30);\n    }\n    if(slide === 4){\n        background(0, 255, 255);\n        fill(255, 124, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Me too!\",0,30);\n    }\n    if(slide === 6){\n        background(0, 255, 255);\n        fill(0, 255, 0);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Why don\'t we go on vacation?\",0,30);\n    }\n    if(slide === 9){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(100,300,200,200);\n        fill(255,124,255);\n        ellipse(300,300,200,200);\n        fill(255);\n        textSize(30);\n        text(\"What a great idea!\",0,30);\n    }\n    if(slide === 12){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(150,300,100,50);\n        fill(0, 0, 0);\n        ellipse(160,350,20,20);\n        ellipse(240,350,20,20);\n    }\n    if(slide === 13){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(175,300,100,50);\n        fill(0, 0, 0);\n        ellipse(185,350,20,20);\n        ellipse(265,350,20,20);        \n    }\n        if(slide === 14){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(200,300,100,50);\n        fill(0, 0, 0);\n        ellipse(210,350,20,20);\n        ellipse(290,350,20,20);        \n    }\n        if(slide === 15){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(225,300,100,50);\n        fill(0, 0, 0);\n        ellipse(235,350,20,20);\n        ellipse(315,350,20,20);        \n    }\n            if(slide === 16){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(250,300,100,50);\n        fill(0, 0, 0);\n        ellipse(260,350,20,20);\n        ellipse(340,350,20,20);        \n    }\n                if(slide === 17){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(275,300,100,50);\n        fill(0, 0, 0);\n        ellipse(285,350,20,20);\n        ellipse(365,350,20,20);        \n    }\n                    if(slide === 18){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(300,300,100,50);\n        fill(0, 0, 0);\n        ellipse(310,350,20,20);\n        ellipse(390,350,20,20);        \n    }\n                    if(slide === 19){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(325,300,100,50);\n        fill(0, 0, 0);\n        ellipse(335,350,20,20);        \n    }\n                        if(slide === 20){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(350,300,100,50);\n        fill(0, 0, 0);\n        ellipse(360,350,20,20);        \n    }\n                            if(slide === 21){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        rect(375,300,100,50);\n        fill(0, 0, 0);\n        ellipse(385,350,20,20);        \n    }\n                                if(slide === 22){\n        background(0, 255, 255);\n    }\nif(slide === 23){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"2 Hours Later...\",0,30);\n}    \nif(slide === 25){\n    background(0, 255, 255);\n    fill(0, 0, 255);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"We\'re running low on fuel!\\n Hang on!\",0,30); \n}\nif(slide === 29){\n    background(0, 255, 255);\n    fill(124);\n    rect(100,100,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Price per\\n Gallon:\\n$1,000,000\",100,130);\n}\nif(slide === 32){\n    background(0, 255, 255);\n    fill(0, 0, 255);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"I\'m no millionaire!\\nLet\'s go get gas another place\",0,30);\n}\nif(slide === 36){\n    background(0, 255, 255);\n    fill(255, 124, 0);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"No-Gas Cars for 10$!\",0,30);\n}\nif(slide === 39){\n    background(0, 255, 255);\n    fill(0, 0, 255);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Let\'s go buy an \\n electric car!\",0,30); \n}\nif(slide === 42){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"Later...\",0,30);\n}\nif(slide === 45){\n    background(0, 255, 255);\n    fill(255, 124, 0);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Goodbye!\",0,30);\n}\nif(slide === 47){\n    background(0, 255, 255);\n    fill(0, 0, 255);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Hmm, what does this button \\n do? Let\'s find out!\",0,30);\n}\nif(slide === 52){\n    background(33, 33, 33);\n    fill(0, 0, 255);\n    rect(200,200,100,50);\n    fill(0, 0, 0);\n    ellipse(210,250,20,20);\n    ellipse(290,250,20,20);\n    fill(255);\n    ellipse(10,240,5,5);\n    ellipse(65,80,5,5);\n    ellipse(320,90,5,5);\n    ellipse(100,350,50,50);\n    ellipse(145,50,5,5);\n    ellipse(30,390,5,5);\n    ellipse(195,95,5,5);\n    ellipse(270,295,5,5);\n    ellipse(380,380,5,5);\n    fill(33);\n    ellipse(115,350,50,50);\n    \n}\nif(slide === 53){\n    background(33, 33, 33);\n    fill(0, 0, 255);\n    rect(210,200,100,50);\n    fill(0, 0, 0);\n    ellipse(220,250,20,20);\n    ellipse(300,250,20,20);\n        fill(255);\n    ellipse(10,240,5,5);\n    ellipse(65,80,5,5);\n    ellipse(320,90,5,5);\n    ellipse(100,350,50,50);\n    ellipse(145,50,5,5);\n    ellipse(30,390,5,5);\n    ellipse(195,95,5,5);\n    ellipse(270,295,5,5);\n    ellipse(380,380,5,5);\n    fill(33);\n    ellipse(115,350,50,50);\n}\nif(slide === 54){\n    background(33, 33, 33);\n    fill(0, 0, 255);\n    rect(210,210,100,50);\n    fill(0, 0, 0);\n    ellipse(220,260,20,20);\n    ellipse(300,260,20,20);\n    fill(255);\n    ellipse(10,240,5,5);\n    ellipse(65,80,5,5);\n    ellipse(320,90,5,5);\n    ellipse(100,350,50,50);\n    ellipse(145,50,5,5);\n    ellipse(30,390,5,5);\n    ellipse(195,95,5,5);\n    ellipse(270,295,5,5);\n    ellipse(380,380,5,5);\n    fill(33);\n    ellipse(115,350,50,50);\n\n}\nif(slide === 55){\n    background(33, 33, 33);\n    fill(0, 0, 255);\n    rect(200,210,100,50);\n    fill(0, 0, 0);\n    ellipse(210,260,20,20);\n    ellipse(290,260,20,20);\n        fill(255);\n    ellipse(10,240,5,5);\n    ellipse(65,80,5,5);\n    ellipse(320,90,5,5);\n    ellipse(100,350,50,50);\n    ellipse(145,50,5,5);\n    ellipse(30,390,5,5);\n    ellipse(195,95,5,5);\n    ellipse(270,295,5,5);\n    ellipse(380,380,5,5);\n    fill(33);\n    ellipse(115,350,50,50);\n}\nif(slide === 56){\n    background(33, 33, 33);\n    fill(0, 0, 255);\n    rect(200,200,100,50);\n    fill(0, 0, 0);\n    ellipse(210,250,20,20);\n    ellipse(290,250,20,20);\n        fill(255);\n    ellipse(10,240,5,5);\n    ellipse(65,80,5,5);\n    ellipse(320,90,5,5);\n    ellipse(100,350,50,50);\n    ellipse(145,50,5,5);\n    ellipse(30,390,5,5);\n    ellipse(195,95,5,5);\n    ellipse(270,295,5,5);\n    ellipse(380,380,5,5);\n    fill(33);\n    ellipse(115,350,50,50);\n}\nif(slide === 57){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"After a unsettling trip through \\n space...\",0,30);\n}\nif(slide === 60){\n    background(255, 124, 0);\n    fill(0, 0, 0);\n    textSize(30);\n    text(\"HOTEL DEMOLITION. \\n PLEASE STAY AWAY OR BE \\nFINED $700\",0,30);\n}\nif(slide === 64){\n    background(0, 255, 255);\n    fill(0, 255, 0);\n    ellipse(100,200,200,200);\n    fill(255, 124, 255);\n    ellipse(300,200,200,200);\n    fill(255);\n    text(\"NOOOOOOOOOOOOOOO!!!!!!!!!!!\",0,30);\n}\nif(slide === 67){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"1 Thousand Miles Later...\",0,30);\n}\nif(slide === 70){\n    background(0, 255, 255);\n    fill(255, 0, 0);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"How was your vacation,\\n children?\",0,30);\n}\nif(slide === 73){\n    background(0, 255, 255);\n    fill(0, 0, 255);\n    ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Well, it wasn\'t what \\nwe expected, but was \\nso much fun!\",0,30);\n\n}\n    if(slide === 77){\n        slide = slide - 78;\n    }\n\n\nslide = slide+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

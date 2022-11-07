@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Eli's Labs: For Var I</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eli's Labs: For Var I</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Eli's Labs: For Var I by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-31T00:56:20Z by kaid_976851263300560061760577\nLast Edited: 2013-01-31T00:56:20Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2013-01-31T01:08:19Z from origin 877960284 with similarity of 0.04354136429608128\nOriginal Link: https://www.khanacademy.org/computer-programming/elis-labs-for-var-i/1336919537\nRetrieved On: 07-Nov-2022 (17:07:30.766827)**/\
+";
+
+code = code + "\nvar x=1;\nvar y =1;\nfor (var i = 0;i<210;i+=10){\nfill(255, 0, 0);\nellipse(2*x*i,2*y*i,20,20);\nfill(255, 124, 0);\nellipse(2*x*i+60,2*y*i,20,20);\nellipse(2*x*i-60,2*y*i,20,20);\nfill(255, 255, 0);\nellipse(2*x*i+120,2*y*i,20,20);\nellipse(2*x*i-120,2*y*i,20,20);\nfill(0, 255, 0);\nellipse(2*x*i+180,2*y*i,20,20);\nellipse(2*x*i-180,2*y*i,20,20);\nfill(0, 0, 255);\nellipse(2*x*i+240,2*y*i,20,20);\nellipse(2*x*i-240,2*y*i,20,20);\nfill(255, 0, 255);\nellipse(2*x*i+300,2*y*i,20,20);\nellipse(2*x*i-300,2*y*i,20,20);\nfill(255, 124, 255);\nellipse(2*x*i+360,2*y*i,20,20);\nellipse(2*x*i-360,2*y*i,20,20);\n} ";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ball World Part 5</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball World Part 5</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Ball World Part 5 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:05:52Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:05:52Z\nVotes/Spinoffs: 5/4\nOriginally Created: 2012-10-18T12:35:50Z from origin 1077867391 with similarity of 0.21450939457202506\nOriginal Link: https://www.khanacademy.org/computer-programming/ball-world-part-5/1084847745\nRetrieved On: 07-Nov-2022 (17:06:51.659113)**/\
+";
+
+code = code + "\n//I am trying to make a cartoon about balls interacting with //each other. Let\'s hope this works :-P.\n\n//First, I\'ll make a variable called \"slide\".\nvar slide = 0;\nvar robot = getImage(\"avatars/robot_male_1\");\n//Next, I will have to throw in our draw loop...\n\nvar draw = function() {\n    //All right, no backgrounds today!\n    \n    //Set the frame rate.\n    frameRate(1);\n    \n    //Let the scenes begin!\n    \n    if(slide === 0){\n        strokeWeight(1);\n        background(255, 0, 255);\n        textSize(33);\n        text(\"Ball World Part 5\",50,199);\n    }\n    if(slide === 1){\n            background(255, 0, 255);\n            textSize(33);\n            text(\"Ball World Part 5\",50,199);\n    }\n    if(slide === 2){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"I want to build a robot!\",0,30);\n    }\n    if(slide === 5){\n        background(0, 255, 255);\n        fill(0, 255, 0);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Let\'s go!\",0,30);\n    }\n    if(slide === 6){\n        background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n    } \n        if(slide === 7){\n        background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n        ellipse(175,250,-150,50);\n    } \n    if(slide === 8){\n        background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n        ellipse(175,250,-150,50);\n        ellipse(325,250,150,50);\n    }\n        if(slide === 9){\n        background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n        ellipse(175,250,-150,50);\n        ellipse(325,250,150,50);\n        ellipse(250,200,100,100);\n    }\n            if(slide === 10){\n        background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n        ellipse(175,250,-150,50);\n        ellipse(325,250,150,50);\n        ellipse(250,200,100,100);\n        fill(255, 0, 0);\n        ellipse(250,200,100,20);\n    }\n                if(slide === 11){\n        background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n        ellipse(175,250,-150,50);\n        ellipse(325,250,150,50);\n        ellipse(250,200,100,100);\n        fill(255, 0, 0);\n        ellipse(250,200,100,20);\n        fill(255, 255, 0);\n        rect(225,125,20,50);\n    }\n    if(slide === 12){\n                background(0, 255, 255);\n        fill(124);\n        rect(200,200,100,150);\n        ellipse(175,250,-150,50);\n        ellipse(325,250,150,50);\n        ellipse(250,200,100,100);\n        fill(255, 0, 0);\n        ellipse(250,200,100,20);\n        fill(255, 255, 0);\n        rect(225,125,20,50);\n        rect(275,125,20,50);\n    }\n    if(slide === 13){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Hey Guys, the bot is done!\",0,30);\n    }\n    if(slide === 17){\n        background(0, 255, 255);\n        rotate(10);\n        image(robot,0,200);\n    }\n        if(slide === 18){\n        background(0, 255, 255);\n        rotate(10);\n        image(robot,0,200);\n        rotate(-10);\n        fill(255);\n        textSize(30);\n        text(\"Well, Robot, come on!\",17,30);\n    }\n    \n    if(slide === 21){\n            background(0, 255, 255);\n        rotate(0);\n        image(robot,0,200);\n    }\n        if(slide === 22){\n            background(0, 255, 255);\n        rotate(0);\n        image(robot,5,200);\n    }\n            if(slide === 23){\n            background(0, 255, 255);\n        rotate(0);\n        image(robot,10,200);\n    }\n                if(slide === 24){\n            background(0, 255, 255);\n        rotate(0);\n        image(robot,20,200);\n    }\n    if(slide === 25){\n            background(0, 255, 255);\n        rotate(0);\n        image(robot,35,200);      \n    }\n        if(slide === 26){\n            background(0, 255, 255);\n        rotate(0);\n        image(robot,55,200);      \n    }\n    if(slide === 28){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"What\'s your name?\",0,30);\n    }\n    if(slide === 30){\n        noStroke();\n        background(0, 255, 255);\n        image(robot,55,100,300,300);\n        fill(0, 255,255);\n        rect(60,340,100,50);\n        rect(60,320,50,50);\n        fill(255);\n        textSize(30);\n        text(\"My Name\'s Johnny\",0,30);\n    }\n    if(slide === 32){\n        strokeWeight(1);\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"The Next Day...\",0,30);\n    }\n    if(slide === 34){\n       background(0, 255, 255);\n       image(robot,0,275);\n    }\n    if(slide === 35){\n        background(0, 255, 255);\n        image(robot,30,275);\n    }\n    if(slide === 36){\n        background(0, 255, 255);\n        image(robot,60,275);\n    }\n    if(slide === 37){\n        background(0, 255, 255);\n        image(robot,90,275);\n    }\n    if(slide === 38){\n        background(0, 255, 255);\n        image(robot,120,275);\n    }\n    if(slide === 39){\n        background(0, 255, 255);\n        image(robot,150,275);\n    }\n    if(slide === 40){\n        background(0, 255, 255);\n        image(robot,150,275);\n        fill(255);\n        textSize(30);\n        text(\"Uh-oh!\",150,275);\n    }\n    if(slide === 42){\n        strokeWeight(1);\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Oh no!!\",0,30);\n    }\n    if(slide === 44){\n        background(0, 255, 255);\n        fill(255);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"An egg was dropped by a \\n robot...\",0,30);\n        fill(255, 255, 0);\n        ellipse(183,166,100,100);\n    }\n    if(slide === 47){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Bad Egg-Bots!\",0,30);\n    }\n    if(slide === 50){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"After the mess was cleaned...\",0,30);\n    }\n    if(slide === 54){\n        background(0, 124, 124);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Where\'s Johnny?\",0,30);\n    }\n    if(slide === 56){\n        background(0, 124, 124);\n        fill(0, 244, 0);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Taking a vacation!\",0,30);\n    }\n    if(slide === 60){\n        background(0, 0, 0);\n        text(\"To Be Continued\",0,30);\n    }\n    if(slide === 65){\n        slide = slide -66;\n    }\n    \n\nslide = slide+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Warfightia, The Game! (Advertisment)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Warfightia, The Game! (Advertisment)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Warfightia, The Game! (Advertisment) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-09-16T14:44:40Z by kaid_976851263300560061760577\nLast Edited: 2013-09-16T14:44:40Z\nVotes/Spinoffs: 3/1\nOriginally Created: 2014-10-12T14:47:54Z from origin 2012199380 with similarity of 0.3962076948517253\nOriginal Link: https://www.khanacademy.org/computer-programming/warfightia-the-game-advertisment/2037901761\nRetrieved On: 07-Nov-2022 (17:06:50.502946)**/\
+";
+
+code = code + "\nvar scene = 1;\nvar a = 0;\nvar b = 5;\nvar c = 400;\nvar d = 0;\nvar e = 0;\nvar f = 0;\nvar draw = function() {\nif(scene === 1){\n    strokeWeight(1);\n    stroke(0, 0, 0);\n        background(0, 0, 124);\n        fill(255, 0, 0);\n        rect(174,300,25,100);\n        rect(201,300,25,100);\n        fill(0, 255, 0);\n        rect(174,200,52,100);\n        rect(150,200,23,75);\n        rect(227,200,23,75);\n        fill(255, 200, 255);\n        rect(190,170,20,30);\n        rect(150,276,23,20);\n        rect(227,276,23,20);\n        rect(174,120,50,50);\n        fill(124, 50, 0);\n        rect(164,100,70,20);\n        rect(164,100,20,30);\n        rect(214,100,20,30);\n        fill(255);\n        rect(184,135,10,10);\n        rect(206,135,10,10);\n        fill(0, 255, 255);\n        rect(187,140,5,5);\n        rect(209,140,5,5);\n        fill(0, 0, 0);\n        rect(185,160,30,5);\n        noStroke();\n        fill(255);\n        rect(195,75,10,20);\n        rect(5,5,390,75);\n        if(a>=0&&a<=60){\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"*sigh*\",10,40);\n        }\n        if(a>=61&&a<=180){\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"Mom\'s away and I\'m bored...\",10,40);\n        }\n        if(a>=181&&a<=270){\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"I\'ll do computer.\",10,40);\n        }\n        a+=1;\n    }\n    if(a>270){\n        scene=2;\n    }\n    if(scene===2){\n        strokeWeight(1);\n        stroke(0, 0, 0);\n        background(255);\n        fill(255, 0,0);\n        textSize(40);\n        text(\"GMail\",0,40);\n        rect(5,80,100,40);\n        fill(255);\n        textSize(20);\n        text(\"Compose\",10,110);\n        rect(115,50,175,50);\n        rect(115,100,175,50);\n        rect(115,150,175,50);\n        rect(115,200,175,50);\n        rect(115,250,175,50);\n        fill(0, 200, 0);\n        rect(310,50,85,250);\n        fill(0, 0, 0);\n        textSize(25);\n        text(\"Yo Dude\",115,75);\n        text(\"Minecraft News\",115,125);\n        text(\"Instructions\",115,175);\n        fill(124);\n        text(\"Multiplayer?\",115,225);\n        text(\"Nopuorg Deals\",115,275);\n        textSize(15);\n        fill(0, 0, 0);\n        text(\"Jerry Tomkins\",115,95);\n        text(\"Minecraft No-Reply\",115,145);\n        text(\"\'\'Mom\'\' (Sarah Baker)\",115,195);\n        fill(124);\n        text(\"Jerry Tomkins\",115,245);\n        text(\"Nopuorg No-Reply\",115,295);\n        noStroke();\n        fill(0, 0, 0);\n        rect(b,c-5,5,80);\n        rect(b+5,c,5,5);\n        rect(b+10,c+5,5,5);\n        rect(b+15,c+10,5,5);\n        rect(b+20,c+15,5,5);\n        rect(b+25,c+20,5,5);\n        rect(b+30,c+25,5,5);\n        rect(b+35,c+30,5,5);\n        rect(b+40,c+35,5,5);\n        rect(b+45,c+40,5,10);\n        rect(b+30,c+45,15,5);\n        rect(b+30,c+45,5,10);\n        rect(b+35,c+55,5,10);\n        rect(b+40,c+65,5,10);\n        rect(b,c+75,10,5);\n        rect(b+10,c+70,5,5);\n        rect(b+15,c+65,5,5);\n        rect(b+20,c+60,5,5);\n        rect(b+25,c+65,5,10);\n        rect(b+30,c+75,10,5);\n        fill(255);\n        noStroke();\n        rect(b+5,c+5,5,70);\n        rect(b+10,c+10,5,60);\n        rect(b+15,c+15,5,50);\n        rect(b+20,c+20,5,40);\n        rect(b+25,c+25,5,40);\n        rect(b+30,c+30,5,15);\n        rect(b+35,c+35,5,10);\n        rect(b+40,c+40,5,5);\n        rect(b+30,c+55,5,20);\n        rect(b+35,c+65,5,10);\n        if(c>185){\n          c-=1;  \n        }\n        if(c<187&&b<200){\n            b+=1;\n        }\n        if(b>198){\n            e+=1;\n        }\n        fill(255);\n        textSize(17);\n        text(\"Warfightia\",315,70);\n        textSize(22);\n        text(\" Free\\nGame!\",320,100);\n        fill(255, 0, 0);\n        rect(320,240,65,50);\n        fill(255);\n        textSize(25);\n        text(\"Play \\nNow\",325,260);\n        fill(124);\n        rect(320,185,5,50);\n        fill(255, 0, 0);\n        rect(320,155,40,30);\n        fill(255, 200, 0);\n        textSize(25);\n        text(\"W\",325,180);\n        if(e>60){\n            scene =3;\n        }\n    }\n    if(scene===3){\n         strokeWeight(1);\n    stroke(0, 0, 0);\n        background(0, 0, 124);\n        fill(255, 0, 0);\n        rect(174,300,25,100);\n        rect(201,300,25,100);\n        fill(0, 255, 0);\n        rect(174,200,52,100);\n        rect(150,200,23,75);\n        rect(227,200,23,75);\n        fill(255, 200, 255);\n        rect(190,170,20,30);\n        rect(150,276,23,20);\n        rect(227,276,23,20);\n        rect(174,120,50,50);\n        fill(124, 50, 0);\n        rect(164,100,70,20);\n        rect(164,100,20,30);\n        rect(214,100,20,30);\n        fill(255);\n        rect(184,135,10,10);\n        rect(206,135,10,10);\n        fill(0, 255, 255);\n        rect(187,140,5,5);\n        rect(209,140,5,5);\n        fill(0, 0, 0);\n        rect(185,160,30,5);\n        noStroke();\n        fill(255);\n        rect(195,75,10,20);\n        rect(5,5,390,75);\n        f+=1;\n        if(f>=0&&f<=60){\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"OMG! A Game!\",5,35);\n            \n        }\n        if(f>61){\n                scene=4;\n            }\n    }\n    if(scene===4){\n        background(0, 0, 255);\n        fill(255);\n        textSize(30);\n        text(\"Warfightia:\\nTurn Based Fighting Game!\\nOver 300 Levels!\\nWeekly Challenges!\\nMultiplayer Versus Mode!\\n\\n\\n\\n\\nAsk Your parents before \\nplaying\",0,25);\n        fill(0, 200, 0);\n        rect(0,170,150,150);\n        fill(255);\n        rect(20,180,50,50);\n        rect(80,190,40,30);\n        fill(0);\n        rect(20,180,20,20);\n        rect(105,205,15,15);\n        fill(0, 100, 0);\n        rect(10,250,100,50);\n        fill(255);\n        rect(10,250,25,15);\n        rect(40,250,20,25);\n        rect(80,250,30,30);\n        rect(65,265,10,35);\n        fill(255, 0, 0);\n        text(\"Brainz R Delishus \\n         Gamez\",150,200);\n        if(f>300){\n            scene=5;\n        }\n    }\n    if(scene === 5){\n                 strokeWeight(1);\n    stroke(0, 0, 0);\n        background(0, 0, 124);\n        fill(255, 0, 0);\n        rect(174,300,25,100);\n        rect(201,300,25,100);\n        fill(0, 255, 0);\n        rect(174,200,52,100);\n        rect(150,200,23,75);\n        rect(227,200,23,75);\n        fill(255, 200, 255);\n        rect(190,170,20,30);\n        rect(150,276,23,20);\n        rect(227,276,23,20);\n        rect(174,120,50,50);\n        fill(124, 50, 0);\n        rect(164,100,70,20);\n        rect(164,100,20,30);\n        rect(214,100,20,30);\n        fill(255);\n        rect(184,135,10,10);\n        rect(206,135,10,10);\n        fill(0, 255, 255);\n        rect(187,140,5,5);\n        rect(209,140,5,5);\n        fill(0, 0, 0);\n        rect(185,160,30,5);\n        noStroke();\n        fill(255);\n        rect(195,75,10,20);\n        rect(5,5,390,75);\n        fill(0);\n        textSize(30);\n        text(\"...ugh!!!!!!!! The END...\",5,30);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

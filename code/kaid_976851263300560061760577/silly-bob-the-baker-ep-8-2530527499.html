@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Silly Bob the Baker (Ep 8)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Silly Bob the Baker (Ep 8)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Silly Bob the Baker (Ep 8) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-11-11T22:07:30Z by kaid_976851263300560061760577\nLast Edited: 2013-11-11T22:07:30Z\nVotes/Spinoffs: 49/6\nOriginally Created: 2013-11-12T21:41:53Z from origin 2493474414 with similarity of 0.23355906696764483\nOriginal Link: https://www.khanacademy.org/computer-programming/silly-bob-the-baker-ep-8/2530527499\nRetrieved On: 07-Nov-2022 (17:06:36.259890)**/\
+";
+
+code = code + "\n//10 Votes in 7 Hours, awesome!\n\n\n\n\n\nstroke(0, 0, 0);\nvar spunkysam = getImage(\"cute/CharacterBoy\");\nvar bob = getImage(\"cute/CharacterBoy\");\nvar guest = getImage(\"creatures/Hopper-Happy\");\nvar health = 250;\nvar heart = getImage(\"cute/Heart\");\nvar counter = 0;\nvar load=false;\nvar load1=0;\nvar page = 1;\ndraw = function() {\n    if(page===1){\n        background(255);\n        stroke(0, 0, 0);\n       //middle line\nimage(spunkysam,5,30,50,80);\nline(200,0,200,400);\n//1st line\nline(0,97,400,97);\n//2nd line\nline(0,200,400,200);\n//3rd line\nline(0,307,400,307);\n//title\ntextSize(35);\nfill(0, 0, 0);\ntext(\"Silly Bob\\n\", 15, 34);\n//1st script\nnoStroke();\nfill(124, 50, 0);\nfill(0,255,255);\nrect(201,0,200,97);\nfill(0, 0, 0);\ntextSize(20);\ntext(\"Silly Bob was looking\\nat his bank account.\", 204, 20);\nfill(255, 0, 0);\nrect(300,62,35,35);\nimage(spunkysam,210,40,50,65);\n//2nd script\nfill(0, 0, 0);\ntext(\"He was penniless!\", 5, 116);\nfill(255);\nstroke(0, 0, 0);\nrect(5,125,150,70);\nfill(0, 0, 0);\ntextSize(10);\ntext(\"Bank Account\\nBob Errorton\\nBalance: $0.00\",7,140);\n\nnoStroke();\n//3rd script\nfill(255);\nstroke(0, 0, 0);\nellipse(250,150,12.5,12.5);\nellipse(275,150,25,25);\nellipse(325,175,80,45);\nfill(0, 255, 255);\nnoStroke();\nrect(310,160,30,30);\ntextSize(20);\nfill(0, 255, 0);\ntext(\"$\",317.5,180);\nfill(0, 0, 0);\ntext(\"He badly needed a\\njob!\", 205, 116);\nimage(spunkysam,200,130,50,80);\n\n//4th script\ntextSize(20);\ntext(\"He applied for a job\\nat Beaver Bakery\", 3, 221);\nimage(spunkysam,50,240,50,80);\nimage(guest,130,257,50,50);\nfill(100, 50, 0);\nrect(100,287,25,20);\n//5th line\ntextSize(20);\nfill(0, 0, 0);\ntext(\"He lied he could bake,\\ntop and serve cakes.\", 203, 220);\nimage(spunkysam,250,240,50,80);\n//6th line\nfill(0, 0, 0);\ntextSize(20);\ntext(\"His first customer\\nwas a robot!\",10,330);\nfill(0, 0, 0);\n//6th line\nfill(0, 0, 0);\nrect(241,318,130,78);\nfill(255, 255, 255);\ntext(\"Next\", 256, 365);\nfill(255, 0, 0);\ntextSize(30);\n    if (mouseX>241&&mouseX<372&&mouseY>319&&mouseY<395) {\nif (mouseIsPressed) {\npage=2;\n}\n    }\n    }\n    \nif(page===2){\n    background(255);\n    stroke(0, 0, 0);\n    line(200,0,200,400);\n//1st line\nline(0,97,400,97);\n//2nd line\nline(0,200,400,200);\n//3rd line\nline(0,307,400,307);\n//script 8\nfill(0, 0, 0);\ntextSize(20);\ntext(\"It was... Horrible!\",0,20);\nrect(10,71,100,25);\ntriangle(15,71,100,71,55,40);\n//Scipt 9\ntext(\"Luckily, robot\'s can\'t \\ntaste.\",203,20);\nfill(0, 200, 0);\nrect(225,50,125,40);\nfill(0, 255, 0);\nellipse(290,70,50,30);\nfill(0, 200, 0);\ntext(\"10\",280,77);\n//Script 10\nfill(0, 0, 0);\ntext(\"He was lucky to \\nsurvive the first day\",0,115);\nimage(bob,0,115,60,90);\n//Script 11\ntext(\"1 week later...\",230,150);\n//Script 12\ntext(\"Mmm... cake...\",5,220);\nimage(bob,0,215,60,90);\nfill(255, 124, 255);\nrect(60,275,50,25);\nfill(255, 255, 0);\nrect(70,260,30,15);\nfill(255, 124, 0);\nrect(80,250,10,10);\nnoStroke();\nfill(255);\nellipse(65,280,17,25);\n//Script 13\nstroke(0, 0, 0);\nimage(bob,200,215,60,90);\nfill(255, 124, 255);\nrect(260,275,50,25);\nfill(255, 255, 0);\nrect(270,260,30,15);\nfill(255, 124, 0);\nrect(280,250,10,10);\nnoStroke();\nfill(255);\nellipse(265,280,17,25);\nellipse(270,275,15,15);\nfill(0, 0, 0);\ntext(\"So good!\",205,220);\n//Script 14\nimage(guest,250,340,60,60);\ntext(\"?\",265,325);\n//Button\nfill(0, 0, 0);\nrect(5,310,130,80);\nfill(255);\ntextSize(20);\ntext(\"Click Here\",10,350);\nif(mouseX>5&&mouseX<135&&mouseY>31&&mouseY<390&&mouseIsPressed){\n    page=3;\n}\n}\n    \nif (page===3) {\nnoStroke();\n\n\n\nbackground(0, 0, 0);\n\n\n\nfill(255, 0, 0);\n\n\n\ntextSize(15);\n\n\n\ntext(\"If you liked this edition of Silly Bob please vote up\\n       and every 7 votes i get i will make a new\\n                        Silly Bob! Thanks!\", 38, 13);\n\n\n\ntextSize(65);\n\n\n\nfill(255, 0, 0);\n\n\n\ntext(\"You\'re Fired\\nBob!-Beaver\\nDoes that \\nmean cake?\\n             -Bob\", 18, 100);\n\nstroke(255,255,0);\nstrokeWeight(5);\n\nfill(255, 0, 0);\n\n\ntextSize(42);\n\n\n\ntext(\"The end\", 10, 382);\n}\n};\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

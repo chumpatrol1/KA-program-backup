@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>This Land was Made for You and Me</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>This Land was Made for You and Me</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**This Land was Made for You and Me by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-05-16T21:54:04Z by kaid_976851263300560061760577\nLast Edited: 2013-05-16T21:54:04Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-05-20T16:06:07Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/this-land-was-made-for-you-and-me/1650800576\nRetrieved On: 07-Nov-2022 (17:06:58.339201)**/\
+";
+
+code = code + "\n//This Land Is Your Land\n//Words and Music by Woody Guthrie\n\n//This land is your land This land is my land\n//From California to the New York island; \n//From the red wood forest to the Gulf Stream waters \n//This land was made for you and Me.\n\n//As I was walking a ribbon of highway, \n//I saw above me an endless skyway: \n//I saw below me a golden valley: \n//This land was made for you and me.\n\n//I\'ve roamed and rambled and I followed my footsteps \n//To the sparkling sands of her diamond deserts; \n//And all around me a voice was sounding: \n//This land was made for you and me.\n\n//When the sun came shining, and I was strolling, \n//And the wheat fields waving and the dust clouds rolling, \n//As the fog was lifting a voice was chanting: \n//This land was made for you and me.\n\n//As I went walking I saw a sign there \n//And on the sign it said \"No Trespassing.\" \n//But on the other side it didn\'t say nothing, \n//That side was made for you and me.\n\n//In the shadow of the steeple I saw my people, \n//By the relief office I seen my people; \n//As they stood there hungry, I stood there asking \n//Is this land made for you and me?\n\n//Nobody living can ever stop me, \n//As I go walking that freedom highway; \n//Nobody living can ever make me turn back \n//This land was made for you and me.\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

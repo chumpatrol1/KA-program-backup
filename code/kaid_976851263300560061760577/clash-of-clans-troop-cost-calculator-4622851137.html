@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Clash of Clans Troop Cost Calculator</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clash of Clans Troop Cost Calculator</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Clash of Clans Troop Cost Calculator by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-04-18T14:06:07Z by kaid_976851263300560061760577\nLast Edited: 2016-04-18T14:06:07Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-05-02T17:15:06Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/clash-of-clans-troop-cost-calculator/4622851137\nRetrieved On: 07-Nov-2022 (17:07:47.240124)**/\
+";
+
+code = code + "\n/**\n * OMG A TROOP COST CALCULATOR!\n * Calculates the total cost of an army\n **/\n //Barbarians, the ones with the amazing facial hair! Change var barbarians to the number of Barbarians required, and change var barbarianlvl to change the level of the Barbarians\n var barbarians=60;\n var barbarianlvl=3;\n //Archers, the pink sharpshooters! Change var archers to the number of Archers required, and change var archerlvl to change the level of the Archers.\n var archers=60;\n var archerlvl=3;\n //Giants, not bent on eating you! Change var giants to the nunber of Giants required, and change var giantlvl to change the level of the Giants.\n var giants=5;\n var giantlvl=2;\n //Goblins have eyes literally made of elixir! Change var goblins to the number of Goblins required, and change var goblinlvl to change the level of the Goblins.\n var goblins=0;\n var goblinlvl=1;\n //Wall Breakers are already dead, so they don\'t mind blowing themselves up. Change var bombers to the number of Wall Breakers required, and change var bomberlvl to change the level of the Wall Breakers.\n var bombers=0;\n var bomberlvl=2;\n //Balloons are full of hydrogen, just like every star. Change var balloons to the number of Balloons required, and change var balloonlvl to the level of the Balloons.\n var balloons=0;\n var balloonlvl=1;\n //Wizards are sorcerers, nothing else. Change var wizards to the number of Wizards required, and change var wizardlvl to the level of the Wizards.\n var wizards=0;\n var wizardlvl=1;\n //Healers can\'t heal each other, why? Change var healers to the number of Healers required, and change var healerlvl to the level of the Healers.\n var healers=0;\n var healerlvl=0;\n //Dragons breath fire but are weak to fireworks?! Change var dragons to the number of Dragons required, and change var dragonlvl to the level of the Dragons.\n //PEKKAs are used to #rekn00bs. Change var pekkas to the number of PEKKAs required, and change var pekkalvl to the level of the PEKKAs.\n var pekkas=0;\n var pekkalvl=1;\n //Regular troop costs. Don\'t touch. I know you want to.\n var ElixirTroopCost= function() {\nvar barbariancost;\nvar barbarianattk;\n{if(barbarianlvl===1){\n    barbariancost=barbarians*25;\n    barbarianattk=8;\n} else if (barbarianlvl===2){\n    barbariancost=barbarians*40;\n    barbarianattk=11;\n} else if (barbarianlvl===3){\n    barbariancost=barbarians*60;\n    barbarianattk=14;\n} else if (barbarianlvl===4){\n    barbariancost=barbarians*100;\n    barbarianattk=18;\n} else if (barbarianlvl===5){\n    barbariancost=barbarians*150;\n    barbarianattk=23;\n} else if (barbarianlvl===6){\n    barbariancost=barbarians*200;\n    barbarianattk=26;\n} else if (barbarianlvl===7){\n    barbariancost=barbarians*250;\n    barbarianattk=30;\n}}\n//Archer\nvar archercost;\n{\nif (archerlvl===1){\n    archercost=archers*50;\n} else if (archerlvl===2){\n    archercost=archers*80;\n} else if (archerlvl===3){\n    archercost=archers*120;\n} else if (archerlvl===4){\n    archercost=archers*200;\n} else if (archerlvl===5){\n    archercost=archers*300;\n} else if (archerlvl===6){\n    archercost=archers*400;\n} else if (archerlvl===7){\n    archercost=archers*500;\n}\n}\n//Giant\nvar giantcost;\n{\nif (giantlvl===1){\n    giantcost=giants*250;\n} else if (giantlvl===2){\n    giantcost=giants*750;\n} else if (giantlvl===3){\n    giantcost=giants*1250;\n} else if (giantlvl===4){\n    giantcost=giants*1750;\n} else if (giantlvl===5){\n    giantcost=giants*2250;\n} else if (giantlvl===6){\n    giantcost=giants*3000;\n} else if (giantlvl===7){\n    giantcost=giants*3500;\n}\n}\n//Goblin\nvar goblincost;\n{\nif (goblinlvl===1){\n    goblincost=goblins*25;\n} else if (goblinlvl===2){\n    goblincost=goblins*40;\n} else if (goblinlvl===3){\n    goblincost=goblins*60;\n} else if (goblinlvl===4){\n    goblincost=goblins*80;\n} else if (goblinlvl===5){\n    goblincost=goblins*100;\n\n} else if (goblinlvl===6){\n    goblincost=goblins*150;\n} else if (goblinlvl===7){\n    goblincost=goblins*200;\n}\n}\n//Wall Breaker\nvar bombercost;\n{\nif(bomberlvl===1){\n    bombercost=bombers*1000;\n} else if (bomberlvl===2){\n    bombercost=bombers*1500;\n} else if (bomberlvl===3){\n    bombercost=bombers*2000;\n} else if (bomberlvl===4){\n    bombercost=bombers*2500;\n} else if (bomberlvl===5){\n    bombercost=bombers*3000;\n} else if (bomberlvl===6){\n    bombercost=bombers*3500;\n}\n}\n//Balloon 2000,2500,3000,3500,4000,4500\nvar ballooncost;\n{\nif (balloonlvl===1){\n    ballooncost=balloons*2000;\n} else if (balloonlvl===2){\n    ballooncost=balloons*2500;\n} else if (balloonlvl===3){\n    ballooncost=balloons*3000;\n} else if (balloonlvl===4){\n    ballooncost=balloons*3500;\n} else if (balloonlvl===5){\n    ballooncost=balloons*4000;\n} else if (balloonlvl===6){\n    ballooncost=balloons*4500;\n}\n}\nbackground(255);\nfill(0);\ntextSize(15);\ntext(\"Barbarians\",0,20);\ntext(\"Level: \"+barbarianlvl,0,40);\ntext(\"Amount: \"+barbarians,0,60);\ntext(\"Total Cost: \"+barbariancost,0,80);\ntext(\"Melee Atk Pwr: \"+barbarianattk*barbarians,0,100);\ntext(\"Archers\",150,20);\ntext(\"Level: \"+archerlvl,150,40);\ntext(\"Amount: \"+archers,150,60);\n//text(\"Ranged Attk Pwr: \"+archerattk*archers,150,100);\ntext(\"Total Cost: \"+archercost,150,80);\ntext(\"Total Cost: \"+giantcost,300,80);\ntext(\"Total Cost: \"+goblincost,450,80);\ntext(\"Total Cost: \"+bombercost,0,130);\ntext(\"Total Cost: \"+ballooncost,150,130);\n };\nvar draw= function() {\n    ElixirTroopCost();\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

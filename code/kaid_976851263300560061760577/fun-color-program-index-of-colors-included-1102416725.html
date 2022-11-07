@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title> Fun Color Program! (Index Of Colors Included!)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1> Fun Color Program! (Index Of Colors Included!)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/** Fun Color Program! (Index Of Colors Included!) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:14:12Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:14:12Z\nVotes/Spinoffs: 2/1\nOriginally Created: 2012-11-15T14:11:13Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/fun-color-program-index-of-colors-included/1102416725\nRetrieved On: 07-Nov-2022 (17:06:55.679615)**/\
+";
+
+code = code + "\nvar x = random(0,255);\n\n/////////////////////////////////////////////////////////////\n//FUN!!\nvar draw = function() {\nfill(mouseX, mouseY, x);\nrect(0,0,200,200);   \nfill(mouseY,mouseX, x);\nrect(200,0,200,200);\nfill(mouseX, x, mouseY);\nrect(0,200,200,200);\nfill(mouseY,x, mouseX);\nrect(200,200,200,200);\nfill(x, mouseX, mouseY);\nellipse(150,200,100,100);\nfill(x, mouseY, mouseX);\nellipse(250,200,100,100);\n};\n\n\n///////////////////////////////////////////////////////////////Index\n\n//Classic Red\nfill(255, 0, 0);\n//Classic Orange\nfill(255, 124, 0);\n//Classic Yellow\nfill(255, 255, 0);\n//Classic Green\nfill(0, 255, 0);";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

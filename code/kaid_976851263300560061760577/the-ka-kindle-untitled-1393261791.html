@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The KA Kindle: Untitled</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>The KA Kindle: Untitled</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**The KA Kindle: Untitled by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-19T20:57:39Z by kaid_976851263300560061760577\nLast Edited: 2013-02-19T20:57:39Z\nVotes/Spinoffs: 2/0\nOriginally Created: 2013-02-21T00:27:42Z from origin 1393095115 with similarity of 0.5846011987090826\nOriginal Link: https://www.khanacademy.org/computer-programming/the-ka-kindle-untitled/1393261791\nRetrieved On: 07-Nov-2022 (17:06:56.859253)**/\
+";
+
+code = code + "\n//Click to turn the page\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n// note to self pagey should be pagey+ 92.5 when typing at the beginning of chapterand pagey+-80 and for page pagey =+196.5 anywhere else\nvar pagex=100;\nvar pagey=100;\nvar count=0;\nvar f = createFont(\"Gabriola\", 40);\nvar ff = createFont(\"Arial\",50);\nvar draw= function() {\n   //Cover\n   \n   background(220, 215, 205);\n    fill(255, 255, 0);\n    textFont(ff,50);\n    textSize(50);\n    text(\'The Secret Files\\n        Book 1\',pagex+-100,pagey-44);\n    fill(0, 0, 0);\n    textSize(15);\n    text(\'Written By Elijah\\nProgrammed by Elijah\',pagex+8,pagey+79);\n    //Page 1\n    textFont(ff,20);\n    text(\"CHAPTER 1: The Mission Begins\\n\\nOne Day, there was a huge forest. It was \\npopulated by giant robots! They were going\\nto steal Khan\'s Treasure, a 500 carat gem\\nowned by Sal Khan, founder of Khan \\nAcademy. The leader of the giant robots\\nwas Hal. He wanted to take over the world!\\n\\nSomewhere in a small town by the forest,\\nthree special kids were playing Sorry! in the \\nliving room. Ben Kamens burst into the door,\\nbreathless. \'\'Please! You must go defeat\\nHal the robot! He stole a very expensive\\ngem from Sal!\'\' said Ben. Elijah asked:-\'\'Then\\n\\n                                                        Page 1\",pagex+300,pagey+-75);\n    //Page 2\n    text(\"what do we need to go on our mission?\'\'\\nBen said:-\'\'Food, Water, Wood Seeds and\\nsome tools. You\'re going to build some \\nvillages along the way to help you stop\\nKing Hal!\'\' Ben left and the kids got \\nprepared, getting dried fruits, meat and\\npeanut butter. \\n\\nIt was finally time! They were finally going\\nto go on their adventure. Seeing sights that\\nthey never saw before. Oh--What a life!\\nThe first place to get to was Halton, a new\"+\"\\nvillage under development by Hal and his\\nminions. However, a great challenge was\\njust laying ahead in the town. When they got\\n\\n                                                       Page 2\",pagex+705,pagey-75);\n\n//Page 3\n    text(\"to reach the hardware store, they found\\nseveral evil robots stealing wood, nails and\\nhammers. The only things left behind were\\nseveral planks of wood, two hammers and\\na single, rusty nail. Picking the hammers and\",pagex+1110,pagey+-75);\n    //Page 4\n    text(\"The milk is\\npoured, so the\\nonly thing left is\\nthe flour! They\\nmix it all up and \\nthen put it in the\\noven.\",pagex+1515,pagey+-50);\n    //Page 5\n    text(\"After 20 minutes,\\nthe cake is now\\nready. Zion,\\nYael and the rest\\nof the family \\nenjoy the cake.\",pagex+1920,pagey+-50);\n    //Page 6\n    textFont(f,100);\n    text(\"The End\",pagex+2325,pagey+-0);\n    if(mouseIsPressed){\n        pagex=pagex-400;\n        \n    }\n    \n    mouseIsPressed=false;\nif(pagex===-2700){\n    pagex=pagex+2800;\n}\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

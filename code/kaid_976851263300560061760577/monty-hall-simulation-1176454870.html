@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Monty Hall Simulation</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Monty Hall Simulation</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Monty Hall Simulation by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-27T17:19:43Z by kaid_976851263300560061760577\nLast Edited: 2012-11-27T17:19:43Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-11-27T17:19:43Z from origin 1121357698 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/monty-hall-simulation/1176454870\nRetrieved On: 07-Nov-2022 (17:07:25.699546)**/\
+";
+
+code = code + "\n/********************************************************\n * Runs the Monty Hall problem continually,\n * graphing the results of switching or not switching.\n*********************************************************/\n\nvar graphX = 50;\nvar graphY = 300;\nvar graphWidth = 300;\nvar graphHeight = 200;\nvar barWidth = 100;\nvar barGap = (graphWidth - 2*barWidth) / 3;\nvar bar1X = graphX + barGap;\nvar bar2X = graphX + barGap*2 + barWidth;\n\n// Speed of simulation - don\'t set to high\nframeRate(100);\n\nvar number_of_doors = 3;\nvar wins_if_you_switch = 0;\nvar wins_if_you_dont_switch = 0;\nvar number_of_games = 0;\n\nvar playGame = function() {\n    number_of_games++;\n    var prize_door = floor(random(0, number_of_doors));\n    var chosen_door = floor(random(0, number_of_doors));\n\n    // Show door which isn\'t picked and isn\'t the prize door\n    var possible_shown_doors = [];\n    for (var i=0; i < number_of_doors; i++) {\n        if (i !== prize_door && i !== chosen_door) {\n            possible_shown_doors.push(i);\n        }\n    }\n    \n    var random_num = floor(random(0, possible_shown_doors.length));\n    var shown_door = possible_shown_doors[random_num];\n    \n    // If you don\'t switch then you win if you picked the right door\n    if (chosen_door === prize_door) {\n        wins_if_you_dont_switch++;\n    }\n    \n    // Switch to a door that isn\'t open\n    var switched_door = null;\n    for (var j=0; j < number_of_doors; j++) {\n        if (j !== shown_door && j !== chosen_door) {\n            switched_door = j;\n        }\n    }\n    \n    if (switched_door === prize_door) {\n        wins_if_you_switch++;   \n    }\n};\n\ntextSize(20);\n\nvar draw = function() {\n    playGame();\n    background(250, 250, 240);\n\n    // Bars\n    var scaleY = graphHeight / (1 + number_of_games);\n    \n    noStroke();\n    fill(75, 75, 125);\n    var y1 = scaleY * wins_if_you_switch;\n    var y2 = scaleY * wins_if_you_dont_switch;\n    rect(bar1X, graphY - y1, barWidth, y1);\n    rect(bar2X, graphY - y2, barWidth, y2);\n    \n    // Axes\n    stroke(8, 8, 8);\n    fill(8,8,8);\n    strokeWeight(2);\n    line(graphX, graphY, graphX + graphWidth, graphY);\n    \n    // Labels\n    text(\"Switch\", bar1X+10, graphY+30);\n    text(\"Don\'t switch\", bar2X, graphY+30);\n    \n    var percent1 = round(1000 * wins_if_you_switch / number_of_games)/10;\n    var percent2 = round(1000 * wins_if_you_dont_switch / number_of_games)/10;\n    text(percent1 + \"%\", bar1X+20, graphY - y1 - 5);\n    text(percent2 + \"%\", bar2X+20, graphY - y2 - 5);\n    text(\"Games played: \" + number_of_games, graphX, graphY - graphHeight);\n    \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

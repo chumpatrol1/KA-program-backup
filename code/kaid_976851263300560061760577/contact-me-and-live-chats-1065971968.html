@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Contact Me and Live Chats</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contact Me and Live Chats</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Contact Me and Live Chats by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:06:10Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:06:10Z\nVotes/Spinoffs: 18/7\nOriginally Created: 2019-01-13T14:57:00Z from origin 1055455249 with similarity of 0.2905829596412556\nOriginal Link: https://www.khanacademy.org/computer-programming/contact-me-and-live-chats/1065971968\nRetrieved On: 07-Nov-2022 (17:06:38.954382)**/\
+";
+
+code = code + "\n//Hey guys! Need to contact me? Just look at the canvas -->\n//Chat here, or E-Mail me at chumpatrol1@gmail.com.\n//My Channel: http://www.youtube.com/user/Chumpatrol1\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n//States in Pages\nvar mpage = 1;\n//All Pages\nvar chat = true;\nvar menu = false;\nvar members = false;\nvar buzz = false;\nvar me = false;\n//My Mood: Choose Happy, Brave, Triumphant, Confused and  Like Partying (coming soon)\nvar mood = \"Brave\";\n//Choose Yes, Busy,No, Break and Chat\n//Yes: You\'re on\n//Busy: You\'re on, but don\'t want to be disturbed\n//No: You\'re not on the site\n//Break: Taking a short break (Stand By)\n//Chat: Chatting with someone\n//Away: You\'re going to be off for a long time (Over 5 days)\nvar DavidIsOn = \"Away\";\nvar date = \"Undisclosed\";\nframeRate(10);\nvar draw = function() {\n   var r= random(0,255);\n   var g = random(0,255);\n   var b = random(0,255);\n   var rgb = color(r,g,b,124);\n   if(chat){\n   if(DavidIsOn === \"Yes\"){\n       background(255);\n       fill(0, 255, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"ON!\",175,50);\n    }\n    if(DavidIsOn === \"Busy\"){\n        background(255);\n        fill(255, 255, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"I\'m Busy Now\",125,50);\n    }\n    if(DavidIsOn === \"No\"){\n        background(255);\n        fill(255, 0, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"Currently Off...\",125,50);\n    }\n    if(DavidIsOn === \"Break\"){\n        background(255);\n        fill(255, 124, 0);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"Taking A Break\",100,30);\n    }\n    if(DavidIsOn === \"Chat\"){\n         background(255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        textSize(30);\n        text(\"In A Chat\",125,30);\n    }\n    if(DavidIsOn === \"Away\"){\n        background(255);\n        fill(200, 100, 0);\n        ellipse(200,200,200,200);\n               textSize(30);\n        text(\"Will be Back in: \"+date,0,30);\n    }\n    fill(50);\n    rect(100,320,200,50);\n    if(mouseX>100&&mouseX<300&&mouseY>320&&mouseY<370){\n        if(!mouseIsPressed){\n            fill(124);\n            rect(100,320,200,50);\n        }\n        if(mouseIsPressed){\n    chat = false;\n    menu = true;\n        }\n    }\n    if(DavidIsOn === \"Yes\"){\n        fill(0, 255, 0);\n        textSize(30);\n        text(\"Click Here\",130,355);\n    }\n        if(DavidIsOn === \"Busy\"){\n        fill(255, 255, 0);\n        textSize(30);\n        text(\"Click Here\",130,355);\n    }\n        if(DavidIsOn === \"No\"){\n        fill(255, 0, 0);\n        textSize(30);\n        text(\"Click Here\",130,355);\n    }\n    if(DavidIsOn === \"Break\"){\n        fill(255, 124, 0);\n        textSize(30);\n        text(\"Click Here\",130,355);\n    }\n    if(DavidIsOn === \"Chat\"){\n        fill(0, 0, 255);\n        textSize(30);\n        text(\"Click Here\",130,355);\n    }\n    if(DavidIsOn === \"Away\"){\n        fill(200, 100, 0);\n                textSize(30);\n        text(\"Click Here\",130,355);\n    }\n   }//Ends Chat Page\n   \n   if(menu){\n       background(0, 0, 0);\n       //Button 1\n       fill(50);\n       rect(100,50,200,50);\n       fill(255, 0, 0);\n       textSize(30);\n       text(\"Back to Chat\",115,85);\n       if(mouseX>100&&mouseX<300&&mouseY>50&&mouseY<100){\n           if(!mouseIsPressed){\n               fill(255, 0, 0);\n               triangle(95,75,50,50,50,100);\n           }\n           if(mouseIsPressed){\n               menu = false;\n               chat = true;\n           }\n       }\n       //Button 2\n       fill(50);\n       rect(100,125,200,50);\n       fill(255, 255, 0);\n       text(\"Members\",135,160);\n       if(mouseX>100&&mouseX<300&&mouseY>125&&mouseY<175){\n           if(!mouseIsPressed){\n               fill(255, 255, 0);\n               triangle(95,150,50,125,50,175);\n           }\n           if(mouseIsPressed){\n               menu = false;\n               members = true;\n           }\n       }\n       \n       //Button 3\n       fill(50);\n       rect(100,200,200,50);\n       fill(0, 255, 0);\n       text(\"What\'s New\",120,235);\n       if(mouseX>100&&mouseX<300&&mouseY>200&&mouseY<250){\n           if(!mouseIsPressed){\n               fill(0, 255, 0);\n               triangle(95,225,50,200,50,250);\n           }\n           if(mouseIsPressed){\n               menu=false;\n               buzz= true;\n           }\n       }\n       fill(50);\n       rect(100,275,200,50);\n       fill(0, 0, 255);\n       text(\"About Me\",140,310);\n       if(mouseX>100&&mouseX<300&&mouseY>275&&mouseY<325){\n           if(!mouseIsPressed){\n               fill(0, 0, 255);\n               triangle(50,275,95,300,50,325);\n           }\n           if(mouseIsPressed){\n               menu = false;\n               me = true;\n           }\n       }\n   }\n   \n   if(members){\n       if(mpage === 1){\n       background(255, 0, 255);\n       fill(255, 255, 0);\n       textSize(50);\n       text(\"Members\",90,50);\n       textSize(20);\n       text(\"#1: David Elijah de Siqueira Campos\\n McLaughlin (Age 10)\",0,80);\n       text(\"#2: Summitwei\",0,130);\n       text(\"#3: Arabella Aliane (Alia)\",0,160);\n       text(\"#4: Wayming\",0,190);\n       text(\"#5: Hal Cal\",0,220);\n       text(\"#6: ky13102\",0,250);\n       text(\"#7: Brian Cho\",0,280);\n       text(\"#8: derryobrien (KA+)\",0,310);\n       text(\"Press Right for the next Page\",0,340);\n       if(keyPressed&&keyCode===RIGHT){\n           mpage = 2;\n       }       \n       }\n       if(mpage === 2){\n       background(255, 0, 255);\n       fill(255, 255, 0);\n       textSize(50);\n       text(\"Members\",90,50);\n       textSize(20);\n       text(\"#8: e1e2j3\",0,80);\n       text(\"#9: cdragon13\",0,100); \n       text(\"#10: Awesome Evan\",0,120);\n       text(\"#11: ☣»☢Ǥ₳BRI€L☢»☣   \"   ,0,140);\n       }\n   }\n    if(buzz){\n        background(0, 0, 255);\n        fill(0, 255, 0);\n        textSize(70);\n        text(\"News!\",100,70);\n        textSize(30);\n        text(\"      Like Partying \\nFinished! Let\'s Party!\",75,125);\n        text(\"\",60,200);\n        text(\"\",60,275);\n    }\n    if(me){\n        background(0, 0, 0);\n        fill(255, 124, 0);\n        textSize(20);\n        text(\"My name is David Elijah de Siqueira Campos\\nMcLaughlin. I live in Connecticut,\\na small state that isn\'t that famous... \\n\\nPlease call me Elijah but David works well.\\nIf you wanna contact me check below.\\nPress Space to go back. \\nP.S. I feel \"+mood,0,20);\n        if(keyPressed&&keyCode === 32){\n            me = false;\n            menu = true;\n        }\n        if(mood === \"Happy\"){\n            noStroke();\n            fill(255, 255, 0);\n            ellipse(200,300,200,200);\n            fill(0, 0, 0);\n            ellipse(162.5,250,30,30);\n            ellipse(237,250,30,30);\n            fill(255, 0, 0);\n            ellipse(200,350,100,50);\n            fill(255, 255, 0);\n            ellipse(200,325,150,50);\n        }\n        if(mood === \"Brave\"){\n            noStroke();\n            fill(255, 255, 0);\n            ellipse(200,300,200,200);\n                       fill(0, 0, 0);\n            ellipse(162.5,250,30,30);\n            ellipse(237,250,30,30);\n          ellipse(200,350,100,5);\n          fill(255, 255, 0);\n           ellipse(170,230,30,30);\n            ellipse(230,230,30,30);\n        }\n        if(mood === \"Triumphant\"){\n                noStroke();\n            fill(255, 255, 0);\n            ellipse(200,300,200,200);\n            fill(0, 0, 0);\n            ellipse(162.5,250,30,30);\n            ellipse(237,250,30,30);\n            fill(255, 0, 0);\n            ellipse(200,350,100,50);\n            fill(255, 255, 0);\n            ellipse(200,325,150,50);\n            fill(rgb);\n            ellipse(200,300,200,200);\n        }\n        if(mood=== \"Confused\"){\n                        fill(255, 255, 0);\n            ellipse(200,300,200,200);\n            fill(0, 0, 0);\n            ellipse(120,300,30,30);\n            ellipse(259,266,30,30);\n            fill(255, 0, 0);\n            ellipse(206,300,100,100);\n        }\n        if(mood === \"Like Partying\"){\n            noStroke();\n            fill(0, 0, 255);\n            triangle(150,300,250,300,200,200);\n            fill(255, 255, 0);\n            ellipse(200,300,100,100);\n            fill(0, 0, 0);\n            ellipse(175,275,15,15);\n            ellipse(225,275,15,15);\n            fill(255, 0, 0);\n            ellipse(200,325,50,25);\n            fill(255, 255, 0);\n            ellipse(200,312.5,75,25);\n        }\n    }\n    \n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

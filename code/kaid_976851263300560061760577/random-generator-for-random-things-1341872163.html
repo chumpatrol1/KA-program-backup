@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Random Generator for Random Things</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Generator for Random Things</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Random Generator for Random Things by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-02-01T15:50:27Z by kaid_976851263300560061760577\nLast Edited: 2013-02-01T15:50:27Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-02-16T02:15:27Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/random-generator-for-random-things/1341872163\nRetrieved On: 07-Nov-2022 (17:07:31.219487)**/\
+";
+
+code = code + "\n//0: \"A Google a Day\"\nvar choice = 0;\nvar randomA = round(random(1,6));\nvar draw = function() {\n    if(choice === 0){\n    noStroke();\n    background(255);\n        textSize(30);\n fill(0, 0, 0);\ntext(\"A Google A Day\",0,30);\n       \n        if(randomA === 1){\n            fill(255, 200, 0);\n            rect(100,300,200,50);\n            rect(100,200,50,100);\n            rect(250,200,50,100);\n            rect(175,200,50,100);\n            rect(100,215,200,-15);\n            triangle(100,200,200,100,300,200);\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"History (House Of Gold)\",0,100);\n            fill(255);\n            rect(100,310,200,5);\n            rect(100,330,200,5);\n            rect(100,200,200,3);\n        }\n        if(randomA === 2){\n            fill(0, 255, 0);\n            ellipse(200,250,175,175);\n            fill(0, 0, 255);\n            ellipse(200,240,75,114);\n            ellipse(165,240,50,55);\n            fill(0, 255, 0);\n            ellipse(200,300,20,70);\n            ellipse(190,210,20,20);\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"Geography (Artificial Earth)\",0,100);\n        }\n        if(randomA === 3){\n            fill(0, 0, 0);\n            ellipse(200,250,200,200);\n            fill(255);\n            ellipse(200,250,190,190);fill(0, 0, 0);\n            rect(200,250,25,25);\n            rect(175,225,25,25);\n            rect(150,200,25,25);\n            rect(150,250,25,25);\n            rect(200,200,25,25);\n            rect(225,225,25,25);\n            rect(125,225,25,25);\n            rect(125,275,25,25);\n            rect(175,275,25,25);\n            rect(175,175,25,25);\n            rect(225,175,25,25);\n            rect(250,200,25,25);\n            rect(250,250,25,25);\n            rect(225,275,25,25);\n            rect(150,300,25,25);\n            rect(200,300,25,25);\n            rect(115,200,10,25);\n            rect(110,208,10,17);\n            rect(105,250,20,25);\n            rect(125,185,25,15);\n            rect(130,180,20,10);\n            rect(135,175,15,5);\n            rect(105,220,5,5);\n            rect(150,163,25,12);\n            rect(162,157,13,10);\n            rect(200,153,25,22);\n            rect(250,170,10,5);\n            rect(275,192,7,8);\n            rect(120,300,5,8);\n            rect(145,325,5,8);\n            rect(142,325,3,2);\n            rect(175,325,25,22);\n            rect(225,325,25,10);\n            rect(225,335,10,8);\n            rect(235,335,7,5);\n            rect(250,300,15,25);\n            rect(265,300,10,17);\n            rect(265,315,5,5);\n            rect(275,275,10,25);\n            rect(282,275,10,17);\n            rect(275,225,22,25);\n            \n            textSize(30);\n            text(\"Sports (Nerd\'s Soccer Ball)\",0,100);\n        }\n        if(randomA === 4){\n           beginShape();\n           fill(0, 0, 0);\n           vertex(95,255);\n           vertex(305,255);\n           vertex(230,210);\n           endShape(CLOSE);\n            beginShape();\n            fill(0, 255, 200);\n            vertex(100,250);\n            vertex(300,250);\n            vertex(225,200);\n            vertex(225,125);\n            vertex(175,125);\n            vertex(175,200);\n            endShape(CLOSE);\n            fill(255);\n            ellipse(190,200,20,20);\n            ellipse(200,175,25,25);\n            ellipse(185,160,5,5);\n            fill(0, 0, 0);\n            textSize(30);\n            text(\"Science (Heatless Lighter)\",0,100);\n        }\n        if(randomA === 5){\n            fill(255, 255, 0);\n            ellipse(200,200,100,100);\n            fill(0, 0, 0);\n            ellipse(175,175,20,20);\n            fill(255, 0, 0);\n            ellipse(150,200,20,20);\n           fill(25, 25,25);\n           ellipse(175,230,30,10);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Arts (Handsome Man Yelling)\",0,100);\n        }\n        if(randomA === 6){\n           fill( 0, 0, 0);\n           textSize(30);\n           text(\"Pure Nothingness!!!\",0,60);\n        }\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

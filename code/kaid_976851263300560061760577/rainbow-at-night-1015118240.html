@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Rainbow at Night</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rainbow at Night</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Rainbow at Night by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:14:06Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:14:06Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-09-01T11:35:15Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/rainbow-at-night/1015118240\nRetrieved On: 07-Nov-2022 (17:07:08.434068)**/\
+";
+
+code = code + "\n//Movable ball that has light.\n\nstrokeWeight(1);\nstroke (255, 0, 0);\n\nvar draw = function() {\n\n    background(0, 0, 0);\n\n//Light (Add // to make the light turn off.)\n   fill( 255, 255, 255);\n   ellipse( mouseX -7, mouseY -42, 150,150);\n\n\nfill(255, 0, 0);\n    ellipse ( mouseX -7, mouseY -42,100,100);\n   fill(255, 124, 0);\n   ellipse ( mouseX -7, mouseY -42,85,85);\n   fill(255, 255, 0);\n   ellipse ( mouseX -7, mouseY -42,70,70);\n   fill(0, 255, 0);\n   ellipse ( mouseX -7, mouseY -42,55,55);\n   fill(0, 0, 255);\n   ellipse ( mouseX -7, mouseY -42,40,40);\n   fill(124, 0, 255);\n   ellipse ( mouseX -7, mouseY -42, 25,25);\n   fill(255, 124, 225);\n   ellipse ( mouseX -7, mouseY -42, 10,10);\n\n};\n\n\n\n\n\n\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

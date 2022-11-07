@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Robomon Attack Damage Calculator Test</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Robomon Attack Damage Calculator Test</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Robomon Attack Damage Calculator Test by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2017-02-07T20:11:12Z by kaid_976851263300560061760577\nLast Edited: 2017-02-07T20:11:12Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2017-02-14T14:25:06Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/robomon-attack-damage-calculator-test/5667245277118464\nRetrieved On: 07-Nov-2022 (17:07:53.012583)**/\
+";
+
+code = code + "\n//Base Attack\nvar ATK=10;\nvar ELEMENT=\"FIRE\";\nvar ATKELEMENT;\nvar CRITCHANCE=5;\nvar CRIT=false;\n//Base Defense of Enemy\nvar DEF=10;\nvar DEFELEMENT=\"ROCK\";\n//Damage done\nvar DMG;\nvar keyPressed=function(){\n  if(keyCode===37){\n      //What element will attack be?\n      ATKELEMENT=\"NORMAL\";\n      //Calculate Raw Damage\n      DMG=ATK-round(DEF/10)+round(random(-2,2));\n      //If a random number is less than CRITCHANCE, double the damage.\n      if(round(random(1,100))<=CRITCHANCE){\n          DMG=DMG*2;\n          CRIT=true;\n      } else {\n          CRIT=false;\n      }\n  }\n  if(keyCode===38){\n      //What element will attack be?\n      ATKELEMENT=\"FIRE\";\n      //Calculate Raw Damage\n      DMG=ATK-round(DEF/10)+round(random(-2,2));\n      //If a random number is less than CRITCHANCE, double the damage.\n      if(round(random(1,100))<=CRITCHANCE){\n          DMG=DMG*2;\n          CRIT=true;\n      } else {\n          CRIT=false;\n      }\n      //If this attack hits an element strong or weak, multiply the current attack by 2 or 0.5 respectively\n      if(DEFELEMENT===\"NORMAL\"){\n          DMG=DMG*2;\n      } else if(DEFELEMENT===\"WATER\"){\n          DMG=floor(DMG*0.5);\n      }\n  }\n  if(keyCode===39){\n      //What element will attack be?\n      ATKELEMENT=\"ELECTRICITY\";\n      //Calculate Raw Damage\n      DMG=ATK-round(DEF/10)+round(random(-2,2));\n      //If a random number is less than CRITCHANCE, double the damage.\n      if(round(random(1,100))<=CRITCHANCE){\n          DMG=DMG*2;\n          CRIT=true;\n      } else {\n          CRIT=false;\n      }\n      //If this attack hits an element strong or weak, multiply the current attack by 2 or 0.5 respectively\n      if(DEFELEMENT===\"WATER\"){\n          DMG=DMG*2;\n      } else if(DEFELEMENT===\"ROCK\"){\n          DMG=DMG*0;\n      }\n  }\n};\nvar draw= function() {\n    background(255);\n    fill(0);\n    textSize(30);\n    text(DMG,0,30);\n    if(CRIT){\n        text(\"Critical Hit!\", 60,30);\n    }\n    if(ATKELEMENT===\"FIRE\"&&DEFELEMENT===\"WATER\"){\n        text(\"Not very effective...\",0,60);\n    }\n    if(ATKELEMENT===\"ELECTRICITY\"&&DEFELEMENT===\"WATER\"){\n        text(\"Super Effective!\",0,60);\n    }\n    if(ATKELEMENT===\"ELECTRICITY\"&&DEFELEMENT===\"ROCK\"){\n        text(\"Completely ineffective!\",0,60);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

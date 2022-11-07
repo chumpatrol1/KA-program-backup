@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Coder Club Deeds and Badges</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coder Club Deeds and Badges</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Coder Club Deeds and Badges by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-19T15:20:38Z by kaid_976851263300560061760577\nLast Edited: 2013-01-19T15:20:38Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-25T12:06:22Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/coder-club-deeds-and-badges/1304721797\nRetrieved On: 07-Nov-2022 (17:07:58.135170)**/\
+";
+
+code = code + "\n//////GEMS\n////YELLOW\n//Helping Others x1\n//Cool Program x1\n//Win Contest x5\n//Become Favorite x5\n\n////GREEN\n//Cool Program x1\n//Win Contest x3\n//Become Favorite x3\n\n////BLUE\n//Earn Starter Badge: x1\n//Earn Easy Badge: x2\n//Earn Average Badge: x3\n//Earn Hard Badge: x4\n//Earn Pro Badge: x5\n//1YellowG=3BlueG\n//1GreenG=5BlueG\n\n\n//////BADGES\n////STARTER\n//Helping Hand: Help 3 People\n//Spotter: Spot a Misbehaving Member\n\n////EASY\n//Generous: Help 5 People\n//Moderator: Spot 3 Misbehaving Members\n//Dueler: Arrange Your First Contest\n\n////AVERAGE\n//Bricks: Help 10 People\n//Guardian: Spot 5 Misbehaving Members\n//Challenger: Arrange 3 Contests\n//Checkpoint: Earn your first 100 Yellow Gems\n//Cool: Make 1 Program with 10 Votes\n//Speak Up: Ask for Something that is afterwards integrated for the Coder Club\n\n////HARD\n//Advisor: Help 20 People\n//Soldier: Spot 10 Misbehaving People\n//Ninja: Arrange 10 Contests\n//Wower: Make 5 Programs with 10 Votes\n//Louder: Ask for 3 Things that ae afterwards integrated for the Coder Club\n\n////PRO\n//Trusted: Help 30 People\n//General: Spot 30 Misbehaving People\n//Tracker: Make 10 Programs with 10 Votes\n//Challenger: Arrange 25 Contests\n//Shout Out: Ask for 5 Things that are afterwards inegrated for the Coder Club\n\n\n\n\n\n//////TRACKING BADGES\n////MUFan:\n//One Contest\n//One Cool";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

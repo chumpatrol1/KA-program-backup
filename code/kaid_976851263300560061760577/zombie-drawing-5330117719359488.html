@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Zombie Drawing</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Zombie Drawing</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Zombie Drawing by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-01-26T22:36:13Z by kaid_976851263300560061760577\nLast Edited: 2016-01-26T22:36:13Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-01-29T14:57:38Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/zombie-drawing/5330117719359488\nRetrieved On: 07-Nov-2022 (17:07:50.520345)**/\
+";
+
+code = code + "\nnoStroke();\n//Zombie's Skin\nfill(100,150,100);\nellipse(200,100,100,100);\nellipse(200,150,30,50);\n//Mouth\nfill(50,0,0);\nellipse(190,120,50,20);\n//Eyes\nfill(255);\nstrokeWeight(1);\nstroke(0);\nellipse(170,85,20,20);\nellipse(215,80,25,25);\nnoStroke();\nfill(0);\nellipse(170,85,5,5);\nellipse(215,80,5,5);\n//Teeth\nfill(255);\nrect(175,111,5,10);\nrect(200,111,5,10);\nrect(185,120,10,10);\n//Zombie's Clothes\nfill(255, 0, 0);\nbeginShape();\nvertex(180,170);\nvertex(220,170);\nvertex(230,180);\nvertex(325,210);\nvertex(320,270);\nvertex(315,265);\nvertex(310,270);\nvertex(305,265);\nvertex(300,220);\nvertex(230,200);\nvertex(235,300);\nvertex(220,300);\nvertex(210,290);\nvertex(200,300);\nvertex(190,300);\nvertex(180,295);\nvertex(165,280);\nvertex(165,200);\nvertex(90,230);\nvertex(60,270);\nvertex(50,270);\nvertex(90,200);\nendShape();\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

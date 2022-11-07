@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Angry Chums Levels 1-3</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Angry Chums Levels 1-3</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Angry Chums Levels 1-3 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-02T20:49:45Z by kaid_976851263300560061760577\nLast Edited: 2012-12-02T20:49:45Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-12-08T23:02:56Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/angry-chums-levels-1-3/1190652810\nRetrieved On: 07-Nov-2022 (17:07:57.571188)**/\
+";
+
+code = code + "\n//Angry Birds Parody\n//TODO:\n//1: Hide Key In Age 5\n\nvar bonus = getImage(\"cute/Key\");\nvar start = true;\nvar playTitle = false;\nvar howtoA = false;\nvar credits = false;\nvar level1 = false;\nvar level1A = false;\nvar level1A1 = false;\nvar level1A2 = false;\nvar level1A3 = false;\nvar level1A4 = false;\nvar draw = function() {\n    if(start){\n        background(216, 245, 252);\n        fill(255, 200, 0);\n        rect(50,50,300,300);\n        fill(255, 0, 0);\n        ellipse(60,280,100,100);\n        fill(255, 124, 0);\n        rect(85,105,230,50);\n        rect(85,185,230,50);\n        rect(110,265,206,50);\n        fill(255);\n        textSize(30);\n        text(\"Angry Chums\",105,85);\n        text(\"Play\",170,140);\n        text(\"How To Play\",120,220);\n        text(\"Credits\",150,300);\n        if(mouseX>85&&mouseX<315&&mouseY>105&&mouseY<155){\n            if(!mouseIsPressed){\n                fill(255, 255, 0);\n                rect(85,105,230,50);\n                fill(255);\n                text(\"Play\",170,140);\n            }//End\n            if(mouseIsPressed){\n                start = false;\n                playTitle = true;\n            }//End\n            }\n                            if(mouseX>85&&mouseX<315&&mouseY>185&&mouseY<235){if(!mouseIsPressed){\n            fill(255, 255, 0);\n            rect(85,185,230,50);\n            fill(255);\n            text(\"How To Play\",120,220);\n            }//End\n            if(mouseIsPressed){\n                start = false;\n                howtoA = true;\n            }\n        }//End\n        if(mouseX>110&&mouseX<315&&mouseY>265&&mouseY<315){\n            if(!mouseIsPressed){\n         fill(255, 255, 0);\n         rect(110,265,206,50);   \n         fill(255);\n         text(\"Credits\",150,300);\n            }\n            if(mouseIsPressed){\n                start = false;\n                credits = true;\n            }\n        }\n    }//End\n    if(playTitle){\n        background(216, 245, 252);\n        fill(255, 0, 255);\n        ellipse(50,50,100,100);\n        rect(300,300,100,100);\n        fill(255, 255, 0);\n        triangle(320,310,320,390,390,350);\n        fill(0);\n        textSize(20);\n        text(\"The Ballworld family has a reserve\\n full of golden coins. However, \\n robotic criminals broke into the\\nreserve and stole all the coins! So,\",95,20);\ntext(\"the family decide to not call the police and \\ntake the matters into their own hands. Play\\nthis game and help them save their coins \\nbefore the criminals melt them down and \\nmake merchandise. In their first attempt to \\nstop the criminals from running away, they \\ndiscover that each member of the family had\\ndifferent powers, so they decide that they \\ncould defeat them in five more \\nattempts. Because you are their\\ntrainer, you should please be\\ncareful of your choices!\",0,120);    \n        if(mouseX>300&&mouseX<400&&mouseY>300&&mouseY<400){\n            if(mouseIsPressed){\n                playTitle = false;\n                level1 = true;\n            }\n        }\n    }\n    if(howtoA){\n        background(216, 245, 252);\n        fill(255, 124, 255);\n        ellipse(50,50,100,100);\n        fill(0, 255, 0);\n        ellipse(50,350,100,100);\n        rect(250,300,150,100);\n        fill(0);\n        textSize(65);\n        text(\"Play!\",250,375);\n        textSize(20);\n        text(\"How to Play: Click a circle to\\n launch a ball. You need to choose\\n the right circle to damage forts,\\nenemy robots and hidden awards.\",100,20);\n        text(\"Certain balls also have unique properties,\\nincluding exploding and splitting. To advance\\nto the next level, you must destroy all the\\nenemies. In one of the levels, a hidden prize\\nis included that would unlock a secret level\\nthat unlocks super weapons, like a spatula.\\nNow that you know how to play, press the\\nbutton on the corner.\",0,120);\n        if(mouseX>250&&mouseX<400&&mouseY>300&&mouseY<400){\n            if(mouseIsPressed){\n                howtoA = false;\n                playTitle = true;\n            }\n        }\n    }\n    if(credits){\n        background(216, 245, 252);\n        fill(0);\n        textSize(50);\n        text(\"Angry Chums\",45,85);\n        textSize(30);\n        text(\"A parody of Angry Birds\",40,120);\n        textSize(20);\n        text(\"Made by Elijah, Zion and Yael\",65,180);\n        text(\"Coding by Elijah\",130,210);\n        text(\"Testing by Zion\",130,240);\n        text(\"Aprroval by Yael\",130,270);\n        fill(0, 0, 255);\n        ellipse(200,340,100,100);\n        rect(300,300,100,100);\n        fill(255, 0, 0);\n        triangle(390,310,390,390,305,350);\n        if(mouseX>300&&mouseX<400&&mouseY>300&&mouseY<400){\n            if(mouseIsPressed){\n                credits = false;\n                start = true;\n            }\n        }\n    }\n    if(level1){\n        background(216, 245, 252);\n        fill(50, 0, 0);\n        rect(50,200,50,350);\n        rect(300,200,50,350);\n        rect(50,175,300,25);\n        fill(124);\n        ellipse(200,350,100,100);\n        fill(0);\n        textSize(20);\n        text(\"Baddie: Robo: Normal Health \",0,30);\n        fill(255, 0, 0);\n        rect(300,25,100,100);\n        fill(255, 0, 255);\n        triangle(305,30,305,120,395,75);\n        if(mouseX>300&&mouseX<400&&mouseY>25&&mouseY<125){\n            if(mouseIsPressed){\n            level1 = false;\n            level1A = true;\n            }\n        }\n    }\n    if(level1A){\n        background(216, 245, 252);\n        fill(50, 0, 0);\n        rect(50,325,25,75);\n        fill(255, 0, 0);\n        ellipse(63,275,100,100);\n        fill(0);\n        textSize(20);\n        text(\"Mamae: Normal Ball Can Inflict Minor\\nDamage\",0,20);\n        ellipse(100,200,10,10);\n        ellipse(105,195,10,10);\n        ellipse(110,190,10,10);\n        ellipse(115,185,10,10);\n        rect(125,155,30,30);\n        ellipse(130,250,10,10);\n        ellipse(135,247,10,10);\n        ellipse(140,245,10,10);\n        ellipse(145,243,10,10);\n        rect(155, 215,30,30);\n        if(mouseX>125&&mouseX<155&&mouseY>155&&mouseY<185&&mouseIsPressed){\n            level1A = false;\n            level1A1 = true;\n        }\n        if(mouseX>155&&mouseX<185&&mouseY>215&&mouseY<245){\n            if(mouseIsPressed){\n                level1A = false;\n                level1A3 = true;\n            }\n        }\n    }\n    if(level1A1){\n        background(255, 0, 0);\n        fill(255);\n        textSize(100);\n        text(\"BOOM!\",0,100);\n        fill(0, 0, 0);\n        rect(0,300,400,100);\n        fill(255);\n        textSize(100);\n        text(\"GO!\",0,390);\n        if(mouseX>0&&mouseX<400&&mouseY>300&&mouseY<400){\n            if(mouseIsPressed){\n                level1A1 = false;\n                level1A2 = true;\n            }\n        }\n    }\n    if(level1A2){\n        background(216, 245, 252);\n        fill(50, 0, 0);\n        rect(300,350,100,50);\n        fill(0, 0, 0);\n        textSize(50);\n        text(\"Go On\",0,50);\n    }\n    if(level1A3){\n          background(255, 0, 0);\n        fill(255);\n        textSize(100);\n        text(\"BOOM!\",0,100);\n        fill(0, 0, 0);\n        rect(0,300,400,100);\n        fill(255);\n        textSize(100);\n        text(\"GO!\",0,390);\n        if(mouseX>0&&mouseX<400&&mouseY>300&&mouseY<400){\n            if(mouseIsPressed){\n                level1A3 = false;\n                level1A4 = true;\n    }\n        }}\n        if(level1A4){\n              background(216, 245, 252);\n        fill(50, 0, 0);\n        rect(50,200,50,350);\n        rect(300,200,50,350);\n        rect(50,175,300,25);\n        fill(124);\n        ellipse(200,350,100,100);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"You lose!!!!\",0,30);\n        }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

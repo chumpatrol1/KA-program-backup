@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>A Computer In A Computer</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>A Computer In A Computer</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**A Computer In A Computer by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-22T23:15:47Z by kaid_976851263300560061760577\nLast Edited: 2012-12-22T23:15:47Z\nVotes/Spinoffs: 12/3\nOriginally Created: 2013-01-24T13:35:41Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/a-computer-in-a-computer/1246255413\nRetrieved On: 07-Nov-2022 (17:06:40.168899)**/\
+";
+
+code = code + "\n//My longest program yet.\n\n//Pages\nvar start = true;\nvar desktop = false;\nvar internet = false;\nvar calendar = false;\nvar youtube = false;\nvar games = false;\nvar itunes = false;\nvar johnny = false;\nvar amelia = false;\nvar pong = false;\nvar subspace = false;\nvar zombie = false;\nvar twinkle = false;\nvar baa = false;\n\n//Images\nvar jimg = getImage(\"avatars/robot_male_1\");\nvar aimg = getImage(\"avatars/robot_female_1\");\n\n//Movie Slide\nvar jms = 0;\nvar ams = 0;\n\nvar draw = function() {\n     if(start){\n     strokeWeight(1);\n     background(0);\n     stroke(255);\n     line(200,100,200,200);\n     noFill();\n     rect(150,150,100,100);\n     if(mouseIsPressed&&mouseX>150&&mouseX<250&&mouseY>150&&mouseY<250){\n         start = false;\n         desktop = true;\n     }\n    \n     \n}//End Start page\n\nif(desktop){\n    stroke(0);\n    strokeWeight(1);\n    background(0, 200, 255);\n    fill(0, 255, 0);\n    rect(0,375,400,25);\n    rect(0,375,100,25);\n    fill(255);\n    textSize(20);\n    text(\"Turn Off\",12,395);\n    if(mouseX>0&&mouseX<100&&mouseY>375&&mouseY<400){\n        if(mouseIsPressed){\n            desktop = false;\n            start = true;\n        }\n    }\n    fill(0, 0, 255);\n    textSize(50);\n    text(\"e\",0,30);\n    strokeWeight(5);\n    stroke(255, 230, 0);\n    line(0,10,30,30);\n    if(mouseX>0&&mouseX<30&&mouseY>0&&mouseY<30){\n        if(mouseIsPressed){\n            desktop = false;\n            internet = true;\n        }\n    }\n    noFill();\n    strokeWeight(1);\n    stroke(0, 0, 0);\n    rect(35,0,30,30);\n    line(50,0,50,30);\n    line(35,15,65,15);\n    if(mouseX>30&&mouseX<70&&mouseY>0&&mouseY<30){\n       if(mouseIsPressed){\n           \n        desktop = false;\n        calendar = true;}\n    }\n} //End Desktop\n\n     if(internet){\n         background(255);\n         fill(0, 0, 0);\n         textSize(70);\n         text(\"Apps\",100,60);\n         fill(255, 0, 0);\n         rect(375,0,25,25);\n         fill(255);\n         textSize(20);\n         text(\"X\",380,20);\n         if(mouseX>375&&mouseX<400&mouseY>0&&mouseY<25){\n             if(!mouseIsPressed){\n        fill(0, 0, 0);\n        textSize(20);\n         text(\"X\",380,20);\n             }\n             if(mouseIsPressed){\n                 internet = false;\n                 desktop = true;\n             }\n         }\n         fill(200, 0, 0);\n         rect(20,100,100,100);\n         fill(255);\n         triangle(30,110,30,190,110,150);\n         if(mouseX>20&&mouseX<120&&mouseY>100&&mouseY<200){\n             if(mouseIsPressed){\n                 internet = false;\n                 youtube = true;\n             }\n         }\n         fill(255, 255, 0);\n         ellipse(250,150,100,100);\n         fill(255, 230, 0);\n         rect(240,115,20,70);\n         fill(0, 0, 0);\n         ellipse(70,350,50,50);\n         rect(80,251,15,100);\n         textSize(30);\n         text(\"App is down\",0,399);\n         text(\"App is down\",200,230);\n     }//End Internet\n     \n     if(calendar){\n         background(200, 200, 0);\n         fill(255, 0, 0);\n         rect(375,0,25,25);\n            fill(255);\n         textSize(20);\n         text(\"X\",380,20);\n         if(mouseX>375&&mouseX<400&mouseY>0&&mouseY<25){\n             if(!mouseIsPressed){\n        fill(0, 0, 0);\n        textSize(20);\n         text(\"X\",380,20);\n             }\n             if(mouseIsPressed){\n                 calendar = false;\n                 desktop = true;\n             }\n         }      \n         fill(0, 0, 0);\n         textSize(30);\n         text(\"Jan 19: Dinner with Mike\",0,30);\n         text(\"Jan 22: Party at Daniel\'s\",0,60);\n         text(\"Jan 23: Costume party\",0,90);\n         text(\"Jan 29: Paris Vacation\",0,120);\n         text(\"Feb 3: Baby Sitting job \\nopening\",0,150);\n         text(\"Feb 11: Another Party with \\nDaniel\",0,220);\n         text(\"Feb 15: Star Wars Trilogy\",0,290);\n         text(\"Feb 19: Lego Challenge Due\",0,320);\n     }\n     if(youtube){\n         background(255, 255, 0);\n         fill(255);\n         rect(50,100,100,100);\n         rect(250,100,100,100);\n         if(mouseX>50&&mouseX<150&&mouseY>100&&mouseY<200){\n             if(mouseIsPressed){\n                              youtube = false;\n             johnny = true;\n             }\n\n         }\n                      if(mouseX>250&&mouseX<350&&mouseY>100&&mouseY<200){\n      if(mouseIsPressed){\n          youtube=false;\n          amelia=true;\n      }           \n             }\n         image(jimg,55,90,100,120);\n         image(aimg,250,100,100,100);\n         fill(255, 0, 255);\n         textSize(50);\n         text(\"Youtube\",100,50);\n         text(\"Apps\",0,350);\n         if(mouseX>0&&mouseX<150&&mouseY>300&&mouseY<400&&mouseIsPressed){\n             youtube = false;\n             internet = true;\n         }\n         \n     }//End youtube\n     if(johnny){\n         if(jms === 0){\n             background(0, 255, 255);\n             fill(255, 0, 0);\n             textSize(30);\n             text(\"The Johnny Show\",0,30);\n         }\n         if(jms <= 20&&jms <100){\n             background(255, 0, 0);\n             image(jimg,random(0,400),random(0,400));\n             fill(255, 0, 255);\n             textSize(50);\n             text(\"Ha ha ha! Lol\",0,50);\n             \n         }\n         if(jms === 100){\n             jms = jms -101;\n         }\n         if(keyPressed){\n             johnny=false;\n             youtube = true;\n         }\n         jms = jms +1;\n     }//End johnny\'s movie\n     if(amelia){\n         if(jms === 0){\n             background(0, 255, 255);\n             fill(255, 0, 0);\n             textSize(30);\n             text(\"The Amelia Show\",0,30);\n         }\n         if(ams <= 20&&ams <100){\n             background(255, 0, 0);\n             image(aimg,random(0,400),random(0,400));\n             fill(255, 0, 255);\n             textSize(50);\n             text(\"Ha ha ha! Lol\",0,50);\n             \n         }\n         if(ams === 100){\n             ams = ams -101;\n         }\n         ams = ams +1;\n         if(keyPressed){\n             amelia=false;\n             youtube=true;\n         }\n     }//End a\'s movie\n     \n     \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

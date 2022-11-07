@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Game 2</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game 2</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Game 2 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-09T01:05:41Z by kaid_976851263300560061760577\nLast Edited: 2013-03-09T01:05:41Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-03-09T20:31:28Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/game-2/1446401806\nRetrieved On: 07-Nov-2022 (17:07:36.383684)**/\
+";
+
+code = code + "\n/**\n * A Not-So-Simple Racing Game\n **/\n /*\n Has 3 Power Up Ideas\n 1) Speed yourself up\n 2) Slow others down\n 3) Realign The Cars To Even some Odds\n */\n var state = \"Start\";\n var car1 = 0;\n var car2 = 0;\n var car3 = 0;\n var car4 = 0;\n \n ///Power Ups\n //Which One At Which time?\n var c1p1 = round(random(1,3));\n  var c2p1 = round(random(1,3));\n var c3p1 = round(random(1,3));\n var c4p1 = round(random(1,3)); \n //Did you get one?\n var c1p1d = false;\n var c2p1d =false;\n var c3p1d=false;\n var c4p1d= false;\n //The Time That Lasts for Power Ups\n var c1p1t = 750;\n var c2p1t = 750;\n var c3p1t = 750;\n var c4p1t = 750;\n var draw = function() {\n      var cara = random(3,5);\n var carb = random(3,5);\n var carc = random(3,5);\n var card = random(3,5);\n     var r = random(0,255);\n     var g = random(0,255);\n     var b = random(0,255);\n     var check = color(r, g, b);\n     if(state === \"Start\"){\n         background(0, 0, 0);\n         fill(255);\n         textSize(30);\n         text(\"               Derby Rush!\",0,30);\n         textSize(20);\n         text(\"Welcome to Derby Rush!, the game where\\nyou click to drive! Compete with 3 other\\nracers to get to the finish line! Get power ups\\nto speed yourself up, slow others down or\\nset your opponents back! Watch out for\\nmoving blocks, ad they will set you back to\\nthe most recent check point. Your enemies\\ncan also get power ups, so watch out!\",0,50);\n         fill(255);\n         rect(100,220,20,20);\n         rect(140,220,20,20);\n         rect(180,220,20,20);\n         rect(220,220,20,20);\n         rect(260,220,20,20);\n         rect(120,240,20,20);\n         rect(160,240,20,20);\n         rect(200,240,20,20);\n         rect(240,240,20,20);\n         rect(100,260,20,20);\n         rect(140,260,20,20);\n         rect(180,260,20,20);\n         rect(220,260,20,20);\n         rect(260,260,20,20);\n         rect(120,280,20,20);\n         rect(160,280,20,20);\n         rect(200,280,20,20);\n         rect(240,280,20,20);\n         fill(255, 0, 0);\n         textSize(60);\n         text(\"Start\",125,275);\n         if(mouseX>100&&mouseX<300&&mouseY>220&&mouseY<280){\n             if(mouseIsPressed){\n                 state = \"Play\";\n             }\n         }\n     }\n     if(state === \"Play\"){\n                    ////Objects\n                    ///The Road\n                    //Here so the power up boxes and cars are on top\n                             //Road\n         background(255, 0, 0);\n         strokeWeight(3);\n         stroke(0, 0, 0);\n         fill(255, 200, 0);\n         rect(0,0,400,100);\n         rect(0,100,400,100);\n         rect(0,200,400,100);\n         rect(0,300,400,100);\n         ///Terrains\n         fill(50,0,0);\n         rect(car1+500,0,100,100);\n        rect(car2+500,100,100,100);\n        rect(car3+500,200,100,100);\n        rect(car4+500,300,100,100);\n        if(car1-80<-350&&car1>-450){\n            cara = random(1,2);\n        }\n                if(car2-80<-350&&car2>-450){\n            carb = random(1,2);\n        }\n                if(car3-80<-350&&car3>-450){\n            carc = random(1,2);\n        }\n                if(car4-80<-350&&car4>-450){\n            card = random(1,2);\n        }\n        \n                    ///Check Points\n                    //Start\n                    noStroke();\n                    fill(check);\n                    rect(car1+ 350,35,50,40);\n                    rect(car2+350,135,50,40);\n                    rect(car3+350,235,50,40);\n                    rect(car4+350,335,50,40);\n                    fill(0, 0, 0);\n                    textSize(30);\n                    text(\"GO\",car1+350,65);\n                    text(\"GO\",car2+350,165);\n                    text(\"GO\",car3+350,265);\n                    text(\"GO\",car4+350,365);\n                    ///Power Ups\n                    //Row 1\n                    fill(check);\n                    if(!c1p1d){\n                                            rect(car1+1000,35,30,30);\n                    }\n                    if(car1-80<-940&&car1>-970){\n                        c1p1d=true;\n                    }\n                    rect(car2+1000,135,30,30);\n                    \n                    \n                    //When You Get a Power Box, Activate it\n                    \n                    \n                    \n         //Cars\n         //Vehicles\n         noStroke();\n         fill(0, 0, 255);\n         rect(160,25,80,50);\n         fill(0, 255, 0);\n         ellipse(225,75,20,10);\n         ellipse(225,25,20,10);\n         fill(255, 124, 255);\n         ellipse(175,75,20,10);\n         ellipse(175,25,20,10);\n         fill(255, 0, 0);\n         rect(220,35,10,30);\n         fill(200, 0, 200);\n         rect(170,40,10,20);\n         fill(0, 0, 0);\n      rect(160,125,80,50);\n      fill(255);\n             rect(160,225,80,50);\n             fill(cara+random(0,100), carb+random(0,100), card+random(0,100));\n                    rect(160,325,80,50);\n                    if(mouseIsPressed){\n                        car1=car1-cara;\n                    }\n                                            car2=car2-carb;\n                        car3=car3-carc;\n                        car4=car4-card;\n     }\n };";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Circuit Board Symmetry (Based on Tamis Mike's Program)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Circuit Board Symmetry (Based on Tamis Mike's Program)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Circuit Board Symmetry (Based on Tamis Mike's Program) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:09:38Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:09:38Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-10-22T18:53:00Z from origin 1018164196 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/circuit-board-symmetry-based-on-tamis-mikes-program/1098749849\nRetrieved On: 07-Nov-2022 (17:07:23.277773)**/\
+";
+
+code = code + "\nbackground(0, 0, 0);\nnoStroke();\n\n// size of the dots\nvar diameter = 2;\n\n// starting position of the middle dot\nvar x = 200;\nvar y = 200;\n\n// how fast the dots move each time\nvar speed = 5;\n\nvar draw = function() {\n    // draw the three dots relative to (x, y)\n    fill(17, 207, 0);\n    ellipse(x, y, diameter, diameter); //line 1 :D\n    \n    //mirror image of line 1 across the y axis at y: 200 (400/2)\n    ellipse(x , 400 - y, diameter, diameter); //line 2\n    //mirror image of line 1 across the x axis at x: 200 (400/2)\n    ellipse(400-x , y, diameter, diameter); //line 3\n    //mirror image of line 2 the x axis at x: 200 (400/2) and line 3 across the y axis at y: 200 (400/2)\n    ellipse(400-x , 400-y, diameter, diameter);\n\n    // x and y will follow the mouse\n    if (x < mouseX) {\n        x += speed;\n    }\n    if (x > mouseX) {\n        x -= speed;\n    }\n    if (y < mouseY) {\n        y += speed;\n    }\n    if (y > mouseY) {\n        y -= speed;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

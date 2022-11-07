@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Juggling!!!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Juggling!!!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Juggling!!! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-01-12T23:59:26Z by kaid_976851263300560061760577\nLast Edited: 2013-01-12T23:59:26Z\nVotes/Spinoffs: 8/17\nOriginally Created: 2013-01-17T14:12:01Z from origin 1224019212 with similarity of 0.952892896364372\nOriginal Link: https://www.khanacademy.org/computer-programming/juggling/1287377768\nRetrieved On: 07-Nov-2022 (17:06:46.234014)**/\
+";
+
+code = code + "\n// Move left hand: press 1 and 2\n// Move right hand: press 9 and 0\nvar bounces=0;\nvar fun = random(5,15);\nvar lol = random(100,300);\nvar lol2 = random(100,300);\nvar lol3 = random(100,300);\nvar lol4 = random(100,300);\nvar lol5 = random(100,300);\nvar lol6 = random(100,300);\nvar lol7 = random(100,300);\nvar GRAVITY = 1;\n\n// makes a new ball of passed color at passed x and y\nvar makeBall = function(x, y, color) {\n    return {\n        x: x, // center x coordinate\n        y: y, // center y coordinate\n        radius: fun,\n        color: color,\n        xSpeed: 0,\n        ySpeed: 0\n    };\n};\n\nvar balls = [\n    makeBall(lol, 140, color(0, 255, 0)),\n    makeBall(lol2, 200, color(255, 0, 0)),\n    makeBall(lol3, 120, color(0, 0, 255)),\n    makeBall(lol4,160, color(255, 255, 0)),\n    makeBall(lol5,180,color(255, 124, 0)),\n    makeBall(lol6,100,color(255, 0, 255)),\n    makeBall(lol7,80,color(255, 124 ,255))\n];\n\nvar leftHand = {\n    x: 10, // center x coordinate\n    y: 180, // center y coordinate\n    xPrevious: null,\n    yPrevious: null,    \n    span: 80,\n    angle: 126,\n    minAngle: 90,\n    maxAngle: 180,\n    movementDirection: 0\n};\n\nvar rightHand = {\n    x: 390,\n    y: 180,\n    xPrevious: null,\n    yPrevious: null,    \n    span: 80,\n    angle: 44,\n    minAngle: 0,\n    maxAngle: 90,    \n    movementDirection: 0    \n};\n\n// returns magnitude of passed vector\nvar magnitude = function(vector) {\n    return sqrt(vector.x * vector.x + vector.y* vector.y);\n};\n\n// returns unit vector of passed vector\nvar unitVector = function(vector) {\n    return {\n        x: vector.x / magnitude(vector),\n        y: vector.y / magnitude(vector)\n    };\n};\n\n// returns dot product of two passed vectors\nvar dotProduct = function(vector1, vector2) {\n    return vector1.x * vector2.x + vector1.y * vector2.y;\n};\n\n// returns the points at the two ends of the passed hand \nvar handEnds = function(hand) {\n    var handLineVector = unitVector({\n      x: cos(hand.angle) * 0 - sin(hand.angle) * -1,\n      y: sin(hand.angle) * 0 + cos(hand.angle) * -1\n    });\n\n    return [{\n        x: hand.x + handLineVector.x * hand.span / 2,\n        y: hand.y + handLineVector.y * hand.span / 2\n    }, {\n        x: hand.x - handLineVector.x * hand.span / 2,\n        y: hand.y - handLineVector.y * hand.span / 2\n    }];       \n};\n\n// draws passed hand\nvar drawHand = function(hand) {\n    stroke(0, 0, 0);\n    var end1 = handEnds(hand)[0];\n    var end2 = handEnds(hand)[1];    \n    line(hand.x, hand.y, end1.x, end1.y);\n    line(hand.x, hand.y, end2.x, end2.y);\n};\n\n// draws passed ball\nvar drawBall = function(ball) {\n    noStroke();   \n    fill(ball.color);\n    ellipse(ball.x, ball.y, \n            ball.radius * 2, ball.radius * 2);\n};\n\n// returns point on passed hand closest to passed ball\n// If point inside ball, ball is hitting hand.\nvar pointOnHandClosestToBall = function(ball, hand) {\n    var handEnd1 = handEnds(hand)[0];\n    var handEnd2 = handEnds(hand)[1];\n    \n    // line representing hand surface    \n    var handLine = {\n        x: handEnd2.x - handEnd1.x,\n        y: handEnd2.y - handEnd1.y        \n    };\n    var unitHandLine = unitVector(handLine);\n    \n    var handEnd1ToBall = {\n        x: ball.x - handEnd1.x,\n        y: ball.y - handEnd1.y        \n    };\n        \n    // project vector between hand end and ball along\n    // hand line to get distance between end and point\n    // on hand closest to ball\n    var proj = dotProduct(handEnd1ToBall, unitHandLine);\n    \n    if (proj <= 0) { \n        // off end of hand - end is closest point\n        return handEnd1;        \n    } else if (proj >= magnitude(handLine)) {\n        // ditto        \n        return handEnd2;\n    } else {\n        // distance is part way along hand - return that\n        // point\n        return {\n            x: handEnd1.x + unitHandLine.x * proj,\n            y: handEnd1.y + unitHandLine.y * proj\n        };\n    }\n};\n\n// returns true if hand intersects ball\nvar isHandInsideBall = function(ball, hand) {\n    var closest = pointOnHandClosestToBall(ball, hand);        \n    var ballToHandDistance = dist(ball.x, ball.y, \n                                  closest.x, closest.y);\n    return ballToHandDistance < ball.radius;\n};\n\n// move ball one increment of its velocity\nvar moveBall = function(ball) {\n    ball.x = ball.x + ball.xSpeed / 30;\n    ball.y = ball.y + ball.ySpeed / 30;    \n};\n\n// bounces ball off hand. Assumes hand and ball touching.\nvar bounceBallOffHand = function(ball, hand) {\n    // get normal of surface to bounce ball off        \n    var normal = null;\n    if (dist(ball.x, ball.y, hand.x, hand.y) <\n        hand.span / 2) {\n        // normal of hand line            \n        normal = unitVector({\n            x: handEnds(hand)[0].y - hand.y,\n            y: hand.x - handEnds(hand)[0].x\n        });\n    } else {\n        // ball hit end of hand.  Bounce normal is\n        // normal of point of ball touching hand end.\n        var closest = pointOnHandClosestToBall(ball,\n                                               hand);        \n        normal = unitVector({\n            x: ball.x - closest.x,\n            y: ball.y - closest.y\n        });\n    }    \n    \n    // set new ball velocity by reflecting old velocity in\n    // the normal to the surface the ball is bouncing off   \n    var ballVelocity = {\n        x: ball.xSpeed,\n        y: ball.ySpeed\n    }; \n    \n    var dot = 2 * dotProduct(ballVelocity, normal);\n    ball.xSpeed = ball.xSpeed - dot * normal.x;\n    ball.ySpeed = ball.ySpeed - dot * normal.y;    \n};\n\n// if hand moving when it touches ball, move ball in\n// response \nvar addHandMovementToBall = function(ball, hand) {\n    // if hand moving add force of hand to ball\n    var handVelocity = {\n        x: (hand.x - hand.xPrevious) * 60,\n        y: (hand.y - hand.yPrevious) * 60\n    };\n    ball.xSpeed = ball.xSpeed + handVelocity.x;\n    ball.ySpeed = ball.ySpeed + handVelocity.y;            \n        \n    // keep moving ball until hand not touching it\n    var moves = 0;\n    while (isHandInsideBall(ball, hand) &&  moves < 50) {\n        moveBall(ball);\n        moves = moves + 1;\n    }    \n};\n\n// adjusts movement of passed ball if it is currently\n// hitting the passed hand\nvar handleBallBounce = function(ball, hand) {\n    if (isHandInsideBall(ball, hand)) {\n        bounceBallOffHand(ball, hand);\n        addHandMovementToBall(ball, hand);\n        return true; // indicate hand was hitting ball\n    } else {\n        return false; // indicate hand wasn't hitting ball\n    }\n};\n\n// deals with moving passed ball\nvar handleBallMovement = function(ball) {\n    ball.ySpeed = ball.ySpeed + GRAVITY;\n    var hitLeftHand = handleBallBounce(ball, leftHand);\n    var hitRightHand = handleBallBounce(ball, rightHand);\n    if (hitLeftHand === false && hitRightHand === false) {\n        moveBall(ball);\n    }\n};\n\n// set coordinates of passed hand based on its angle\nvar handleHandMovement = function(hand) {\n    var angle = hand.angle + hand.movementDirection * 2;\n    if (angle >= hand.minAngle && angle <=hand.maxAngle) {\n        hand.angle = angle;\n        hand.xPrevious = hand.x;\n        hand.yPrevious = hand.y;        \n        hand.x = 200 + sin(90 - hand.angle) * 190;\n        hand.y = 180 + cos(90 - hand.angle) * 208;\n    }\n};\n\n// returns true if ball is in play. Playing area extends\n// farther than canvas to give more time for player to\n// ready themself before ball respawns.\nvar isBallInPlay = function(ball) {\n    return ball.x > -50 && ball.x < 450 &&\n           ball.y > -50 && ball.y < 650;\n};\n\nvar draw = function() {\n    var ha = random(0,400);\n    background(255, 255, 255);\n    for (var i = 0; i < balls.length; i += 1) {\n        var ball = balls[i];        \n        if (isBallInPlay(ball)) {\n            handleBallMovement(ball);\n            drawBall(ball);\n        } else {\n            // replace ball gone out of play\n            balls[i] = makeBall(ha, 120, ball.color);\n        }\n    }\n        \n    drawHand(leftHand);    \n    drawHand(rightHand);\n    handleHandMovement(leftHand);\n    handleHandMovement(rightHand);\n    \n    // draw canvas border\n    noFill();\n    rect(0, 0, 399, 399);\n};\n\n// sets hand movement directions when key pressed\nvar keyPressed = function() {\n    if (keyCode === 49) { // 1\n        leftHand.movementDirection = 1;\n    } else if (keyCode === 50) { // 2\n        leftHand.movementDirection = -1;\n    } else if (keyCode === 57) { // 9\n        rightHand.movementDirection = 1;\n    } else if (keyCode === 48) { // 0\n        rightHand.movementDirection = -1;\n    }\n};\n\n// sets hand movement directions to stop when key released\nvar keyReleased = function() {\n    if (keyCode === 49 || keyCode === 50) {\n        leftHand.movementDirection = 0;\n    } else if (keyCode === 57 || keyCode === 48) {\n        rightHand.movementDirection = 0;\n    }\n    textSize(30);\n    fill(255, 0, 0);\n    text(bounces,0,30);\n    if(frameCount > 5000){\n    GRAVITY = 2;\n    }\n    if(frameCount > 10000){\n        GRAVITY = 3;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

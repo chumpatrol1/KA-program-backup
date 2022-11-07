@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Robomon Health Color Scaling Test</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Robomon Health Color Scaling Test</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Robomon Health Color Scaling Test by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2017-02-23T14:28:36Z by kaid_976851263300560061760577\nLast Edited: 2017-02-23T14:28:36Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2017-02-23T14:41:59Z from origin 6565908132200448 with similarity of 0.023471364013649357\nOriginal Link: https://www.khanacademy.org/computer-programming/robomon-health-color-scaling-test/5502189904134144\nRetrieved On: 07-Nov-2022 (17:07:51.916284)**/\
+";
+
+code = code + "\nvar maxHealth=100;\nvar health=100;\nvar keyPressed=function(){\n    if(keyCode===40&&health!==0){\n        health-=1;\n    }\n    if(keyCode===38&&health<=maxHealth){\n        health+=5;\n    }\n};\nvar draw = function() {\n    background(255);\n    fill(0);\n    textSize(30);\n    text(\"HP: \"+health+\"/\"+maxHealth,0,30);\n    fill(0);\n    rect(50,175,300,50);\n    fill((maxHealth/health)+150,health/maxHealth*255,0);\n    rect(50,175,(health/maxHealth)*300,50);\n    if(health>maxHealth){\n        health=maxHealth;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Follow That Square!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Follow That Square!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Follow That Square! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-03-04T22:48:48Z by kaid_976851263300560061760577\nLast Edited: 2013-03-04T22:48:48Z\nVotes/Spinoffs: 3/2\nOriginally Created: 2013-06-20T13:51:48Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/follow-that-square/1432545693\nRetrieved On: 07-Nov-2022 (17:06:48.839285)**/\
+";
+
+code = code + "\n/**\n * Simple game To Keep your mouse on the Square\n * */\n /*\n Difficulty: Easy\n Contents: One Button\n Moving square with 5 variables and 6 booleans\n High Score Page with 2 Booleans and 3 Variables\n */\n var state = \"Start\";\n //Place\n var x = 150;\n var y = 150;\n //Reverse Movement\n var x_s = 1;\n var y_s = 1;\n //The Size of the Square (Gets Smaller and Smaller)\n var z = 100;\n \n //Score\n var score = 0;\n var realScore = floor(score/5);\n var high = 124;\n var highguy = \"Isaac \\nFingerson\";\n var draw = function() {\n\n     if(state ===\"Start\"){\n         background(0, 0, 0);\n         fill(255);\n         textSize(30);\n         text(\"Follow that square!\\nClick the red square to begin.\\nKeep your mouse inside the\\nsquare for as long as you can!\",0,30);\n         text(\"By Johnny Robot Games\",0,390);\n         image(getImage(\"avatars/robot_male_1\"),350,350,50,50);\n         fill(255, 0, 0);\n         rect(150,150,100,100);\n         if(mouseX>150&&mouseX<250&&mouseY>150&&mouseY<250){\n             if(mouseIsPressed){\n                 state = \"Game\";\n             }\n         }\n     }\n     if(state === \"Game\"){\n         background(0, 0, 0);\n         if(x+z>400){\n             x_s=-1;\n         }\n         if(y+z>400){\n             y_s=-1;\n         }\n         if(x<0){\n             x_s=1;\n         }\n         if(y<0){\n             y_s=1;\n         }\n         if(z<0){\n             z=z+1;\n         }\n         if(mouseX<x||mouseY<y||mouseX>x+z||mouseY>y+z){\n             state=\"End\";\n         }\n         fill(255, 0, 0);\n         rect(x,y,z,z);\n         x=x+1*x_s;\n         y=y+3*y_s;\n         z=z-0.125;\n                 score=score+1;\n         fill(255);\n         text(\"Score: \"+floor(score/5),0,30);\n \n     }\n     if(state === \"End\"){\n              realScore=floor(score/5);\n         if(realScore<high){\n                      background(0, 0, 0);\n             fill(255);\n             text(\"Your Score: \"+realScore,0,30);\n                          text(\"High Score: \"+high+\"\\nThe Champ: \"+highguy,0,200);\n         }\n         if(realScore>high){\n                      background(0, 0, 0);\n             fill(255, 0, 0);\n             text(\"Your Score:\"+realScore+\"\\nGee whiz! You got a high\\nscore! Congratulations mate!\",0,30);\n             text(\"Original High: \"+high+\"\\nOriginal Champ: \"+highguy,0,200);\n         }\n         \n     }\n };";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

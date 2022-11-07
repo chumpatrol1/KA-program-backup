@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>My Top 5</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>My Top 5</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**My Top 5 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-05-17T00:06:52Z by kaid_976851263300560061760577\nLast Edited: 2013-05-17T00:06:52Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2013-07-11T01:31:46Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/my-top-5/1651436487\nRetrieved On: 07-Nov-2022 (17:07:39.201507)**/\
+";
+
+code = code + "\nvar slide = 1;\nvar image1 = getImage(\"space/background\");\nvar forYaelMyLittleSister=function(){\n    strokeWeight(1);\n    stroke(0, 0, 0);\n    background(0, 255, 255);\n    fill(255, 255, 0);\n    ellipse(200,200,200,200);\n    strokeWeight(3);\n    stroke(255, 255, 0);\n    line(200,75,200,0);\n    line(200,325,200,400);\n    line(0,200,75,200);\n    line(325,200,400,200);\n    line(75,75,0,0);\n    line(325,325,400,400);\n    line(325,75,400,0);\n    line(75,325,0,400);\n    fill(0, 0, 0);\n    textSize(30);\n    text(\"          For \\n       Yael My \\n    Little Sister\",100,130);\n};\nvar aComputerInAComputer = function(){\n    noStroke();\n    background(255, 0, 0);\n    fill(255);\n    triangle(50,50,50,350,350,200);\n    textSize(30);\n    text(\"A Computer in a Computer\",30,30);\n};\nvar spaceCadet = function(){\n    noStroke();\n    background(0);\n    fill(255, 0, 0);\n    rect(10,150,125,100);\n    ellipse(200,200,50,50);\n    fill(124);\n    ellipse(375,200,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Space \\nCadet\",10,175);\n};\nvar ballWorld1 = function(){\n    background(100, 200, 0);\n    fill(0, 0, 255);\n    ellipse(200,300,200,200);\n    fill(255);\n    textSize(30);\n    text(\"Ball\\n      World\\n               Part\\n                     1\",0,100);\n};\nvar contactMeAndLiveChats = function(){\n    background(255);\n    noStroke();\nfill(255, 255, 0);\nellipse(202, 208, 150, 150);\nfill(46, 46, 41);\nellipse(197, 161, 20, 20);\nellipse(234, 162, 20, 20);\nfill(252, 65, 65);\nellipse(217, 240, 60, 68);\nfill(255,255,0);\ntextSize(30);\ntext(\"Contact me and Live Chats!\",0,350);\n};\nvar coderClubA = function(){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"Coder Club: Closed!\",40,30);\n    fill(124);\n    rect(150,300,100,25);\n    rect(190,250,20,50);\n    rect(125,100,150,150);\n    fill(0, 255, 255);\n    rect(140,120,120,110);\n};\nvar secretF1 = function(){\n    background(124);\n    fill(255, 0, 0);\n    textSize(30);\n    text(\"The Secret Files: Episode 1\",0,60);\n};\nframeRate(0.20);\nvar draw = function() {\n    if(slide === 1){\n        forYaelMyLittleSister();\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"#1\",0,30);\n    }\n    if(slide === 2){\n       aComputerInAComputer(); \n               fill(0, 0, 0);\n        textSize(30);\n        text(\"#2\",0,30);\n    }\n    if(slide === 3){\n        spaceCadet();\n                fill(255);\n        textSize(30);\n        text(\"#3\",0,30);\n    }\n    if(slide === 4){\n        coderClubA();\n                fill(255);\n        textSize(30);\n        text(\"#4\",0,30);\n    }\n    if(slide === 5){\n        secretF1();\n                fill(0, 0, 0);\n        textSize(30);\n        text(\"#5\",0,30);\n    }\n    slide = slide + 1;\n    if(slide === 6){\n        slide = 1;\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

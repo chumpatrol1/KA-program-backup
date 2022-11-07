@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ball World Part 7</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ball World Part 7</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Ball World Part 7 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-21T12:27:46Z by kaid_976851263300560061760577\nLast Edited: 2012-11-21T12:27:46Z\nVotes/Spinoffs: 8/1\nOriginally Created: 2012-12-08T13:44:30Z from origin 1094536263 with similarity of 0.25712035700223124\nOriginal Link: https://www.khanacademy.org/computer-programming/ball-world-part-7/1163765223\nRetrieved On: 07-Nov-2022 (17:06:41.693147)**/\
+";
+
+code = code + "\n//I am trying to make a cartoon about balls interacting with //each other. Let\'s hope this works :-P.\n\n//First, I\'ll make a variable called \"slide\".\nvar slide = 0;\nvar robot = getImage(\"avatars/robot_male_1\");\nvar x = 130;\n//Next, I will have to throw in our draw loop...\n\nvar draw = function() {\n    //All right, no backgrounds today!\n    \n    //Set the frame rate.\n    frameRate(1);\n    \n    //Let the scenes begin!\n    \n    if(slide === 0){\n        strokeWeight(1);\n        background(0, 255, 0);\n        fill(255);\n        textSize(33);\n        text(\"Ball World Part 7\",50,199);\n    }\n    if(slide === 1){\n            background(0, 255, 0);\n            textSize(33);\n            text(\"Ball World Part 7\",50,199);\n    }\n    if(slide === 2){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Hey Zion! Let\'s watch the \\nnews!\",0,30);\n    }\n    if(slide === 5){\n        background(0, 255, 255);\n        fill(0, 255, 0);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Again?\",0,30);\n    }\n    if(slide === 6){\n        background(0, 255, 255);\n        fill(0, 0, 255);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Yep!\",0,30);\n    }\n    if(slide === 7){\n        background(0, 255, 255);\n        fill(255, 255, 0);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"On the 26th, we are going to \\nhold Election day, where we \\nwill vote between President \\n Oballa,                       Senator \\n Ballmny                         and \\nSenator                        Johnny\",0,30);\n    }\n    if(slide === 15){\n        background(0, 255, 255);\n        image(robot,150,275);\n        fill(255);\n        textSize(30);\n        text(\"I Shall become president of \\nThe United States of Ballerica! \\nTommorow We shall make a \\nchange and make the first\\nrobotic president anywhere.\\nOballa is not the best, Ballmny\\n is money hungry, but I shall\\nbe a fair president! \",0,30);\n    }\n    if(slide === 22){\n        background(0, 255, 255);\n        image(robot,200,275);\n    }\n    if(slide === 23){\n        background(0, 255, 255);\n        image(robot,250,275);\n    }\n    if(slide === 24){\n        background(0, 255, 255);\n        image(robot,350,275);\n    }\n        if(slide === 24){\n        background(0, 255, 255);\n    }\n    if(slide === 26){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"The Next Day...\",0,30);\n    }\n    if(slide === 28){\n        background(0, 124, 124);\n        fill(0, 0, 255);\n        ellipse(100,200,200,200);\n        fill(0, 255, 0);\n        ellipse(300,200,200,200);\n        fill(0, 0, 255);\n        textSize(30);\n        text(\"I hope Johnny won\'t win!\",0,30);\n        }\n        if(slide === 31){\n            background(0, 124, 124);\n                    fill(0, 0, 255);\n        ellipse(100,200,200,200);\n        fill(0, 255, 0);\n        ellipse(300,200,200,200);\n        fill(0, 255, 0);\n        textSize(30);\n        text(\"We\'ll see the results today! \",0,30);\n        }\n        if(slide === 33){\n            background(0, 255, 255);\n            fill(255, 255, 0);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(30);\n            text(\"The results have shown that \\nJohhnny is our 47th president!\",0,30);\n        }\n        if(slide === 37){\n            background(0, 255, 255);\n            fill(255, 0, 255);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(30);\n            text(\"NNNNNOOOOO!!!!!\",0,30);\n        }\n                if(slide === 38){\n            background(0, 255, 255);\n            fill(255, 0, 0);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(30);\n            text(\"NNNNNOOOOO!!!!!\",0,30);\n        }\n            if(slide === 39){\n            background(0, 255, 255);\n            fill(0, 0, 255);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(30);\n            text(\"NNNNNOOOOO!!!!!\",0,30);\n        }\n                    if(slide === 40){\n            background(0, 255, 255);\n            fill(0, 255, 0);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(30);\n            text(\"NNNNNOOOOO!!!!!\",0,30);\n        }\n                           if(slide === 41){\n            background(0, 255, 255);\n            fill(255, 124, 255);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(30);\n            text(\"NNNNNOOOOO!!!!!\",0,30);\n        }\n        if(slide === 42){\n            background(0, 255, 255);\n            image(robot,150,150,150,150);\n            fill(255);\n            textSize(30);\n            text(\"???  Why are you sad??!!\",0,30);\n        }\n        if(slide === 45){\n            background(0, 255, 255);\n            fill(255, 0, 255);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(100);\n            text(\"...\",150,30);\n        }\n        if(slide === 46){\n            background(0, 255, 255);\n            fill(255, 0, 0);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(100);\n            text(\"...\",150,30);\n        }\n                if(slide === 47){\n            background(0, 255, 255);\n            fill(0, 0, 255);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(100);\n            text(\"...\",150,30);\n        }\n            if(slide === 48){\n            background(0, 255, 255);\n            fill(0, 255, 0);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(100);\n            text(\"...\",150,30);\n        }\n                if(slide === 49){\n            background(0, 255, 255);\n            fill(255, 124, 255);\n            ellipse(200,200,200,200);\n            fill(255);\n            textSize(100);\n            text(\"...\",150,30);\n        }\n    if(slide === 50){\n        background(0, 255, 255);\n        image(robot,150,150,150,150);\n        fill(255);\n        textSize(30);\n        text(\"Ugh! You humans are so \\nweird! I\'m president now!\",0,30);\n    }\n    if(slide === 54){\n        background(0, 0, 0);\n        fill(255);\n        textSize(30);\n        text(\"On the next day...\",0,30);\n    }\n    if(slide === 56){\n        background(0, 124, 255);\n        fill(255, 255, 0);\n        ellipse(200,200,200,200);\n        fill(255);\n        textSize(30);\n        text(\"Johnny will not be in office \\ntoday because he hacked the \\nvoting machine and all the \\nvotes went                 to him.\",0,30);\n    }\n    if(slide === 61){\n        background(0, 124, 255);\n        image(robot,150,150,150,150);\n        fill(255);\n        textSize(30);\n        text(\"Waaah!\",0,30);\n        \n    }\n        if(slide === 62){\n        background(0, 124, 255);\n        rotate(15);\n        image(robot,180,97,150,150);\n        rotate(-15);\n        fill(255);\n        textSize(30);\n        text(\"Waaah!\",0,30);\n        \n    }\n        if(slide === 63){\n        background(0, 124, 255);\n        image(robot,150,150,150,150);\n        fill(255);\n        textSize(30);\n        text(\"Waaah!\",0,30);\n        \n    }\n            if(slide === 64){\n        background(0, 124, 255);\n        rotate(15);\n        image(robot,180,97,150,150);\n        rotate(-15);\n        fill(255);\n        textSize(30);\n        text(\"Waaah!\",0,30);\n        \n    }\n            if(slide === 65){\n        background(0, 124, 255);\n        image(robot,150,150,150,150);\n        fill(255);\n        textSize(30);\n        text(\"Waaah!\",0,30);\n    }\n    if(slide === 66){\n        background(0, 124, 255);\n        fill(255, 0, 255);\n        ellipse(200,50,100,100);\n        textSize(30);\n        text(\"Yay!\",80,30);\n        fill(255, 0, 0);\n        ellipse(110,100,100,100);\n        text(\"Hooray!\",170,130);\n        fill(0, 0, 255);\n        ellipse(200,180,100,100);\n        text(\"Oh Yeah!\",20,180);\n        fill(0, 255, 0);\n        ellipse(140,270,100,100);\n        text(\"We won!\",200, 300);\n        fill(255, 124, 255);\n        ellipse(80,350,100,100);\n        text(\"Jonhhy loses!\",150,370);\n    }\n    if(slide === 72){\n        background(0, 0, 0);\n        textSize(30);\n        fill(255, 0, 0);\n        text(\"To\",0,30);\n        fill(255);\n        text(\"Be\",40,30);\n        fill(0, 0, 255);\n        text(\"Continued\",80,30);\n    }\n    if(slide === 80){\n        slide = slide -81;\n    }\nslide = slide+1;\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

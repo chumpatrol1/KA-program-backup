@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Counters</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Counters</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Counters by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:12:57Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:12:57Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-09-21T21:04:14Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/counters/1049175458\nRetrieved On: 07-Nov-2022 (17:07:16.006936)**/\
+";
+
+code = code + "\n//I made this counter for fun. Read the green text behind the\n//slashes (//). Example: //This line is ignored by the \n//computer.\n\n//Variables\nvar x = 0;\nvar y = 0;\nvar z = 0;\nvar a = 0;\nvar b = 0;\nvar c = 0;\nvar d = 0;\nvar e = 0;\nvar f = 0;\nvar g = 0;\nvar h = 0;\nvar i = 0;\nvar j = 0;\nvar k = 0;\nvar l = 0;\nvar m = 0;\nvar n = 0;\nvar o = 0;\nvar p = 0;\nvar q = 0;\n//This is the draw function which makes the numbers on the\n//canvas.\nvar draw = function() {\n    //This controls the speed that the programs counts.\n    //Tweak this number to change the speed.\n    frameRate(5);\n    //Background Color (Black)\n    background(0, 0, 0);\n    //This draws the line in the middle of the canvas.\n    strokeWeight(1);\n    stroke(0, 255, 255);\n    line(0,200,400,200);\n    //These lines of code text the numbers shown.\n    //This colors the text.\n    fill(0, 255, 255);\n    //This is the size of the text.\n    textSize(20);\n    //This is the text itself.\n    text(x,0, 20);\n    text(y,0, 40);\n    text(z,0, 60);\n    text(a,0, 80);\n    text(b,0, 100);\n    text(c,0, 120);\n    text(d,0, 140);\n    text(e,0, 160);\n    text(f,0, 180);\n    text(g,0, 200);\n    text(h,0, 220);\n    text(i,0, 240);\n    text(j,0, 260);\n    text(k,0, 280);\n    text(l,0, 300);\n    text(m,0, 320);\n    text(n,0, 340);\n    text(o,0, 360);\n    text(p,0, 380);\n    text(q,0, 400);\n    //The rest of the lines of code allow the numbers to \n    //change.\n    x = x+1;\n    y = y+2;\n    z = z+3;\n    a = a+4;\n    b = b+5;\n    c = c+6;\n    d = d+7;\n    e = e+8;\n    f = f+9;\n    g = g+10;\n    h = h-1;\n    i = i-2;\n    j = j-3;\n    k = k-4;\n    l = l-5;\n    m = m-6;\n    n = n-7;\n    o = o-8;\n    p = p-9;\n    q = q-10;\n    //This closes your function.\n    };\n    //This is the end of the code. The computer would read\n    //the draw function as fast as the frameRate says. Then,\n    //it returns to the top and repeats.\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

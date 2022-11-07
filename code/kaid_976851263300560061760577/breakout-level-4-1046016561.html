@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Breakout Level 4</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Breakout Level 4</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Breakout Level 4 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:15:47Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:15:47Z\nVotes/Spinoffs: 4/1\nOriginally Created: 2012-09-20T00:53:56Z from origin 1046127245 with similarity of 0.98401142041399\nOriginal Link: https://www.khanacademy.org/computer-programming/breakout-level-4/1046016561\nRetrieved On: 07-Nov-2022 (17:06:44.900478)**/\
+";
+
+code = code + "\n//Jack K is the official creator of Breakout, but I modified his and made mine. \n\n//Arrays//\n//Type in 3 to add a block that gives a reward when destroyed\n//Type in 1 or 2 to add different colours.\nvar blockPos = [\n    [0,0,0,0,0,0,0,0,0,0],\n    [2,2,2,2,2,2,2,2,2,2],\n    [2,4,1,5,4,4,2,5,4,1],\n    [1,2,3,2,1,2,3,2,1,2],\n    [2,3,4,4,2,1,3,2,5,5],\n    [0,0,0,0,0,0,0,0,0,0],\n    [0,0,0,0,0,0,0,0,0,0],\n    [5,1,1,5,1,1,5,1,1,5]\n];\n\n//Win Conditions//\nvar blockRemaining = 0;\n\n//I\'m just using this to find how many blocks are in the array There is probably a better way so meh.//\nfor(var column = 0; column < blockPos.length; column++){\n    for(var row = 0; row < blockPos[0].length; row++){\n        if(blockPos[column][row] > 0){\n            blockRemaining ++;\n        }\n    }\n}\n\n//Variables//\n//Images//\nvar _background = getImage(\"space/background\");\n\n//Booleans//\nvar won = false;\n\n\n//Player//\nvar player = {\n    x: 200,\n    y: 350,\n    xVelocity: 0,\n    yVelocity: 0,\n    xSize: 75,\n    ySize: 25,\n    \n    longPaddle: false,\n    fastPaddle: false,\n    \n    lives: 3,\n    score: 0\n};\n//Ball//\nvar ball = {\n    x: 200,\n    y: 339,\n    xVelocity: 2,\n    yVelocity: 10,\n    size: 20,\n    inPlay: false\n};\n\nvar powerUp = {\n    x: 0,\n    y: 0,\n    power: 1, //1 - Long\n    size: 40,\n    image: getImage(\"cute/GemBlue\"),\n    \n    spawned: false\n};\n\n//Draw//\n//Background//\nvar drawBackground = function(){\n    image(_background,0,0,400,400);\n};\n\n//Blocks//\nvar drawBlocks = function(){\n    for(var column = 0; column < blockPos.length; column++){\n        for(var row = 0; row < blockPos[0].length; row++){\n            if(blockPos[column][row] === 1){\n                fill(0, 255, 0);\n            }\n            if(blockPos[column][row] === 2){\n                fill(255, 0, 0);\n            }\n            if(blockPos[column][row] === 3){\n                fill(0, 255, 255);\n            }\n            if(blockPos[column][row] === 4){\n                fill(255, 255, 0);\n            }\n            if(blockPos[column][row] ===5){\n                fill(255, 124, 255);\n            }\n            if(blockPos[column][row] > 0){\n                rect(0+40*row,0+25*column,40,25);\n            }\n        }\n    }\n};\n\n//Draw Player Paddle//\nvar drawPlayer = function(){\n    fill(163, 163, 163);\n    rect(player.x - player.xSize/2,player.y,player.xSize,player.ySize);\n};\n\n//Draw Ball//\nvar drawBall = function(){\n    fill(239, 165, 250);\n    ellipse(ball.x,ball.y,ball.size,ball.size);\n};\n\n//Draw Score//\nvar drawScore = function(){\n    textSize(20);\n    fill(255, 255, 255);\n    text(\"Score: \" + player.score,10,380);\n    text(\"Lives: \" + player.lives,323,380);\n};\n\n//Draw PowerUps//\nvar drawPowerUps = function(){\n    if(powerUp.spawned === true){\n        image(powerUp.image,powerUp.x,powerUp.y,powerUp.size,powerUp.size);\n        powerUp.y += 10;\n    }\n};\n\n//Movement//\n//MovePlayer//\nvar left = false, right = false;\nvar keyPressed = function(){\n    if(keyCode === RIGHT){\n        right = true;\n    }\n    if(keyCode === LEFT){\n        left = true;\n    }\n    if(keyCode === 32){\n        ball.inPlay = true;\n    }\n};\nvar keyReleased = function(){\n    if(keyCode === RIGHT){\n        right = false;\n        player.xVelocity = 0;\n    }\n    if(keyCode === LEFT){\n        left = false;\n        player.xVelocity = 0;\n    }\n};\n\nvar updatePlayerX = function(){\n    if(right){\n        if(player.xVelocity < 0){\n            player.xVelocity = 0;\n        }\n        player.xVelocity = 10;\n    }\n    if(left){\n        if(player.xVelocity > 0){\n            player.xVelocity = 0;\n        }\n        player.xVelocity = -10;\n    }\n    player.x += player.xVelocity;\n    \n    //Check if player is out of bounds//\n    if(player.x + player.xSize/2 > 400){\n        player.x = 400 - player.xSize/2;\n    }\n    else if(player.x - player.xSize/2 < 0){\n        player.x = 0 + player.xSize/2;\n    }\n};\n\n//Move Ball//\nvar moveBall = function(){\n    //Check if the ball is in play.\n    if(ball.inPlay === false){\n        ball.x = player.x;\n        ball.y = 339;\n    }\n    else if(ball.inPlay === true){\n        ball.y -= ball.yVelocity;\n        ball.x += ball.xVelocity;\n    }\n    \n    //Check if ball is out of bounds//\n    if(ball.x > 400){\n        ball.xVelocity *= -1;\n    }\n    else if(ball.x < 0){\n        ball.xVelocity *= -1;\n    }\n    if(ball.y < 0){\n        ball.yVelocity *= -1;\n    }\n    else if(ball.y > 400){\n        player.lives --;\n        player.xSize = 75;\n        ball.inPlay = false;\n    }\n};\n\n//Collision//\n//Collision with Paddle//\nvar paddleBallCollision = function(){\n    var basicXorigin = player.x - player.xSize/2;\n    var basicXend = player.x + player.xSize/2;\n    if(ball.y > player.y && ball.y < player.y + player.ySize){\n        if(ball.x > basicXorigin && ball.x < basicXend){\n            ball.yVelocity *= -1;\n        }\n    }\n};\n\n//Ball with Blocks//\nvar ballBlockCollision = function(){\n    for(var column = 0; column < blockPos.length; column++){\n        for(var row = 0; row < blockPos[0].length; row++){\n            if(blockPos[column][row] > 0){\n                if(ball.x > 0+40*row && ball.x < 0 + 40*row + 40){\n                    if(ball.y > 0+25*column && ball.y < 0+25*column + 25){\n                        if(blockPos[column][row] === 3){\n                            powerUp.spawned = true;\n                            powerUp.x = 0+40*row + 12;\n                            powerUp.y = 0+25*column;\n                        }  \n                        ball.yVelocity *= -1;\n                        blockPos[column][row] = 0;\n                        player.score += 10;\n                        blockRemaining --;\n                    }\n                }\n            }\n        }\n    } \n};\n\n//Power ups with paddle//\nvar powerUpCollide = function(){\n    var basicXorigin = player.x - player.xSize/2;\n    var basicXend = player.x + player.xSize/2;\n    if(powerUp.y > player.y && powerUp.y < player.y + player.ySize){\n        if(powerUp.x > basicXorigin && powerUp.x < basicXend){\n            powerUp.y = 500;\n            if(powerUp.power === 1){\n                player.xSize = 125;\n            }\n        }\n    }\n};\n\n//Check for victory//\nvar checkVictory = function(){\n    if(blockRemaining <= 0){\n        won = true;\n    }\n};\n\n//SCORE SCREEN//\nvar scoreScreen = function(){\n    textSize(72);\n    fill(255, 255, 255);\n    text(\"YOU WON!\",12,200);\n    textSize(20);\n    text(\"Restart?\",320,390);\n};\n\n//Lose Screen//\nvar looseScreen = function(){\n    textSize(72);\n    fill(255, 255, 255);\n    text(\"YOU LOST!\",12,200);\n    textSize(20);\n    text(\"Restart?\",320,390);\n};\n\n//MainLoop//\nvar draw = function() {\n    \n    drawBackground();\n    drawScore();\n    drawBlocks();\n    drawPlayer();\n    drawBall();\n    drawPowerUps();\n        \n    updatePlayerX();\n    moveBall();\n        \n    paddleBallCollision();\n    ballBlockCollision();\n    powerUpCollide();\n        \n    checkVictory();\n        \n    if(won){\n        ball.inPlay = false;\n        drawBackground();\n        scoreScreen();\n    }\n    if(player.lives === 0){\n        drawBackground();\n        looseScreen();\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

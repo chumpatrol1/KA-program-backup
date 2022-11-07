@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Random Program 1</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Random Program 1</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Random Program 1 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:55Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:55Z\nVotes/Spinoffs: 1/1\nOriginally Created: 2012-10-14T01:14:29Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/random-program-1/1052219905\nRetrieved On: 07-Nov-2022 (17:07:16.221917)**/\
+";
+
+code = code + "\n//This program determines if you get Ice Cream (or not!).\n\n\n//Put in how you behaved today. Try changing this to false.\nvar behaved = true;\n\n//Put in if you want IC. Try changing this to false.\nvar want = true;\n\n\n\n\n\n\n\n\n\n\n//Positioning variables. I don\'t really want to touch these. \nvar x = 80;\nvar y = 173;\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nvar draw = function() {\n    background(255, 255, 255);\n    \n    if(behaved === true&&want === true){\n        //Make the Cone\n        strokeWeight(2);\n        fill(181, 117, 6);\n        triangle(x+225,y+95,x+25,y+95,x+125,y+250);\n        //Make the Ice Cream \n        //Grape\n        strokeWeight(2);\n        fill(255, 0, 255);\n        ellipse(x+125,y+42,150,150);\n        //Cherry\n        fill(255, 0, 0);\n        ellipse(x+125,y+-30,125,125);\n        //Cotton Candy\n        fill(0, 255, 255);\n        ellipse(x+125,y+-72,100,100);\n        //Mint\n        fill(0, 255, 0);\n        ellipse(x+125,y-102,75,75);\n        //Strawberry\n        fill(255, 124, 255);\n        ellipse(x+125,y-132,50,50);\n        \n        //Now, who doesn\'t want a cherry on top?\n        fill(255, 61, 93);\n        ellipse(x+103,y-149,25,25);\n        line(x+74,y-151,x+99,y-150);\n    }\n    if(behaved === true&&want === false){\n        strokeWeight(2);\n        fill(64, 22, 22);\n        rect(x+25,y+-50,200,200);\n        fill(0, 0, 0);\n        textSize(30);\n        text(\"Chocolate\",x+60,y+60);\n    }\n    if(behaved === false&&want === true){\n       noStroke();\n       fill(0, 255, 0);\n        //Head\n        ellipse(x+110,y+20,200,200);\n        //Sclera\n        fill(255, 255, 255);\n        ellipse(x+70,y+-30,50,50);\n        ellipse(x+145,y-30,50,50);\n        //Iris\n        fill(0, 255, 234);\n        ellipse(x+145,y-30,25,25);\n        ellipse(x+70,y-30,25,25);\n        //Pupils\n        fill(0, 0, 0);\n        ellipse(x+70,y-30,10,10);\n        ellipse(x+145,y-30,10,10);\n        //Nose\n        stroke(0, 0, 0);\n        strokeWeight(2);\n        fill(0, 255, 0);\n        ellipse(x+110,y+20,50,50);\n        noStroke();\n        ellipse(x+106,y+20,50,50);\n        //Mouth\n        fill(255, 0, 0);\n        ellipse(x+110,y+75,100,50);\n        fill(0, 255, 0);\n        ellipse(x+110,y+89,100,50);\n        //Text\n        fill(0, 0, 0);\n        textSize(40);\n        text(\"Yuck! Brussel Sprouts!\",x-80,y-100);\n    }\n    if(behaved===false&&want===false){\n        fill(255, 0, 255);\n        textSize(70);\n        text(\"GO TO BED!\",-5,250);\n\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

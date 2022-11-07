@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Clash of Clans Resources Per Hour</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clash of Clans Resources Per Hour</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Clash of Clans Resources Per Hour by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2016-04-04T21:38:03Z by kaid_976851263300560061760577\nLast Edited: 2016-04-04T21:38:03Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2016-04-18T14:03:33Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/clash-of-clans-resources-per-hour/4110498130\nRetrieved On: 07-Nov-2022 (17:07:47.090492)**/\
+";
+
+code = code + "\n/**\n * Note: You need to paste this in to see everything: ?width=700\n **/\nvar state=\"RPH\";\n//Gold Mines. Fill in the blanks until all data is correct. For example, if you have 2 level 1 mines and 1 level 7 mine, goldlvl1 should be set to \"2\" and goldlvl7 should be set to \"1\".\nvar goldlvl1=0;\nvar goldlvl2=0;\nvar goldlvl3=0;\nvar goldlvl4=0;\nvar goldlvl5=0;\nvar goldlvl6=1;\nvar goldlvl7=4;\nvar goldlvl8=0;\nvar goldlvl9=0;\nvar goldlvl10=0;\nvar goldlvl11=0;\nvar goldlvl12=0;\n//Attempting to reach a certain limit? This is a timer for how long it will take to reach the goal! Note: This assumes that you collect the gold frequently and is in no way accurate. Cgold: Your Current Gold. Ggold: your goal.\nvar cgold=0;\nvar ggold=0;\n//Elixir Collectors. Fill in the blanks until all data is correct. For example, if you have 2 level 1 collectors and 1 level 7 collector, collectorlvl1 should be set to \"2\" and collectorlvl7 should be set to \"1\".\nvar collectorlvl1=0;\nvar collectorlvl2=0;\nvar collectorlvl3=0;\nvar collectorlvl4=0;\nvar collectorlvl5=0;\nvar collectorlvl6=3;\nvar collectorlvl7=1;\nvar collectorlvl8=1;\nvar collectorlvl9=0;\nvar collectorlvl10=0;\nvar collectorlvl11=0;\nvar collectorlvl12=0;\n//Attempting to reach a certain limit? This is a timer for how long it will take to reach the goal! Note: This assumes that you collect the gold frequently and is in no way accurate. Celixir: Your Current Gold. Gelixir: your goal.\nvar celixir=0;\nvar gelixir=0;\n//Dark Drills. Fill in the blanks until all data is correct. For example, if you have 2 level 1 drills and 1 level 4 drill, drilllvl1 should be set to \"2\" and drilllvl4 should be set to \"1\".\nvar drilllvl1=0;\nvar drilllvl2=0;\nvar drilllvl3=0;\nvar drilllvl4=2;\nvar drilllvl5=0;\nvar drilllvl6=0;\n//Attempting to reach a certain limit? This is a timer for how long it will take to reach the goal! Note: This assumes that you collect the dark elixir frequently and is in no way accurate. Cdark: Your Current Dark Elixir. Gdark: your goal.\nvar cdark=0;\nvar gdark=0;\n//This calculates how many resources per hour you get. Don\'t touch!\nvar drawRPH=function(){\n    background(255);\n//This calculates how much Gold per hour you get. Don\'t touch! \n{var glowerthird=(goldlvl1*200)+(goldlvl2*400)+(goldlvl3*600)+(goldlvl4*800);\nvar gmiddlethird=(goldlvl5*1000)+(goldlvl6*1300)+(goldlvl7*1600)+(goldlvl8*1900);\nvar gtopthird=(goldlvl9*2200)+(goldlvl10*2500)+(goldlvl11*3000)+(goldlvl12*3500);\nvar gph=glowerthird+gmiddlethird+gtopthird;\nfill(255, 255, 0);\nellipse(25,25,25,25);\nfill(0);\ntextSize(25);\ntext(\"Gold Mines\",40,35);\ntextSize(15);\ntext(\"Level 1: \"+goldlvl1+\"*200\",0,50);\ntext(\"Level 2: \"+goldlvl2+\"*400\",0,65);\ntext(\"Level 3: \"+goldlvl3+\"*600\",0,80);\ntext(\"Level 4: \"+goldlvl4+\"*800\",0,95);\ntext(\"Level 5: \"+goldlvl5+\"*1000\",0,110);\ntext(\"Level 6: \"+goldlvl6+\"*1300\",0,125);\ntext(\"Level 7: \"+goldlvl7+\"*1600\",0,140);\ntext(\"Level 8: \"+goldlvl8+\"*1900\",0,155);\ntext(\"Level 9: \"+goldlvl9+\"*2200\",0,170);\ntext(\"Level 10: \"+goldlvl10+\"*2500\",0,185);\ntext(\"Level 11: \"+goldlvl11+\"*3000\",0,200);\ntext(\"Level 12: \"+goldlvl12+\"*3500\",0,215);\ntext(\"Gold/Hour: \"+gph,0,230);\nvar goldrequired=ggold-cgold;\nvar timeismoney=goldrequired/gph;\ntext(\"Current Gold: \"+cgold,0,245);\ntext(\"Goal Gold: \"+ggold,0,260);\ntext(\"Gold Left: \"+goldrequired,0,275);\ntext(\"Time Left: \"+(round(timeismoney*100)/100),0,290);\n}\n//This calculates how Much Elixir per hour you get. Don\'t touch!\n{var elowerthird=(collectorlvl1*200)+(collectorlvl2*400)+(collectorlvl3*600)+(collectorlvl4*800);\nvar emiddlethird=(collectorlvl5*1000)+(collectorlvl6*1300)+(collectorlvl7*1600)+(collectorlvl8*1900);\nvar etopthird=(collectorlvl9*2200)+(collectorlvl10*2500)+(collectorlvl11*3000)+(collectorlvl12*3500);\nvar eph=elowerthird+emiddlethird+etopthird;\nfill(200, 0, 255);\nellipse(200,25,25,25);\nfill(0);\ntextSize(25);\ntext(\"Elixir Pumps\",215,35);\ntextSize(15);\ntext(\"Level 1: \"+collectorlvl1+\"*200\",175,50);\ntext(\"Level 2: \"+collectorlvl2+\"*400\",175,65);\ntext(\"Level 3: \"+collectorlvl3+\"*600\",175,80);\ntext(\"Level 4: \"+collectorlvl4+\"*800\",175,95);\ntext(\"Level 5: \"+collectorlvl5+\"*1000\",175,110);\ntext(\"Level 6: \"+collectorlvl6+\"*1300\",175,125);\ntext(\"Level 7: \"+collectorlvl7+\"*1600\",175,140);\ntext(\"Level 8: \"+collectorlvl8+\"*1900\",175,155);\ntext(\"Level 9: \"+collectorlvl9+\"*2200\",175,170);\ntext(\"Level 10: \"+collectorlvl10+\"*2500\",175,185);\ntext(\"Level 11: \"+collectorlvl11+\"*3000\",175,200);\ntext(\"Level 12: \"+collectorlvl12+\"*3500\",175,215);\ntext(\"Elixir/Hour: \"+eph,175,230);\nvar elixirrequired=gelixir-celixir;\nvar timeiselixir=elixirrequired/eph;\ntext(\"Current Elixir: \"+celixir,175,245);\ntext(\"Goal Elixir: \"+gelixir,175,260);\ntext(\"Elixir Left: \"+elixirrequired,175,275);\ntext(\"Time Left: \"+(round(timeiselixir*100)/100),175,290);\n}\n//This calculates how much Dark Elixir per hour you get. Don\'t touch!\n{var dlowerthird=(drilllvl1*20)+(drilllvl2*30);\nvar dmiddlethird=(drilllvl3*45)+(drilllvl4*60);\nvar dtopthird=(drilllvl5*80)+(drilllvl6*100);\nvar dph=dlowerthird+dmiddlethird+dtopthird;\nfill(0, 0, 0);\nellipse(400,25,25,25);\nfill(0);\ntextSize(25);\ntext(\"Dark Drills\",415,35);\ntextSize(15);\ntext(\"Level 1: \"+drilllvl1+\"*20\",415,50);\ntext(\"Level 2: \"+collectorlvl2+\"*30\",415,65);\ntext(\"Level 3: \"+collectorlvl3+\"*45\",415,80);\ntext(\"Level 4: \"+collectorlvl4+\"*60\",415,95);\ntext(\"Level 5: \"+collectorlvl5+\"*80\",415,110);\ntext(\"Level 6: \"+collectorlvl6+\"*100\",415,125);\ntext(\"Dark/Hour: \"+dph,415,140);\nvar darkrequired=gdark-cdark;\nvar timeisdark=darkrequired/dph;\ntext(\"Current Dark: \"+cdark,415,155);\ntext(\"Goal Dark: \"+gdark,415,170);\ntext(\"Dark Left: \"+darkrequired,415,185);\ntext(\"Time Left: \"+(round(timeisdark*100)/100),415,200);\n}\nfill(0);\nrect(550,250,125,75);\nfill(255);\ntext(\"Troop Cost\\nCalculator\",575,285);\nif(mouseIsPressed&&mouseX>=550&&mouseX<=675&&mouseY>=250&&mouseY<=325){\nstate=\"Troop Calculator\";\n}\n};\n var draw = function() {\n     drawRPH();\n };";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

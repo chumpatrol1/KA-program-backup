@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Aurora Borealis</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Aurora Borealis</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Aurora Borealis by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:07:31Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:07:31Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-08-17T00:50:30Z from origin 863890980 with similarity of 1.0\nOriginal Link: https://www.khanacademy.org/computer-programming/aurora-borealis/973154640\nRetrieved On: 07-Nov-2022 (17:07:03.519335)**/\
+";
+
+code = code + "\nbackground(0, 0, 0);\n\n// starting values for the colors\nvar redValue = 10;\nvar greenValue = 10;\nvar blueValue = 10;\n\n// how much each color changes each time\nvar redChange = 1;\nvar greenChange = 2;\nvar blueChange = 3;\n\nvar draw = function() {\n    // draw a line from the center to the mouse\n    stroke(redValue, greenValue, blueValue);\n    line(200, 200, mouseX, mouseY);\n    \n    // if any of the color values go out of range,\n    // make them change in the other direction\n    if (redValue > 255) {\n        redChange = -1;\n    }\n    if (redValue < 0) {\n        redChange = 1;\n    }\n    if (greenValue > 255) {\n        greenChange = -2;\n    }\n    if (greenValue < 0) {\n        greenChange = 2;\n    }\n    if (blueValue > 255) {\n        blueChange = -3;\n    }\n    if (blueValue < 0) {\n        blueChange = 3;\n    }\n    \n    // change the colors\n    redValue = redValue + redChange;\n    greenValue = greenValue + greenChange;\n    blueValue = blueValue + blueChange;\n    \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

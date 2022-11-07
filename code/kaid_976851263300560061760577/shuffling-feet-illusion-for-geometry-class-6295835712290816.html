@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Shuffling Feet Illusion for Geometry Class</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shuffling Feet Illusion for Geometry Class</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Shuffling Feet Illusion for Geometry Class by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-09-01T21:39:33Z by kaid_976851263300560061760577\nLast Edited: 2015-09-01T21:39:33Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2015-09-02T00:01:30Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/shuffling-feet-illusion-for-geometry-class/6295835712290816\nRetrieved On: 07-Nov-2022 (17:07:55.806443)**/\
+";
+
+code = code + "\n//This program is for extra credit in Mrs. Martin\'s Geometry Honors class.\nvar x=-125;\nvar stage =\"Illusion\";\nvar cooldown=0;\nvar draw = function() {\n    background(255);\nif(stage === \"Illusion\"){for (var black = 0; black < 401; black+=10){\nfill(0);\nrect(black,0,5,400);\n}\nfill(255, 0, 0);\nellipse(200,50,25,25);\nfill(124,124,255);\ntextSize(30);\ntext(\"Stare at the red circle. Do you \\nsee the \'\'shuffling feet\'\'?\",0,80);\n}\nif(stage === \"Proof\"){\n    fill(124,124,255);\n    textSize(30);\n    text(\"The rectangles both move at \\nthe same speed. Your Eyes \\nare tricked to believe that \\nhigher contrast=higher speeds.\",0,30);\n    fill(0);\n    textSize(15);\n    text(\"By David Eijah de Siqueira Campos McLaughlin\",0,390);\n}\nfill(124, 0, 0);\nrect(x,225,100,50);\nfill(0,0,255);\nrect(x,300,100,50);\nx+=1;\nif(x>400){\n    x=-125;\n    if(stage===\"Illusion\"&&cooldown===0){\n        stage=\"Proof\";\n        cooldown=5;\n    }\n    if(stage===\"Proof\"&&cooldown===0){\n        stage=\"Illusion\";\n        cooldown=5;\n    }\n}\nif(cooldown>0){\n    cooldown-=1;\n}\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

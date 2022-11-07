@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Diver Supreme</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Diver Supreme</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Diver Supreme by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-06T13:00:39Z by kaid_976851263300560061760577\nLast Edited: 2012-12-06T13:00:39Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-12-28T12:59:46Z from origin 1182302211 with similarity of 0.889248181083266\nOriginal Link: https://www.khanacademy.org/computer-programming/diver-supreme/1202157013\nRetrieved On: 07-Nov-2022 (17:07:57.715760)**/\
+";
+
+code = code + "\nframeRate(20);\nvar SEA_LEVEL = 120;\nvar MAX_OXYGEN = 100;\nvar highScore = 234;\nvar monsterXA = -10;\nvar monsterYA = 200;\nvar makeDiver = function() {\n    return {\n        x: 125,\n        y: 200,\n        ySpeed: 0,\n        gravity: 1,\n        oxygen: MAX_OXYGEN,\n        score: 0\n    };\n};\n\nvar makeRock = function() {\n    return {\n        x: random(350),\n        y: -200,\n        ySpeed: 0,\n        gravity: 0.2 + random(0.4)\n    };\n};\n\nvar objects;\nvar diver = makeDiver();\nvar playing = false;\nvar diverImg = getImage(\"space/girl1\");\nvar rockImg = getImage(\"cute/Rock\");\n\nvar diverHitRock = function() {\n    for (var i = 0; i < objects.length; i += 1) {\n        if (objects[i] !== diver &&\n            dist(diver.x + 82, diver.y + 90,\n                 objects[i].x + 50, objects[i].y + 110)< 70) {\n            return true;\n        }\n    }\n};\n\nvar ySea = 0;\nvar drawSea = function() {\n    fill(40, 60, 65 + diver.oxygen);\n    rect(0, 190, 400, 400);\n    ySea = ySea + 4;\n    for (var i = 0; i <= 400; i += 100) {\n        ellipse(i, 200 + cos(ySea - i) * 10, 300, 80);\n    }\n};\n\n// start game on mouse click\nvar mousePressed = function() {\n    if (playing === false) {\n        playing = true;\n        objects = [];\n        diver = makeDiver();\n        objects.push(diver);\n        objects.push(makeRock());\n        objects.push(makeRock());\n        objects.push(makeRock());\n    }            \n};\n\nvar draw = function() {\n    noStroke();\n    background(80, 80, 95 + diver.oxygen);\n\n    fill(255, 255, 0);\n    ellipse(350, 210 - diver.oxygen, 70, 70); // draw sun\n\n    drawSea();\n    fill(255, 255, 255);\n    textAlign(LEFT, 0);\n    text(\"Score  \" + diver.score, 5, 15); // score\n    text(\"High    \" + highScore, 5, 30); // score\n    text(\"Diver Coordinates: X\"+round(diver.x)+\"  Y:\"+round(diver.y),5,60);\n    text(\"Monster Coordinates: X\"+monsterXA+\"  Y\"+monsterYA,5,90);\n\n    if (playing === false) { // title screen\n        noFill();\n        stroke(255, 255, 255);\n        textAlign(CENTER, 0);        \n        text(\"Move with the mouse\\nHold the mouse button to swim\\nSurface to breathe\\nClick to start\", 199, 110 + cos(ySea - 200) * 10);\n                \n        if (diver.oxygen < MAX_OXYGEN) {\n            diver.oxygen += 1;\n        }\n    } else { // run game\n        image(diverImg, diver.x, diver.y);\n        for (var i = 0; i < objects.length; i += 1) {\n            if (objects[i] !== diver) {\n                image(rockImg, objects[i].x, objects[i].y);                \n\n                // put sinking objects at top if off bottom\n                if(objects[i].y > 400) {\n                    objects[i] = makeRock();\n                }\n            }\n\n            // add gravity to speeds\n            if(objects[i].y > SEA_LEVEL) {\n                objects[i].ySpeed += objects[i].gravity / 3;    \n            } else {\n                objects[i].ySpeed += objects[i].gravity;            \n            }\n            \n            // move objects\n            var yPrev = objects[i].y;            \n            objects[i].y += objects[i].ySpeed;\n            \n            // slow objects when they hit water\n            if (yPrev + 90 < SEA_LEVEL &&\n                objects[i].y + 90 > SEA_LEVEL) {\n                objects[i].ySpeed /= 5;\n            }\n        }\n        \n        diver.score += 1; // constantly increases\n        diver.oxygen -= 0.2; // constantly used\n\n        // move diver left/right with mouse\n        diver.x += (mouseX - diver.x - 80) / 10;\n\n        // swim diver up if underwater and mouse button is down\n        if (diver.y > SEA_LEVEL && mouseIsPressed) {\n            diver.ySpeed -= 1;\n        }\n\n        // lose if leave bottom, suffocate or hit object\n        if (diver.y > 400 || diver.oxygen < 0 || \n            diverHitRock()||diver.x > monsterXA-40&&diver.y<monsterXA+10&&diver.y >monsterYA+40&&diver.y<monsterYA-10\n) {\n            playing = false;\n            if (diver.score > highScore) {\n                text(\"HIGH SCORE! COMMENT!\",0,200);\n            }\n        }\n\n        // replenish oxygen if above water\n        if (diver.y < SEA_LEVEL && diver.oxygen < MAX_OXYGEN) {\n            diver.oxygen += 1;\n        }\n    }\n    noStroke();\n    fill(255);\n    text(\"Oxygen:\"+round(diver.oxygen),25,45);\n    if(diver.oxygen>50){\n       fill(0, 255, 0);\n       rect(5,65,diver.oxygen,15);\n    }\n    fill(255, 0, 0);\n    rect(monsterXA,monsterYA,50,50);\n    triangle(monsterXA+20,monsterYA+25,monsterXA-30,monsterYA+10,monsterXA-30,monsterYA+40);\n    fill(0, 0, 0);\n    rect(monsterXA + 20,monsterYA+30,30,10);\n    fill(255);\n    ellipse(monsterXA + 35,monsterYA+10,30,15);\n    fill(0, 0, 0);\n    ellipse(monsterXA + 40,monsterYA+10,10,10);\n\n\nif(monsterXA === 800){\n    monsterXA = monsterXA - 850;\n}\nmonsterXA = monsterXA +5;\nfill(diver.oxygen);\nellipse(diver.x,diver.y,40,10);\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

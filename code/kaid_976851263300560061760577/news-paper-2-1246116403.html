@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>News Paper 2</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>News Paper 2</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**News Paper 2 by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-12-22T21:31:25Z by kaid_976851263300560061760577\nLast Edited: 2012-12-22T21:31:25Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2013-01-14T16:18:11Z from origin 1171828912 with similarity of 0.009535485628660946\nOriginal Link: https://www.khanacademy.org/computer-programming/news-paper-2/1246116403\nRetrieved On: 07-Nov-2022 (17:07:27.885703)**/\
+";
+
+code = code + "\n//Programs can always be improved. You add a shape. You tweak a variable. You can also add arrow key functions to make your squid swim. But what would make a program awesome??? That\'s what we would find out. \n\n//As we delve deeper into the subject, we find that programs with buttons tend to have more votes than the ones without. So, the answer to the question above is buttons. Here you would expect to end the article, but we haven\'t finished our adventure yet.\n\n//Buttons are a sign of great skill. If you know how mouseX and mouseY work, you should be off and running. But buttons are tricky to master. You must be sure where they start and end. Even I, who now use lots of buttons, make a mistake here or there. Some people just give up, but the legendary people who made your games would not give up. \n\n//How are buttons good for games? They make the \"Play\",\"Instructions\",\"Options\" and \"Credits\" buttons. No game is complete without them! But it doesn\'t only go for the splash page (The starting screen on the game). It actually gets into the game play sometimes (As in the polular Scruffs finding game). \n\n//Buttons are also good if you are making a site with javascript. Don\'t believe it? Try the buttons on the canvas!\n\n//David Elijah de Siqueira Campos McLaughlin\n\n//Buttons courtesy of Michael\n\n//variables\nvar menu = true;\nvar credits = false;\nvar instructions = false;\nvar play = false;\nvar space = getImage(\"space/background\");\n//draw function\nvar draw = function() {\n    background(0, 0, 255);\n    //Main menu\n    if(menu === true){\n        //rectangle to go around the buttons\n        fill(255, 100, 0);\n        rect(100, 100, 200, 200, 20);\n        //buttons\n        fill(255, 255, 255, 160);\n        rect(150, 145, 100, 20, 10);\n        rect(150, 190, 100, 20, 10);\n        rect(150, 235, 100, 20, 10);\n        //button text\n        fill(0, 0, 0);\n        textSize(15);\n        text(\"Play\", 185, 160);\n        text(\"Instructions\", 164, 205);\n        text(\"Credits\", 175, 250);\n        //check to see if the mouse is in the same place as the button\n        if(mouseX > 150 && mouseX < 250 && mouseY > 145 && mouseY < 165){\n            //check to see if the mouse is pressed\n            if(!mouseIsPressed){\n                // if mouse is not pressed light up the button\n                fill(255, 255, 255);\n                rect(150, 145, 100, 20, 10);\n                fill(0, 0, 0);\n                text(\"Play\", 185, 160);\n            }\n            if(mouseIsPressed){\n                //if mouse is pressed go to play\n                menu = false;\n                play = true;\n            }\n        }\n        //check to see if the mouse is in the same place as the button\n        if(mouseX > 150 && mouseX < 250 && mouseY > 190 &&  mouseY < 210){\n            //check to see if the mouse is pressed\n            if(!mouseIsPressed){\n                //if the mouse is not pressed light up button\n                fill(255, 255, 255);\n                rect(150, 190, 100, 20, 10);\n                fill(0, 0, 0);\n                text(\"Instructions\", 164, 205);\n            }\n            if(mouseIsPressed){\n                //if the mouse is pressed go to instructions\n                menu = false;\n                instructions = true;\n            }\n        }\n        //check to see if the mouse is in the same place as the button\n        if(mouseX > 150 && mouseX < 250 && mouseY > 235 && mouseY < 255){\n            //check to see if the mouse is pressed\n            if(!mouseIsPressed){\n                //if the mouse is not pressed light up button\n                fill(255, 255, 255);\n                rect(150, 235, 100, 20, 10);\n                fill(0, 0, 0);\n                text(\"Credits\", 175, 250);\n            }\n            if(mouseIsPressed){\n                //if mouse is pressed go to credits\n                menu = false;\n                credits = true;\n            }\n        }\n    }\n    //Credits\n    if(credits === true){\n        //background\n        image(space, 0, 0, 400, 400);\n        //text\n        fill(255, 0, 0);\n        text(\"1)\\n2)\\n3)\\n4)\", 150, 150);\n        //make button\n        fill(255, 255, 255, 160);\n        rect(150, 300, 100, 20, 10);\n        //make button text\n        fill(0, 0, 0);\n        textSize(15);\n        text(\"Back\", 184, 315);\n        //if the mouse is in the same place as the button\n        if(mouseX > 150 && mouseX < 250 && mouseY > 300 && mouseY < 320){\n            //check to see if the mouse is pressed\n            if(!mouseIsPressed){\n                //if mouse is not pressed then light up button\n                fill(255, 255, 255);\n                rect(150, 300, 100, 20, 10);\n                fill(0, 0, 0);\n                text(\"Back\", 184, 315);\n            }\n            if(mouseIsPressed){\n                //if mouse is pressed go to menu\n                credits = false;\n                menu = true;\n            }\n        }\n    }\n    //instructions\n    if(instructions === true){\n        //background\n        image(space, 0, 0, 400, 400);\n        //text\n        textSize(20);\n        fill(255, 0, 0);\n        text(\"Instructions\", 0, 15);\n        textSize(15);\n        text(\"1)\\n2)\\n3)\\n4)\\n5)\\n6)\", 20, 40);\n       //make button\n        fill(255, 255, 255, 160);\n        rect(150, 300, 100, 20, 10);\n        //make button text\n        fill(0, 0, 0);\n        textSize(15);\n        text(\"Back\", 184, 315);\n        //if the mouse is in the same place as the button\n        if(mouseX > 150 && mouseX < 250 && mouseY > 300 && mouseY < 320){\n            //check to see if the mouse is pressed\n            if(!mouseIsPressed){\n                //if mouse is not pressed then light up button\n                fill(255, 255, 255);\n                rect(150, 300, 100, 20, 10);\n                fill(0, 0, 0);\n                text(\"Back\", 184, 315);\n            }\n            if(mouseIsPressed){\n                //if mouse is pressed go to menu\n                instructions = false;\n                menu = true;\n            }\n        }\n    }\n    //play\n    if(play === true){\n        //background\n        background(0, 255, 255);\n        //make button\n        fill(255, 255, 255, 160);\n        rect(150, 300, 100, 20, 10);\n        //make button text\n        fill(0, 0, 0);\n        textSize(15);\n        text(\"Back\", 184, 315);\n        //if the mouse is in the same place as the button\n        if(mouseX > 150 && mouseX < 250 && mouseY > 300 && mouseY < 320){\n            //check to see if the mouse is pressed\n            if(!mouseIsPressed){\n                //if mouse is not pressed then light up button\n                fill(255, 255, 255);\n                rect(150, 300, 100, 20, 10);\n                fill(0, 0, 0);\n                text(\"Back\", 184, 315);\n            }\n            if(mouseIsPressed){\n                //if mouse is pressed go to menu\n                play = false;\n                menu = true;\n            }\n        }\n    }\n};\n       \n             ";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

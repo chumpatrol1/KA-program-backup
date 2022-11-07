@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>270!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>270!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**270! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2014-01-14T12:44:05Z by kaid_976851263300560061760577\nLast Edited: 2014-01-14T12:44:05Z\nVotes/Spinoffs: 2/1\nOriginally Created: 2014-01-14T12:44:06Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/270/6688833986887680\nRetrieved On: 07-Nov-2022 (17:07:00.455856)**/\
+";
+
+code = code + "\n//Click the screen to start, and use the arrow keys to move\n//Your score is in the top right corner\n\n/**RUN FROM THE LAVA*/\n\nvar keys=[];\nvar keyPressed=function(){\n    keys[keyCode]=true;\n};\nvar keyReleased=function(){\n    keys[keyCode]=false;\n};\n\nvar water=[];\nvar WATER_SPEED = 12.0;\n\nframeRate(20);\n\nvar randomNum;\nvar xPos=random(0,3);\nvar yPos=random(0,3);\nvar rxPos=floor(xPos)*200;\nvar ryPos=floor(yPos)*200;\n\nvar spritex=200;\nvar spritey=200;\nvar score=0;\n\nvar youLost=false;\n\n\nvar drawWater = function(b){\n    fill(255, 200, 20);\n    noStroke();\n    rect(rxPos,ryPos,5,5);\n\n    for (var i = 0; i < b.length; i++){ \n        rect(b[i].x, b[i].y, 20, 20);\n        if(spritex>b[i].x-20 && spritey>b[i].y-20 && spritex<b[i].x+20 && spritey<b[i].y+20){\n            youLost=true;\n        }\n    }\n};\n\n// Begin Game Loop\ndraw = function () {\n    if(focused && youLost===false){\n        background(55, 200, 50);\n\n        randomNum=floor(random(1,5));\n        \n        if(rxPos<-20){\n            rxPos=400;\n        }else if(ryPos<-20){\n            ryPos=400;\n        }else if(rxPos>400){\n            rxPos=-20;\n        }else if(ryPos>400){\n            ryPos=-20;\n        }\n    \n    \n        if(randomNum===1){\n            rxPos-=20;\n        }else if(randomNum===2){\n            ryPos-=20;\n        }else if(randomNum===3){\n            rxPos+=20;\n        }else if(randomNum===4){\n            ryPos+=20;\n        }\n        \n        if(keys[UP]){\n            spritey-=5;\n        }\n        if(keys[LEFT]){\n            spritex-=5;\n        }\n        if(keys[RIGHT]){\n            spritex+=5;\n        }\n        if(keys[DOWN]){\n            spritey+=5;\n        }\n        \n        if(spritex<-20){\n            spritex=400;\n        }else if(spritey<-20){\n            spritey=400;\n        }else if(spritex>400){\n            spritex=-20;\n        }else if(spritey>400){\n            spritey=-20;\n        }\n        score+=1/10;\n    }\n    background(85, 80, 80);\n    \n    water.push({\n        x:rxPos,\n        y:ryPos\n    });\n    \n    drawWater(water);\n    \n    var correctedScore = floor(score);\n    \n    fill(5, 250, 250, 200);\n    rect(spritex,spritey,20,20);\n    \n    fill(255, 0, 0);\n    textSize(30);\n    text(\"Score: \"+correctedScore,250,30);\n    \n    if(youLost===true){\n        fill(255, 0, 0);\n        textSize(70);\n        text(\"You Lost\",60,200);\n    }\n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

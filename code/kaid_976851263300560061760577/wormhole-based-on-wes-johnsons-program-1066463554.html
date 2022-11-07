@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Wormhole (Based on Wes Johnson's Program)</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wormhole (Based on Wes Johnson's Program)</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Wormhole (Based on Wes Johnson's Program) by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2012-11-12T19:10:19Z by kaid_976851263300560061760577\nLast Edited: 2012-11-12T19:10:19Z\nVotes/Spinoffs: 1/0\nOriginally Created: 2012-10-02T16:36:17Z from origin 986917427 with similarity of 0.9933386624034106\nOriginal Link: https://www.khanacademy.org/computer-programming/wormhole-based-on-wes-johnsons-program/1066463554\nRetrieved On: 07-Nov-2022 (17:07:19.799507)**/\
+";
+
+code = code + "\n/* Just messing around with a some movement, colors\n * and points and came up with this.\n */\n \nvar LINECOUNT = 40;\nvar POINTCOUNT = 3;\nvar MAXVELOCITY = 4;\n\n// Our point \"class\"\nvar pnt = function(x, y, vx, vy){\n    this.x = x;\n    this.y = y;\n    this.vx = vx;\n    this.vy = vy;\n    this.update = function(){\n        this.x += this.vx;\n        this.y += this.vy;\n        \n        if(this.x > 400 || this.x < 0){\n            this.vx *= -1;\n        }\n        \n        if(this.y > 400 || this.y < 0){\n            this.vy *= -1;\n        }\n    };\n};\n\n// Default our line color\nvar r = 0;\nvar g = 0;\nvar b = 0;\n\n// Create our pnts array\nvar pnts = [];\n\n// Create our points and assign random positions and velocities\nfor(var i = 0; i < POINTCOUNT; i++){\n    var x = round(random(0, 400));\n    var y = round(random(0, 400));\n    var vx = round(random(1, MAXVELOCITY));\n    var vy = round(random(1, MAXVELOCITY));\n    var p = new pnt(x, y, vx, vy);\n    pnts.push(p);\n}\n\n// Begin program\nfill(0, 0, 0, 255 / LINECOUNT);\nbackground(0, 0, 0);\n\n// Update the point positions and velocities\nvar updatePoints = function() {\n    if(mouseIsPressed){\n        return;\n    }\n    \n    for(var i = 0; i < POINTCOUNT; i++){\n        pnts[i].update();\n    }\n};\n\n// Update the line color\nvar updateColor = function(){\n    r = abs((frameCount * 1 % 510) - 255);\n    g = abs((frameCount * 2 % 510) - 255);\n    b = abs((frameCount * 3 % 510) - 255);     \n    \n    stroke(r % 255, g % 255, b % 255);    \n};\n\n// Draw the points with connecting lines\nvar drawPoints = function(){\n    for(var i = 0; i < POINTCOUNT; i++){\n        var pnt1 = pnts[i];\n        var pnt2 = pnts[(i + 1) % POINTCOUNT];\n        \n        line(pnt1.x, pnt1.y, pnt2.x, pnt2.y);\n    }     \n};\n\n// The main draw loop\nvar draw = function() {\n    rect(0, 0, 400, 400);\n    \n    updatePoints();\n    updateColor();\n    drawPoints();     \n};";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        

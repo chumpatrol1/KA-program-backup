@@ -1,0 +1,60 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Avatar Eggs!</title>
+    <link rel="stylesheet" href="../../build/css/live-editor.core_deps.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.audio.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.tooltips.css"/>
+    <link rel="stylesheet" href="../../build/css/live-editor.ui.css"/>
+<style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+        #sample-live-editor {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Avatar Eggs!</h1>
+    <div id="sample-live-editor"></div>
+    <script src="../../build/js/live-editor.core_deps.js"></script>
+    <script src="../../build/js/live-editor.editor_ace_deps.js"></script>
+    <script src="../../build/js/live-editor.audio.js"></script>
+    <script src="../../build/js/live-editor.shared.js"></script>
+    <script src="../../build/js/live-editor.tooltips.js"></script>
+    <script src="../../build/js/live-editor.ui.js"></script>
+    <script src="../../build/js/live-editor.editor_ace.js"></script>
+    <script>
+    var outputUrl = "../output.html";
+var code = "/**Avatar Eggs! by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2013-09-20T17:15:31Z by kaid_976851263300560061760577\nLast Edited: 2013-09-20T17:15:31Z\nVotes/Spinoffs: 3/0\nOriginally Created: 2013-09-20T19:39:19Z from origin 836683206 with similarity of 0.012177650429799427\nOriginal Link: https://www.khanacademy.org/computer-programming/avatar-eggs/4601404639412224\nRetrieved On: 07-Nov-2022 (17:06:50.819197)**/\
+";
+
+code = code + "\n///Vote Check!\n//3 Votes: The \"Eggs\" (Leaves) will be clickable, revealing an avatar (Some have to be random!)\n//5 Votes: 3 More Eggs, will be clickable.\n//7 Votes: Pressing Egg will open a menu, and an the name of the avatar will appear along with a button that says \"Close\".\n//10 Votes: Hopper, Oh Noes and Winston will have special eggs at the bottom.\n\n// Load original image\nvar originalImage = getImage(\"avatars/leaf-red\");\nvar originalImage2 = getImage(\"avatars/leaf-orange\");\nvar originalImage3 = getImage(\"avatars/leaf-yellow\");\nvar originalImage4 = getImage(\"avatars/leaf-green\");\nvar originalImage5 = getImage(\"avatars/leaf-blue\");\n// Create graphics object that will be our new image\nvar imageGfx = createGraphics(originalImage.width, originalImage.height, JAVA2D);\nvar imageGfx2 = createGraphics(originalImage2.width, originalImage2.height, JAVA2D);\nvar imageGfx3 = createGraphics(originalImage3.width, originalImage3.height, JAVA2D);\nvar imageGfx4 = createGraphics(originalImage4.width,   originalImage4.height, JAVA2D);\nvar imageGfx5 = createGraphics(originalImage5.width,   originalImage5.height, JAVA2D);\n// Begin drawing to the graphics object\nimageGfx.beginDraw();\n\n// Make the background transparent\nimageGfx.background(255, 0);\nimageGfx.fill(255, 0);\n\n// Draw the image to the graphics\nimageGfx.image(originalImage, 0, 0);\nimageGfx.endDraw();\n\n//Image 2\nimageGfx2.beginDraw();\nimageGfx2.background(255, 0);\nimageGfx2.fill(255, 0);\nimageGfx2.image(originalImage2,0,0);\nimageGfx2.endDraw();\n\n//Image 3\nimageGfx3.beginDraw();\n\n// Make the background transparent\nimageGfx3.background(255, 0);\nimageGfx3.fill(255, 0);\n\n// Draw the image to the graphics\nimageGfx3.image(originalImage3, 0, 0);\nimageGfx3.endDraw();\n\n//Image 4\nimageGfx4.beginDraw();\n\n//Make the background transparent\nimageGfx4.background(255, 0);\nimageGfx4.fill(255, 0);\n\n// Draw the image to the graphics\nimageGfx4.image(originalImage4, 0, 0);\nimageGfx4.endDraw();\n\n//Image 5\nimageGfx5.beginDraw();\n\n//Make the background transparent\nimageGfx5.background(255, 0);\nimageGfx5.fill(255, 0);\n\n// Draw the image to the graphics\nimageGfx5.image(originalImage5, 0, 0);\nimageGfx5.endDraw();\n\nvar draw = function(){\nbackground(255);\n\n//Egg 1\nvar rgColor = 255;\t\n\n\t// Apply the tint (right now we make the img look more blue)\n\t// tint takes (red, green, blue, alpha) values, all [0, 255]\ntint(rgColor, 0, 0, 255);\n\n\t// Draw the image the way you normally would\n\timage(imageGfx, 0, 0);\ntint(255,124,0,255);\nimage(imageGfx2,100,0);\nnoTint();\nimage(imageGfx3,200,0);\ntint(0,255,0,125);\nimage(imageGfx4,300,0);\ntint(0,200,255,100);\nimage(imageGfx5,0,100);\n};\n\n";
+window.liveEditor = new LiveEditor({
+                el: $("#sample-live-editor"),
+                code: code,
+                width: 400,
+                height: 400,
+                editorHeight: "80%",
+                autoFocus: true,
+                workersDir: "../../build/workers/",
+                externalsDir: "../../build/external/",
+                imagesDir: "../../build/images/",
+                soundsDir: "../../sounds/",
+                execFile: outputUrl,
+                jshintFile: "../../build/external/jshint/jshint.js",
+                newErrorExperience: true,
+            });
+            liveEditor.editor.on("change", function() {
+                window.localStorage["test-code"] = liveEditor.editor.text();
+            });
+            ScratchpadAutosuggest.init(liveEditor.editor.editor);
+            </script>
+        </body>
+        </html>
+        
