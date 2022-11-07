@@ -90,7 +90,7 @@ def getCodeFromProgram(id):
     #revision = data["revision"]
     return new_data
 
-def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin"):
+def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin", kaid = "kaid_976851263300560061760577"):
 
     code = getCodeFromProgram(id)
     #print(code['spinoffCount'])
@@ -103,11 +103,13 @@ def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin"):
         f"Originally Created: {code['date']} from origin {code['originScratchpadId']} with similarity of {code['originSimilarity']}\\n" +\
         f"Original Link: {code['url']}\\n" +\
         f"Retrieved On: {code['retrievalDate']}**/\\\n"
-    if(id == "1047067193"):
-        print(repr(script))
-    real_code = code['revision']['code'].replace("\n", "\\n")
+    #if(id == "2508346688"):
+    #    print(repr(code['revision']['code']))
+    real_code = repr(code['revision']['code']).replace("\n", "\\n")[1:-1]
+    real_code = real_code.replace('\"', '\\"')
+
     if code:
-        with open(os.path.join('code', '%s-%s.html' % (code['slug'], id)), 'w', encoding = 'utf-8') as f:
+        with open(os.path.join('code', '%s' % kaid, '%s-%s.html' % (code['slug'], id)), 'w', encoding = 'utf-8') as f:
             f.write("<html>\n\
 <head>\n\
     <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n\
@@ -171,14 +173,14 @@ def getExistingPrograms(filepath):
     return os.listdir(filepath)
 
 
-def writePrograms(list):
+def writePrograms(list, kaid):
     """ Find programs within two bounds in the program list and write its code. """
 
     count = 0
 
     for program in list:
         #print(program['id'])
-        writeCode(program['id'], author = program['authorNickname'])
+        writeCode(program['id'], author = program['authorNickname'], kaid = kaid)
         count += 1
 
     print(f"{count} programs added")
@@ -194,7 +196,7 @@ for kaid in kaids:
     program_data = getProgramList(1000, 'E.McLaughlin', kaid)
     #print(program_data[0])
     writeProgramList(program_data, kaid+'.txt', data_keys)
-    writePrograms(program_data)
+    writePrograms(program_data, kaid)
     
 for username in usernames:
     program_data = getProgramList(1000, username)
