@@ -142,7 +142,7 @@ def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin", kaid = 
     <script src=\"../../build/js/live-editor.ui.js\"></script>\n\
     <script src=\"../../build/js/live-editor.editor_ace.js\"></script>\n\
     <script>\n\
-    var outputUrl = \"output.html\";\n")
+    var outputUrl = \"../output.html\";\n")
             f.write(f"var code = \"{script}\";\n\n")
             f.write(f"code = code + \"\\n{real_code}\";\n")
             f.write("window.liveEditor = new LiveEditor({\n\
