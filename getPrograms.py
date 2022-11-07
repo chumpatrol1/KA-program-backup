@@ -95,7 +95,7 @@ def writeCode(id, author = "David Elijah de Siqueira Campos McLaughlin", kaid = 
     code = getCodeFromProgram(id)
     #print(code['spinoffCount'])
     #print(code)
-    script = f"/**{code['title']} by {author}\\n" +\
+    script = f"/**{str(code['title'])} by {str(author)}\\n" +\
         f"Original size({code['width']}, {code['height']});\\n" +\
         f"Originally Created on {code['created']} by {code['kaid']}\\n" +\
         f"Last Edited: {code['created']}\\n" +\
