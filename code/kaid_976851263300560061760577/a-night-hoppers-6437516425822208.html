@@ -34,7 +34,2467 @@
 var code = "/**A Night @ Hoppers by David Elijah de Siqueira Campos McLaughlin\nOriginal size(400, 400);\nOriginally Created on 2015-02-01T18:45:27Z by kaid_976851263300560061760577\nLast Edited: 2015-02-01T18:45:27Z\nVotes/Spinoffs: 16/10\nOriginally Created: 2018-10-12T13:39:07Z from origin None with similarity of 0.0\nOriginal Link: https://www.khanacademy.org/computer-programming/a-night-hoppers/6437516425822208\nRetrieved On: 07-Nov-2022 (17:06:36.416360)**/\
 ";
 
-code = code + "\n//Before playing, read this!!!!   V V V\n/**You are the security guard. Hopper, Winston, Pi and Squid (among others) will try to get into your office. You need to keep them out by watching the security cameras and closing the doors when they are outside. You can check outside by turning on the lights. Using stuff takes up power so you must try and conserve it. Click on the camera screen to change the camera. Looking at the camera will stop (some) characters from moving while you observe them.**/\n/**\n * Hopper comes to the left door, and squid goes to the right. \n * Squid will attack faster so you must close that door quicker. \n * Winston is sneaky and can only be seen if you set your camera to HDMI 5 when he is outside of the door. If he is outside, close the left door! Winston Particles can be seen in HDMI 2.\n * Purple Pi is inside the music box on HDMI 3, where you can remotely wind it up. Once he is away from HDMI 3 he can\'t be stopped by the music box! He will arrive in HDMI 6, where you you need to close the right door to reset him! He will take away 10% of your power and temporarily disable recharging, but the music box won\'t start winding down again until the building begins recharging.\n * Spunky Sam goes through all odd cameras and will slow down music box charging when in HDMI 3. He will enter through the left door and attack quickly, like Squid. He can be seen with the light.\n * Fuzzy Starts in HDMI 2 and goes through all even cameras and will drain your power in HDMI 4. He will enter through the right door and can be seen with the light.\n * Seeds live in the vents and will cause hallucinations, each one unique to a character, but will not kill you (exception: Red Seed draining the circulator)\n * Green Leafer is in the vents, accesible by pressing \"alt\". Return to the front by pressing \"shift\". He will attack from the left vent.\n * Yellow seed will attack from vent 3, use 5% of your power to zap him out.\n * Blue seed will attack from the right vent\n * Red seed will travel to the air circulator and speed up the failure timer. If the air circulator fails, no fresh air will enter the room and will cause the player\'s death. At 10% air or lower, your vision will start to black out. If your air container is filled when you run out of air, the screen will show a notification and will restart the air circulator to half.\n *Try to survive as long as you can!\n**/\n/**There are power ups you can choose from! They serve different functions, but they all have a cooldown.\n * Left and Right Repellent: Cooldown (CD): 60 Seconds. Effect (E): Protects player from characters that move through their respective door to attack. Example: Left Repellent will protect you from Hopper, but Squid can still attack you.\n * Power Up: CD: 90 Seconds. E: Gives player 50% power (no overcharge) and fixes Pi\'s No-Recharge debuff.\n * Winston Detector: CD 45 Seconds. E: Stops Winston for 10 seconds and reveals his location (via Winston Particles). Will not stop his attack.\n * Winder: CD 120 Seconds: E: Returns Pi back to his box, winds up the box and keeps it wound for 30 seconds.\n * Attractor: CD: 120 Seconds E: Returns Hopper, Squid and Sam to their starting positions and keeps them there for 15 seconds.\n * Diverger: CD: 75 Seconds E: Returns Winston and Fuzzy to their starting positions and keeps Fuzzy there for 20 seconds. Winston is not restrained.\n * Bonus: CD: 30 Seconds E: Gives Player 20 Points. Does nothing else but that!\n * Mask: CD 150 Seconds E: Player is invulnerable to one attack. Cannot be manually activated.\n * Trap: CD 120 Seconds E: Sets traps on HDMI 5 and HDMI 6 (Blind spots where you can be attacked). Makes noise when an enemy has arrived and goes away after 30 seconds. Different noises for left and right doors.\n**/\n\n\n/**Who killed you first? Post in the tips and thanks. If you want more or like it, vote up!**/\n\n//This is FAR from done!\n//Add Enemy who advances when you run out of power.\n//Add Power Bars to show Usage\n\n//3D tiles by Peter Collingridge was used! All other code is by me!\n\n//For slower computers, set this to true.\nvar lowRAM=false;\n\nvar state=\"Splash\";\nvar htState=\"Home\";\nvar aicPage=1;\n//Power Up Variables\n{var powerUp=\"None\";\nvar coolDown=0;\nvar lrTime=0;\nvar rrTime=0;\nvar winstonTime=0;\nvar trapTime=0;\nvar fuzzyWait=0;}\n//Other Things\n{var howLongMin=minute();\nvar howLongHour=hour();\nvar score=0;}\n//Enemy Variables\n{var ai1=0;\nvar ai2=0;\nvar ai3=0;\nvar ai4=0;\nvar ai5=0;\nvar ai6=0;\nvar ai7=0;\nvar ai8=0;\nvar ai9=0;\nvar ai10=0;\nvar jump=1;\nvar outsideTimer=0;\nvar outsideTimer2=0;\nvar crazyTimerA=0;\nvar crazyTypeA=0;\nvar crazyTimerB=0;\nvar crazyTimerC=0;\nvar moveTimer=10;\nvar move1=3;\nvar move2=3;\nvar move3=3;\nvar move4=3;\nvar move5=3;\nvar move6=3;\nvar move7=3;\nvar move8=3;\nvar move9=3;\nvar move10=3;\nvar where1=1;\nvar where2=1;\nvar where3=1;\nvar where4=1;\nvar where5=1;\nvar where6=1;\nvar where7=1;\nvar where8=1;\nvar where9=1;\nvar where10=1;\nvar where4move=90;\nvar where4cd=0;\n}\n//Other Variables\n{var vent1=0;\nvar vent2=0;\nvar vent1Open=true;\nvar vent2Open=true;\nvar air = 10000;\nvar reserve = 0;\nvar aires = false;\nvar circulator=3000;\nvar circulatorDrain=1;\nvar camType=1;\nvar buttonspeed=30;\nvar aispeed=0;\nvar powerRegen=0;\nvar door1Open=true;\nvar door2Open=true;\nvar power=10000;\nvar musicBox=500;\nvar musicBoxs=0;\nvar HDMI=1;\nvar vent=1;\nvar light1=false;\nvar light2=false;\nvar perspect=500;\nvar horizon=70;\nvar tileWidth=100;\nvar nodes=[];\nvar door1=0;\nvar door2=0;\nvar meX=0;\nvar meY=40;\nvar cameraOpen=height;\nvar cameraUp=true;\nvar blink=0;\nvar barPosition=10;\nvar scrollX=0;\nframeRate(60);\n}\nvar mouseClicked=function(){\nif(cameraUp===true&&cameraOpen===0&&mouseY<height-115){\n    if(camType===1){\n    HDMI+=1;\nplaySound(getSound(\"retro/thruster-short\"));\n    }\n    if(camType===2){\n    vent+=1;\n    playSound(getSound(\"retro/thruster-short\"));\n    }\n}\nif(HDMI===7){\nHDMI=1;\n}\nif(vent===8){\n    vent=1;\n}\nif(mouseY>height-50&&cameraUp===false){\ncameraUp=true;\n}else if(mouseY>height-50&&cameraUp===true){\ncameraUp=false;\n}\nif(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&door1Open===true&&camType===1){\ndoor1Open=false;\n}else if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&door1Open===false&&camType===1){\ndoor1Open=true;\n}else\nif(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&door2Open===true&&camType===1){\ndoor2Open=false;\n}else if(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&door2Open===false&&camType===1){\ndoor2Open=true;\n} else if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&vent1Open===true&&camType===2){\nvent1Open=false;\n}else if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&vent1Open===false&&camType===2){\nvent1Open=true;\n}else\nif(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&vent2Open===true&&camType===2){\nvent2Open=false;\n}else if(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&vent2Open===false&&camType===2){\nvent2Open=true;\n}\n};\nnoStroke();\ntextSize(20);\nvar draw=function(){\n    if(state===\"Splash\"){\n    background(0, 0, 0);\n    fill(255);\n    textSize(30);\n    text(\"A Night @ Hoppers\",0,30);\n    image(getImage(\"creatures/Hopper-Cool\"),200,200,175,150);\n    fill(124);\n    rect(50,100,150,50);\n    fill(255);\n    text(\"Play\",100,130);\n    if(mouseX>=50&&mouseX<=200&&mouseY>=100&&mouseY<=150){\n        if(!mouseIsPressed){\n        fill(200);\n    rect(50,100,150,50);\n    fill(255);\n    text(\"Play\",100,130);    \n        }\n        if(mouseIsPressed){\n            state=\"P-Ups\";\n        }\n    }\n    fill(124);\n    rect(50,175,150,50);\n    fill(255);\n    text(\"How To\",75,210);\n    if(mouseX>=50&&mouseX<=200&&mouseY>=175&&mouseY<=225){\n        if(!mouseIsPressed){\n        fill(200);\n    rect(50,175,150,50);\n    fill(255);\n    text(\"How To\",75,210); \n        }\n        if(mouseIsPressed){\n            state=\"How To\";\n            buttonspeed=30;\n        }\n        }\n    }\n    if(state===\"How To\"){\n    if(htState===\"Home\"){\n    background(0);\n    fill(255);\n    textSize(50);\n    text(\"How To Play/Info\",0,50);\n    fill(124);\n    rect(125,325,150,50);\n    fill(255);\n    textSize(50);\n    text(\"Home\",135,370);\n    if(mouseX>=125&&mouseX<=275&&mouseY>=325&&mouseY<=375&&buttonspeed===0){\n        if(mouseIsPressed){\n        state=\"Splash\";\n        htState=\"Home\";\n        }\n        if(!mouseIsPressed){\n           fill(200);\n    rect(125,325,150,50);\n    fill(255);\n    textSize(50);\n    text(\"Home\",135,370); \n        }\n    }\n    fill(124);\n    rect(124,75,150,50);\n    fill(255);\n    textSize(25);\n    text(\"Basic Guide\",130,110);\n    if(mouseX>=125&&mouseX<=275&&mouseY>=75&&mouseY<=125&&buttonspeed===0){\n        if(mouseIsPressed){\n            htState=\"Basic Guide\";\n            buttonspeed=30;\n        } else {\n            fill(200);\n    rect(124,75,150,50);\n    fill(255);\n    textSize(25);\n    text(\"Basic Guide\",130,110);\n        }\n        }\n    fill(124);\n    rect(125,150,150,50);\n    fill(255);\n    text(\"Enemies\",150,185);\n    }\n    if(htState===\"Basic Guide\"){\n        background(0);\n        fill(255);\n        textSize(50);\n        text(\"Basic Guide\",0,50);\n    }\n    }\n    if(state===\"P-Ups\"){\n        background(0, 0, 0);\n        fill(124);\n        rect(25,25,100,50);\n        rect(275,25,100,50);\n        rect(25,100,100,50);\n        rect(150,100,100,50);\n        rect(275,100,100,50);\n        rect(25,175,100,50);\n        rect(150,175,100,50);\n        rect(275,175,100,50);\n        rect(25,250,100,50);\n        rect(150,250,100,50);\n        rect(275,250,100,50);\n        rect(150,325,100,50);\n        fill(255);\n        textSize(30);\n        text(\"Power\\n  Ups\",150,30);\n        textSize(20);\n        text(\"    Left \\nRepellent\",30,45);\n        text(\"   Right\\nRepellent\",285,45);\n        text(\"Power\\n   Up\",50,120);\n        text(\"Winston\\nDetector\",160,120);\n        text(\"Winder\",295,130);\n        text(\"Attractor\",40,205);\n        text(\"Diverger\",160,205);\n        text(\"Bonus\",295,205);\n        text(\"Mask\",50,280);\n        text(\"Trap\",175,280);\n        text(\"None\",300,280);\n        text(\"Next\",175,355);\n        if(mouseX>=25&&mouseX<=125&&mouseY>=25&&mouseY<=75){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(25,25,100,50);\n                fill(255);\n                text(\"    Left \\nRepellent\",30,45);\n            }\n            if(mouseIsPressed){\n                powerUp=\"LR\";\n            }\n        }\n        if(mouseX>=275&&mouseX<=375&&mouseY>=25&&mouseY<=75){\n            if(!mouseIsPressed){\n               fill(200);\n               rect(275,25,100,50);\n               fill(255);\n               text(\"   Right\\nRepellent\",285,45);\n            }\n            if(mouseIsPressed){\n                powerUp=\"RR\";\n            }\n        }\n        if(mouseX>=25&&mouseX<=125&&mouseY>=100&&mouseY<=150){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(25,100,100,50);\n                fill(255);\n                text(\"Power\\n   Up\",50,120);\n            }\n            if(mouseIsPressed){\n                powerUp=\"PowerUp\";\n            }\n        }\n        if(mouseX>=150&&mouseX<=250&&mouseY>=100&&mouseY<=150){\n            if(!mouseIsPressed){\n            fill(200);\n            rect(150,100,100,50);\n            fill(255);\n            text(\"Winston\\nDetector\",160,120);\n            }\n            if(mouseIsPressed){\n                powerUp=\"WinstonD\";\n            }\n        }\n        if(mouseX>=275&&mouseX<=375&&mouseY>=100&&mouseY<=150){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(275,100,100,50);\n                fill(255);\n                text(\"Winder\",295,130);\n            }\n            if(mouseIsPressed){\n                powerUp=\"Winder\";\n            }\n        }\n        if(mouseX>=25&&mouseX<=125&&mouseY>=175&&mouseY<=225){\n        if(!mouseIsPressed){\n        fill(200);\n        rect(25,175,100,50);\n        fill(255);\n        text(\"Attractor\",40,205);\n        }\n        if(mouseIsPressed){\n            powerUp=\"Attractor\";\n        }\n        }\n        if(mouseX>=150&&mouseX<=250&&mouseY>=175&&mouseY<=225){\n        if(!mouseIsPressed){\n                fill(200);\n                rect(150,175,100,50);\n                fill(255);\n                text(\"Diverger\",160,205);\n            }\n        if(mouseIsPressed){\n            powerUp=\"Diverger\";\n        }    \n        }\n        if(mouseX>=275&&mouseX<=375&&mouseY>=175&&mouseY<=225){\n            if(!mouseIsPressed){\n                fill(200);\n                rect(275,175,100,50);\n                fill(255);\n                text(\"Bonus\",295,205);\n            }\n            if(mouseIsPressed){\n                powerUp=\"Bonus\";\n            }\n        }\n        if(mouseX>=25&&mouseX<=125&&mouseY>=250&&mouseY<=300){\n            if(!mouseIsPressed){\n            fill(200);\n            rect(25,250,100,50);\n            fill(255);\n            text(\"Mask\",50,280);\n            }\n            if(mouseIsPressed){\n                powerUp=\"Mask\";\n            }\n        }\n        if(mouseX>=150&&mouseX<=250&&mouseY>=250&&mouseY<=300){\n            if(!mouseIsPressed){\n            fill(200);\n            rect(150,250,100,50);\n            fill(255);\n            text(\"Trap\",175,280);\n            }\n            if(mouseIsPressed){\n                powerUp=\"Trap\";\n            }\n        }\n        if(mouseX>=275&&mouseX<=375&&mouseY>=250&&mouseY<=300){\n        if(!mouseIsPressed){\n            fill(200);\n            rect(275,250,100,50);\n            fill(255);\n            text(\"None\",300,280);\n        }\n        if(mouseIsPressed){\n            powerUp=\"None\";\n        }\n        }\n        if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed){\n        state=\"AIC\";\n        buttonspeed=30;\n        }\n        if(powerUp===\"LR\"){\n            fill(200);\n                rect(25,25,100,50);\n                fill(255);\n                text(\"    Left \\nRepellent\",30,45);\n        }\n        if(powerUp===\"RR\"){\n             fill(200);\n               rect(275,25,100,50);\n               fill(255);\n               text(\"   Right\\nRepellent\",285,45);\n        }\n        if(powerUp===\"PowerUp\"){\n            fill(200);\n                rect(25,100,100,50);\n                fill(255);\n                text(\"Power\\n   Up\",50,120);\n        }\n        if(powerUp===\"WinstonD\"){\n            fill(200);\n            rect(150,100,100,50);\n            fill(255);\n            text(\"Winston\\nDetector\",160,120);\n        }\n        if(powerUp===\"Winder\"){\n           fill(200);\n                rect(275,100,100,50);\n                fill(255);\n                text(\"Winder\",295,130);\n        }\n        if(powerUp===\"Attractor\"){\n            fill(200);\n        rect(25,175,100,50);\n        fill(255);\n        text(\"Attractor\",40,205);\n        }\n        if(powerUp===\"Diverger\"){\n            fill(200);\n            rect(150,175,100,50);\n            fill(255);\n            text(\"Diverger\",160,205);\n        }\n        if(powerUp===\"Bonus\"){\n            fill(200);\n                rect(275,175,100,50);\n                fill(255);\n                text(\"Bonus\",295,205);\n        }\n        if(powerUp===\"Mask\"){\n           fill(200);\n            rect(25,250,100,50);\n            fill(255);\n            text(\"Mask\",50,280); \n        }\n        if(powerUp===\"Trap\"){\n            fill(200);\n            rect(150,250,100,50);\n            fill(255);\n            text(\"Trap\",175,280);\n        }\n        if(powerUp===\"None\"){\n            fill(200);\n            rect(275,250,100,50);\n            fill(255);\n            text(\"None\",300,280);\n        }\n    }\n    if(state===\"AIC\"){\n    if(aicPage===1){\n    background(0);\n    fill(255);   \n    textSize(30);\n    text(\"          AI\\nCustomization\",100,30);\n    fill(200);\n    rect(25,75,150,150);\n    rect(225,75,150,150);\n    image(getImage(\"creatures/Hopper-Cool\"),35,100);\n    image(getImage(\"avatars/orange-juice-squid\"),235,95);\n    fill(124);\n    rect(10,250,50,50);\n    rect(135,250,50,50);\n    rect(210,250,50,50);\n    rect(340,250,50,50);\n    fill(255);\n    textSize(25);\n    text(\"<<\",20,285);\n    text(\">>\",140,285);\n    text(\"<<\",220,285);\n    text(\">>\",345,285);\n    text(ai1,90,285);\n    text(ai2,290,285);\n    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai1-=1;\n        aispeed=30;\n    }\n    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai1+=1;\n        aispeed=30;\n    }\n    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai2-=1;\n        aispeed=30;\n    }\n    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai2+=1;\n        aispeed=30;\n    }\n    if(ai1<0){\n        ai1=0;\n    }\n    if(ai1>10){\n        ai1=10;\n    }\n    if(ai2<0){\n        ai2=0;\n    }\n    if(ai2>10){\n        ai2=10;\n    }\n    if(aispeed>0){\n        aispeed-=1;\n    }\n    fill(124);\n    rect(150,325,100,50);\n    rect(275,325,100,50);\n    fill(255);\n    text(\"Play\",170,355);\n    text(\"Next\",295,355);\n    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        state=\"Play\";\n    }\n    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        aicPage=2;\n        buttonspeed=30;\n    }\n    }\n    if(aicPage===2){\n        background(0);\n           fill(255);   \n    textSize(30);\n    text(\"          AI\\nCustomization\",100,30);\n    fill(200);\n    rect(25,75,150,150);\n    rect(225,75,150,150);\n    image(getImage(\"creatures/Winston\"),35,100);\n    image(getImage(\"avatars/purple-pi\"),235,95);\n    fill(124);\n    rect(10,250,50,50);\n    rect(135,250,50,50);\n    rect(210,250,50,50);\n    rect(340,250,50,50);\n    fill(255);\n    textSize(25);\n    text(\"<<\",20,285);\n    text(\">>\",140,285);\n    text(\"<<\",220,285);\n    text(\">>\",345,285);\n    text(ai3,90,285);\n    text(ai4,290,285);\n    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai3-=1;\n        aispeed=30;\n    }\n    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai3+=1;\n        aispeed=30;\n    }\n    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai4-=1;\n        aispeed=30;\n    }\n    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai4+=1;\n        aispeed=30;\n    }\n    if(ai3<0){\n        ai3=0;\n    }\n    if(ai3>10){\n        ai3=10;\n    }\n    if(ai4<0){\n        ai4=0;\n    }\n    if(ai4>10){\n        ai4=10;\n    }\n    if(aispeed>0){\n        aispeed-=1;\n    }\n    fill(124);\n    rect(150,325,100,50);\n    rect(275,325,100,50);\n    rect(25,325,100,50);\n    fill(255);\n    text(\"Play\",170,355);\n    text(\"Next\",295,355);\n    text(\"Back\",45,355);\n    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        state=\"Play\";\n    }\n    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        aicPage=3;\n        buttonspeed=30;\n    }\n    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        aicPage=1;\n        buttonspeed=30;\n    }\n        if(buttonspeed>0){\n        buttonspeed-=1;\n    }\n    }\n    if(aicPage===3){\n                background(0);\n           fill(255);   \n    textSize(30);\n    text(\"          AI\\nCustomization\",100,30);\n    fill(200);\n    rect(25,75,150,150);\n    rect(225,75,150,150);\n    image(getImage(\"avatars/spunky-sam\"),35,95);\n    image(getImage(\"avatars/mr-pink\"),235,95);\n    fill(124);\n    rect(10,250,50,50);\n    rect(135,250,50,50);\n    rect(210,250,50,50);\n    rect(340,250,50,50);\n    fill(255);\n    textSize(25);\n    text(\"<<\",20,285);\n    text(\">>\",140,285);\n    text(\"<<\",220,285);\n    text(\">>\",345,285);\n    text(ai5,90,285);\n    text(ai6,290,285);\n    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai5-=1;\n        aispeed=30;\n    }\n    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai5+=1;\n        aispeed=30;\n    }\n    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai6-=1;\n        aispeed=30;\n    }\n    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai6+=1;\n        aispeed=30;\n    }\n    if(ai5<0){\n        ai5=0;\n    }\n    if(ai5>10){\n        ai5=10;\n    }\n    if(ai6<0){\n        ai6=0;\n    }\n    if(ai6>10){\n        ai6=10;\n    }\n    if(aispeed>0){\n        aispeed-=1;\n    }\n    fill(124);\n    rect(150,325,100,50);\n    rect(275,325,100,50);\n    rect(25,325,100,50);\n    fill(255);\n    text(\"Play\",170,355);\n    text(\"Next\",295,355);\n    text(\"Back\",45,355);\n    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        state=\"Play\";\n    }\n    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n       aicPage=4;\n        buttonspeed=30;\n    }\n    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n    aicPage=2;\n    buttonspeed=30;\n    }\n    if(buttonspeed>0){\n        buttonspeed-=1;\n    }\n    }\n    if(aicPage===4){\n    background(0);\n    fill(255);   \n    textSize(30);\n    text(\"          AI\\nCustomization\",100,30);\n    fill(200);\n    rect(25,75,150,150);\n    rect(225,75,150,150);\n    image(getImage(\"avatars/leafers-seed\"),35,100);\n    image(getImage(\"avatars/primosaur-seed\"),235,95);\n    fill(124);\n    rect(10,250,50,50);\n    rect(135,250,50,50);\n    rect(210,250,50,50);\n    rect(340,250,50,50);\n    fill(255);\n    textSize(25);\n    text(\"<<\",20,285);\n    text(\">>\",140,285);\n    text(\"<<\",220,285);\n    text(\">>\",345,285);\n    text(ai7,90,285);\n    text(ai8,290,285);\n    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai7-=1;\n        aispeed=30;\n    }\n    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai7+=1;\n        aispeed=30;\n    }\n    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai8-=1;\n        aispeed=30;\n    }\n    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai8+=1;\n        aispeed=30;\n    }\n    if(ai7<0){\n        ai7=0;\n    }\n    if(ai7>10){\n        ai7=10;\n    }\n    if(ai8<0){\n        ai8=0;\n    }\n    if(ai8>10){\n        ai8=10;\n    }\n    if(aispeed>0){\n        aispeed-=1;\n    }\n    fill(124);\n    rect(150,325,100,50);\n    rect(275,325,100,50);\n    rect(25,325,100,50);\n    fill(255);\n    text(\"Play\",170,355);\n    text(\"Next\",295,355);\n    text(\"Back\",45,355);\n    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        state=\"Play\";\n    }\n    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        aicPage=5;\n        buttonspeed=30;\n    }\n    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n    aicPage=3;\n    buttonspeed=30;\n    }\n    if(buttonspeed>0){\n        buttonspeed-=1;\n    }\n    }\n    if(aicPage===5){\n    background(0);\n    fill(255);   \n    textSize(30);\n    text(\"          AI\\nCustomization\",100,30);\n    fill(200);\n    rect(25,75,150,150);\n    rect(225,75,150,150);\n    image(getImage(\"avatars/aqualine-seed\"),35,100);\n    image(getImage(\"avatars/piceratops-seed\"),235,95);\n    fill(124);\n    rect(10,250,50,50);\n    rect(135,250,50,50);\n    rect(210,250,50,50);\n    rect(340,250,50,50);\n    fill(255);\n    textSize(25);\n    text(\"<<\",20,285);\n    text(\">>\",140,285);\n    text(\"<<\",220,285);\n    text(\">>\",345,285);\n    text(ai9,90,285);\n    text(ai10,290,285);\n    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai9-=1;\n        aispeed=30;\n    }\n    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai9+=1;\n        aispeed=30;\n    }\n    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai10-=1;\n        aispeed=30;\n    }\n    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n        ai10+=1;\n        aispeed=30;\n    }\n    if(ai9<0){\n        ai9=0;\n    }\n    if(ai9>10){\n        ai9=10;\n    }\n    if(ai10<0){\n        ai10=0;\n    }\n    if(ai10>10){\n        ai10=10;\n    }\n    if(aispeed>0){\n        aispeed-=1;\n    }\n    fill(124);\n    rect(150,325,100,50);\n    //rect(275,325,100,50);\n    rect(25,325,100,50);\n    fill(255);\n    text(\"Play\",170,355);\n    //text(\"Next\",295,355);\n    text(\"Back\",45,355);\n    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        state=\"Play\";\n    }\n    /**if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n        aicPage=5;\n        buttonspeed=30;\n    }**/\n    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n    aicPage=4;\n    buttonspeed=30;\n    }\n    if(buttonspeed>0){\n        buttonspeed-=1;\n    }\n    }\n    fill(124);\n    rect(5,5,90,50);\n    fill(255);\n    text(\"All10s\",15,35);\n    if(mouseX>=5&&mouseX<=95&&mouseY>=5&&mouseY<=55){\n    if(!mouseIsPressed){\n    fill(200);\n    rect(5,5,90,50);\n    fill(255);\n    text(\"All10s\",15,35);\n    } else {\n    ai1=10;\n    ai2=10;\n    ai3=10;\n    ai4=10;\n    ai5=10;\n    ai6=10;\n    ai7=10;\n    ai8=10;\n    ai9=10;\n    ai10=10;\n    }\n    }\n    }\n    if(state===\"Play\"){\n        textAlign(CENTER,CENTER);\nmoveTimer+=1;\nif(moveTimer>40&&cameraUp===false){\nmove1=random(0,10);\nmove2=random(0,10);\nmove3=random(0,10);\nif(where4>3){\n   move4=random(0,10); \n}\nmove5=random(0,10);\nmove6=random(0,10);\nmove7=random(0,10);\nmove8=random(0,10);\nmove9=random(0,10);\nmove10=random(0,10);\nmoveTimer=0;\nif(jump<2){\nscore+=1;\n}\n}else{\nmove1=5;\nmove2=5;\nmove3=5;\nmove4=5;\nmove5=4;\nmove6=5;\nmove7=5;\nmove8=5;\nmove9=5;\nmove10=5;\n}\nif(ai1===1){\n if(move1<1&&where1!==5){\nwhere1+=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\nif(move1>8&&where1!==5){\nwhere1-=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}   \n}\nif(ai1===2){\n     if(move1<1.5&&where1!==5){\nwhere1+=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\nif(move1>8&&where1!==5){\nwhere1-=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\n}\nif(ai1>2){\nif(move1<0.25*ai1+0.5&&where1!==5){\nwhere1+=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\nif(move1>9&&where1!==5){\nwhere1-=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\n}\nif(ai2===1){\n      if(move2<1&&where2!==5){\nwhere2+=1;\nplaySound(getSound(\"rpg/hit-splat\"));\n}\nif(move2>8&&where2!==5){\nwhere2-=1;\nplaySound(getSound(\"rpg/water-slosh\"));\n}  \n}\nif(ai2===2){\n      if(move2<1.5&&where2!==5){\nwhere2+=1;\nplaySound(getSound(\"rpg/hit-splat\"));\n}\nif(move2>8&&where2!==5){\nwhere2-=1;\nplaySound(getSound(\"rpg/water-slosh\"));\n}  \n}\nif(ai2>2){\n      if(move2<0.25*ai2+0.5&&where2!==5){\nwhere2+=1;\nplaySound(getSound(\"rpg/hit-splat\"));\n}\nif(move2>9&&where2!==5){\nwhere2-=1;\nplaySound(getSound(\"rpg/water-slosh\"));\n}  \n}\nif(ai3===1){\n    if(move3<1&&winstonTime<1&&where3!==5){\nwhere3+=1;\nplaySound(getSound(\"rpg/giant-yah\"));\n}\nif(move3>8&&winstonTime<1&&where3!==5){\nwhere3-=1;\nplaySound(getSound(\"rpg/giant-no\"));\n}\n}\nif(ai3===2){\nif(move3<1.5&&winstonTime<1&&where3!==5){\nwhere3+=1;\nplaySound(getSound(\"rpg/giant-yah\"));\n}\nif(move3>8&&winstonTime<1&&where3!==5){\nwhere3-=1;\nplaySound(getSound(\"rpg/giant-no\"));\n}\n}\nif(ai3>2){\n    if(move3<0.25*ai3+0.5&&winstonTime<1&&where3!==5){\nwhere3+=1;\nplaySound(getSound(\"rpg/giant-yah\"));\n}\nif(move3>9&&winstonTime<1&&where3!==5){\nwhere3-=1;\nplaySound(getSound(\"rpg/giant-no\"));\n}\n}\nif(move4<2&&where4!==5){\n    where4+=1;\n    playSound(getSound(\"rpg/battle-spell\"));\n}\nif(ai5===1){\n if(move5>8&&where5!==4){\nwhere5-=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\nif(move5<1&&where5!==4){\n    where5+=1;\n    playSound(getSound(\"rpg/step-heavy\"));\n}   \n}\nif(ai5===2){\n    if(move5>8&&where5!==4){\nwhere5-=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\nif(move5<1.5&&where5!==4){\n    where5+=1;\n    playSound(getSound(\"rpg/step-heavy\"));\n}\n}\nif(ai5>2){\nif(move5>9&&where5!==4){\nwhere5-=1;\nplaySound(getSound(\"rpg/step-heavy\"));\n}\nif(move5<0.25*ai5+0.5&&where5!==4){\n    where5+=1;\n    playSound(getSound(\"rpg/step-heavy\"));\n}\n}\nif(ai6===1){\n  if(move6>8&&where6!==5&&fuzzyWait===0){\n    playSound(getSound(\"retro/jump1\"));\n    where6-=1;\n}\nif(move6<1&&where6!==5&&fuzzyWait===0){\n    where6+=1;\n    playSound(getSound(\"retro/laser4\"));\n}  \n}\nif(ai6===2){\n    if(move6>8&&where6!==5&&fuzzyWait===0){\n    playSound(getSound(\"retro/jump1\"));\n    where6-=1;\n}\nif(move6<1.5&&where6!==5&&fuzzyWait===0){\n    where6+=1;\n    playSound(getSound(\"retro/laser4\"));\n}\n}\nif(ai6>2){\n    if(move6>9&&where6!==5&&fuzzyWait===0){\n    playSound(getSound(\"retro/jump1\"));\n    where6-=1;\n}\nif(move6<0.25*ai6+0.5&&where6!==5&&fuzzyWait===0){\n    where6+=1;\n    playSound(getSound(\"retro/laser4\"));\n}\n}\nif(ai7>0){\nif(move7<0.25*ai7+0.5&&where7!==5){\nwhere7+=1;\nplaySound(getSound(\"rpg/hit-thud\"));\n}\nif(move7>9&&where7!==5){\nplaySound(getSound(\"rpg/hit-thud\"));\nwhere7-=1;\n}}\nif(ai8>0){\nif(move8<0.25*ai8+0.5&&where8!==5){\nwhere8+=1;\nplaySound(getSound(\"rpg/hit-thud\"));\n}\nif(move8>9&&where8!==5){\nplaySound(getSound(\"rpg/hit-thud\"));\nwhere8-=1;\n}    \n}\nif(ai9>0){\nif(move9<0.25*ai9+0.5&&where9!==6){\nwhere9+=1;\nplaySound(getSound(\"rpg/hit-thud\"));\n}\nif(move9>9&&where9!==6){\nplaySound(getSound(\"rpg/hit-thud\"));\nwhere9-=1;\n}    \n}\nif(ai10>0){\nif(move10<0.25*ai10+0.5&&where10!==5){\nwhere10+=1;\nplaySound(getSound(\"rpg/hit-thud\"));\n}\nif(move10>9&&where10!==5){\nplaySound(getSound(\"rpg/hit-thud\"));\nwhere10-=1;\n}    \n}\nwhere1=constrain(where1,1,5);\nwhere2=constrain(where2,1,5);\nwhere3=constrain(where3,1,5);\nwhere4=constrain(where4,1,5);\nwhere5=constrain(where5,1,4);\nwhere6=constrain(where6,1,5);\nwhere7=constrain(where7,1,5);\nwhere8=constrain(where8,1,5);\nwhere9=constrain(where9,1,6);\nwhere10=constrain(where10,1,5);\nHDMI=constrain(HDMI,1,6);\nvent=constrain(vent,1,7);\npower=constrain(power,0,10000);\nif(door1Open===false){\npower-=2;\ndoor1+=50;\nif(door1>99&&door1<201){\ntranslate(random(0,5),random(0,5));\n}\n}else{\ndoor1-=10;\n}\nif(door2Open===false){\npower-=2;\ndoor2+=50;\nif(door2>99&&door2<201){\ntranslate(random(0,5),random(0,5));\n}\n}else{\ndoor2-=10;\n}\nif(power<1){\ndoor1Open=true;\ndoor1=0;\ndoor2Open=true;\ndoor2=0;\ncameraUp=false;\n}\n//Cam Type 1\nif(camType===1){\n    meX=scrollX+600;\nscrollX=constrain(scrollX,width-600,0);\nif(mouseX>width-100){\nscrollX+=10;\n}else if(mouseX<100){\nscrollX-=10;\n}\nbackground(30);\n//Room\n//fill(scrollX/2-100,0,50,height);\nif(mouseX>5&&mouseY>height-110&&mouseX<55&&mouseY<height-55&&light1===false&&mouseIsPressed){\nlight1=true;\n}\nif(!mouseIsPressed){\nlight1=false;\n}\nif(mouseX<width-5&&mouseY>height-110&&mouseX>width-55&&mouseY<height-55&&light2===false&&mouseIsPressed){\nlight2=true;\n}\nif(!mouseIsPressed){\nlight2=false;\n}\nfor(var x=-100;x<1500;x+=tileWidth){\nfor(var y=-100;y<1200;y+=tileWidth){\nif(y-meY>-tileWidth-100){\nif((x/tileWidth+y/tileWidth)%2){\nfill(0);\n}else{\nfill(100);\n}\nvar p1=perspect/(perspect+y-meY);\nvar x1=200+p1*(x-meX);\nvar y1=horizon+p1*200;\nvar p2=perspect/(perspect+y+tileWidth-meY);\nvar x2=200+p2*(x-meX);\nvar y2=horizon+p2*200;\nif(lowRAM===false){\ntranslate(0,80);\nquad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\ntranslate(0,-80);\n}}}}\nfill(0);\nrect(-scrollX/2+25,100,100,100);\nrect(-scrollX/2+175,100,100,100);\nif(light1===true&&door1Open===true&&where1===5){\nimage(getImage(\"creatures/Hopper-Cool\"),30,130);\nplaySound(getSound(\"rpg/giant-hyah\"));\n}\nif(light1===true&&door1Open===false&&where1===5){\nimage(getImage(\"creatures/Hopper-Jumping\"),30-scrollX/2,110);   \n}\nif(light2===true&&door2Open===true&&where2===5){\nimage(getImage(\"avatars/orange-juice-squid\"),270,130);\nplaySound(getSound(\"rpg/giant-hyah\"));\n}\nif(light2===true&&door2Open===false&&where2===5){\nimage(getImage(\"avatars/orange-juice-squid\"),175-scrollX/2,110);\n}\nif(light1===true&&door1Open===true&&where5===4){\nimage(getImage(\"avatars/spunky-sam\"),10,130);\nplaySound(getSound(\"rpg/giant-hyah\"));\n}\nif(light1===true&&door1Open===false&&where5===4){\nimage(getImage(\"avatars/spunky-sam\"),0-scrollX/2,120);\n}\nif(light2===true&&door2Open===true&&where6===5){\nimage(getImage(\"avatars/mr-pink\"),250,130);\nplaySound(getSound(\"rpg/giant-hyah\"));\n}\nif(light2===true&&door2Open===false&&where6===5){\n    image(getImage(\"avatars/mr-pink\"),130-scrollX/2,120);\n    }\n\nfill(70);\nrect(-scrollX/2-105,0,5,254);\nrect(-scrollX/2-105,0,600,50);\nrect(-scrollX/2,0,300,100);\nrect(-scrollX/2,0,25,254);\nrect(-scrollX/2+125,0,50,250);\nrect(-scrollX/2,200,300,50);\nrect(-scrollX/2+400,0,300,254);\nrect(-scrollX/2+275,0,25,254);\nfill(0);\nfill(200);\nrect(-scrollX/2+10,70,50,25);\nfill(30,0,0);\nrect(-scrollX/2+12,72,46,21);\nfill(255,0,0);\ntextSize(20);\ntext(hour()+\":\"+minute(),-scrollX/2+35,82);\ntextSize(30);\nimage(getImage(\"cute/ShadowSouth\"),-scrollX/2,30,300,420);\nif(light1===false){\nfill(0);\nrect(-scrollX/2-100,50,100,205);\n}else if(light1===true&&door1Open===true){\nfill(255,255,255,random(100,110));\nrect(-scrollX/2-100,50,100,500);\n}\nif(light1===true){\nfill(255, 255, 255,random(100,110));\nrect(-scrollX/2+25,100,100,100);\n}\nif(light2===false){\nfill(0);\nrect(-scrollX/2+300,50,100,205);\n}else if(light2===true&&door2Open===true){\nfill(255,255,255,random(100,110));\nrect(-scrollX/2+300,50,100,500);\n}\nif(light2===true){\n    fill(255,255,255,random(100,110));\n    rect(-scrollX/2+175,100,100,100);\n}\ndoor1=constrain(door1,0,205);\ndoor2=constrain(door2,0,205);\nfill(200);\nrect(-scrollX/2-100,50,100,door1);\nfill(200,200,200,100);\nrect(-scrollX/2-100,-door1+410,100,205);\nfill(200);\nrect(-scrollX/2+300,50,100,door2);\nfill(200,200,200,100);\nrect(-scrollX/2+300,-door2+410,100,205);\nif(light1===false){\nfill(0,0,0,50);\nrect(-scrollX/2-100,255,100,205);\n}\nif(light2===false){\nfill(0,0,0,50);\nrect(-scrollX/2+300,255,100,205);\n}\nfill(0);\ntext(ceil(power/100)+\"%\",60,20);\nif(lowRAM===true){\nfill(50);\nrect(0,254,width,height);\n}fill(70);\nrect(-scrollX/2,200,300,50);\nimage(getImage(\"cute/ShadowSouth\"),-scrollX/2,30,300,420);\n//Camera\nif(cameraUp===true){\ncameraOpen-=40;\n}else if(cameraUp===false){\ncameraOpen+=40;\n}\nblink+=1;\nif(blink===50){\nblink=0;\n}\ncameraOpen=constrain(cameraOpen,0,height);\nfill(cameraOpen/3+100);\nif(cameraOpen>0){\nquad(0,height,cameraOpen/3,cameraOpen,-cameraOpen/3+width,cameraOpen,width,height);\nfill(cameraOpen/3);\nquad(10,height,cameraOpen/3+10,cameraOpen+10,-cameraOpen/3+width-10,cameraOpen+10,width-10,height);\n}\nif(cameraUp===true&&cameraOpen===0){\npower-=5;\nbackground(0);\nif(HDMI===where3&&winstonTime>0&&HDMI!==5){\n      fill(255, 255, 0,50);\n    rect(-1,-1,500,500);  \n}\nif(HDMI===5){\nbackground(30);\nfor(var x=-100;x<2000;x+=tileWidth){\nfor(var y=-100;y<635;y+=tileWidth){\nif(y-meY>-tileWidth-100){\nif((x/tileWidth+y/tileWidth)%2){\nfill(0);\n}else{\nfill(100);\n}\n\nvar p1=perspect/(perspect+y-meY);\nvar x1=200+p1*(x-800);\nvar y1=horizon+p1*200;\nvar p2=perspect/(perspect+y+tileWidth-meY);\nvar x2=200+p2*(x-800);\nvar y2=horizon+p2*200;\nif(lowRAM===false){\ntranslate(0,80);\nquad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\ntranslate(0,-80);\n}\n}\n}\n}\nfill(50);\nrect(0,0,200,260);\nrect(300,0,200,260);\nrect(0,0,width,50);\nfill(100);\nrect(200,50,100,door1+5);\n\nif(light1===true){\nfor(var x=-100;x<2000;x+=tileWidth){\nfor(var y=-100;y<508;y+=tileWidth){\nif(y-meY>-tileWidth-100){\nif((x/tileWidth+y/tileWidth)%2){\nfill(0);\n}else{\nfill(255);\n}\nvar p1=perspect/(perspect+y-meY);\nvar x1=200+p1*(x-800);\nvar y1=horizon+p1*200;\nvar p2=perspect/(perspect+y+tileWidth-meY);\nvar x2=200+p2*(x-800);\nvar y2=horizon+p2*200;\nif(lowRAM===false){\ntranslate(0,80);\nquad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\ntranslate(0,-80);\n}\n}\n}\n}\nfill(150);\nrect(0,0,200,260);\nrect(300,0,200,260);\nrect(0,0,width,50);\nfill(250);\nrect(200,50,100,door1+5);\n}\n}\nif(HDMI===1){\n    fill(124, 50, 0);\n    rect(25,275,350,25);\n    if(where5===1){\n        image(getImage(\"avatars/spunky-sam\"),0,150);\n    }\n    if(where5===2){\n        image(getImage(\"avatars/spunky-sam\"),300,150);\n    }\n}\nif(HDMI===2){\n    if(where6===1){\nfill(200, 0, 200);\nrect(150,50,200,200);\nfill(0, 0, 0);\nrect(250,50,5,200);\n    }\nif(where6===2){\n    image(getImage(\"avatars/mr-pink\"),150,100);\n    fill(200,0,200);\n    rect(150,50,75,200);\n    rect(275,50,75,200);  \n}\nif(where6===3){\n  fill(200,0,200);\n    rect(150,50,75,200);\n    rect(275,50,75,200);  \n    image(getImage(\"avatars/mr-pink\"),275,150);\n}\nif(where6>3){\n    fill(200,0,200);\n    rect(150,50,75,200);\n    rect(275,50,75,200);  \n}\nif(where3===2){\n    fill(255, 255, 0,50);\n    rect(-1,-1,500,500);\n}\n}\nif(HDMI===3&&where5===3){\n    image(getImage(\"avatars/spunky-sam\"),0,150);\n    \n}\nif(HDMI===5&&where5===4){\n    image(getImage(\"avatars/spunky-sam\"),300,150);\n}\nif(HDMI!==3){\n    if(musicBox<=200&&musicBox>100){\n        fill(255, 255, 0);\n        triangle(160,340,240,340,200,300);\n    }\n    if(musicBox<=100&&musicBox>0){\n        fill(255, 124, 0);\n        triangle(160,340,240,340,200,300);\n    }\n    if(musicBox<1){\n        fill(255, 0, 0);\n        triangle(160,340,240,340,200,300);\n    }\n}\nif(HDMI===3){\n        fill(124);\n    rect(160,290,80,50);\n    fill(255);\n    text(\"Music Box\",300,100);\n    text(\"Wind\",200,302);\n    text(\"Up\",200,325);\n    if(mouseX>=160&&mouseX<=240&&mouseY>=290&&mouseY<=340&&mouseIsPressed&&musicBox<=500){\n        if(where5!==3){\n               musicBox+=20;\n        }\n        if(where5===3){\n            musicBox+=5;\n        }\n     \n       \n        fill(200);\n    rect(160,290,80,50);\n    fill(255);\n        text(\"Wind\",200,302);\n    text(\"Up\",200,325);\n    playSound(getSound(\"rpg/hit-clop\"));\n    }\n    if(where4===1){\nfill(0, 0, 200);\nrect(125,125,150,150);\nfill(200, 0, 200);\nrect(175,125,50,150);\nfill(255, 255, 0);\nrect(125,125,150,25);\n    }\n    if(where4===2){\n        image(getImage(\"avatars/purple-pi\"),125,60);\n        fill(0, 0, 200);\nrect(125,125,150,150);\nfill(200, 0, 200);\nrect(175,125,50,150);\n    }\n    if(where4===3){\n               fill(0, 0, 200);\nrect(125,125,150,150);\nfill(200, 0, 200);\nrect(175,125,50,150);\nimage(getImage(\"avatars/purple-pi\"),300,150);\n    }\n    if(where4>3){\n     fill(0, 0, 200);\nrect(125,125,150,150);\nfill(200, 0, 200);\nrect(175,125,50,150);   \n    }\n    if(musicBox<1){\n        if(where4<4){\n                   where4move-=1; \n        }\n    }\n    if(musicBox>400){\n        fill(0,0,255);\nrect(300,125,25,musicBox/4);\n    }\n    if(musicBox>300&&musicBox<=400){\n        fill(0,255,0);\nrect(300,125,25,musicBox/4);\n    }\n    if(musicBox>200&&musicBox<=300){\n        fill(255,255,0);\nrect(300,125,25,musicBox/4);\n    }\n    if(musicBox>100&&musicBox<=200){\n        fill(255,124,0);\nrect(300,125,25,musicBox/4);\n    }\n    if(musicBox>0&&musicBox<=100){\nfill(255,0,0);\nrect(300,125,25,musicBox/4);\n    }\n    if(musicBox>0){\nif(musicBoxs===0){\nplaySound(getSound(\"rpg/metal-chime\"));\n}\nif(musicBoxs===5){\nplaySound(getSound(\"rpg/metal-clink\"));\n        }\n        if(musicBoxs===10){\n                    playSound(getSound(\"rpg/coin-jingle\"));\n}}\nmusicBoxs+=1;\nif(musicBoxs>14){\n    musicBoxs=0;\n}\n}\nif(HDMI===4){\n background(50);\n fill(0, 0, 0);\n rect(225,100,150,225);\n fill(25);\n rect(100,125,100,100);\n fill(255, 255, 0);\n triangle(110,215,190,215,150,135);\n fill(0, 0, 0);\n textSize(20);\n text(\"Power\",150,200);\n if(where6===4){\n         image(getImage(\"avatars/mr-pink\"),100,0);\n }\n}\ntextSize(30);\nif(where4===4&&HDMI===4){\n    image(getImage(\"avatars/purple-pi\"),-50,150);\n}\nif(where4===5&&HDMI===6){\n    image(getImage(\"avatars/purple-pi\"),-50,150);\n}\nif(where1===HDMI){\nimage(getImage(\"creatures/Hopper-Happy\"),100,150);\n}\nif(where2===1&&HDMI===1){\nimage(getImage(\"avatars/orange-juice-squid\"),200,150);\n}\nif(where2===2&&HDMI===2){\nimage(getImage(\"avatars/orange-juice-squid\"),200,150);\n}\nif(where2===3&&HDMI===3){\nimage(getImage(\"avatars/orange-juice-squid\"),200,150);\n}\nif(where2===4&&HDMI===4){\nimage(getImage(\"avatars/orange-juice-squid\"),200,150);\n}\nif(HDMI===6&&where2===5){\n  image(getImage(\"avatars/orange-juice-squid\"),200,150);  \n}\nif(HDMI===5&&where3===5){\nimage(getImage(\"creatures/Winston\"),50,150);\n}\nif(HDMI===6&&where6===5){\n    image(getImage(\"avatars/mr-pink\"),300,150);\n}\nif(lowRAM===false){\nfor(var d=0;d<=2000;d++){\nnoStroke();\nfill(d,d,d,random(10,12));\nrect(random(-30,430),random(-30,430),random(10,30),2);\n}\nfill(255,255,255,20);\nrect(0,barPosition+random(0,5),400,50);\nbarPosition+=random(0.25,0.5);\nif(barPosition>=400) {\nbarPosition=-50;\n}\n}\nif(power<1){\nbackground(0);\nfill(100);\ntext(\"Low battery!\",width/2,height/2);\n}\nfill(100);\nrect(0,0,10,height);\nrect(0,0,width,10);\nrect(width-10,0,10,height);\nfill(100);\nrect(20,50,power/100,20);\nfill(0,255,0);\ntext(\"HDMI: \"+HDMI,70,100);\nif(crazyTimerA===150){\ncrazyTypeA=round(random(0.5,10.4));\nif(round(random(0.5,100.4))>95){\nif(crazyTypeA===1){\nfill(100, 175, 100);\ntriangle(200,50,50,325,350,325);\nfill(255);\nellipse(200,225,175,50);\nfill(0);\nellipse(200,225,50,50);\nfill(100,175,100);\ntextSize(30);\ntext(\"ILLUMINATI CONFIRMED\",200,30);\n}\nif(crazyTypeA===2){\nnoStroke();\n//Zombie\'s Skin\nfill(100,150,100);\nellipse(200,100,100,100);\nellipse(200,150,30,50);\n//Mouth\nfill(50,0,0);\nellipse(190,120,50,20);\n//Eyes\nfill(255);\nstrokeWeight(1);\nstroke(0);\nellipse(170,85,20,20);\nellipse(215,80,25,25);\nnoStroke();\nfill(0);\nellipse(170,85,5,5);\nellipse(215,80,5,5);\n//Teeth\nfill(255);\nrect(175,111,5,10);\nrect(200,111,5,10);\nrect(185,120,10,10);\n//Zombie\'s Clothes\nfill(255, 0, 0);\nbeginShape();\nvertex(180,170);\nvertex(220,170);\nvertex(230,180);\nvertex(325,210);\nvertex(320,270);\nvertex(315,265);\nvertex(310,270);\nvertex(305,265);\nvertex(300,220);\nvertex(230,200);\nvertex(235,300);\nvertex(220,300);\nvertex(210,290);\nvertex(200,300);\nvertex(190,300);\nvertex(180,295);\nvertex(165,280);\nvertex(165,200);\nvertex(90,230);\nvertex(60,270);\nvertex(50,270);\nvertex(90,200);\nendShape();\n}\nif(crazyTypeA===3){\n    strokeWeight(10);\nstroke(0);\n//Green Side\nfill(0,255,0);\nbeginShape();\nvertex(150,150);\nvertex(350,150);\nvertex(350,295);\nvertex(150,295);\nendShape();\n//Orange Side\nfill(255,124,0);\nbeginShape();\nvertex(150,150);\nvertex(105,70);\nvertex(105,200);\nvertex(150,300);\nendShape();\n//Sides of the Cube\nline(100,50,300,50);\nline(150,150,350,150);\nline(100,50,150,150);\nline(300,50,350,150);\nline(150,150,150,300);\nline(350,150,350,300);\nline(150,300,350,300);\nline(100,50,100,200);\nline(100,200,150,300);\n//Top Side\nstrokeWeight(5);\nline(167,50,217,150);\nline(223,50,283,150);\nline(120,83,315,83);\nline(135,112,325,112);\n//Front Side\nnoStroke();\nstroke(0);\nstrokeWeight(5);\nline(217,150,217,300);\nline(283,150,283,300);\nline(150,200,350,200);\nline(150,250,350,250);\n//Side-y Side\nnoStroke();\nstrokeWeight(5);\nstroke(0);\nline(150,200,100,115);\nline(150,240,100,160);\nline(115,75,115,225);\nline(135,110,135,270);\n}\nif(crazyTypeA===4){\nstrokeWeight(3);\nfor(var fibonaccix=0; fibonaccix<=400; fibonaccix+=20){\nstroke(0);\nline(fibonaccix,0,fibonaccix,400);\n}\nfor(var fibonacciy=0; fibonacciy<=400; fibonacciy+=20){\nstroke(0);\nline(0,fibonacciy,400,fibonacciy);\n}\nfill(255, 0, 0);\nrect(180,180,20,20);\nfill(255, 124, 0);\nrect(180,200,20,20);\nfill(255,255,0);\nrect(200,180,40,40);\nfill(124, 255, 0);\nrect(180,120,60,60);\nfill(0,255,0);\nrect(80,120,100,100);\nfill(0,255,124);\nrect(80,220,160,160);\nfill(0,255,255);\nrect(240,120,260,260);\n}\nif(crazyTypeA===5){\nstrokeWeight(10);\nstroke(0, 0, 0);\nline(150,300,150,350);\nline(250,300,250,350);\nline(150,250,50,100);\nline(250,250,350,100);\nstrokeWeight(1);\nfill(255,255,0);\ntriangle(200,50,50,300,350,300);\nstrokeWeight(5);\nnoStroke();\nfill(255);\nellipse(200,175,125,75);\nfill(0);\nellipse(200,175,50,50);\nstroke(0);\nstrokeWeight(3);\nline(95,225,305,225);\nline(75,260,325,260);\nline(95,225,95,258);\nline(75,260,75,298);\nline(145,225,145,258);\nline(125,260,125,298);\nline(195,225,195,258);\nline(175,260,175,298);\nline(245,225,245,258);\nline(225,260,225,298);\nline(295,225,295,258);\nline(275,260,275,298);\nline(325,260,325,298);\nnoStroke();\nquad(150,225,250,275,250,225,150,275);\nrect(150,100,100,25);\nrect(170,-5,60,125);\n}\n}\n}\n}\nif(cameraUp===true&&cameraOpen===0&&blink>10){\nfill(255,0,0);\nellipse(30,30,20,20);\n}\nnoFill();\nstroke(255,255,255,200);\nstrokeWeight(2);\nrect(5,height-55,width-10,50,10);\nline(width/2,height-35,width/2+50,height-45);\nline(width/2,height-25,width/2+50,height-35);\nline(width/2,height-15,width/2+50,height-25);\nline(width/2,height-35,width/2-50,height-45);\nline(width/2,height-25,width/2-50,height-35);\nline(width/2,height-15,width/2-50,height-25);\nrect(5,height-110,50,50,10);\nrect(width-55,height-110,50,50,10);\nfill(255,255,255,200);\ntextSize(50);\ntext(\"☀\",30,height-88);\ntext(\"☀\",370,height-88);\nnoFill();\nrect(60,height-110,100,50,10);\nrect(240,height-110,100,50,10);\nfill(255,255,255,200);\ntextSize(30);\ntext(\"Door.\",112,height-88);\ntext(\"Door.\",293,height-88);\n}\n//Cam Type 2\nif(camType===2){\n    background(0);\n    if(mouseX>5&&mouseY>height-110&&mouseX<55&&mouseY<height-55&&light1===false&&mouseIsPressed){\nlight1=true;\n}\nif(!mouseIsPressed){\nlight1=false;\n}\nif(mouseX<width-5&&mouseY>height-110&&mouseX>width-55&&mouseY<height-55&&light2===false&&mouseIsPressed){\nlight2=true;\n}\nif(!mouseIsPressed){\nlight2=false;\n}\nif(light1===true){\n    fill(255,255,255,random(100,110));\n    rect(25,75,125,175);\n}\n    if(light1===true&&vent1Open===true&&where7===5){\nimage(getImage(\"avatars/leafers-seed\"),30,130);\nplaySound(getSound(\"retro/laser1\"));\n}\nif(light2===true&&vent2Open===true&&where9===6){\nimage(getImage(\"avatars/aqualine-seed\"),250,130);\nplaySound(getSound(\"retro/laser1\"));\n}\nif(light2===true){\n    fill(255, 255,255,random(100,110));\n    rect(250,75,125,175);\n}\n    fill(124);\n    beginShape();\n    vertex(0,0);\n    vertex(0,400);\n    vertex(25,400);\n    vertex(25,75);\n    vertex(375,75);\n    vertex(375,400);\n    vertex(400,400);\n    vertex(400,0);\n    endShape();\n    beginShape();\n    vertex(25,400);\n    vertex(375,400);\n    vertex(375,250);\n    vertex(250,250);\n    vertex(250,75);\n    vertex(150,75);\n    vertex(150,250);\n    vertex(25,250);\n    endShape();\n    fill(0);\n    textSize(30);\ntext(ceil(air/100)+\"%\",60,20);\n    fill(255, 255, 0);\n    rect(155,150,90,125);\n    fill(255);\n    textAlign(LEFT,BASELINE);\n    textSize(15);\n    text(\"Fill\\nWith\\nAir\",155,110);\n    rect(190,90,50,50);\n    fill(0);\n    rect(190,155,20,100);\n    fill(0, 0, 255);\n    rect(190,255,20,-reserve/25);\n    if(mouseX>=190&&mouseX<=240&&mouseY>=90&&mouseY<=140&&mouseIsPressed&&reserve<2500&&air>9){\n    air-=10;\n    reserve+=5;\n    }\n    textAlign(CENTER,CENTER);\n    //Camera\nif(cameraUp===true&&cameraOpen>=0){\ncameraOpen-=40;\n}\nelse if(cameraUp===false){\ncameraOpen+=40;\n}\nblink+=1;\nif(blink===50){\nblink=0;\n}\ncameraOpen=constrain(cameraOpen,0,height);\nfill(cameraOpen/3+100);\nif(cameraOpen>0){\nquad(0,height,cameraOpen/3,cameraOpen,-cameraOpen/3+width,cameraOpen,width,height);\nfill(cameraOpen/3);\nquad(10,height,cameraOpen/3+10,cameraOpen+10,-cameraOpen/3+width-10,cameraOpen+10,width-10,height);\n}\n//Update Cams Here\nif(cameraUp===true&&cameraOpen===0){\npower-=5;\nbackground(0);\nfill(100);\nrect(0,0,10,height);\nrect(0,0,width,10);\nrect(width-10,0,10,height);\nfill(100);\nrect(20,50,power/100,20);\nfill(0,255,0);\ntextSize(30);\ntext(\"Vent: \"+vent,70,100);\nfor(var d=0;d<=2000;d++){\nnoStroke();\nfill(d,d,d,random(10,12));\nrect(random(-30,430),random(-30,430),random(10,30),2);\n}\nfill(255,255,255,20);\nrect(0,barPosition+random(0,5),400,50);\nbarPosition+=random(0.25,0.5);\nif(barPosition>=400) {\nbarPosition=-50;\n}\n    if(vent===1){\n    if(where7===1){\nimage(getImage(\"avatars/leafers-seed\"),100,150);\n}\nif(where8===1){\nimage(getImage(\"avatars/primosaur-seed\"),200,150);\n}\n}\n    if(vent===2){\n    fill(255);\n    rect(100,150,200,100);\n    image(getImage(\"avatars/leaf-green\"),100,150,50,50);\n    fill(0);\n    textSize(20);\n    text(\"KA Air Systems\",230,170);\n    if(circulator>2400){\n    fill(0, 255, 255);\n    rect(105,225,circulator/20,20);\n    }\n    if(circulator>1800&&circulator<2401){\n    fill(0, 255, 0);\n    rect(105,225,circulator/20,20);\n    }\n    if(circulator>1200&&circulator<1801){\n    fill(255, 255, 0);\n    rect(105,225,circulator/20,20);\n    }\n    if(circulator>600&&circulator<1201){\n    fill(255, 124, 0);\n    rect(105,225,circulator/20,20);\n    }\n    if(circulator>0&&circulator<601){\n    fill(255, 0, 0);\n    rect(105,225,circulator/20,20);\n    }\n    fill(124);\n    rect(162,290,75,50);\n    fill(255);\n    text(\"Restart\",200,310);\n    if(where7===2){\n    image(getImage(\"avatars/leafers-seed\"),0,150);\n    }\n    if(where8===2){\n    image(getImage(\"avatars/primosaur-seed\"),200,150);\n    }\n    if(where10===5){\n    image(getImage(\"avatars/piceratops-seed\"),150,0);\n    }\n    if(mouseX>=160&&mouseX<=240&&mouseY>=290&&mouseY<=340&&mouseIsPressed&&circulator<3000){\n        circulator=3000;\n        fill(200);\n    rect(160,290,80,50);\n    fill(255);\n        text(\"Restart\",200,310);\n    playSound(getSound(\"rpg/hit-clop\"));\n    if(where10===5){\n    where10=round(random(0.4,2.4));\n    }\n    }\n    }\n    if(vent===3){\n    fill(124);\n    rect(160,290,80,50);\n    fill(255);\n    text(\"Zap\",200,310);\n    if(where8===5){\n    image(getImage(\"avatars/primosaur-seed\"),200,50);\n    }   \n    if(where9===2){\n    image(getImage(\"avatars/aqualine-seed\"),100,150);    \n    }\n    if(where10===2){\n    image(getImage(\"avatars/piceratops-seed\"),200,150);\n    }\n    if(mouseX>=160&&mouseX<=240&&mouseY>=290&&mouseY<=340&&mouseIsPressed&&power>=500&&where8===5){\n        where8=round(random(0.5,2.4));\n        crazyTimerB=0;\n        fill(200);\n    rect(160,290,80,50);\n    fill(255);\n        text(\"Zap\",200,310);\n    playSound(getSound(\"retro/laser1\"));\n    }\n            fill(124);\n    rect(160,290,80,50);\n    fill(255);\n        text(\"Zap\",200,310);\n    }\n    if(vent===4){\n    if(where9===1){\n    image(getImage(\"avatars/aqualine-seed\"),100,150);    \n    }\n    if(where10===1){\n    image(getImage(\"avatars/piceratops-seed\"),200,150);\n    }\n    }\n    if(vent===5){\n    if(where7===3){\n    image(getImage(\"avatars/leafers-seed\"),100,150);\n    }\n    if(where8===3){\n        image(getImage(\"avatars/primosaur-seed\"),200,150);\n    }\n    if(where9===4){\n    image(getImage(\"avatars/aqualine-seed\"),100,50);\n    }\n    if(where10===4){\n        image(getImage(\"avatars/piceratops-seed\"),200,50);\n    }\n    }\n    if(vent===6){\n    if(where8===4){\n    image(getImage(\"avatars/primosaur-seed\"),200,150);\n    }\n    if(where9===3){\n    image(getImage(\"avatars/aqualine-seed\"),100,150);\n    }\n    if(where10===3){\n    image(getImage(\"avatars/piceratops-seed\"),150,50);\n    }\n    }\n    if(vent===7){\n    if(where7===4){\n    image(getImage(\"avatars/leafers-seed\"),100,150);\n    }\n    if(where9===5){\n    image(getImage(\"avatars/aqualine-seed\"),200,150);\n    }\n    }\n    if(crazyTimerA===150){\nif(round(random(0.5,100.4))>95){\nfill(100, 175, 100);\ntriangle(200,50,50,325,350,325);\nfill(255);\nellipse(200,225,175,50);\nfill(0);\nellipse(200,225,50,50);\nfill(100,175,100);\ntextSize(30);\ntext(\"ILLUMINATI CONFIRMED\",200,30);\n}\n}\n}\ntextSize(30);\nif(cameraUp===true&&cameraOpen===0&&blink>10){\nfill(255,0,0);\nellipse(30,30,20,20);\n}\n    //The HUD\n        noFill();\nstroke(255,255,255,200);\nstrokeWeight(2);\nrect(5,height-55,width-10,50,10);\nline(width/2,height-35,width/2+50,height-45);\nline(width/2,height-25,width/2+50,height-35);\nline(width/2,height-15,width/2+50,height-25);\nline(width/2,height-35,width/2-50,height-45);\nline(width/2,height-25,width/2-50,height-35);\nline(width/2,height-15,width/2-50,height-25);\nrect(5,height-110,50,50,10);\nfill(255,255,255,200);\ntextSize(50);\ntext(\"☀\",30,height-88);\ntext(\"☀\",370,height-88);\nnoFill();\nrect(60,height-110,100,50,10);\nrect(240,height-110,100,50,10);\nfill(255,255,255,200);\ntextSize(30);\ntext(\"Vent.\",112,height-88);\ntext(\"Vent.\",293,height-88);\nif(cameraUp===false){\n fill(50);\nrect(25,75,125,vent1);\nrect(250,75,125,vent2);   \n}\n}\n/**Things that are not affected by camType**/\n/****/\nif(vent1Open===false){\n    vent1+=5;\n}\nif(vent1Open===true){\n    vent1-=1;\n}\nif(vent1>175){\n    vent1=175;\n}\nif(vent1<0){\n    vent1=0;\n}\nif(vent2Open===false){\n    vent2+=5;\n}\nif(vent2Open===true){\n    vent2-=1;\n}\nif(vent2>175){\n    vent2=175;\n}\nif(vent2<0){\n    vent2=0;\n}\nif(keyIsPressed&&keyCode===SHIFT){\n    camType=1;\n}\nif(keyIsPressed&&keyCode===ALT){\n    camType=2;\n}\nnoStroke();\nif(vent1Open&&vent2Open){\n    if(circulator>0&&air<10000){\n    air+=3;\n    }\n    if(circulator===0&&air>0){\n        air-=2;\n    }\n}\nif(vent1Open&&!vent2Open&&circulator===0&&air>0){\nair-=5;\n}\nif(!vent1Open&&vent2Open&&circulator===0&&air>0){\nair-=5;\n}\nif(!vent1Open&&!vent2Open&&air>0){\n    air-=7;\n}\nif(air>10000){\n    air=10000;\n}\nif(air<0){\n    air=0;\n}\nif(door1Open===true&&where1===5&&lrTime===0){\noutsideTimer+=0.5;\n}else if(door1Open===false&&where1===5||lrTime>0){\noutsideTimer-=1.5;\n}\nif(door2Open===true&&where2===6&&rrTime===0){\n    if(rrTime>0){\n        outsideTimer-=1.5;\n    } else {\n       outsideTimer+=1; \n    }\n}else if(door2Open===false&&where2===6||rrTime>0){\noutsideTimer-=1.5;\n}\nif(door1Open===true&&where3===5&&lrTime===0){\noutsideTimer+=0.5;\n}else if(door1Open===false&&where3===5||lrTime>0){\noutsideTimer-=1.5;\n}\nif(door2Open===true&&where4===5&&rrTime===0){\n    outsideTimer+=0.5;\n}else if(door2Open===false&&where4===5||rrTime>0){\n    outsideTimer-=1.5;\n}\nif(door1Open===true&&where5===4&&lrTime===0){\n    outsideTimer+=1;\n}else if(door1Open===false&&where5===4||lrTime>0){\n    outsideTimer-=1.5;\n}\nif(door2Open===true&&where6===5&&rrTime===0){\n    outsideTimer+=0.5;\n}else if(door2Open===false&&where6===5||rrTime>0){\n    outsideTimer-=1.5;\n}\noutsideTimer=constrain(outsideTimer,0,180);\nif(outsideTimer===179){\n    if(coolDown===0&&powerUp===\"Mask\"){\n        outsideTimer=0;\n        coolDown=9001;\n        if(where1===5){\n            where1=1;\n        }\n        if(where2===5){\n            where2=1;\n        }\n        if(where3===5){\n            where3=1;\n        }\n        if(where4===5){\n            where4=1;\n            musicBox=500;\n            where4cd=600;\n        }\n        if(where5===4){\n            where5=1;\n        }\n        if(where6===5){\n            where6=1;\n        }\n    }\nplaySound(getSound(\"retro/thruster-long\"));\nplaySound(getSound(\"retro/thruster-long\"));\nplaySound(getSound(\"retro/thruster-long\"));\nplaySound(getSound(\"retro/jump1\"));\nplaySound(getSound(\"retro/coin\"));\n}\nif(where7===5&&vent1Open&&crazyTimerA<150){\ncrazyTimerA+=1;\n}\nif(where7===5&&!vent1Open){\nif(crazyTimerA>1){\n    crazyTimerA-=1;\n} else {\n    where7=1;\n}\n}\nif(where8===5&&crazyTimerB<150&&!vent2Open){\ncrazyTimerB-=1;\n}\nif(where9===6&&!vent2Open){\nif(crazyTimerC>1){\n    crazyTimerC-=1;\n} else {\n    where9=1;\n}\n}\nif(where9===6&&crazyTimerC<150&&vent2Open){\ncrazyTimerC+=1;\n}\nif(outsideTimer===180){\npower=0;\njump*=1.4;\nimageMode(CENTER);\nif(where1===5){\nimage(getImage(\"creatures/Hopper-Jumping\"),width/2,height/2,jump,jump);\n}else if(where2===5){\nimage(getImage(\"avatars/orange-juice-squid\"),width/2,height/2,jump,jump);\n}else if(where3===5){\nimage(getImage(\"creatures/Winston\"),width/2,height/2,jump,jump);\n}else if(where4===5){\nimage(getImage(\"avatars/purple-pi\"),width/2,height/2,jump,jump);\n} else if(where5===4){\nimage(getImage(\"avatars/spunky-sam\"),width/2,height/2,jump,jump);\n} else if(where6===5){\n    image(getImage(\"avatars/mr-pink\"),width/2,height/2,jump,jump);\n}\n}\nimageMode(CORNER);\nfill(255,0,0);\n//text(move1+\" \"+where1,200,200);\nif(outsideTimer===0&&door1>200&&where1===5){\nwhere1=0;\n}\nif(outsideTimer===0&&door2>200&&where2===5){\nwhere2=0;\n}\nif(outsideTimer===0&&door1>200&&where3===5){\nwhere3=0;\n}\nif(outsideTimer===0&&door2>200&&where4===5){\nwhere4=1;\nmusicBox=500;\nwhere4move=90;\nwhere4cd=600;\npowerRegen=600;\npower-=2500;\n}\nif(outsideTimer===0&&door1>200&&where5===4){\nwhere5=1;\n}\nif(outsideTimer===0&&door2>200&&where6===5){\n    where6=1;\n}\nif(where4cd>0){\n    where4cd-=1;\n}\nif(door1Open&&door2Open&&!cameraUp&&powerRegen===0){\n    power+=4;\n}\nif(cameraUp===false){\n if(musicBox<=200&&musicBox>100){\n        fill(255, 255, 0);\n        triangle(160,340,240,340,200,300);\n    }\n    if(musicBox<=100&&musicBox>0){\n        fill(255, 124, 0);\n        triangle(160,340,240,340,200,300);\n    }\n    if(musicBox<1){\n        fill(255, 0, 0);\n        triangle(160,340,240,340,200,300);\n        if(where4<4){\n                   where4move-=1; \n        }\n    }   \n}\nif(where4move===0&&where4<4){\n        where4+=1;\n        where4move=90;\n    }\nif(musicBox<0){\n        musicBox=0;\n    }\nif(circulator>0){\nif(where10===5){\ncirculatorDrain=2;\n} else {\ncirculatorDrain=1;\n}\ncirculator-=circulatorDrain;\n}\nif(!where4cd){\n   musicBox-=0.125*ai4; \n}\nfill(255, 0, 0);\nif(where6===4){\n    power-=2;\n}\nif(keyIsPressed&&keyCode===17&&coolDown<1){\nif(powerUp===\"LR\"){\ncoolDown=3600;\nlrTime=1200;\n    }\nif(powerUp===\"RR\"){\n    coolDown=3600;\n    rrTime=1200;\n}\nif(powerUp===\"PowerUp\"){\n    power+=2500;\n    powerRegen=0;\n    coolDown=5400;\n}\nif(powerUp===\"WinstonD\"){\n    coolDown=2700;\n    winstonTime=600;\n    where4=1;\n}\nif(powerUp===\"Winder\"){\n    coolDown=7200;\n    where4cd=1800;\n    where4=1;\n    musicBox=500;\n}\nif(powerUp===\"Attractor\"){\n   coolDown=4500;\n   where1=1;\n   where2=1;\n   where5=1;\n}\nif(powerUp===\"Diverger\"){\n    coolDown=3600;\n    where3=1;\n    where6=1;\n    fuzzyWait=1200;\n}\nif(powerUp===\"Bonus\"){\n    coolDown=1800;\n    score+=25;\n}\nif(powerUp===\"Trap\"){\n    trapTime=1800;\n    coolDown=7200;\n}\n}\nif(trapTime>0){\n    if(where1===5||where3===5||where5===4){\n    playSound(getSound(\"rpg/battle-magic\"));\n    }\n    if(where2===5||where4===5||where6===5){\n    playSound(getSound(\"rpg/metal-clink\"));\n    }\n}\n//text(outsideTimer,100,30);\ntextSize(20);\nif(!cameraUp){\n    if(powerUp!==\"None\"){\n       text(\"Cooldown: \"+floor(coolDown/60),200,50);   \n    }\nif(powerUp===\"LR\"){\ntext(\"Power Up Time: \"+floor(lrTime/60),200,100);   \n}\nif(powerUp===\"RR\"){\ntext(\"Power Up Time: \"+floor(rrTime/60),200,100);  \n}\nif(powerUp===\"Trap\"){\n text(\"Power Up Time: \"+floor(trapTime/60),200,100);     \n}\nif(crazyTimerC===150){\nfill(255, 0, 0);\ntextSize(50);\ntext(\"HOPPER IS COMING\",random(0,375),random(0,350));\nimage(getImage(\"avatars/aqualine-ultimate\"),random(0,350),random(0,350));\nfill(random(0,255),random(0,255),random(0,255));\ntriangle(random(0,400),random(0,400),random(0,400),random(0,400),random(0,400),random(0,400));\n}\n   }\nif(cameraUp){\n      coolDown-=1;\nlrTime-=1; \nif(coolDown<0){\n    coolDown=0;{\n    }\n}\nif(lrTime<0){\n    lrTime=0;\n}\n   }\ncoolDown-=1;\nlrTime-=1;\nrrTime-=1;\nwinstonTime-=1;\nfuzzyWait-=1;\ntrapTime-=1;\nif(coolDown<0){\n    coolDown=0;\n}\nif(lrTime<0){\n    lrTime=0;\n}\nif(rrTime<0){\n    rrTime=0;\n}\nif(winstonTime<0){\n    winstonTime-=1;\n}\nif(trapTime<0){\n    trapTime=0;\n}\nif(fuzzyWait<0){\n    fuzzyWait=0;\n}\nif(air<2000&&air>999){\nfill(0,0,0,124);\nrect(-5,-5,500,500);\n}\nif(air<1000){\nfill(0,0,0,200);\nrect(-5,-5,500,500);\n}\nif(air===0&&reserve===2500){\nreserve=0;\nvent1Open=true;\nvent2Open=true;\ncirculator+=1500;\n} else if (air===0&&reserve<2500){\njump=501;\n}\nif(crazyTimerB===150){\nfill(0);\nellipse(random(0,400),random(0,400),25,25);\nfill(50);\nellipse(random(0,400),random(0,400),25,25);\nfill(124);\nellipse(random(0,400),random(0,400),25,25);\nfill(200);\nellipse(random(0,400),random(0,400),25,25);\nfill(50,0,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(124,0,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(200,0,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(255,0,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,50,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,124,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,200,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,255,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,0,50);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,0,124);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,0,200);\nellipse(random(0,400),random(0,400),25,25);\nfill(0,0,255);\nellipse(random(0,400),random(0,400),25,25);\nfill(50,50,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(124,50,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(200,50,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(255,50,0);\nellipse(random(0,400),random(0,400),25,25);\nfill(50,124,0);\nellipse(random(0,400),random(0,400),25,25);\n}\nif(jump>500){\n        jump=501;\nbackground(0);\nfill(255);\nvar howLong=minute()-howLongMin;\ntext(\"Your score is: \"+score+\"\\nPress Control\\n or Command to Restart\",width/2,height/2);\ntextSize(20);\n}\nif(keyIsPressed&&keyCode===17&&jump>500){\nProgram.restart();\n}\n}\nif(buttonspeed>0){\n        buttonspeed-=1;\n    }\n};";
+code = code + '/**A Night @ Hoppers by David Elijah de Siqueira Campos McLaughlin\n'+
+'Original size(400, 400);\n'+
+'Originally Created on 2015-02-01T18:45:27Z by kaid_976851263300560061760577\n'+
+'Last Edited: 2015-02-01T18:45:27Z\n'+
+'Votes/Spinoffs: 16/10\n'+
+'Originally Created: 2018-10-12T13:39:07Z from origin None with similarity of 0.0\n'+
+'Original Link: https://www.khanacademy.org/computer-programming/a-night-hoppers/6437516425822208\n'+
+'Retrieved On: 07-Nov-2022 (17:06:36.416360)**/\n'+
+'//Before playing, read this!!!!   V V V\n'+
+'/**You are the security guard. Hopper, Winston, Pi and Squid (among others) will try to get into your office. You need to keep them out by watching the security cameras and closing the doors when they are outside. You can check outside by turning on the lights. Using stuff takes up power so you must try and conserve it. Click on the camera screen to change the camera. Looking at the camera will stop (some) characters from moving while you observe them.**/\n'+
+'/**\n'+
+' * Hopper comes to the left door, and squid goes to the right. \n'+
+' * Squid will attack faster so you must close that door quicker. \n'+
+' * Winston is sneaky and can only be seen if you set your camera to HDMI 5 when he is outside of the door. If he is outside, close the left door! Winston Particles can be seen in HDMI 2.\n'+
+' * Purple Pi is inside the music box on HDMI 3, where you can remotely wind it up. Once he is away from HDMI 3 he can\'t be stopped by the music box! He will arrive in HDMI 6, where you you need to close the right door to reset him! He will take away 10% of your power and temporarily disable recharging, but the music box won\'t start winding down again until the building begins recharging.\n'+
+' * Spunky Sam goes through all odd cameras and will slow down music box charging when in HDMI 3. He will enter through the left door and attack quickly, like Squid. He can be seen with the light.\n'+
+' * Fuzzy Starts in HDMI 2 and goes through all even cameras and will drain your power in HDMI 4. He will enter through the right door and can be seen with the light.\n'+
+' * Seeds live in the vents and will cause hallucinations, each one unique to a character, but will not kill you (exception: Red Seed draining the circulator)\n'+
+' * Green Leafer is in the vents, accesible by pressing "alt". Return to the front by pressing "shift". He will attack from the left vent. He causes visual hallucinations on the cameras\n'+
+' * Yellow seed will attack from vent 3, use 5% of your power to zap him out.\n'+
+' * Blue seed will attack from the right vent and will imitate Winston\'s sounds once there.\n'+
+' * Red seed will travel to the air circulator and speed up the failure timer. If the air circulator fails, no fresh air will enter the room and will cause the player\'s death. At 10% air or lower, your vision will start to black out. If your air container is filled when you run out of air, the screen will show a notification and will restart the air circulator to half.\n'+
+' *Try to survive as long as you can!\n'+
+'**/\n'+
+'/**There are power ups you can choose from! They serve different functions, but they all have a cooldown.\n'+
+' * Left and Right Repellent: Cooldown (CD): 60 Seconds. Effect (E): Protects player from characters that move through their respective door to attack. Example: Left Repellent will protect you from Hopper, but Squid can still attack you.\n'+
+' * Power Up: CD: 90 Seconds. E: Gives player 50% power (no overcharge) and fixes Pi\'s No-Recharge debuff.\n'+
+' * Winston Detector: CD 45 Seconds. E: Stops Winston for 10 seconds and reveals his location (via Winston Particles). Will not stop his attack.\n'+
+' * Winder: CD 120 Seconds: E: Returns Pi back to his box, winds up the box and keeps it wound for 30 seconds.\n'+
+' * Attractor: CD: 120 Seconds E: Returns Hopper, Squid and Sam to their starting positions and keeps them there for 15 seconds.\n'+
+' * Diverger: CD: 75 Seconds E: Returns Winston and Fuzzy to their starting positions and keeps Fuzzy there for 20 seconds. Winston is not restrained.\n'+
+' * Bonus: CD: 30 Seconds E: Gives Player 20 Points. Does nothing else but that!\n'+
+' * Mask: CD 150 Seconds E: Player is invulnerable to one attack. Cannot be manually activated.\n'+
+' * Trap: CD 120 Seconds E: Sets traps on HDMI 5 and HDMI 6 (Blind spots where you can be attacked). Makes noise when an enemy has arrived and goes away after 30 seconds. Different noises for left and right doors.\n'+
+'**/\n'+
+'\n'+
+'// Update 11/8/2022: Increased Power Regen Rate, Removed Vents 6 & 7, changed behavior of some seedlings, fixed some visual errors\n'+
+'\n'+
+'\n'+
+'/**Who killed you first? Post in the tips and thanks. If you want more or like it, vote up!**/\n'+
+'\n'+
+'//This is FAR from done!\n'+
+'//Add Enemy who advances when you run out of power.\n'+
+'//Add Power Bars to show Usage\n'+
+'\n'+
+'//3D tiles by Peter Collingridge was used! All other code is by me!\n'+
+'\n'+
+'//For slower computers, set this to true.\n'+
+'var lowRAM=false;\n'+
+'\n'+
+'var state="Splash";\n'+
+'var htState="Home";\n'+
+'var aicPage=1;\n'+
+'//Power Up Variables\n'+
+'{var powerUp="None";\n'+
+'var coolDown=0;\n'+
+'var lrTime=0;\n'+
+'var rrTime=0;\n'+
+'var winstonTime=0;\n'+
+'var trapTime=0;\n'+
+'var fuzzyWait=0;}\n'+
+'//Other Things\n'+
+'{var howLongMin=minute();\n'+
+'var howLongHour=hour();\n'+
+'var score=0;}\n'+
+'//Enemy Variables\n'+
+'{var ai1=0; // Hopper\'s AI\n'+
+'var ai2=0; // Squid\'s AI\n'+
+'var ai3=0; // Winston\'s AI\n'+
+'var ai4=0; // Purple Pi\'s AI\n'+
+'var ai5=0; // Sam\'s AI\n'+
+'var ai6=0; // Fuzzy\'s AI\n'+
+'var ai7=0; // Green\'s AI\n'+
+'var ai8=0; // Yellow\'s AI\n'+
+'var ai9=0; // Blue\'s AI\n'+
+'var ai10=0; // Red\'s AI\n'+
+'var jump=1;\n'+
+'var outsideTimer=0;\n'+
+'var outsideTimer2=0;\n'+
+'var crazyTimerA=0;\n'+
+'var crazyTypeA=0;\n'+
+'var crazyTimerB=0;\n'+
+'var crazyTimerC=0;\n'+
+'var moveTimer=10;\n'+
+'var move1=3;\n'+
+'var move2=3;\n'+
+'var move3=3;\n'+
+'var move4=3;\n'+
+'var move5=3;\n'+
+'var move6=3;\n'+
+'var move7=3;\n'+
+'var move8=3;\n'+
+'var move9=3;\n'+
+'var move10=3;\n'+
+'var where1=1;\n'+
+'var where2=1;\n'+
+'var where3=1;\n'+
+'var where4=1;\n'+
+'var where5=1;\n'+
+'var where6=1;\n'+
+'var where7=1;\n'+
+'var where8=1;\n'+
+'var where9=1;\n'+
+'var where10=1;\n'+
+'var where4move=90;\n'+
+'var where4cd=0;\n'+
+'}\n'+
+'//Other Variables\n'+
+'{var vent1=0;\n'+
+'var vent2=0;\n'+
+'var vent1Open=true;\n'+
+'var vent2Open=true;\n'+
+'var air = 10000;\n'+
+'var reserve = 0;\n'+
+'var aires = false;\n'+
+'var circulator=3000;\n'+
+'var circulatorDrain=1;\n'+
+'var camType=1;\n'+
+'var buttonspeed=30;\n'+
+'var aispeed=0;\n'+
+'var powerRegen=0;\n'+
+'var door1Open=true;\n'+
+'var door2Open=true;\n'+
+'var power=10000;\n'+
+'var musicBox=500;\n'+
+'var musicBoxs=0;\n'+
+'var HDMI=1;\n'+
+'var vent=1;\n'+
+'var light1=false;\n'+
+'var light2=false;\n'+
+'var perspect=500;\n'+
+'var horizon=70;\n'+
+'var tileWidth=100;\n'+
+'var nodes=[];\n'+
+'var door1=0;\n'+
+'var door2=0;\n'+
+'var meX=0;\n'+
+'var meY=40;\n'+
+'var cameraOpen=height;\n'+
+'var cameraUp=true;\n'+
+'var blink=0;\n'+
+'var barPosition=10;\n'+
+'var scrollX=0;\n'+
+'frameRate(60);\n'+
+'}\n'+
+'var mouseClicked=function(){\n'+
+'if(cameraUp===true&&cameraOpen===0&&mouseY<height-115){\n'+
+'    if(camType===1){\n'+
+'    HDMI+=1;\n'+
+'playSound(getSound("retro/thruster-short"));\n'+
+'    }\n'+
+'    if(camType===2){\n'+
+'    vent+=1;\n'+
+'    playSound(getSound("retro/thruster-short"));\n'+
+'    }\n'+
+'}\n'+
+'if(HDMI===7){\n'+
+'HDMI=1;\n'+
+'}\n'+
+'if(vent===6){\n'+
+'    vent=1;\n'+
+'}\n'+
+'if(mouseY>height-50&&cameraUp===false){\n'+
+'cameraUp=true;\n'+
+'}else if(mouseY>height-50&&cameraUp===true){\n'+
+'cameraUp=false;\n'+
+'}\n'+
+'if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&door1Open===true&&camType===1){\n'+
+'door1Open=false;\n'+
+'}else if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&door1Open===false&&camType===1){\n'+
+'door1Open=true;\n'+
+'}else\n'+
+'if(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&door2Open===true&&camType===1){\n'+
+'door2Open=false;\n'+
+'}else if(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&door2Open===false&&camType===1){\n'+
+'door2Open=true;\n'+
+'} else if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&vent1Open===true&&camType===2){\n'+
+'vent1Open=false;\n'+
+'}else if(mouseX>60&&mouseY>height-110&&mouseX<165&&mouseY<height-55&&vent1Open===false&&camType===2){\n'+
+'vent1Open=true;\n'+
+'}else\n'+
+'if(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&vent2Open===true&&camType===2){\n'+
+'vent2Open=false;\n'+
+'}else if(mouseX<width-60&&mouseY>height-110&&mouseX>width-165&&mouseY<height-55&&vent2Open===false&&camType===2){\n'+
+'vent2Open=true;\n'+
+'}\n'+
+'};\n'+
+'noStroke();\n'+
+'textSize(20);\n'+
+'var draw=function(){\n'+
+'    if(state==="Splash"){\n'+
+'    background(0, 0, 0);\n'+
+'    fill(255);\n'+
+'    textSize(30);\n'+
+'    text("A Night @ Hoppers",0,30);\n'+
+'    image(getImage("creatures/Hopper-Cool"),200,200,175,150);\n'+
+'    fill(124);\n'+
+'    rect(50,100,150,50);\n'+
+'    fill(255);\n'+
+'    text("Play",100,130);\n'+
+'    if(mouseX>=50&&mouseX<=200&&mouseY>=100&&mouseY<=150){\n'+
+'        if(!mouseIsPressed){\n'+
+'        fill(200);\n'+
+'    rect(50,100,150,50);\n'+
+'    fill(255);\n'+
+'    text("Play",100,130);    \n'+
+'        }\n'+
+'        if(mouseIsPressed){\n'+
+'            state="P-Ups";\n'+
+'        }\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(50,175,150,50);\n'+
+'    fill(255);\n'+
+'    text("How To",75,210);\n'+
+'    if(mouseX>=50&&mouseX<=200&&mouseY>=175&&mouseY<=225){\n'+
+'        if(!mouseIsPressed){\n'+
+'        fill(200);\n'+
+'    rect(50,175,150,50);\n'+
+'    fill(255);\n'+
+'    text("How To",75,210); \n'+
+'        }\n'+
+'        if(mouseIsPressed){\n'+
+'            state="How To";\n'+
+'            buttonspeed=30;\n'+
+'        }\n'+
+'        }\n'+
+'    }\n'+
+'    if(state==="How To"){\n'+
+'    if(htState==="Home"){\n'+
+'    background(0);\n'+
+'    fill(255);\n'+
+'    textSize(50);\n'+
+'    text("How To Play/Info",0,50);\n'+
+'    fill(124);\n'+
+'    rect(125,325,150,50);\n'+
+'    fill(255);\n'+
+'    textSize(50);\n'+
+'    text("Home",135,370);\n'+
+'    if(mouseX>=125&&mouseX<=275&&mouseY>=325&&mouseY<=375&&buttonspeed===0){\n'+
+'        if(mouseIsPressed){\n'+
+'        state="Splash";\n'+
+'        htState="Home";\n'+
+'        }\n'+
+'        if(!mouseIsPressed){\n'+
+'           fill(200);\n'+
+'    rect(125,325,150,50);\n'+
+'    fill(255);\n'+
+'    textSize(50);\n'+
+'    text("Home",135,370); \n'+
+'        }\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(124,75,150,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("Basic Guide",130,110);\n'+
+'    if(mouseX>=125&&mouseX<=275&&mouseY>=75&&mouseY<=125&&buttonspeed===0){\n'+
+'        if(mouseIsPressed){\n'+
+'            htState="Basic Guide";\n'+
+'            buttonspeed=30;\n'+
+'        } else {\n'+
+'            fill(200);\n'+
+'    rect(124,75,150,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("Basic Guide",130,110);\n'+
+'        }\n'+
+'        }\n'+
+'    fill(124);\n'+
+'    rect(125,150,150,50);\n'+
+'    fill(255);\n'+
+'    text("Enemies",150,185);\n'+
+'    }\n'+
+'    if(htState==="Basic Guide"){\n'+
+'        background(0);\n'+
+'        fill(255);\n'+
+'        textSize(50);\n'+
+'        text("Basic Guide",0,50);\n'+
+'    }\n'+
+'    }\n'+
+'    if(state==="P-Ups"){\n'+
+'        background(0, 0, 0);\n'+
+'        fill(124);\n'+
+'        rect(25,25,100,50);\n'+
+'        rect(275,25,100,50);\n'+
+'        rect(25,100,100,50);\n'+
+'        rect(150,100,100,50);\n'+
+'        rect(275,100,100,50);\n'+
+'        rect(25,175,100,50);\n'+
+'        rect(150,175,100,50);\n'+
+'        rect(275,175,100,50);\n'+
+'        rect(25,250,100,50);\n'+
+'        rect(150,250,100,50);\n'+
+'        rect(275,250,100,50);\n'+
+'        rect(150,325,100,50);\n'+
+'        fill(255);\n'+
+'        textSize(30);\n'+
+'        text("Power\n  Ups",150,30);\n'+
+'        textSize(20);\n'+
+'        text("    Left \nRepellent",30,45);\n'+
+'        text("   Right\nRepellent",285,45);\n'+
+'        text("Power\n   Up",50,120);\n'+
+'        text("Winston\nDetector",160,120);\n'+
+'        text("Winder",295,130);\n'+
+'        text("Attractor",40,205);\n'+
+'        text("Diverger",160,205);\n'+
+'        text("Bonus",295,205);\n'+
+'        text("Mask",50,280);\n'+
+'        text("Trap",175,280);\n'+
+'        text("None",300,280);\n'+
+'        text("Next",175,355);\n'+
+'        if(mouseX>=25&&mouseX<=125&&mouseY>=25&&mouseY<=75){\n'+
+'            if(!mouseIsPressed){\n'+
+'                fill(200);\n'+
+'                rect(25,25,100,50);\n'+
+'                fill(255);\n'+
+'                text("    Left \nRepellent",30,45);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="LR";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=275&&mouseX<=375&&mouseY>=25&&mouseY<=75){\n'+
+'            if(!mouseIsPressed){\n'+
+'               fill(200);\n'+
+'               rect(275,25,100,50);\n'+
+'               fill(255);\n'+
+'               text("   Right\nRepellent",285,45);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="RR";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=25&&mouseX<=125&&mouseY>=100&&mouseY<=150){\n'+
+'            if(!mouseIsPressed){\n'+
+'                fill(200);\n'+
+'                rect(25,100,100,50);\n'+
+'                fill(255);\n'+
+'                text("Power\n   Up",50,120);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="PowerUp";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=150&&mouseX<=250&&mouseY>=100&&mouseY<=150){\n'+
+'            if(!mouseIsPressed){\n'+
+'            fill(200);\n'+
+'            rect(150,100,100,50);\n'+
+'            fill(255);\n'+
+'            text("Winston\nDetector",160,120);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="WinstonD";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=275&&mouseX<=375&&mouseY>=100&&mouseY<=150){\n'+
+'            if(!mouseIsPressed){\n'+
+'                fill(200);\n'+
+'                rect(275,100,100,50);\n'+
+'                fill(255);\n'+
+'                text("Winder",295,130);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="Winder";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=25&&mouseX<=125&&mouseY>=175&&mouseY<=225){\n'+
+'        if(!mouseIsPressed){\n'+
+'        fill(200);\n'+
+'        rect(25,175,100,50);\n'+
+'        fill(255);\n'+
+'        text("Attractor",40,205);\n'+
+'        }\n'+
+'        if(mouseIsPressed){\n'+
+'            powerUp="Attractor";\n'+
+'        }\n'+
+'        }\n'+
+'        if(mouseX>=150&&mouseX<=250&&mouseY>=175&&mouseY<=225){\n'+
+'        if(!mouseIsPressed){\n'+
+'                fill(200);\n'+
+'                rect(150,175,100,50);\n'+
+'                fill(255);\n'+
+'                text("Diverger",160,205);\n'+
+'            }\n'+
+'        if(mouseIsPressed){\n'+
+'            powerUp="Diverger";\n'+
+'        }    \n'+
+'        }\n'+
+'        if(mouseX>=275&&mouseX<=375&&mouseY>=175&&mouseY<=225){\n'+
+'            if(!mouseIsPressed){\n'+
+'                fill(200);\n'+
+'                rect(275,175,100,50);\n'+
+'                fill(255);\n'+
+'                text("Bonus",295,205);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="Bonus";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=25&&mouseX<=125&&mouseY>=250&&mouseY<=300){\n'+
+'            if(!mouseIsPressed){\n'+
+'            fill(200);\n'+
+'            rect(25,250,100,50);\n'+
+'            fill(255);\n'+
+'            text("Mask",50,280);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="Mask";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=150&&mouseX<=250&&mouseY>=250&&mouseY<=300){\n'+
+'            if(!mouseIsPressed){\n'+
+'            fill(200);\n'+
+'            rect(150,250,100,50);\n'+
+'            fill(255);\n'+
+'            text("Trap",175,280);\n'+
+'            }\n'+
+'            if(mouseIsPressed){\n'+
+'                powerUp="Trap";\n'+
+'            }\n'+
+'        }\n'+
+'        if(mouseX>=275&&mouseX<=375&&mouseY>=250&&mouseY<=300){\n'+
+'        if(!mouseIsPressed){\n'+
+'            fill(200);\n'+
+'            rect(275,250,100,50);\n'+
+'            fill(255);\n'+
+'            text("None",300,280);\n'+
+'        }\n'+
+'        if(mouseIsPressed){\n'+
+'            powerUp="None";\n'+
+'        }\n'+
+'        }\n'+
+'        if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed){\n'+
+'        state="AIC";\n'+
+'        buttonspeed=30;\n'+
+'        }\n'+
+'        if(powerUp==="LR"){\n'+
+'            fill(200);\n'+
+'                rect(25,25,100,50);\n'+
+'                fill(255);\n'+
+'                text("    Left \nRepellent",30,45);\n'+
+'        }\n'+
+'        if(powerUp==="RR"){\n'+
+'             fill(200);\n'+
+'               rect(275,25,100,50);\n'+
+'               fill(255);\n'+
+'               text("   Right\nRepellent",285,45);\n'+
+'        }\n'+
+'        if(powerUp==="PowerUp"){\n'+
+'            fill(200);\n'+
+'                rect(25,100,100,50);\n'+
+'                fill(255);\n'+
+'                text("Power\n   Up",50,120);\n'+
+'        }\n'+
+'        if(powerUp==="WinstonD"){\n'+
+'            fill(200);\n'+
+'            rect(150,100,100,50);\n'+
+'            fill(255);\n'+
+'            text("Winston\nDetector",160,120);\n'+
+'        }\n'+
+'        if(powerUp==="Winder"){\n'+
+'           fill(200);\n'+
+'                rect(275,100,100,50);\n'+
+'                fill(255);\n'+
+'                text("Winder",295,130);\n'+
+'        }\n'+
+'        if(powerUp==="Attractor"){\n'+
+'            fill(200);\n'+
+'        rect(25,175,100,50);\n'+
+'        fill(255);\n'+
+'        text("Attractor",40,205);\n'+
+'        }\n'+
+'        if(powerUp==="Diverger"){\n'+
+'            fill(200);\n'+
+'            rect(150,175,100,50);\n'+
+'            fill(255);\n'+
+'            text("Diverger",160,205);\n'+
+'        }\n'+
+'        if(powerUp==="Bonus"){\n'+
+'            fill(200);\n'+
+'                rect(275,175,100,50);\n'+
+'                fill(255);\n'+
+'                text("Bonus",295,205);\n'+
+'        }\n'+
+'        if(powerUp==="Mask"){\n'+
+'           fill(200);\n'+
+'            rect(25,250,100,50);\n'+
+'            fill(255);\n'+
+'            text("Mask",50,280); \n'+
+'        }\n'+
+'        if(powerUp==="Trap"){\n'+
+'            fill(200);\n'+
+'            rect(150,250,100,50);\n'+
+'            fill(255);\n'+
+'            text("Trap",175,280);\n'+
+'        }\n'+
+'        if(powerUp==="None"){\n'+
+'            fill(200);\n'+
+'            rect(275,250,100,50);\n'+
+'            fill(255);\n'+
+'            text("None",300,280);\n'+
+'        }\n'+
+'    }\n'+
+'    if(state==="AIC"){\n'+
+'    if(aicPage===1){\n'+
+'    background(0);\n'+
+'    fill(255);   \n'+
+'    textSize(30);\n'+
+'    text("          AI\nCustomization",100,30);\n'+
+'    fill(200);\n'+
+'    rect(25,75,150,150);\n'+
+'    rect(225,75,150,150);\n'+
+'    image(getImage("creatures/Hopper-Cool"),35,100);\n'+
+'    image(getImage("avatars/orange-juice-squid"),235,95);\n'+
+'    fill(124);\n'+
+'    rect(10,250,50,50);\n'+
+'    rect(135,250,50,50);\n'+
+'    rect(210,250,50,50);\n'+
+'    rect(340,250,50,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("<<",20,285);\n'+
+'    text(">>",140,285);\n'+
+'    text("<<",220,285);\n'+
+'    text(">>",345,285);\n'+
+'    text(ai1,90,285);\n'+
+'    text(ai2,290,285);\n'+
+'    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai1-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai1+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai2-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai2+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(ai1<0){\n'+
+'        ai1=0;\n'+
+'    }\n'+
+'    if(ai1>10){\n'+
+'        ai1=10;\n'+
+'    }\n'+
+'    if(ai2<0){\n'+
+'        ai2=0;\n'+
+'    }\n'+
+'    if(ai2>10){\n'+
+'        ai2=10;\n'+
+'    }\n'+
+'    if(aispeed>0){\n'+
+'        aispeed-=1;\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(150,325,100,50);\n'+
+'    rect(275,325,100,50);\n'+
+'    fill(255);\n'+
+'    text("Play",170,355);\n'+
+'    text("Next",295,355);\n'+
+'    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        state="Play";\n'+
+'    }\n'+
+'    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        aicPage=2;\n'+
+'        buttonspeed=30;\n'+
+'    }\n'+
+'    }\n'+
+'    if(aicPage===2){\n'+
+'        background(0);\n'+
+'           fill(255);   \n'+
+'    textSize(30);\n'+
+'    text("          AI\nCustomization",100,30);\n'+
+'    fill(200);\n'+
+'    rect(25,75,150,150);\n'+
+'    rect(225,75,150,150);\n'+
+'    image(getImage("creatures/Winston"),35,100);\n'+
+'    image(getImage("avatars/purple-pi"),235,95);\n'+
+'    fill(124);\n'+
+'    rect(10,250,50,50);\n'+
+'    rect(135,250,50,50);\n'+
+'    rect(210,250,50,50);\n'+
+'    rect(340,250,50,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("<<",20,285);\n'+
+'    text(">>",140,285);\n'+
+'    text("<<",220,285);\n'+
+'    text(">>",345,285);\n'+
+'    text(ai3,90,285);\n'+
+'    text(ai4,290,285);\n'+
+'    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai3-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai3+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai4-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai4+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(ai3<0){\n'+
+'        ai3=0;\n'+
+'    }\n'+
+'    if(ai3>10){\n'+
+'        ai3=10;\n'+
+'    }\n'+
+'    if(ai4<0){\n'+
+'        ai4=0;\n'+
+'    }\n'+
+'    if(ai4>10){\n'+
+'        ai4=10;\n'+
+'    }\n'+
+'    if(aispeed>0){\n'+
+'        aispeed-=1;\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(150,325,100,50);\n'+
+'    rect(275,325,100,50);\n'+
+'    rect(25,325,100,50);\n'+
+'    fill(255);\n'+
+'    text("Play",170,355);\n'+
+'    text("Next",295,355);\n'+
+'    text("Back",45,355);\n'+
+'    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        state="Play";\n'+
+'    }\n'+
+'    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        aicPage=3;\n'+
+'        buttonspeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        aicPage=1;\n'+
+'        buttonspeed=30;\n'+
+'    }\n'+
+'        if(buttonspeed>0){\n'+
+'        buttonspeed-=1;\n'+
+'    }\n'+
+'    }\n'+
+'    if(aicPage===3){\n'+
+'                background(0);\n'+
+'           fill(255);   \n'+
+'    textSize(30);\n'+
+'    text("          AI\nCustomization",100,30);\n'+
+'    fill(200);\n'+
+'    rect(25,75,150,150);\n'+
+'    rect(225,75,150,150);\n'+
+'    image(getImage("avatars/spunky-sam"),35,95);\n'+
+'    image(getImage("avatars/mr-pink"),235,95);\n'+
+'    fill(124);\n'+
+'    rect(10,250,50,50);\n'+
+'    rect(135,250,50,50);\n'+
+'    rect(210,250,50,50);\n'+
+'    rect(340,250,50,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("<<",20,285);\n'+
+'    text(">>",140,285);\n'+
+'    text("<<",220,285);\n'+
+'    text(">>",345,285);\n'+
+'    text(ai5,90,285);\n'+
+'    text(ai6,290,285);\n'+
+'    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai5-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai5+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai6-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai6+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(ai5<0){\n'+
+'        ai5=0;\n'+
+'    }\n'+
+'    if(ai5>10){\n'+
+'        ai5=10;\n'+
+'    }\n'+
+'    if(ai6<0){\n'+
+'        ai6=0;\n'+
+'    }\n'+
+'    if(ai6>10){\n'+
+'        ai6=10;\n'+
+'    }\n'+
+'    if(aispeed>0){\n'+
+'        aispeed-=1;\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(150,325,100,50);\n'+
+'    rect(275,325,100,50);\n'+
+'    rect(25,325,100,50);\n'+
+'    fill(255);\n'+
+'    text("Play",170,355);\n'+
+'    text("Next",295,355);\n'+
+'    text("Back",45,355);\n'+
+'    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        state="Play";\n'+
+'    }\n'+
+'    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'       aicPage=4;\n'+
+'        buttonspeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'    aicPage=2;\n'+
+'    buttonspeed=30;\n'+
+'    }\n'+
+'    if(buttonspeed>0){\n'+
+'        buttonspeed-=1;\n'+
+'    }\n'+
+'    }\n'+
+'    if(aicPage===4){\n'+
+'    background(0);\n'+
+'    fill(255);   \n'+
+'    textSize(30);\n'+
+'    text("          AI\nCustomization",100,30);\n'+
+'    fill(200);\n'+
+'    rect(25,75,150,150);\n'+
+'    rect(225,75,150,150);\n'+
+'    image(getImage("avatars/leafers-seed"),35,100);\n'+
+'    image(getImage("avatars/primosaur-seed"),235,95);\n'+
+'    fill(124);\n'+
+'    rect(10,250,50,50);\n'+
+'    rect(135,250,50,50);\n'+
+'    rect(210,250,50,50);\n'+
+'    rect(340,250,50,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("<<",20,285);\n'+
+'    text(">>",140,285);\n'+
+'    text("<<",220,285);\n'+
+'    text(">>",345,285);\n'+
+'    text(ai7,90,285);\n'+
+'    text(ai8,290,285);\n'+
+'    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai7-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai7+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai8-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai8+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(ai7<0){\n'+
+'        ai7=0;\n'+
+'    }\n'+
+'    if(ai7>10){\n'+
+'        ai7=10;\n'+
+'    }\n'+
+'    if(ai8<0){\n'+
+'        ai8=0;\n'+
+'    }\n'+
+'    if(ai8>10){\n'+
+'        ai8=10;\n'+
+'    }\n'+
+'    if(aispeed>0){\n'+
+'        aispeed-=1;\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(150,325,100,50);\n'+
+'    rect(275,325,100,50);\n'+
+'    rect(25,325,100,50);\n'+
+'    fill(255);\n'+
+'    text("Play",170,355);\n'+
+'    text("Next",295,355);\n'+
+'    text("Back",45,355);\n'+
+'    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        state="Play";\n'+
+'    }\n'+
+'    if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        aicPage=5;\n'+
+'        buttonspeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'    aicPage=3;\n'+
+'    buttonspeed=30;\n'+
+'    }\n'+
+'    if(buttonspeed>0){\n'+
+'        buttonspeed-=1;\n'+
+'    }\n'+
+'    }\n'+
+'    if(aicPage===5){\n'+
+'    background(0);\n'+
+'    fill(255);   \n'+
+'    textSize(30);\n'+
+'    text("          AI\nCustomization",100,30);\n'+
+'    fill(200);\n'+
+'    rect(25,75,150,150);\n'+
+'    rect(225,75,150,150);\n'+
+'    image(getImage("avatars/aqualine-seed"),35,100);\n'+
+'    image(getImage("avatars/piceratops-seed"),235,95);\n'+
+'    fill(124);\n'+
+'    rect(10,250,50,50);\n'+
+'    rect(135,250,50,50);\n'+
+'    rect(210,250,50,50);\n'+
+'    rect(340,250,50,50);\n'+
+'    fill(255);\n'+
+'    textSize(25);\n'+
+'    text("<<",20,285);\n'+
+'    text(">>",140,285);\n'+
+'    text("<<",220,285);\n'+
+'    text(">>",345,285);\n'+
+'    text(ai9,90,285);\n'+
+'    text(ai10,290,285);\n'+
+'    if(mouseX>=10&&mouseX<=60&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai9-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=135&&mouseX<=185&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai9+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=210&&mouseX<=260&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai10-=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(mouseX>=335&&mouseX<=385&&mouseY>=250&&mouseY<=300&&mouseIsPressed&&aispeed<1){\n'+
+'        ai10+=1;\n'+
+'        aispeed=30;\n'+
+'    }\n'+
+'    if(ai9<0){\n'+
+'        ai9=0;\n'+
+'    }\n'+
+'    if(ai9>10){\n'+
+'        ai9=10;\n'+
+'    }\n'+
+'    if(ai10<0){\n'+
+'        ai10=0;\n'+
+'    }\n'+
+'    if(ai10>10){\n'+
+'        ai10=10;\n'+
+'    }\n'+
+'    if(aispeed>0){\n'+
+'        aispeed-=1;\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(150,325,100,50);\n'+
+'    //rect(275,325,100,50);\n'+
+'    rect(25,325,100,50);\n'+
+'    fill(255);\n'+
+'    text("Play",170,355);\n'+
+'    //text("Next",295,355);\n'+
+'    text("Back",45,355);\n'+
+'    if(mouseX>=150&&mouseX<=250&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        state="Play";\n'+
+'    }\n'+
+'    /**if(mouseX>=275&&mouseX<=375&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'        aicPage=5;\n'+
+'        buttonspeed=30;\n'+
+'    }**/\n'+
+'    if(mouseX>=25&&mouseX<=125&&mouseY>=325&&mouseY<=375&&mouseIsPressed&&buttonspeed<1){\n'+
+'    aicPage=4;\n'+
+'    buttonspeed=30;\n'+
+'    }\n'+
+'    if(buttonspeed>0){\n'+
+'        buttonspeed-=1;\n'+
+'    }\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(5,5,90,50);\n'+
+'    fill(255);\n'+
+'    text("All10s",15,35);\n'+
+'    if(mouseX>=5&&mouseX<=95&&mouseY>=5&&mouseY<=55){\n'+
+'    if(!mouseIsPressed){\n'+
+'    fill(200);\n'+
+'    rect(5,5,90,50);\n'+
+'    fill(255);\n'+
+'    text("All10s",15,35);\n'+
+'    } else {\n'+
+'    ai1=10;\n'+
+'    ai2=10;\n'+
+'    ai3=10;\n'+
+'    ai4=10;\n'+
+'    ai5=10;\n'+
+'    ai6=10;\n'+
+'    ai7=10;\n'+
+'    ai8=10;\n'+
+'    ai9=10;\n'+
+'    ai10=10;\n'+
+'    }\n'+
+'    }\n'+
+'    }\n'+
+'    if(state==="Play"){\n'+
+'        textAlign(CENTER,CENTER);\n'+
+'moveTimer+=1;\n'+
+'if(moveTimer>40&&cameraUp===false){\n'+
+'move1=random(0,20);\n'+
+'move2=random(0,20);\n'+
+'move3=random(0,20);\n'+
+'if(where4>3){\n'+
+'   move4=random(0,20); \n'+
+'}\n'+
+'move5=random(0,20);\n'+
+'move6=random(0,20);\n'+
+'move7=random(0,20);\n'+
+'move8=random(0,20);\n'+
+'move9=random(0,20);\n'+
+'move10=random(0,20);\n'+
+'moveTimer=0;\n'+
+'if(jump<2){\n'+
+'score+=1;\n'+
+'}\n'+
+'}else{\n'+
+'move1=5;\n'+
+'move2=5;\n'+
+'move3=5;\n'+
+'move4=5;\n'+
+'move5=4;\n'+
+'move6=5;\n'+
+'move7=5;\n'+
+'move8=5;\n'+
+'move9=5;\n'+
+'move10=5;\n'+
+'}\n'+
+'if(ai1>0){\n'+
+'    if(move1<0.25*ai1+0.5&&where1!==5){\n'+
+'        where1+=1;\n'+
+'        playSound(getSound("rpg/step-heavy"));\n'+
+'    }\n'+
+'    if(move1>19&&where1!==5){\n'+
+'        where1-=1;\n'+
+'        playSound(getSound("rpg/step-heavy"));\n'+
+'    }\n'+
+'}\n'+
+'if(ai2>0){\n'+
+'    if(move2<0.25*ai2+0.5&&where2!==5){\n'+
+'        where2+=1;\n'+
+'        playSound(getSound("rpg/hit-splat"));\n'+
+'    }\n'+
+'    if(move2>19&&where2!==5){\n'+
+'        where2-=1;\n'+
+'        playSound(getSound("rpg/water-slosh"));\n'+
+'    }  \n'+
+'}\n'+
+'\n'+
+'if(ai3>0){\n'+
+'    if(move3<0.25*ai3+0.5&&winstonTime<1&&where3!==5){\n'+
+'        where3+=1;\n'+
+'        playSound(getSound("rpg/giant-yah"));\n'+
+'    }\n'+
+'    if(move3>19&&winstonTime<1&&where3!==5){\n'+
+'        where3-=1;\n'+
+'        playSound(getSound("rpg/giant-no"));\n'+
+'    }\n'+
+'}\n'+
+'if(move4<2&&where4!==5){\n'+
+'    where4+=1;\n'+
+'    playSound(getSound("rpg/battle-spell"));\n'+
+'}\n'+
+'if(ai5>0){\n'+
+'    if(move5>19&&where5!==4){\n'+
+'        where5-=1;\n'+
+'        playSound(getSound("rpg/step-heavy"));\n'+
+'    }\n'+
+'    if(move5<0.25*ai5+0.5&&where5!==4){\n'+
+'        where5+=1;\n'+
+'        playSound(getSound("rpg/step-heavy"));\n'+
+'    }\n'+
+'}\n'+
+'if(ai6>0){\n'+
+'    if(move6>9&&where6!==5&&fuzzyWait===0){\n'+
+'        playSound(getSound("retro/jump1"));\n'+
+'        where6-=1;\n'+
+'    }\n'+
+'    if(move6<0.25*ai6+0.5&&where6!==5&&fuzzyWait===0){\n'+
+'        where6+=1;\n'+
+'        playSound(getSound("retro/laser4"));\n'+
+'    }\n'+
+'}\n'+
+'if(ai7>0){\n'+
+'    if(move7<0.25*ai7+0.5&&where7!==5){\n'+
+'        where7+=1;\n'+
+'    playSound(getSound("rpg/hit-thud"));\n'+
+'    }\n'+
+'    if(move7>9&&where7!==5){\n'+
+'        playSound(getSound("rpg/hit-thud"));\n'+
+'        where7-=1;\n'+
+'    }\n'+
+'}\n'+
+'if(ai8>0){\n'+
+'    if(move8<0.25*ai8+0.5&&where8!==7){\n'+
+'        where8+=1;\n'+
+'        playSound(getSound("rpg/hit-thud"));\n'+
+'    }\n'+
+'    if(move8>19&&where8!==5){\n'+
+'        playSound(getSound("rpg/hit-thud"));\n'+
+'        where8-=1;\n'+
+'    }    \n'+
+'}\n'+
+'if(ai9>0){\n'+
+'if(move9<0.25*ai9+0.5&&where9!==6){\n'+
+'where9+=1;\n'+
+'playSound(getSound("rpg/hit-thud"));\n'+
+'}\n'+
+'if(move9>19&&where9!==6){\n'+
+'playSound(getSound("rpg/hit-thud"));\n'+
+'where9-=1;\n'+
+'}    \n'+
+'}\n'+
+'if(ai10>0){\n'+
+'if(move10<0.25*ai10+0.5&&where10!==5){\n'+
+'where10+=1;\n'+
+'playSound(getSound("rpg/hit-thud"));\n'+
+'}\n'+
+'if(move10>19&&where10!==5){\n'+
+'playSound(getSound("rpg/hit-thud"));\n'+
+'where10-=1;\n'+
+'}    \n'+
+'}\n'+
+'where1=constrain(where1,1,5);\n'+
+'where2=constrain(where2,1,5);\n'+
+'where3=constrain(where3,1,5);\n'+
+'where4=constrain(where4,1,5);\n'+
+'where5=constrain(where5,1,4);\n'+
+'where6=constrain(where6,1,5);\n'+
+'where7=constrain(where7,1,5);\n'+
+'where8=constrain(where8,1,7);\n'+
+'where9=constrain(where9,1,6);\n'+
+'where10=constrain(where10,1,5);\n'+
+'HDMI=constrain(HDMI,1,6);\n'+
+'vent=constrain(vent,1,7);\n'+
+'power=constrain(power,0,10000);\n'+
+'if(door1Open===false){\n'+
+'power-=2;\n'+
+'door1+=50;\n'+
+'if(door1>99&&door1<201){\n'+
+'translate(random(0,5),random(0,5));\n'+
+'}\n'+
+'}else{\n'+
+'door1-=10;\n'+
+'}\n'+
+'if(door2Open===false){\n'+
+'power-=2;\n'+
+'door2+=50;\n'+
+'if(door2>99&&door2<201){\n'+
+'translate(random(0,5),random(0,5));\n'+
+'}\n'+
+'}else{\n'+
+'door2-=10;\n'+
+'}\n'+
+'if(power<1){\n'+
+'door1Open=true;\n'+
+'door1=0;\n'+
+'door2Open=true;\n'+
+'door2=0;\n'+
+'cameraUp=false;\n'+
+'}\n'+
+'//Cam Type 1\n'+
+'if(camType===1){\n'+
+'    meX=scrollX+600;\n'+
+'scrollX=constrain(scrollX,width-600,0);\n'+
+'if(mouseX>width-100){\n'+
+'scrollX+=10;\n'+
+'}else if(mouseX<100){\n'+
+'scrollX-=10;\n'+
+'}\n'+
+'background(30);\n'+
+'//Room\n'+
+'//fill(scrollX/2-100,0,50,height);\n'+
+'if(mouseX>5&&mouseY>height-110&&mouseX<55&&mouseY<height-55&&light1===false&&mouseIsPressed&&where8!==7){\n'+
+'light1=true;\n'+
+'}\n'+
+'if(!mouseIsPressed){\n'+
+'light1=false;\n'+
+'}\n'+
+'if(mouseX<width-5&&mouseY>height-110&&mouseX>width-55&&mouseY<height-55&&light2===false&&mouseIsPressed&&where8!==7){\n'+
+'light2=true;\n'+
+'}\n'+
+'if(!mouseIsPressed){\n'+
+'light2=false;\n'+
+'}\n'+
+'for(var x=-100;x<1500;x+=tileWidth){\n'+
+'for(var y=-100;y<1200;y+=tileWidth){\n'+
+'if(y-meY>-tileWidth-100){\n'+
+'if((x/tileWidth+y/tileWidth)%2){\n'+
+'fill(0);\n'+
+'}else{\n'+
+'fill(100);\n'+
+'}\n'+
+'var p1=perspect/(perspect+y-meY);\n'+
+'var x1=200+p1*(x-meX);\n'+
+'var y1=horizon+p1*200;\n'+
+'var p2=perspect/(perspect+y+tileWidth-meY);\n'+
+'var x2=200+p2*(x-meX);\n'+
+'var y2=horizon+p2*200;\n'+
+'if(lowRAM===false){\n'+
+'translate(0,80);\n'+
+'quad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\n'+
+'translate(0,-80);\n'+
+'}}}}\n'+
+'fill(0);\n'+
+'rect(-scrollX/2+25,100,100,100);\n'+
+'rect(-scrollX/2+175,100,100,100);\n'+
+'if(light1===true&&door1Open===true&&where1===5){\n'+
+'image(getImage("creatures/Hopper-Cool"),30,130);\n'+
+'playSound(getSound("rpg/giant-hyah"));\n'+
+'}\n'+
+'if(light1===true&&door1Open===false&&where1===5){\n'+
+'image(getImage("creatures/Hopper-Jumping"),30-scrollX/2,110);   \n'+
+'}\n'+
+'if(light2===true&&door2Open===true&&where2===5){\n'+
+'image(getImage("avatars/orange-juice-squid"),270,130);\n'+
+'playSound(getSound("rpg/giant-hyah"));\n'+
+'}\n'+
+'if(light2===true&&door2Open===false&&where2===5){\n'+
+'image(getImage("avatars/orange-juice-squid"),175-scrollX/2,110);\n'+
+'}\n'+
+'if(light1===true&&door1Open===true&&where5===4){\n'+
+'image(getImage("avatars/spunky-sam"),10,130);\n'+
+'playSound(getSound("rpg/giant-hyah"));\n'+
+'}\n'+
+'if(light1===true&&door1Open===false&&where5===4){\n'+
+'image(getImage("avatars/spunky-sam"),0-scrollX/2,120);\n'+
+'}\n'+
+'if(light2===true&&door2Open===true&&where6===5){\n'+
+'image(getImage("avatars/mr-pink"),250,130);\n'+
+'playSound(getSound("rpg/giant-hyah"));\n'+
+'}\n'+
+'if(light2===true&&door2Open===false&&where6===5){\n'+
+'    image(getImage("avatars/mr-pink"),130-scrollX/2,120);\n'+
+'    }\n'+
+'\n'+
+'fill(70);\n'+
+'rect(-scrollX/2-105,0,5,254);\n'+
+'rect(-scrollX/2-105,0,600,50);\n'+
+'rect(-scrollX/2,0,300,100);\n'+
+'rect(-scrollX/2,0,25,254);\n'+
+'rect(-scrollX/2+125,0,50,250);\n'+
+'rect(-scrollX/2,200,300,50);\n'+
+'rect(-scrollX/2+400,0,300,254);\n'+
+'rect(-scrollX/2+275,0,25,254);\n'+
+'fill(0);\n'+
+'fill(200);\n'+
+'rect(-scrollX/2+10,70,50,25);\n'+
+'fill(30,0,0);\n'+
+'rect(-scrollX/2+12,72,46,21);\n'+
+'fill(255,0,0);\n'+
+'textSize(20);\n'+
+'text(hour()+":"+minute(),-scrollX/2+35,82);\n'+
+'textSize(30);\n'+
+'image(getImage("cute/ShadowSouth"),-scrollX/2,30,300,420);\n'+
+'if(light1===false){\n'+
+'fill(0);\n'+
+'rect(-scrollX/2-100,50,100,205);\n'+
+'}else if(light1===true&&door1Open===true){\n'+
+'fill(255,255,255,random(100,110));\n'+
+'rect(-scrollX/2-100,50,100,500);\n'+
+'}\n'+
+'if(light1===true){\n'+
+'fill(255, 255, 255,random(100,110));\n'+
+'rect(-scrollX/2+25,100,100,100);\n'+
+'}\n'+
+'if(light2===false){\n'+
+'fill(0);\n'+
+'rect(-scrollX/2+300,50,100,205);\n'+
+'}else if(light2===true&&door2Open===true){\n'+
+'fill(255,255,255,random(100,110));\n'+
+'rect(-scrollX/2+300,50,100,500);\n'+
+'}\n'+
+'if(light2===true){\n'+
+'    fill(255,255,255,random(100,110));\n'+
+'    rect(-scrollX/2+175,100,100,100);\n'+
+'}\n'+
+'door1=constrain(door1,0,205);\n'+
+'door2=constrain(door2,0,205);\n'+
+'fill(200);\n'+
+'rect(-scrollX/2-100,50,100,door1);\n'+
+'fill(200,200,200,100);\n'+
+'rect(-scrollX/2-100,-door1+410,100,205);\n'+
+'fill(200);\n'+
+'rect(-scrollX/2+300,50,100,door2);\n'+
+'fill(200,200,200,100);\n'+
+'rect(-scrollX/2+300,-door2+410,100,205);\n'+
+'if(light1===false){\n'+
+'fill(0,0,0,50);\n'+
+'rect(-scrollX/2-100,255,100,205);\n'+
+'}\n'+
+'if(light2===false){\n'+
+'fill(0,0,0,50);\n'+
+'rect(-scrollX/2+300,255,100,205);\n'+
+'}\n'+
+'fill(0);\n'+
+'text(ceil(power/100)+"%",60,20);\n'+
+'if(lowRAM===true){\n'+
+'fill(50);\n'+
+'rect(0,254,width,height);\n'+
+'}fill(70);\n'+
+'rect(-scrollX/2,200,300,50);\n'+
+'image(getImage("cute/ShadowSouth"),-scrollX/2,30,300,420);\n'+
+'//Camera\n'+
+'if(cameraUp===true){\n'+
+'cameraOpen-=40;\n'+
+'}else if(cameraUp===false){\n'+
+'cameraOpen+=40;\n'+
+'}\n'+
+'blink+=1;\n'+
+'if(blink===50){\n'+
+'blink=0;\n'+
+'}\n'+
+'cameraOpen=constrain(cameraOpen,0,height);\n'+
+'fill(cameraOpen/3+100);\n'+
+'if(cameraOpen>0){\n'+
+'quad(0,height,cameraOpen/3,cameraOpen,-cameraOpen/3+width,cameraOpen,width,height);\n'+
+'fill(cameraOpen/3);\n'+
+'quad(10,height,cameraOpen/3+10,cameraOpen+10,-cameraOpen/3+width-10,cameraOpen+10,width-10,height);\n'+
+'}\n'+
+'if(cameraUp===true&&cameraOpen===0){\n'+
+'power-=5;\n'+
+'background(0);\n'+
+'if(HDMI===where3&&winstonTime>0&&HDMI!==5){\n'+
+'      fill(255, 255, 0,50);\n'+
+'    rect(-1,-1,500,500);  \n'+
+'}\n'+
+'if(HDMI===5){\n'+
+'    background(30);\n'+
+'        for(var x=-100;x<2000;x+=tileWidth){\n'+
+'            for(var y=-100;y<635;y+=tileWidth){\n'+
+'                if(y-meY>-tileWidth-100){\n'+
+'                    if((x/tileWidth+y/tileWidth)%2){\n'+
+'                        fill(0);\n'+
+'                    }else{\n'+
+'                        fill(100);\n'+
+'                    }\n'+
+'\n'+
+'\n'+
+'\n'+
+'                var p1=perspect/(perspect+y-meY);\n'+
+'                var x1=200+p1*(x-800);\n'+
+'                var y1=horizon+p1*200;\n'+
+'                var p2=perspect/(perspect+y+tileWidth-meY);\n'+
+'                var x2=200+p2*(x-800);\n'+
+'                var y2=horizon+p2*200;\n'+
+'                if(lowRAM===false){\n'+
+'                    translate(0,80);\n'+
+'                    quad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\n'+
+'                    translate(0,-80);\n'+
+'                }\n'+
+'            }\n'+
+'        }\n'+
+'    }\n'+
+'    fill(50);\n'+
+'    rect(0,0,200,260);\n'+
+'    rect(300,0,200,260);\n'+
+'    rect(0,0,width,50);\n'+
+'    fill(100);\n'+
+'    rect(200,50,100,door1+5);\n'+
+'\n'+
+'    if(light1===true){\n'+
+'        for(var x=-100;x<2000;x+=tileWidth){\n'+
+'            for(var y=-100;y<508;y+=tileWidth){\n'+
+'                if(y-meY>-tileWidth-100){\n'+
+'                    if((x/tileWidth+y/tileWidth)%2){\n'+
+'                        fill(0);\n'+
+'                    }else{\n'+
+'                        fill(255);\n'+
+'                    }\n'+
+'                var p1=perspect/(perspect+y-meY);\n'+
+'                var x1=200+p1*(x-800);\n'+
+'                var y1=horizon+p1*200;\n'+
+'                var p2=perspect/(perspect+y+tileWidth-meY);\n'+
+'                var x2=200+p2*(x-800);\n'+
+'                var y2=horizon+p2*200;\n'+
+'                if(lowRAM===false){\n'+
+'                    translate(0,80);\n'+
+'                    quad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\n'+
+'                    translate(0,-80);\n'+
+'                }\n'+
+'            }\n'+
+'        }\n'+
+'    }\n'+
+'    fill(150);\n'+
+'    rect(0,0,200,260);\n'+
+'    rect(300,0,200,260);\n'+
+'    rect(0,0,width,50);\n'+
+'    fill(250);\n'+
+'    rect(200,50,100,door1+5);\n'+
+'    }\n'+
+'}\n'+
+'\n'+
+'if(HDMI===6){\n'+
+'    background(30);\n'+
+'        for(var x=-100;x<2000;x+=tileWidth){\n'+
+'            for(var y=-100;y<635;y+=tileWidth){\n'+
+'                if(y-meY>-tileWidth-100){\n'+
+'                    if((x/tileWidth+y/tileWidth)%2){\n'+
+'                        fill(0);\n'+
+'                    }else{\n'+
+'                        fill(100);\n'+
+'                    }\n'+
+'\n'+
+'\n'+
+'\n'+
+'                var p1=perspect/(perspect+y-meY);\n'+
+'                var x1=200+p1*(x-800);\n'+
+'                var y1=horizon+p1*200;\n'+
+'                var p2=perspect/(perspect+y+tileWidth-meY);\n'+
+'                var x2=200+p2*(x-800);\n'+
+'                var y2=horizon+p2*200;\n'+
+'                if(lowRAM===false){\n'+
+'                    translate(0,80);\n'+
+'                    quad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\n'+
+'                    translate(0,-80);\n'+
+'                }\n'+
+'            }\n'+
+'        }\n'+
+'    }\n'+
+'    fill(50);\n'+
+'    rect(0,0,100,260);\n'+
+'    rect(200,0,200,260);\n'+
+'    rect(0,0,width,50);\n'+
+'    fill(100);\n'+
+'    rect(100,50,100,door2+5);\n'+
+'\n'+
+'    if(light1===true){\n'+
+'        for(var x=-100;x<2000;x+=tileWidth){\n'+
+'            for(var y=-100;y<508;y+=tileWidth){\n'+
+'                if(y-meY>-tileWidth-100){\n'+
+'                    if((x/tileWidth+y/tileWidth)%2){\n'+
+'                        fill(0);\n'+
+'                    }else{\n'+
+'                        fill(255);\n'+
+'                    }\n'+
+'                var p1=perspect/(perspect+y-meY);\n'+
+'                var x1=200+p1*(x-800);\n'+
+'                var y1=horizon+p1*200;\n'+
+'                var p2=perspect/(perspect+y+tileWidth-meY);\n'+
+'                var x2=200+p2*(x-800);\n'+
+'                var y2=horizon+p2*200;\n'+
+'                if(lowRAM===false){\n'+
+'                    translate(0,80);\n'+
+'                    quad(x1,y1,x1+tileWidth*p1,y1,x2+tileWidth*p2,y2,x2,y2);\n'+
+'                    translate(0,-80);\n'+
+'                }\n'+
+'            }\n'+
+'        }\n'+
+'    }\n'+
+'    fill(150);\n'+
+'    rect(0,0,200,260);\n'+
+'    rect(300,0,200,260);\n'+
+'    rect(0,0,width,50);\n'+
+'    fill(250);\n'+
+'    rect(200,50,100,door1+5);\n'+
+'    }\n'+
+'}\n'+
+'\n'+
+'\n'+
+'if(HDMI===1){\n'+
+'    fill(124, 50, 0);\n'+
+'    rect(25,275,350,25);\n'+
+'    if(where5===1){\n'+
+'        image(getImage("avatars/spunky-sam"),0,150);\n'+
+'    }\n'+
+'    if(where5===2){\n'+
+'        image(getImage("avatars/spunky-sam"),300,150);\n'+
+'    }\n'+
+'}\n'+
+'if(HDMI===2){\n'+
+'    if(where6===1){\n'+
+'fill(200, 0, 200);\n'+
+'rect(150,50,200,200);\n'+
+'fill(0, 0, 0);\n'+
+'rect(250,50,5,200);\n'+
+'    }\n'+
+'if(where6===2){\n'+
+'    image(getImage("avatars/mr-pink"),150,100);\n'+
+'    fill(200,0,200);\n'+
+'    rect(150,50,75,200);\n'+
+'    rect(275,50,75,200);  \n'+
+'}\n'+
+'if(where6===3){\n'+
+'  fill(200,0,200);\n'+
+'    rect(150,50,75,200);\n'+
+'    rect(275,50,75,200);  \n'+
+'    image(getImage("avatars/mr-pink"),275,150);\n'+
+'}\n'+
+'if(where6>3){\n'+
+'    fill(200,0,200);\n'+
+'    rect(150,50,75,200);\n'+
+'    rect(275,50,75,200);  \n'+
+'}\n'+
+'if(where3===2){\n'+
+'    fill(255, 255, 0,50);\n'+
+'    rect(-1,-1,500,500);\n'+
+'}\n'+
+'}\n'+
+'if(HDMI===3&&where5===3){\n'+
+'    image(getImage("avatars/spunky-sam"),0,150);\n'+
+'    \n'+
+'}\n'+
+'if(HDMI===5&&where5===4){\n'+
+'    image(getImage("avatars/spunky-sam"),300,150);\n'+
+'}\n'+
+'if(HDMI!==3){\n'+
+'    if(musicBox<=200&&musicBox>100){\n'+
+'        fill(255, 255, 0);\n'+
+'        triangle(160,340,240,340,200,300);\n'+
+'    }\n'+
+'    if(musicBox<=100&&musicBox>0){\n'+
+'        fill(255, 124, 0);\n'+
+'        triangle(160,340,240,340,200,300);\n'+
+'    }\n'+
+'    if(musicBox<1){\n'+
+'        fill(255, 0, 0);\n'+
+'        triangle(160,340,240,340,200,300);\n'+
+'    }\n'+
+'}\n'+
+'if(HDMI===3){\n'+
+'        fill(124);\n'+
+'    rect(160,290,80,50);\n'+
+'    fill(255);\n'+
+'    text("Music Box",300,100);\n'+
+'    text("Wind",200,302);\n'+
+'    text("Up",200,325);\n'+
+'    if(mouseX>=160&&mouseX<=240&&mouseY>=290&&mouseY<=340&&mouseIsPressed&&musicBox<=500){\n'+
+'        if(where5!==3){\n'+
+'               musicBox+=25;\n'+
+'        }\n'+
+'        if(where5===3){\n'+
+'            musicBox+=10;\n'+
+'        }\n'+
+'     \n'+
+'       \n'+
+'        fill(200);\n'+
+'    rect(160,290,80,50);\n'+
+'    fill(255);\n'+
+'        text("Wind",200,302);\n'+
+'    text("Up",200,325);\n'+
+'    playSound(getSound("rpg/hit-clop"));\n'+
+'    }\n'+
+'    if(where4===1){\n'+
+'fill(0, 0, 200);\n'+
+'rect(125,125,150,150);\n'+
+'fill(200, 0, 200);\n'+
+'rect(175,125,50,150);\n'+
+'fill(255, 255, 0);\n'+
+'rect(125,125,150,25);\n'+
+'    }\n'+
+'    if(where4===2){\n'+
+'        image(getImage("avatars/purple-pi"),125,60);\n'+
+'        fill(0, 0, 200);\n'+
+'rect(125,125,150,150);\n'+
+'fill(200, 0, 200);\n'+
+'rect(175,125,50,150);\n'+
+'    }\n'+
+'    if(where4===3){\n'+
+'               fill(0, 0, 200);\n'+
+'rect(125,125,150,150);\n'+
+'fill(200, 0, 200);\n'+
+'rect(175,125,50,150);\n'+
+'image(getImage("avatars/purple-pi"),300,150);\n'+
+'    }\n'+
+'    if(where4>3){\n'+
+'     fill(0, 0, 200);\n'+
+'rect(125,125,150,150);\n'+
+'fill(200, 0, 200);\n'+
+'rect(175,125,50,150);   \n'+
+'    }\n'+
+'    if(musicBox<1){\n'+
+'        if(where4<4){\n'+
+'                   where4move-=1; \n'+
+'        }\n'+
+'    }\n'+
+'    if(musicBox>400){\n'+
+'        fill(0,0,255);\n'+
+'rect(300,125,25,musicBox/4);\n'+
+'    }\n'+
+'    if(musicBox>300&&musicBox<=400){\n'+
+'        fill(0,255,0);\n'+
+'rect(300,125,25,musicBox/4);\n'+
+'    }\n'+
+'    if(musicBox>200&&musicBox<=300){\n'+
+'        fill(255,255,0);\n'+
+'rect(300,125,25,musicBox/4);\n'+
+'    }\n'+
+'    if(musicBox>100&&musicBox<=200){\n'+
+'        fill(255,124,0);\n'+
+'rect(300,125,25,musicBox/4);\n'+
+'    }\n'+
+'    if(musicBox>0&&musicBox<=100){\n'+
+'fill(255,0,0);\n'+
+'rect(300,125,25,musicBox/4);\n'+
+'    }\n'+
+'    if(musicBox>0){\n'+
+'if(musicBoxs===0){\n'+
+'playSound(getSound("rpg/metal-chime"));\n'+
+'}\n'+
+'if(musicBoxs===45){\n'+
+'playSound(getSound("rpg/metal-clink"));\n'+
+'        }\n'+
+'        if(musicBoxs===90){\n'+
+'                    playSound(getSound("rpg/coin-jingle"));\n'+
+'}}\n'+
+'musicBoxs+=1;\n'+
+'if(musicBoxs>135){\n'+
+'    musicBoxs=0;\n'+
+'}\n'+
+'}\n'+
+'if(HDMI===4){\n'+
+' background(50);\n'+
+' fill(0, 0, 0);\n'+
+' rect(225,100,150,225);\n'+
+' fill(25);\n'+
+' rect(100,125,100,100);\n'+
+' fill(255, 255, 0);\n'+
+' triangle(110,215,190,215,150,135);\n'+
+' fill(0, 0, 0);\n'+
+' textSize(20);\n'+
+' text("Power",150,200);\n'+
+' if(where6===4){\n'+
+'         image(getImage("avatars/mr-pink"),100,0);\n'+
+' }\n'+
+'}\n'+
+'textSize(30);\n'+
+'if(where4===4&&HDMI===4){\n'+
+'    image(getImage("avatars/purple-pi"),-50,150);\n'+
+'}\n'+
+'if(where4===5&&HDMI===6){\n'+
+'    image(getImage("avatars/purple-pi"),-50,150);\n'+
+'}\n'+
+'if(where1===HDMI){\n'+
+'image(getImage("creatures/Hopper-Happy"),100,150);\n'+
+'}\n'+
+'if(where2===1&&HDMI===1){\n'+
+'image(getImage("avatars/orange-juice-squid"),200,150);\n'+
+'}\n'+
+'if(where2===2&&HDMI===2){\n'+
+'image(getImage("avatars/orange-juice-squid"),200,150);\n'+
+'}\n'+
+'if(where2===3&&HDMI===3){\n'+
+'image(getImage("avatars/orange-juice-squid"),200,150);\n'+
+'}\n'+
+'if(where2===4&&HDMI===4){\n'+
+'image(getImage("avatars/orange-juice-squid"),200,150);\n'+
+'}\n'+
+'if(HDMI===6&&where2===5){\n'+
+'  image(getImage("avatars/orange-juice-squid"),200,150);  \n'+
+'}\n'+
+'if(HDMI===5&&where3===5){\n'+
+'image(getImage("creatures/Winston"),50,150);\n'+
+'}\n'+
+'if(HDMI===6&&where6===5){\n'+
+'    image(getImage("avatars/mr-pink"),300,150);\n'+
+'}\n'+
+'if(lowRAM===false){\n'+
+'for(var d=0;d<=2000;d++){\n'+
+'noStroke();\n'+
+'fill(d,d,d,random(10,12));\n'+
+'rect(random(-30,430),random(-30,430),random(10,30),2);\n'+
+'}\n'+
+'fill(255,255,255,20);\n'+
+'rect(0,barPosition+random(0,5),400,50);\n'+
+'barPosition+=random(0.25,0.5);\n'+
+'if(barPosition>=400) {\n'+
+'barPosition=-50;\n'+
+'}\n'+
+'}\n'+
+'if(power<1000){\n'+
+'background(0);\n'+
+'fill(100);\n'+
+'text("Low battery!",width/2,height/2);\n'+
+'}\n'+
+'fill(100);\n'+
+'rect(0,0,10,height);\n'+
+'rect(0,0,width,10);\n'+
+'rect(width-10,0,10,height);\n'+
+'fill(100);\n'+
+'rect(20,50,power/100,20);\n'+
+'fill(0,255,0);\n'+
+'text("HDMI: "+HDMI,70,100);\n'+
+'if(crazyTimerA===150){\n'+
+'crazyTypeA=1;\n'+
+'if(100>95){\n'+
+'if(crazyTypeA===1){\n'+
+'fill(100, 175, 100, 100);\n'+
+'triangle(200,50,50,325,350,325);\n'+
+'fill(255, 255, 255, 100);\n'+
+'ellipse(200,225,175,50);\n'+
+'fill(0, 0, 0, 100);\n'+
+'ellipse(200,225,50,50);\n'+
+'fill(100,175,100, 100);\n'+
+'textSize(30);\n'+
+'text("ILLUMINATI CONFIRMED",200,30);\n'+
+'}\n'+
+'if(crazyTypeA===2){\n'+
+'noStroke();\n'+
+'//Zombie\'s Skin\n'+
+'fill(100,150,100);\n'+
+'ellipse(200,100,100,100);\n'+
+'ellipse(200,150,30,50);\n'+
+'//Mouth\n'+
+'fill(50,0,0);\n'+
+'ellipse(190,120,50,20);\n'+
+'//Eyes\n'+
+'fill(255);\n'+
+'strokeWeight(1);\n'+
+'stroke(0);\n'+
+'ellipse(170,85,20,20);\n'+
+'ellipse(215,80,25,25);\n'+
+'noStroke();\n'+
+'fill(0);\n'+
+'ellipse(170,85,5,5);\n'+
+'ellipse(215,80,5,5);\n'+
+'//Teeth\n'+
+'fill(255);\n'+
+'rect(175,111,5,10);\n'+
+'rect(200,111,5,10);\n'+
+'rect(185,120,10,10);\n'+
+'//Zombie\'s Clothes\n'+
+'fill(255, 0, 0);\n'+
+'beginShape();\n'+
+'vertex(180,170);\n'+
+'vertex(220,170);\n'+
+'vertex(230,180);\n'+
+'vertex(325,210);\n'+
+'vertex(320,270);\n'+
+'vertex(315,265);\n'+
+'vertex(310,270);\n'+
+'vertex(305,265);\n'+
+'vertex(300,220);\n'+
+'vertex(230,200);\n'+
+'vertex(235,300);\n'+
+'vertex(220,300);\n'+
+'vertex(210,290);\n'+
+'vertex(200,300);\n'+
+'vertex(190,300);\n'+
+'vertex(180,295);\n'+
+'vertex(165,280);\n'+
+'vertex(165,200);\n'+
+'vertex(90,230);\n'+
+'vertex(60,270);\n'+
+'vertex(50,270);\n'+
+'vertex(90,200);\n'+
+'endShape();\n'+
+'}\n'+
+'if(crazyTypeA===3){\n'+
+'    strokeWeight(10);\n'+
+'stroke(0);\n'+
+'//Green Side\n'+
+'fill(0,255,0);\n'+
+'beginShape();\n'+
+'vertex(150,150);\n'+
+'vertex(350,150);\n'+
+'vertex(350,295);\n'+
+'vertex(150,295);\n'+
+'endShape();\n'+
+'//Orange Side\n'+
+'fill(255,124,0);\n'+
+'beginShape();\n'+
+'vertex(150,150);\n'+
+'vertex(105,70);\n'+
+'vertex(105,200);\n'+
+'vertex(150,300);\n'+
+'endShape();\n'+
+'//Sides of the Cube\n'+
+'line(100,50,300,50);\n'+
+'line(150,150,350,150);\n'+
+'line(100,50,150,150);\n'+
+'line(300,50,350,150);\n'+
+'line(150,150,150,300);\n'+
+'line(350,150,350,300);\n'+
+'line(150,300,350,300);\n'+
+'line(100,50,100,200);\n'+
+'line(100,200,150,300);\n'+
+'//Top Side\n'+
+'strokeWeight(5);\n'+
+'line(167,50,217,150);\n'+
+'line(223,50,283,150);\n'+
+'line(120,83,315,83);\n'+
+'line(135,112,325,112);\n'+
+'//Front Side\n'+
+'noStroke();\n'+
+'stroke(0);\n'+
+'strokeWeight(5);\n'+
+'line(217,150,217,300);\n'+
+'line(283,150,283,300);\n'+
+'line(150,200,350,200);\n'+
+'line(150,250,350,250);\n'+
+'//Side-y Side\n'+
+'noStroke();\n'+
+'strokeWeight(5);\n'+
+'stroke(0);\n'+
+'line(150,200,100,115);\n'+
+'line(150,240,100,160);\n'+
+'line(115,75,115,225);\n'+
+'line(135,110,135,270);\n'+
+'}\n'+
+'if(crazyTypeA===4){\n'+
+'strokeWeight(3);\n'+
+'for(var fibonaccix=0; fibonaccix<=400; fibonaccix+=20){\n'+
+'stroke(0);\n'+
+'line(fibonaccix,0,fibonaccix,400);\n'+
+'}\n'+
+'for(var fibonacciy=0; fibonacciy<=400; fibonacciy+=20){\n'+
+'stroke(0);\n'+
+'line(0,fibonacciy,400,fibonacciy);\n'+
+'}\n'+
+'fill(255, 0, 0);\n'+
+'rect(180,180,20,20);\n'+
+'fill(255, 124, 0);\n'+
+'rect(180,200,20,20);\n'+
+'fill(255,255,0);\n'+
+'rect(200,180,40,40);\n'+
+'fill(124, 255, 0);\n'+
+'rect(180,120,60,60);\n'+
+'fill(0,255,0);\n'+
+'rect(80,120,100,100);\n'+
+'fill(0,255,124);\n'+
+'rect(80,220,160,160);\n'+
+'fill(0,255,255);\n'+
+'rect(240,120,260,260);\n'+
+'}\n'+
+'if(crazyTypeA===5){\n'+
+'strokeWeight(10);\n'+
+'stroke(0, 0, 0);\n'+
+'line(150,300,150,350);\n'+
+'line(250,300,250,350);\n'+
+'line(150,250,50,100);\n'+
+'line(250,250,350,100);\n'+
+'strokeWeight(1);\n'+
+'fill(255,255,0);\n'+
+'triangle(200,50,50,300,350,300);\n'+
+'strokeWeight(5);\n'+
+'noStroke();\n'+
+'fill(255);\n'+
+'ellipse(200,175,125,75);\n'+
+'fill(0);\n'+
+'ellipse(200,175,50,50);\n'+
+'stroke(0);\n'+
+'strokeWeight(3);\n'+
+'line(95,225,305,225);\n'+
+'line(75,260,325,260);\n'+
+'line(95,225,95,258);\n'+
+'line(75,260,75,298);\n'+
+'line(145,225,145,258);\n'+
+'line(125,260,125,298);\n'+
+'line(195,225,195,258);\n'+
+'line(175,260,175,298);\n'+
+'line(245,225,245,258);\n'+
+'line(225,260,225,298);\n'+
+'line(295,225,295,258);\n'+
+'line(275,260,275,298);\n'+
+'line(325,260,325,298);\n'+
+'noStroke();\n'+
+'quad(150,225,250,275,250,225,150,275);\n'+
+'rect(150,100,100,25);\n'+
+'rect(170,-5,60,125);\n'+
+'}\n'+
+'}\n'+
+'}\n'+
+'}\n'+
+'if(cameraUp===true&&cameraOpen===0&&blink>10){\n'+
+'fill(255,0,0);\n'+
+'ellipse(30,30,20,20);\n'+
+'}\n'+
+'noFill();\n'+
+'stroke(255,255,255,200);\n'+
+'strokeWeight(2);\n'+
+'rect(5,height-55,width-10,50,10);\n'+
+'line(width/2,height-35,width/2+50,height-45);\n'+
+'line(width/2,height-25,width/2+50,height-35);\n'+
+'line(width/2,height-15,width/2+50,height-25);\n'+
+'line(width/2,height-35,width/2-50,height-45);\n'+
+'line(width/2,height-25,width/2-50,height-35);\n'+
+'line(width/2,height-15,width/2-50,height-25);\n'+
+'rect(5,height-110,50,50,10);\n'+
+'rect(width-55,height-110,50,50,10);\n'+
+'fill(255,255,255,200);\n'+
+'textSize(50);\n'+
+'text("☀",30,height-88);\n'+
+'text("☀",370,height-88);\n'+
+'noFill();\n'+
+'rect(60,height-110,100,50,10);\n'+
+'rect(240,height-110,100,50,10);\n'+
+'fill(255,255,255,200);\n'+
+'textSize(30);\n'+
+'text("Door.",112,height-88);\n'+
+'text("Door.",293,height-88);\n'+
+'}\n'+
+'//Cam Type 2\n'+
+'if(camType===2){\n'+
+'    background(0);\n'+
+'    if(mouseX>5&&mouseY>height-110&&mouseX<55&&mouseY<height-55&&light1===false&&mouseIsPressed){\n'+
+'light1=true;\n'+
+'}\n'+
+'if(!mouseIsPressed){\n'+
+'light1=false;\n'+
+'}\n'+
+'if(mouseX<width-5&&mouseY>height-110&&mouseX>width-55&&mouseY<height-55&&light2===false&&mouseIsPressed){\n'+
+'light2=true;\n'+
+'}\n'+
+'if(!mouseIsPressed){\n'+
+'light2=false;\n'+
+'}\n'+
+'if(light1===true){\n'+
+'    fill(255,255,255,random(100,110));\n'+
+'    rect(25,75,125,175);\n'+
+'}\n'+
+'    if(light1===true&&vent1Open===true&&where7===5){\n'+
+'image(getImage("avatars/leafers-seed"),30,130);\n'+
+'playSound(getSound("retro/laser1"));\n'+
+'}\n'+
+'if(light2===true&&vent2Open===true&&where9===6){\n'+
+'image(getImage("avatars/aqualine-seed"),250,130);\n'+
+'playSound(getSound("retro/laser1"));\n'+
+'}\n'+
+'if(light2===true){\n'+
+'    fill(255, 255,255,random(100,110));\n'+
+'    rect(250,75,125,175);\n'+
+'}\n'+
+'    fill(124);\n'+
+'    beginShape();\n'+
+'    vertex(0,0);\n'+
+'    vertex(0,400);\n'+
+'    vertex(25,400);\n'+
+'    vertex(25,75);\n'+
+'    vertex(375,75);\n'+
+'    vertex(375,400);\n'+
+'    vertex(400,400);\n'+
+'    vertex(400,0);\n'+
+'    endShape();\n'+
+'    beginShape();\n'+
+'    vertex(25,400);\n'+
+'    vertex(375,400);\n'+
+'    vertex(375,250);\n'+
+'    vertex(250,250);\n'+
+'    vertex(250,75);\n'+
+'    vertex(150,75);\n'+
+'    vertex(150,250);\n'+
+'    vertex(25,250);\n'+
+'    endShape();\n'+
+'    fill(0);\n'+
+'    textSize(30);\n'+
+'text(ceil(air/100)+"%",60,20);\n'+
+'    fill(255, 255, 0);\n'+
+'    rect(155,150,90,125);\n'+
+'    fill(255);\n'+
+'    textAlign(LEFT,BASELINE);\n'+
+'    textSize(15);\n'+
+'    text("Fill\nWith\nAir",155,110);\n'+
+'    rect(190,90,50,50);\n'+
+'    fill(0);\n'+
+'    rect(190,155,20,100);\n'+
+'    fill(0, 0, 255);\n'+
+'    rect(190,255,20,-reserve/25);\n'+
+'    if(mouseX>=190&&mouseX<=240&&mouseY>=90&&mouseY<=140&&mouseIsPressed&&reserve<2500&&air>9){\n'+
+'    air-=10;\n'+
+'    reserve+=5;\n'+
+'    }\n'+
+'    textAlign(CENTER,CENTER);\n'+
+'    //Camera\n'+
+'if(cameraUp===true&&cameraOpen>=0){\n'+
+'cameraOpen-=40;\n'+
+'}\n'+
+'else if(cameraUp===false){\n'+
+'cameraOpen+=40;\n'+
+'}\n'+
+'blink+=1;\n'+
+'if(blink===50){\n'+
+'blink=0;\n'+
+'}\n'+
+'cameraOpen=constrain(cameraOpen,0,height);\n'+
+'fill(cameraOpen/3+100);\n'+
+'if(cameraOpen>0){\n'+
+'quad(0,height,cameraOpen/3,cameraOpen,-cameraOpen/3+width,cameraOpen,width,height);\n'+
+'fill(cameraOpen/3);\n'+
+'quad(10,height,cameraOpen/3+10,cameraOpen+10,-cameraOpen/3+width-10,cameraOpen+10,width-10,height);\n'+
+'}\n'+
+'//Update Cams Here\n'+
+'if(cameraUp===true&&cameraOpen===0){\n'+
+'power-=5;\n'+
+'background(0);\n'+
+'fill(100);\n'+
+'rect(0,0,10,height);\n'+
+'rect(0,0,width,10);\n'+
+'rect(width-10,0,10,height);\n'+
+'fill(100);\n'+
+'rect(20,50,power/100,20);\n'+
+'fill(0,255,0);\n'+
+'textSize(30);\n'+
+'text("Vent: "+vent,70,100);\n'+
+'for(var d=0;d<=2000;d++){\n'+
+'noStroke();\n'+
+'fill(d,d,d,random(10,12));\n'+
+'rect(random(-30,430),random(-30,430),random(10,30),2);\n'+
+'}\n'+
+'fill(255,255,255,20);\n'+
+'rect(0,barPosition+random(0,5),400,50);\n'+
+'barPosition+=random(0.25,0.5);\n'+
+'if(barPosition>=400) {\n'+
+'barPosition=-50;\n'+
+'}\n'+
+'    if(vent===1){\n'+
+'    if(where7===1){\n'+
+'image(getImage("avatars/leafers-seed"),100,150);\n'+
+'}\n'+
+'if(where8===1){\n'+
+'image(getImage("avatars/primosaur-seed"),200,150);\n'+
+'}\n'+
+'if(where9===1){\n'+
+'    image(getImage("avatars/aqualine-seed"),25,250);    \n'+
+'    }\n'+
+'    if(where10<5){\n'+
+'    image(getImage("avatars/piceratops-seed"),100 + (where10*25),250);\n'+
+'    }\n'+
+'}\n'+
+'    if(vent===2){\n'+
+'    fill(255);\n'+
+'    rect(100,150,200,100);\n'+
+'    image(getImage("avatars/leaf-green"),100,150,50,50);\n'+
+'    fill(0);\n'+
+'    textSize(20);\n'+
+'    text("KA Air Systems",230,170);\n'+
+'    if(circulator>2400){\n'+
+'    fill(0, 255, 255);\n'+
+'    rect(105,225,circulator/20,20);\n'+
+'    }\n'+
+'    if(circulator>1800&&circulator<2401){\n'+
+'    fill(0, 255, 0);\n'+
+'    rect(105,225,circulator/20,20);\n'+
+'    }\n'+
+'    if(circulator>1200&&circulator<1801){\n'+
+'    fill(255, 255, 0);\n'+
+'    rect(105,225,circulator/20,20);\n'+
+'    }\n'+
+'    if(circulator>600&&circulator<1201){\n'+
+'    fill(255, 124, 0);\n'+
+'    rect(105,225,circulator/20,20);\n'+
+'    }\n'+
+'    if(circulator>0&&circulator<601){\n'+
+'    fill(255, 0, 0);\n'+
+'    rect(105,225,circulator/20,20);\n'+
+'    }\n'+
+'    fill(124);\n'+
+'    rect(162,290,75,50);\n'+
+'    fill(255);\n'+
+'    text("Restart",200,310);\n'+
+'    if(where7===2){\n'+
+'    image(getImage("avatars/leafers-seed"),0,150);\n'+
+'    }\n'+
+'    if(where8===2 || where8 === 3 || where8 === 4 || where8 === 5 || where8 === 6){\n'+
+'    image(getImage("avatars/primosaur-seed"),100+(where8*25),150);\n'+
+'    }\n'+
+'    if(where9===2){\n'+
+'    image(getImage("avatars/aqualine-seed"),0,150);\n'+
+'    }\n'+
+'    if(where10===5){\n'+
+'    image(getImage("avatars/piceratops-seed"),150,0);\n'+
+'    }\n'+
+'    if(mouseX>=160&&mouseX<=240&&mouseY>=290&&mouseY<=340&&mouseIsPressed&&circulator<3000){\n'+
+'        circulator=3000;\n'+
+'        fill(200);\n'+
+'    rect(160,290,80,50);\n'+
+'    fill(255);\n'+
+'        text("Restart",200,310);\n'+
+'    playSound(getSound("rpg/hit-clop"));\n'+
+'    if(where10===5){\n'+
+'    where10=round(random(0.4,2.4));\n'+
+'    }\n'+
+'    }\n'+
+'    }\n'+
+'    if(vent===3){\n'+
+'    fill(124);\n'+
+'    rect(160,290,80,50);\n'+
+'    fill(255);\n'+
+'    text("Zap",200,310);\n'+
+'    if(where8===7){\n'+
+'    image(getImage("avatars/primosaur-seed"),200,50);\n'+
+'    }   \n'+
+'    if(where9===3||where9===4){\n'+
+'    image(getImage("avatars/aqualine-seed"),100,150);    \n'+
+'    }\n'+
+'    if(where10===2){\n'+
+'    image(getImage("avatars/piceratops-seed"),200,150);\n'+
+'    }\n'+
+'    if(mouseX>=160&&mouseX<=240&&mouseY>=290&&mouseY<=340&&mouseIsPressed&&power>=500&&where8===7){\n'+
+'        where8=round(random(0.5,2.4));\n'+
+'        crazyTimerB=0;\n'+
+'        fill(200);\n'+
+'    rect(160,290,80,50);\n'+
+'    fill(255);\n'+
+'        text("Zap",200,310);\n'+
+'    playSound(getSound("retro/laser1"));\n'+
+'    }\n'+
+'            fill(124);\n'+
+'    rect(160,290,80,50);\n'+
+'    fill(255);\n'+
+'        text("Zap",200,310);\n'+
+'    }\n'+
+'    if(vent===4){\n'+
+'    if(where9===5){\n'+
+'    image(getImage("avatars/aqualine-seed"),200,150);\n'+
+'    }\n'+
+'    }\n'+
+'    if(vent===5){\n'+
+'    if(where7===3 || where7===4){\n'+
+'    image(getImage("avatars/leafers-seed"),75+(50*where7),150);\n'+
+'    }\n'+
+'    if(where10===4){\n'+
+'        image(getImage("avatars/piceratops-seed"),200,50);\n'+
+'    }\n'+
+'    }\n'+
+'    if(crazyTimerA===150){\n'+
+'if(round(random(0.5,100.4))>95){\n'+
+'fill(100, 175, 100);\n'+
+'triangle(200,50,50,325,350,325);\n'+
+'fill(255);\n'+
+'ellipse(200,225,175,50);\n'+
+'fill(0);\n'+
+'ellipse(200,225,50,50);\n'+
+'fill(100,175,100);\n'+
+'textSize(30);\n'+
+'text("ILLUMINATI CONFIRMED",200,30);\n'+
+'}\n'+
+'}\n'+
+'}\n'+
+'textSize(30);\n'+
+'if(cameraUp===true&&cameraOpen===0&&blink>10){\n'+
+'fill(255,0,0);\n'+
+'ellipse(30,30,20,20);\n'+
+'}\n'+
+'    //The HUD\n'+
+'        noFill();\n'+
+'stroke(255,255,255,200);\n'+
+'strokeWeight(2);\n'+
+'rect(5,height-55,width-10,50,10);\n'+
+'line(width/2,height-35,width/2+50,height-45);\n'+
+'line(width/2,height-25,width/2+50,height-35);\n'+
+'line(width/2,height-15,width/2+50,height-25);\n'+
+'line(width/2,height-35,width/2-50,height-45);\n'+
+'line(width/2,height-25,width/2-50,height-35);\n'+
+'line(width/2,height-15,width/2-50,height-25);\n'+
+'rect(5,height-110,50,50,10);\n'+
+'rect(width-55,height-110,50,50,10);\n'+
+'fill(255,255,255,200);\n'+
+'textSize(50);\n'+
+'text("☀",30,height-88);\n'+
+'text("☀",370,height-88);\n'+
+'noFill();\n'+
+'rect(60,height-110,100,50,10);\n'+
+'rect(240,height-110,100,50,10);\n'+
+'fill(255,255,255,200);\n'+
+'textSize(30);\n'+
+'text("Vent.",112,height-88);\n'+
+'text("Vent.",293,height-88);\n'+
+'if(cameraUp===false){\n'+
+' fill(50);\n'+
+'rect(25,75,125,vent1);\n'+
+'rect(250,75,125,vent2);   \n'+
+'}\n'+
+'}\n'+
+'/**Things that are not affected by camType**/\n'+
+'/****/\n'+
+'if(vent1Open===false){\n'+
+'    vent1+=5;\n'+
+'}\n'+
+'if(vent1Open===true){\n'+
+'    vent1-=1;\n'+
+'}\n'+
+'if(vent1>175){\n'+
+'    vent1=175;\n'+
+'}\n'+
+'if(vent1<0){\n'+
+'    vent1=0;\n'+
+'}\n'+
+'if(vent2Open===false){\n'+
+'    vent2+=5;\n'+
+'}\n'+
+'if(vent2Open===true){\n'+
+'    vent2-=1;\n'+
+'}\n'+
+'if(vent2>175){\n'+
+'    vent2=175;\n'+
+'}\n'+
+'if(vent2<0){\n'+
+'    vent2=0;\n'+
+'}\n'+
+'if(keyIsPressed&&keyCode===SHIFT){\n'+
+'    camType=1;\n'+
+'}\n'+
+'if(keyIsPressed&&keyCode===ALT || keyIsPressed&&keyCode===17){\n'+
+'    camType=2;\n'+
+'}\n'+
+'noStroke();\n'+
+'if(vent1Open&&vent2Open){\n'+
+'    if(circulator>0&&air<10000){\n'+
+'    air+=3;\n'+
+'    }\n'+
+'    if(circulator===0&&air>0){\n'+
+'        air-=2;\n'+
+'    }\n'+
+'}\n'+
+'if(vent1Open&&!vent2Open&&circulator===0&&air>0){\n'+
+'air-=5;\n'+
+'}\n'+
+'if(!vent1Open&&vent2Open&&circulator===0&&air>0){\n'+
+'air-=5;\n'+
+'}\n'+
+'if(!vent1Open&&!vent2Open&&air>0){\n'+
+'    air-=7;\n'+
+'}\n'+
+'if(air>10000){\n'+
+'    air=10000;\n'+
+'}\n'+
+'if(air<0){\n'+
+'    air=0;\n'+
+'}\n'+
+'if(door1Open===true&&where1===5&&lrTime===0){\n'+
+'outsideTimer+=0.5;\n'+
+'}else if(door1Open===false&&where1===5||lrTime>0){\n'+
+'outsideTimer-=1.5;\n'+
+'}\n'+
+'if(door2Open===true&&where2===6&&rrTime===0){\n'+
+'    if(rrTime>0){\n'+
+'        outsideTimer-=1.5;\n'+
+'    } else {\n'+
+'       outsideTimer+=1; \n'+
+'    }\n'+
+'}else if(door2Open===false&&where2===6||rrTime>0){\n'+
+'outsideTimer-=1.5;\n'+
+'}\n'+
+'if(door1Open===true&&where3===5&&lrTime===0){\n'+
+'outsideTimer+=0.5;\n'+
+'}else if(door1Open===false&&where3===5||lrTime>0){\n'+
+'outsideTimer-=1.5;\n'+
+'}\n'+
+'if(door2Open===true&&where4===5&&rrTime===0){\n'+
+'    outsideTimer+=0.5;\n'+
+'}else if(door2Open===false&&where4===5||rrTime>0){\n'+
+'    outsideTimer-=1.5;\n'+
+'}\n'+
+'if(door1Open===true&&where5===4&&lrTime===0){\n'+
+'    outsideTimer+=1;\n'+
+'}else if(door1Open===false&&where5===4||lrTime>0){\n'+
+'    outsideTimer-=1.5;\n'+
+'}\n'+
+'if(door2Open===true&&where6===5&&rrTime===0){\n'+
+'    outsideTimer+=0.5;\n'+
+'}else if(door2Open===false&&where6===5||rrTime>0){\n'+
+'    outsideTimer-=1.5;\n'+
+'}\n'+
+'outsideTimer=constrain(outsideTimer,0,180);\n'+
+'if(outsideTimer===179){\n'+
+'    if(coolDown===0&&powerUp==="Mask"){\n'+
+'        outsideTimer=0;\n'+
+'        coolDown=9001;\n'+
+'        if(where1===5){\n'+
+'            where1=1;\n'+
+'        }\n'+
+'        if(where2===5){\n'+
+'            where2=1;\n'+
+'        }\n'+
+'        if(where3===5){\n'+
+'            where3=1;\n'+
+'        }\n'+
+'        if(where4===5){\n'+
+'            where4=1;\n'+
+'            musicBox=500;\n'+
+'            where4cd=600;\n'+
+'        }\n'+
+'        if(where5===4){\n'+
+'            where5=1;\n'+
+'        }\n'+
+'        if(where6===5){\n'+
+'            where6=1;\n'+
+'        }\n'+
+'    }\n'+
+'playSound(getSound("retro/thruster-long"));\n'+
+'playSound(getSound("retro/thruster-long"));\n'+
+'playSound(getSound("retro/thruster-long"));\n'+
+'playSound(getSound("retro/jump1"));\n'+
+'playSound(getSound("retro/coin"));\n'+
+'}\n'+
+'if(where7===5&&vent1Open&&crazyTimerA<150){\n'+
+'crazyTimerA+=1;\n'+
+'}\n'+
+'if(where7===5&&!vent1Open){\n'+
+'if(crazyTimerA>1){\n'+
+'    crazyTimerA-=1;\n'+
+'} else {\n'+
+'    where7=1;\n'+
+'}\n'+
+'}\n'+
+'if(where8===7&&crazyTimerB<150&&!vent2Open){\n'+
+'crazyTimerB-=1;\n'+
+'}\n'+
+'if(where9===6&&!vent2Open){\n'+
+'if(crazyTimerC>1){\n'+
+'    crazyTimerC-=1;\n'+
+'} else {\n'+
+'    where9=1;\n'+
+'}\n'+
+'}\n'+
+'if(where9===6&&crazyTimerC<150&&vent2Open){\n'+
+'crazyTimerC+=1;\n'+
+'}\n'+
+'if(outsideTimer===180){\n'+
+'power=0;\n'+
+'jump*=1.4;\n'+
+'imageMode(CENTER);\n'+
+'if(where1===5){\n'+
+'image(getImage("creatures/Hopper-Jumping"),width/2,height/2,jump,jump);\n'+
+'}else if(where2===5){\n'+
+'image(getImage("avatars/orange-juice-squid"),width/2,height/2,jump,jump);\n'+
+'}else if(where3===5){\n'+
+'image(getImage("creatures/Winston"),width/2,height/2,jump,jump);\n'+
+'}else if(where4===5){\n'+
+'image(getImage("avatars/purple-pi"),width/2,height/2,jump,jump);\n'+
+'} else if(where5===4){\n'+
+'image(getImage("avatars/spunky-sam"),width/2,height/2,jump,jump);\n'+
+'} else if(where6===5){\n'+
+'    image(getImage("avatars/mr-pink"),width/2,height/2,jump,jump);\n'+
+'}\n'+
+'}\n'+
+'imageMode(CORNER);\n'+
+'fill(255,0,0);\n'+
+'//text(move1+" "+where1,200,200);\n'+
+'if(outsideTimer===0&&door1>200&&where1===5){\n'+
+'where1=0;\n'+
+'}\n'+
+'if(outsideTimer===0&&door2>200&&where2===5){\n'+
+'where2=0;\n'+
+'}\n'+
+'if(outsideTimer===0&&door1>200&&where3===5){\n'+
+'where3=0;\n'+
+'}\n'+
+'if(outsideTimer===0&&door2>200&&where4===5){\n'+
+'where4=1;\n'+
+'musicBox=500;\n'+
+'where4move=90;\n'+
+'where4cd=600;\n'+
+'powerRegen=600;\n'+
+'power-=2500;\n'+
+'}\n'+
+'if(outsideTimer===0&&door1>200&&where5===4){\n'+
+'where5=1;\n'+
+'}\n'+
+'if(outsideTimer===0&&door2>200&&where6===5){\n'+
+'    where6=1;\n'+
+'}\n'+
+'if(where4cd>0){\n'+
+'    where4cd-=1;\n'+
+'}\n'+
+'if(door1Open&&door2Open&&!cameraUp&&powerRegen===0){\n'+
+'    power+=5;\n'+
+'}\n'+
+'if(cameraUp===false){\n'+
+' if(musicBox<=200&&musicBox>100){\n'+
+'        fill(255, 255, 0);\n'+
+'        triangle(160,340,240,340,200,300);\n'+
+'    }\n'+
+'    if(musicBox<=100&&musicBox>0){\n'+
+'        fill(255, 124, 0);\n'+
+'        triangle(160,340,240,340,200,300);\n'+
+'    }\n'+
+'    if(musicBox<1){\n'+
+'        fill(255, 0, 0);\n'+
+'        triangle(160,340,240,340,200,300);\n'+
+'        if(where4<4){\n'+
+'                   where4move-=1; \n'+
+'        }\n'+
+'    }   \n'+
+'}\n'+
+'if(where4move===0&&where4<4){\n'+
+'        where4+=1;\n'+
+'        where4move=90;\n'+
+'    }\n'+
+'if(musicBox<0){\n'+
+'        musicBox=0;\n'+
+'    }\n'+
+'if(circulator>0){\n'+
+'if(where10===5){\n'+
+'circulatorDrain=2;\n'+
+'} else {\n'+
+'circulatorDrain=1;\n'+
+'}\n'+
+'circulator-=circulatorDrain;\n'+
+'}\n'+
+'if(!where4cd){\n'+
+'   musicBox-=0.0625*ai4; \n'+
+'}\n'+
+'fill(255, 0, 0);\n'+
+'if(where6===4){\n'+
+'    power-=2;\n'+
+'}\n'+
+'if(keyIsPressed&&keyCode===17&&coolDown<1){\n'+
+'if(powerUp==="LR"){\n'+
+'coolDown=3600;\n'+
+'lrTime=1200;\n'+
+'    }\n'+
+'if(powerUp==="RR"){\n'+
+'    coolDown=3600;\n'+
+'    rrTime=1200;\n'+
+'}\n'+
+'if(powerUp==="PowerUp"){\n'+
+'    power+=2500;\n'+
+'    powerRegen=0;\n'+
+'    coolDown=5400;\n'+
+'}\n'+
+'if(powerUp==="WinstonD"){\n'+
+'    coolDown=2700;\n'+
+'    winstonTime=600;\n'+
+'    where4=1;\n'+
+'}\n'+
+'if(powerUp==="Winder"){\n'+
+'    coolDown=7200;\n'+
+'    where4cd=1800;\n'+
+'    where4=1;\n'+
+'    musicBox=500;\n'+
+'}\n'+
+'if(powerUp==="Attractor"){\n'+
+'   coolDown=4500;\n'+
+'   where1=1;\n'+
+'   where2=1;\n'+
+'   where5=1;\n'+
+'}\n'+
+'if(powerUp==="Diverger"){\n'+
+'    coolDown=3600;\n'+
+'    where3=1;\n'+
+'    where6=1;\n'+
+'    fuzzyWait=1200;\n'+
+'}\n'+
+'if(powerUp==="Bonus"){\n'+
+'    coolDown=1800;\n'+
+'    score+=25;\n'+
+'}\n'+
+'if(powerUp==="Trap"){\n'+
+'    trapTime=1800;\n'+
+'    coolDown=7200;\n'+
+'}\n'+
+'}\n'+
+'if(trapTime>0){\n'+
+'    if(where1===5||where3===5||where5===4){\n'+
+'    playSound(getSound("rpg/battle-magic"));\n'+
+'    }\n'+
+'    if(where2===5||where4===5||where6===5){\n'+
+'    playSound(getSound("rpg/metal-clink"));\n'+
+'    }\n'+
+'}\n'+
+'//text(outsideTimer,100,30);\n'+
+'textSize(20);\n'+
+'if(!cameraUp){\n'+
+'    if(powerUp!=="None"){\n'+
+'       text("Cooldown: "+floor(coolDown/60),200,50);   \n'+
+'    }\n'+
+'if(powerUp==="LR"){\n'+
+'text("Power Up Time: "+floor(lrTime/60),200,100);   \n'+
+'}\n'+
+'if(powerUp==="RR"){\n'+
+'text("Power Up Time: "+floor(rrTime/60),200,100);  \n'+
+'}\n'+
+'if(powerUp==="Trap"){\n'+
+' text("Power Up Time: "+floor(trapTime/60),200,100);     \n'+
+'}\n'+
+'if(crazyTimerC===150){\n'+
+'fill(255, 0, 0, 100);\n'+
+'textSize(50);\n'+
+'playSound(getSound("rpg/giant-hyah"));\n'+
+'crazyTimerC = 0;\n'+
+'}\n'+
+'   }\n'+
+'if(cameraUp){\n'+
+'      coolDown-=1;\n'+
+'lrTime-=1; \n'+
+'if(coolDown<0){\n'+
+'    coolDown=0;{\n'+
+'    }\n'+
+'}\n'+
+'if(lrTime<0){\n'+
+'    lrTime=0;\n'+
+'}\n'+
+'   }\n'+
+'coolDown-=1;\n'+
+'lrTime-=1;\n'+
+'rrTime-=1;\n'+
+'winstonTime-=1;\n'+
+'fuzzyWait-=1;\n'+
+'trapTime-=1;\n'+
+'if(coolDown<0){\n'+
+'    coolDown=0;\n'+
+'}\n'+
+'if(lrTime<0){\n'+
+'    lrTime=0;\n'+
+'}\n'+
+'if(rrTime<0){\n'+
+'    rrTime=0;\n'+
+'}\n'+
+'if(winstonTime<0){\n'+
+'    winstonTime-=1;\n'+
+'}\n'+
+'if(trapTime<0){\n'+
+'    trapTime=0;\n'+
+'}\n'+
+'if(fuzzyWait<0){\n'+
+'    fuzzyWait=0;\n'+
+'}\n'+
+'if(air<1000){\n'+
+'fill(0,0,0,200);\n'+
+'rect(-5,-5,500,500);\n'+
+'} else if(air<2000){\n'+
+'fill(0,0,0,175);\n'+
+'rect(-5,-5,500,500);\n'+
+'} else if(air<3000){\n'+
+'fill(0,0,0,124);\n'+
+'rect(-5,-5,500,500);\n'+
+'} else if(air<4000){\n'+
+'fill(0,0,0,100);\n'+
+'rect(-5,-5,500,500);\n'+
+'} else if(air<5000){\n'+
+'fill(0,0,0,50);\n'+
+'rect(-5,-5,500,500);\n'+
+'}\n'+
+'\n'+
+'\n'+
+'if(air===0&&reserve===2500){\n'+
+'reserve=0;\n'+
+'vent1Open=true;\n'+
+'vent2Open=true;\n'+
+'circulator+=1500;\n'+
+'} else if (air===0&&reserve<2500){\n'+
+'jump=501;\n'+
+'}\n'+
+'if(jump>500){\n'+
+'        jump=501;\n'+
+'background(0);\n'+
+'fill(255);\n'+
+'var howLong=minute()-howLongMin;\n'+
+'textSize(20);\n'+
+'text("Your score is: "+score+"\nPress Control\n or Command to Restart",width/2,height/2);\n'+
+'textSize(20);\n'+
+'}\n'+
+'if(keyIsPressed&&keyCode===17&&jump>500){\n'+
+'Program.restart();\n'+
+'}\n'+
+'}\n'+
+'if(buttonspeed>0){\n'+
+'        buttonspeed-=1;\n'+
+'    }\n'+
+'};';
 window.liveEditor = new LiveEditor({
                 el: $("#sample-live-editor"),
                 code: code,
