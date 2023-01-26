@@ -6,6 +6,8 @@ WARNING: Archived programs may potentially trigger seizures for people with phot
 In order to run `live-editor` locally you'll have run a local web server.  If you have python installed this can be accomplished by running the following command from the `live-editor` folder:
 
     python -m SimpleHTTPServer
+Alternatively:
+    python -m http.server 8000
 
 You should see the following console output:
 
